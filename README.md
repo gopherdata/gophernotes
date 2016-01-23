@@ -12,6 +12,7 @@ This project came out of the [Gopher Gala](http://gophergala.com/) 2016.  It is 
 
 Examples:
 - [Simple Printing and Channels Example](https://github.com/gophergala2016/gophernotes/blob/master/examples/Simple-Example.ipynb)
+- [Pattern Recognition with Golearn](https://github.com/gophergala2016/gophernotes/blob/master/examples/Pattern-Recognition.ipynb)
 
 ## Jupyter Installation/Usage
 
