@@ -4,5 +4,5 @@
 
 ## Gopher Gala Status:
 
-~~Rewrite of some of the gore functionality to process messages from the notebook.~~
-Implement more intuitive error handling in the notebook, test the suite of functionality in the Jupyter notebook.
+- ~~Rewrite of some of the gore functionality to process messages from the notebook.~~
+- Implement more intuitive error handling in the notebook, test the suite of functionality in the Jupyter notebook.
