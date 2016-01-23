@@ -6,6 +6,10 @@
 
 This project came out of the [Gopher Gala](http://gophergala.com/) 2016.  It is based on a REPL called [gore](https://github.com/motemen/gore) and on a, no longer maintained and self-described limited, ipython kernel call [iGo](https://github.com/takluyver/igo).
 
+## Screenshots/Examples:
+
+![alt tag](https://raw.githubusercontent.com/gophergala2016/gophernotes/master/files/screencast.gif)
+
 ## Gopher Gala Status:
 
 - ~~Rewrite of some of the gore functionality to process messages from the notebook.~~
