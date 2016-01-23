@@ -4,26 +4,28 @@ package main
 
 import (
     "fmt"
-    //eval "github.com/sbinet/go-eval"
-    gore "github.com/motemen/gore"
+    eval "github.com/sbinet/go-eval"
+    repl "github.com/dwhitena/gophernotes/replpkg"
     "go/token"
 )
 
-// // World holds the user namespace for the REPL.
-// var World *eval.World
-// var fset *token.FileSet
-// // ExecCounter is incremented each time we run user code.
-// var ExecCounter int = 0
+// World holds the user namespace for the REPL.
+var World *eval.World
+var fset *token.FileSet
+// ExecCounter is incremented each time we run user code.
+var ExecCounter int = 0
 
 func SetupExecutionEnvironment() {
 
-    s, err := gore.NewSession()
+    REPLSession, err := repl.NewSession()
     if err != nil {
-        panic(err)
+     panic(err)
     }
 
-    // World = eval.NewWorld()
-    // fset = token.NewFileSet()
+    fmt.Println(REPLSession)
+
+    World = eval.NewWorld()
+    fset = token.NewFileSet()
 }
 
 // RunCode runs the given user code, returning the expression value and/or an error.
