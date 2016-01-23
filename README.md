@@ -17,10 +17,13 @@ Examples:
 
 - Make sure jupyter notebook is installed.  See [here](http://jupyter.readthedocs.org/en/latest/install.html) for more details.
 - Get the kernel:
+
   ```
   go get github.com/gophergala2016/gophernotes
   ```
+
 - Create a directory for the new kernel config:
+
   ```
   mkdir -p ~/.ipython/kernels/gophernotes
   ```
