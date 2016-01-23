@@ -18,12 +18,16 @@ var ExecCounter int = 0
 
 func SetupExecutionEnvironment() {
 
-    REPLSession, err := repl.NewSession()
+    var err error
+    REPLSession, err = repl.NewSession()
     if err != nil {
      panic(err)
     }
 
-    fmt.Println(REPLSession)
+    for _, imp := range REPLSession.File.Imports {
+        fmt.Println(imp.Name)
+        imp.Name = nil
+    }
 
     World = eval.NewWorld()
     fset = token.NewFileSet()
@@ -65,15 +69,23 @@ func HandleExecuteRequest(receipt MsgReceipt) {
         ExecCounter++
     }
     content["execution_count"] = ExecCounter
+
+    // this is where the magic will happen, need to replace the "RunCode" of go-eval
+    // with customer gore functionality
+
     //testerr := REPLSession.Eval(code)
-    fmt.Println(code)
-    val, err := RunCode(code)
+    val, err := REPLSession.Eval(code)
+    fmt.Println(err)
+    //val, err := RunCode(code)
+
+
+
     if err == nil {
         content["status"] = "ok"
         content["payload"] = make([]map[string]interface{}, 0)
         content["user_variables"] = make(map[string]string)
         content["user_expressions"] = make(map[string]string)
-        if (val != nil) && !silent {
+        if len(val) > 0 && !silent {
             var out_content OutputMsg
             out := NewMsg("pyout", receipt.Msg)
             out_content.Execcount = ExecCounter
