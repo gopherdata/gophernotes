@@ -106,9 +106,9 @@ func HandleShutdownRequest(receipt MsgReceipt) {
 }
 
 // RunKernel is the main entry point to start the kernel. This is what is called by the
-// igo executable.
+// gophernotes executable.
 func RunKernel(connection_file string, logwriter io.Writer) {
-    logger = log.New(logwriter, "igopkg ", log.LstdFlags)
+    logger = log.New(logwriter, "gophernotes ", log.LstdFlags)
     SetupExecutionEnvironment()
     var conn_info ConnectionInfo
     bs, err := ioutil.ReadFile(connection_file)

@@ -5,16 +5,26 @@ package main
 import (
     "fmt"
     eval "github.com/sbinet/go-eval"
+    repl "github.com/dwhitena/gophernotes/replpkg"
     "go/token"
 )
 
 // World holds the user namespace for the REPL.
+var REPLSession *repl.Session
 var World *eval.World
 var fset *token.FileSet
 // ExecCounter is incremented each time we run user code.
 var ExecCounter int = 0
 
 func SetupExecutionEnvironment() {
+
+    REPLSession, err := repl.NewSession()
+    if err != nil {
+     panic(err)
+    }
+
+    fmt.Println(REPLSession)
+
     World = eval.NewWorld()
     fset = token.NewFileSet()
 }
@@ -55,6 +65,8 @@ func HandleExecuteRequest(receipt MsgReceipt) {
         ExecCounter++
     }
     content["execution_count"] = ExecCounter
+    //testerr := REPLSession.Eval(code)
+    fmt.Println(code)
     val, err := RunCode(code)
     if err == nil {
         content["status"] = "ok"
