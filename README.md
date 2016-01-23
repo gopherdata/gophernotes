@@ -28,6 +28,24 @@ Examples:
   mkdir -p ~/.ipython/kernels/gophernotes
   ```
 
+- Copy the kernel config into the `.ipython` directory:
+
+  ```
+  cp -r $GOPATH/src/github.com/gophergala2016/gophernotes/kernel/* ~/.ipython/kernels/gophernotes
+  ```
+
+- Start the jupyter notebook:
+
+  ```
+  jupyter notebook
+  ```
+
+- Select `Golang` from the `New` drop down menu.
+- Have Fun!
+
+Possible Issues:
+- Depending on your environment, you may need to manually change the path to the `gophernotes` executable in `kernel/kernel.json` before copying it to `~/.ipython/kernels/gophernotes`.  You can put the **full path** to the `gophernotes` executable here, and you shouldn't have any further issues.
+
 ## Gopher Gala Status:
 
 - ~~Rewrite of some of the gore functionality to process messages from the notebook.~~
