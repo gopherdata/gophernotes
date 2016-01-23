@@ -1,6 +1,6 @@
 {
     "argv": [
-    	"/home/dwhitena/Dropbox/go-projects/bin/gophernotes", 
+    	"$GOPATH/bin/gophernotes", 
     	"{connection_file}"
     	],
     "display_name": "Golang",
