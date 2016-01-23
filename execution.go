@@ -24,11 +24,6 @@ func SetupExecutionEnvironment() {
      panic(err)
     }
 
-    for _, imp := range REPLSession.File.Imports {
-        fmt.Println(imp.Name)
-        imp.Name = nil
-    }
-
     World = eval.NewWorld()
     fset = token.NewFileSet()
 }
@@ -74,8 +69,7 @@ func HandleExecuteRequest(receipt MsgReceipt) {
     // with customer gore functionality
 
     //testerr := REPLSession.Eval(code)
-    val, err := REPLSession.Eval(code)
-    fmt.Println(err)
+    val, err, stderr := REPLSession.Eval(code)
     //val, err := RunCode(code)
 
 
@@ -99,9 +93,11 @@ func HandleExecuteRequest(receipt MsgReceipt) {
         content["status"] = "error"
         content["ename"] = "ERROR"
         content["evalue"] = err.Error()
-        content["traceback"] = []string{err.Error()}
+        //content["traceback"] = []string{err.Error()}
+        content["traceback"] = []string{stderr.String()}
         errormsg := NewMsg("pyerr", receipt.Msg)
-        errormsg.Content = ErrMsg{"Error", err.Error(), []string{err.Error()}}
+        //errormsg.Content = ErrMsg{"Error", err.Error(), []string{err.Error()}}
+        errormsg.Content = ErrMsg{"Error", err.Error(), []string{stderr.String()}}
         receipt.SendResponse(receipt.Sockets.IOPub_socket, errormsg)
     }
     reply.Content = content
