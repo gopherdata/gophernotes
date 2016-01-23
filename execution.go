@@ -66,7 +66,7 @@ func HandleExecuteRequest(receipt MsgReceipt) {
     }
     content["execution_count"] = ExecCounter
     //testerr := REPLSession.Eval(code)
-    fmt.Println(testerr)
+    fmt.Println(code)
     val, err := RunCode(code)
     if err == nil {
         content["status"] = "ok"
