@@ -58,5 +58,6 @@ Possible Issues:
 - ~~Rewrite of some of the gore functionality to process messages from the notebook.~~
 - ~~Implement more intuitive error handling in the notebook, test the suite of functionality in the Jupyter notebook.~~
 - ~~Refactor, loggings~~
-- Examples, screenshots, installation
+- ~~Examples, screenshots, installation~~
 - Troubleshoot errors, unit testing
+- Apache Zeppelin installation
