@@ -10,6 +10,7 @@ import (
 )
 
 // World holds the user namespace for the REPL.
+var REPLSession *repl.Session
 var World *eval.World
 var fset *token.FileSet
 // ExecCounter is incremented each time we run user code.
@@ -64,6 +65,8 @@ func HandleExecuteRequest(receipt MsgReceipt) {
         ExecCounter++
     }
     content["execution_count"] = ExecCounter
+    //testerr := REPLSession.Eval(code)
+    fmt.Println(testerr)
     val, err := RunCode(code)
     if err == nil {
         content["status"] = "ok"
