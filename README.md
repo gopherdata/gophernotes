@@ -13,6 +13,18 @@ This project came out of the [Gopher Gala](http://gophergala.com/) 2016.  It is 
 Examples:
 - [Simple Printing and Channels Example](https://github.com/gophergala2016/gophernotes/blob/master/examples/Simple-Example.ipynb)
 
+## Jupyter Installation/Usage
+
+- Make sure jupyter notebook is installed.  See [here](http://jupyter.readthedocs.org/en/latest/install.html) for more details.
+- Get the kernel:
+  ```
+  go get github.com/gophergala2016/gophernotes
+  ```
+- Create a directory for the new kernel config:
+  ```
+  mkdir -p ~/.ipython/kernels/gophernotes
+  ```
+
 ## Gopher Gala Status:
 
 - ~~Rewrite of some of the gore functionality to process messages from the notebook.~~
