@@ -10,6 +10,9 @@ This project came out of the [Gopher Gala](http://gophergala.com/) 2016.  It is 
 
 ![alt tag](https://raw.githubusercontent.com/gophergala2016/gophernotes/master/files/screencast.gif)
 
+Examples:
+- [Simple Printing and Channels Example](https://github.com/gophergala2016/gophernotes/blob/master/examples/Simple-Example.ipynb)
+
 ## Gopher Gala Status:
 
 - ~~Rewrite of some of the gore functionality to process messages from the notebook.~~
