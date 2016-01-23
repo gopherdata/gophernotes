@@ -55,13 +55,6 @@ func init() {
 			document: "write out current source",
 		},
 		{
-			name:     "doc",
-			action:   actionDoc,
-			complete: completeDoc,
-			arg:      "<expr or pkg>",
-			document: "show documentation",
-		},
-		{
 			name:     "help",
 			action:   actionHelp,
 			document: "show this help",
@@ -149,21 +142,6 @@ func completeImport(s *Session, prefix string) []string {
 				}
 			}
 		}
-	}
-
-	return result
-}
-
-func completeDoc(s *Session, prefix string) []string {
-	pos, cands, err := s.completeCode(prefix, len(prefix), false)
-	if err != nil {
-		errorf("completeCode: %s", err)
-		return nil
-	}
-
-	result := make([]string, 0, len(cands))
-	for _, c := range cands {
-		result = append(result, prefix[0:pos]+c)
 	}
 
 	return result

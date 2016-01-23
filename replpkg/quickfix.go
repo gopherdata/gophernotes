@@ -90,7 +90,7 @@ quickFixAttempt:
 }
 
 func (s *Session) clearQuickFix() {
-	
+
 	// make all import specs explicit (i.e. no "_").
 	for _, imp := range s.File.Imports {
 		imp.Name = nil

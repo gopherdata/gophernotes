@@ -10,6 +10,7 @@ import (
 var debug bool
 
 func debugf(format string, args ...interface{}) {
+
 	if !debug {
 		return
 	}
