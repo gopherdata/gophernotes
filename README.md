@@ -10,4 +10,6 @@ This project came out of the [Gopher Gala](http://gophergala.com/) 2016.  It is 
 
 - ~~Rewrite of some of the gore functionality to process messages from the notebook.~~
 - ~~Implement more intuitive error handling in the notebook, test the suite of functionality in the Jupyter notebook.~~
-- Refactor, loggings, examples
+- ~~Refactor, loggings~~
+- Examples, screenshots, installation
+- Troubleshoot errors, unit testing
