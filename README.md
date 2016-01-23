@@ -2,7 +2,9 @@
 
 # gophernotes - Go in Notebooks
 
-`gophernotes` is a Go kernel for [Jupyter](http://jupyter.org/) and Apache Zeppelin notebooks.  Finally, we can have a reliable and maintained way to use Go interactively and code in the browser!  This project is part of the Gopher Gala 2016, and is based on some work by [motemen](https://github.com/motemen) on a REPL called [gore](https://github.com/motemen/gore) and based on a no longer maintained and self-described as limited ipython kernel call [iGo](https://github.com/takluyver/igo).
+`gophernotes` is a Go kernel for [Jupyter](http://jupyter.org/) and Apache Zeppelin notebooks.  Finally, we can have a reliable and maintained way to use Go interactively and code in the browser.  Go forth and do data science, or anything else interesting, with go notebooks!
+
+This project came out of the [Gopher Gala](http://gophergala.com/) 2016.  It is based on a REPL called [gore](https://github.com/motemen/gore) and on a, no longer maintained and self-described limited, ipython kernel call [iGo](https://github.com/takluyver/igo).
 
 ## Gopher Gala Status:
 
