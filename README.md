@@ -12,7 +12,7 @@ This project came out of the [Gopher Gala](http://gophergala.com/) 2016.  It is 
 
 ![alt tag](https://raw.githubusercontent.com/gophergala2016/gophernotes/master/files/screencast.gif)
 
-### Telling a story and performing pattern recognition with Markdown and Golang
+### Story telling and pattern recognition with Markdown and Golang
 
 ![alt tag](https://raw.githubusercontent.com/gophergala2016/gophernotes/master/files/pr-screenshot.png)
 
