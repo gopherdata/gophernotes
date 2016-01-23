@@ -18,5 +18,5 @@ func main() {
     if !*debug {
         logwriter = ioutil.Discard
     }
-    igo.RunKernel(flag.Arg(0), logwriter)
+    RunKernel(flag.Arg(0), logwriter)
 }
