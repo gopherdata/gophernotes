@@ -227,15 +227,15 @@ func (s *Session) mainFunc() *ast.FuncDecl {
 	return s.File.Scope.Lookup("main").Decl.(*ast.FuncDecl)
 }
 
-func (s *Session) Run() error {
+func (s *Session) Run() ([]byte, error) {
 	f, err := os.Create(s.FilePath)
 	if err != nil {
-		return err
+		return []byte{}, err
 	}
 
 	err = printer.Fprint(f, s.Fset, s.File)
 	if err != nil {
-		return err
+		return []byte{}, err
 	}
 
 	return goRun(append(s.ExtraFilePaths, s.FilePath))
@@ -255,14 +255,15 @@ func tempFile() (string, error) {
 	return filepath.Join(dir, "gore_session.go"), nil
 }
 
-func goRun(files []string) error {
+func goRun(files []string) ([]byte, error) {
 	args := append([]string{"run"}, files...)
 	debugf("go %s", strings.Join(args, " "))
 	cmd := exec.Command("go", args...)
 	cmd.Stdin = os.Stdin
-	cmd.Stdout = os.Stdout
+	//cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
-	return cmd.Run()
+	return cmd.Output()
+	//return cmd.Run()
 }
 
 func (s *Session) evalExpr(in string) (ast.Expr, error) {
@@ -378,7 +379,7 @@ func (s *Session) reset() error {
 	return nil
 }
 
-func (s *Session) Eval(in string) error {
+func (s *Session) Eval(in string) (string, error) {
 	debugf("eval >>> %q", in)
 
 	s.clearQuickFix()
@@ -396,7 +397,7 @@ func (s *Session) Eval(in string) error {
 			err := command.action(s, arg)
 			if err != nil {
 				if err == ErrQuit {
-					return err
+					return "", err
 				}
 				errorf("%s: %s", command.name, err)
 			}
@@ -407,7 +408,7 @@ func (s *Session) Eval(in string) error {
 
 	if commandRan {
 		s.doQuickFix()
-		return nil
+		return "", nil
 	}
 
 	if _, err := s.evalExpr(in); err != nil {
@@ -418,7 +419,7 @@ func (s *Session) Eval(in string) error {
 			debugf("stmt :: err = %s", err)
 
 			if _, ok := err.(scanner.ErrorList); ok {
-				return ErrContinue
+				return "", ErrContinue
 			}
 		}
 	}
@@ -428,7 +429,7 @@ func (s *Session) Eval(in string) error {
 	}
 	s.doQuickFix()
 
-	err := s.Run()
+	output, err := s.Run()
 	if err != nil {
 		if exitErr, ok := err.(*exec.ExitError); ok {
 			// if failed with status 2, remove the last statement
@@ -442,7 +443,7 @@ func (s *Session) Eval(in string) error {
 		errorf("%s", err)
 	}
 
-	return err
+	return string(output), err
 }
 
 // storeMainBody stores current state of code so that it can be restored
