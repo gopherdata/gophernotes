@@ -8,9 +8,15 @@ This project came out of the [Gopher Gala](http://gophergala.com/) 2016.  It is 
 
 ## Screenshots/Examples:
 
+Simple interactive use in Jupyter:
+
 ![alt tag](https://raw.githubusercontent.com/gophergala2016/gophernotes/master/files/screencast.gif)
 
-Examples:
+Telling a story and performing pattern recognition with Markdown and Golang:
+
+![alt tag](https://raw.githubusercontent.com/gophergala2016/gophernotes/master/files/pr-screenshot.png)
+
+Example Notebooks:
 - [Simple Printing and Channels Example](https://github.com/gophergala2016/gophernotes/blob/master/examples/Simple-Example.ipynb)
 - [Pattern Recognition with Golearn](https://github.com/gophergala2016/gophernotes/blob/master/examples/Pattern-Recognition.ipynb)
 
