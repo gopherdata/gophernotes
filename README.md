@@ -78,7 +78,7 @@ Possible Issues:
 *Note* - this is a pretty large image, because it contains a full distribution of [Anaconda](http://docs.continuum.io/anaconda/index) plus the add ons of gophernotes.  However, with this image, you can create Go notebooks, Python notebooks, text files, run ipython in the shell, etc.
 
 ## Custom Commands
-Some of the custom commands from the [gore](https://github.com/motemen/gore) REPL have carried over to `gophernotes`.  Note in particular the syntax for importing packages:
+Some of the custom commands from the [gore](https://github.com/motemen/gore) REPL have carried over to `gophernotes`.  Note, in particular, the syntax for importing packages:
 
 ```
 :import <package path>  Import package
