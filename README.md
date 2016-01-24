@@ -70,4 +70,5 @@ Some of the custom commands from the [gore](https://github.com/motemen/gore) REP
 - ~~Refactor, loggings~~
 - ~~Examples, screenshots, installation~~
 - Troubleshoot errors, unit testing
+- Godep
 - Dockerfile?
