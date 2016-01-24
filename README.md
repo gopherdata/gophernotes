@@ -22,6 +22,7 @@ This project came out of the [Gopher Gala](http://gophergala.com/) 2016.  It is 
 - [Feed Forward, Recurrent Neural Nets](https://github.com/gophergala2016/gophernotes/blob/master/examples/Feed-Forward-Recurrent-NN.ipynb)
 - [Time Parsing, Formatting](https://github.com/gophergala2016/gophernotes/blob/master/examples/Time-Formatting-Parsing.ipynb)
 - [Stateful Goroutines](https://github.com/gophergala2016/gophernotes/blob/master/examples/Stateful-Goroutines.ipynb)
+- [Worker Pools](https://github.com/gophergala2016/gophernotes/blob/master/examples/Worker-Pools.ipynb)
 
 ## Jupyter Installation/Usage
 
