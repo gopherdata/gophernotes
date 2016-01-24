@@ -136,7 +136,7 @@ func (s *Session) mainFunc() *ast.FuncDecl {
 	return s.File.Scope.Lookup("main").Decl.(*ast.FuncDecl)
 }
 
-// Run call "go run" with appropriate files appended
+// Run calls "go run" with appropriate files appended
 func (s *Session) Run() ([]byte, error, bytes.Buffer) {
 	f, err := os.Create(s.FilePath)
 	if err != nil {
