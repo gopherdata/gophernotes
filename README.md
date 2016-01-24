@@ -8,7 +8,7 @@ This project came out of the [Gopher Gala](http://gophergala.com/) 2016.  It is 
 
 ## Screenshots/Examples
 
-### Simple interactive use in Jupyter:
+### Simple interactive use:
 
 ![alt tag](https://raw.githubusercontent.com/gophergala2016/gophernotes/master/files/screencast.gif)
 
