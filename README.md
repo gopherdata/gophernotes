@@ -2,13 +2,13 @@
 
 # gophernotes - Go in Notebooks
 
-`gophernotes` is a Go kernel for [Jupyter](http://jupyter.org/) notebooks.  Finally, we can have a reliable and maintained way to use Go interactively and code in the browser.  Use `gophernotes` to create and share documents that contain live Go code, equations, visualizations and explanatory text.  Go forth and do data science, or anything else interesting, with go notebooks!
+`gophernotes` is a Go kernel for [Jupyter](http://jupyter.org/) notebooks.  Finally, we can have a reliable and maintained way to use Go interactively and code in the browser.  Use `gophernotes` to create and share documents that contain live Go code, equations, visualizations and explanatory text.  These notebooks, with the live Go code, can then be shared with others via email, Dropbox, GitHub and the [Jupyter Notebook Viewer](http://nbviewer.jupyter.org/).  Go forth and do data science, or anything else interesting, with go notebooks!
 
 This project came out of the [Gopher Gala](http://gophergala.com/) 2016.  It is based on a REPL called [gore](https://github.com/motemen/gore) and on a, no longer maintained and self-described limited, ipython kernel call [iGo](https://github.com/takluyver/igo).
 
 ## Screenshots/Examples
 
-### Simple interactive use in Jupyter:
+### Simple interactive use:
 
 ![alt tag](https://raw.githubusercontent.com/gophergala2016/gophernotes/master/files/screencast.gif)
 
@@ -16,9 +16,10 @@ This project came out of the [Gopher Gala](http://gophergala.com/) 2016.  It is 
 
 ![alt tag](https://raw.githubusercontent.com/gophergala2016/gophernotes/master/files/pr-screenshot.png)
 
-### Example Notebooks:
+### Example Notebooks (they render quite nice in Github, or you can use the [Jupyter Notebook Viewer](http://nbviewer.jupyter.org/)):
 - [Simple Printing and Channels](https://github.com/gophergala2016/gophernotes/blob/master/examples/Simple-Example.ipynb)
 - [Pattern Recognition with Golearn](https://github.com/gophergala2016/gophernotes/blob/master/examples/Pattern-Recognition.ipynb)
+- [Feed Forward, Recurrent Neural Nets](https://github.com/gophergala2016/gophernotes/blob/master/examples/Feed-Forward-Recurrent-NN.ipynb)
 - [Time Parsing, Formatting](https://github.com/gophergala2016/gophernotes/blob/master/examples/Time-Formatting-Parsing.ipynb)
 - [Stateful Goroutines](https://github.com/gophergala2016/gophernotes/blob/master/examples/Stateful-Goroutines.ipynb)
 
