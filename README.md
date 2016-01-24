@@ -72,6 +72,6 @@ Some of the custom commands from the [gore](https://github.com/motemen/gore) REP
 - ~~Implement more intuitive error handling in the notebook, test the suite of functionality in the Jupyter notebook.~~
 - ~~Refactor, loggings~~
 - ~~Examples, screenshots, installation~~
-- Troubleshoot errors, unit testing
+- ~~Troubleshoot errors, unit testing~~
 - Godep
 - Dockerfile?
