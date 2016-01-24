@@ -63,8 +63,8 @@ This project came out of the [Gopher Gala](http://gophergala.com/) 2016.  It is 
 Possible Issues:
 - Depending on your environment, you may need to manually change the path to the `gophernotes` executable in `kernel/kernel.json` before copying it to `~/.ipython/kernels/gophernotes`.  You can put the **full path** to the `gophernotes` executable here, and you shouldn't have any further issues.
 
-## Pain-Free Docker Install/Usage
-- Pull down and run the latest image:
+## Pain-Free Docker Installation/Usage
+- Pull down and run the [latest image](https://hub.docker.com/r/dwhitena/gophernotes/):
 
   ```
   docker pull dwhitena/gophernotes:latest
