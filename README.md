@@ -63,7 +63,19 @@ This project came out of the [Gopher Gala](http://gophergala.com/) 2016.  It is 
 Possible Issues:
 - Depending on your environment, you may need to manually change the path to the `gophernotes` executable in `kernel/kernel.json` before copying it to `~/.ipython/kernels/gophernotes`.  You can put the **full path** to the `gophernotes` executable here, and you shouldn't have any further issues.
 
-## Custom commands
+## Pain-Free Docker Install/Usage
+- Pull down and run the latest image:
+
+  ```
+  docker pull dwhitena/gophernotes:latest
+  docker run --name gophernotes --net host -d dwhitena/gophernotes:latest
+  ```
+
+- Point your browser to `localhost:8888`.
+- Select `Golang` from the `New` drop down menu.
+- Have Fun!
+
+## Custom Commands
 Some of the custom commands from the [gore](https://github.com/motemen/gore) REPL have carried over to `gophernotes`.  Note in particular the syntax for importing packages:
 
 ```
@@ -72,16 +84,6 @@ Some of the custom commands from the [gore](https://github.com/motemen/gore) REP
 :write [<filename>]     Write out current source to file
 :help                   List commands
 ```
-
-## Gopher Gala Status
-
-- ~~Rewrite of some of the gore functionality to process messages from the notebook.~~
-- ~~Implement more intuitive error handling in the notebook, test the suite of functionality in the Jupyter notebook.~~
-- ~~Refactor, loggings~~
-- ~~Examples, screenshots, installation~~
-- ~~Troubleshoot errors, unit testing~~
-- ~~Godep~~
-- Dockerfile
 
 ## Licenses
 
