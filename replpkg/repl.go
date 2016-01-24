@@ -336,8 +336,39 @@ func (s *Session) Eval(in string) (string, error, bytes.Buffer) {
 		if err != nil {
 			debugf("stmt :: err = %s", err)
 
-			if _, ok := err.(scanner.ErrorList); ok {
-				return "", ErrContinue, bytes.Buffer{}
+			// try to import this as a proxy function and correct for any imports
+			appendForImport := `package main
+			
+
+			`
+
+			f, err := os.Create(string(filepath.Dir(s.FilePath)) + "/func_proxy.go")
+    		if err != nil {
+    			panic(err)
+    		}
+
+    		_, err = f.Write([]byte(appendForImport + in))
+    		if err != nil {
+    			panic(err)
+    		}
+    		f.Close()
+
+    		cmd := exec.Command("goimports", "-w", string(filepath.Dir(s.FilePath)) + "/func_proxy.go")
+    		err = cmd.Run()
+    		if err != nil {
+    			panic(err)
+    		}
+
+    		functproxy, err := ioutil.ReadFile(string(filepath.Dir(s.FilePath)) + "/func_proxy.go")
+    		if err != nil {
+    			panic(err)
+    		}
+
+			if err = s.importFile(functproxy); err != nil {
+				errorf("%s", err)
+				if _, ok := err.(scanner.ErrorList); ok {
+					return "", ErrContinue, bytes.Buffer{}
+				}
 			}
 		}
 	}
