@@ -20,6 +20,7 @@ This project came out of the [Gopher Gala](http://gophergala.com/) 2016.  It is 
 - [Simple Printing and Channels](https://github.com/gophergala2016/gophernotes/blob/master/examples/Simple-Example.ipynb)
 - [Pattern Recognition with Golearn](https://github.com/gophergala2016/gophernotes/blob/master/examples/Pattern-Recognition.ipynb)
 - [Time Parsing, Formatting](https://github.com/gophergala2016/gophernotes/blob/master/examples/Time-Formatting-Parsing.ipynb)
+- [Stateful Goroutines](https://github.com/gophergala2016/gophernotes/blob/master/examples/Stateful-Goroutines.ipynb)
 
 ## Jupyter Installation/Usage
 
