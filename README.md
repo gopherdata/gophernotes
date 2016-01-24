@@ -24,7 +24,7 @@ This project came out of the [Gopher Gala](http://gophergala.com/) 2016.  It is 
 - [Stateful Goroutines](https://github.com/gophergala2016/gophernotes/blob/master/examples/Stateful-Goroutines.ipynb)
 - [Worker Pools](https://github.com/gophergala2016/gophernotes/blob/master/examples/Worker-Pools.ipynb)
 
-## Jupyter Installation/Usage
+## Local Jupyter Installation/Usage
 
 - Make sure jupyter notebook and `libzmq-dev` are installed.  See [here](http://jupyter.readthedocs.org/en/latest/install.html) for more details on installing jupyter.
 - Install `goimports` if you haven't already:
@@ -83,8 +83,8 @@ Some of the custom commands from the [gore](https://github.com/motemen/gore) REP
 - ~~Godep~~
 - Dockerfile
 
-## License
+## Licenses
 
 `gophernotes` was created by [Daniel Whitenack](http://www.datadan.io/), and is licensed under an [MIT-style License](License.md).
 
-The golang gopher image was created by [Takuya Ueda](http://u.hinoichi.net) and is licensed under the Creative Commons 3.0 Attributions license.
+The Golang Gopher image was created by [Takuya Ueda](http://u.hinoichi.net) and is licensed under the Creative Commons 3.0 Attributions license.
