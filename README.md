@@ -82,3 +82,7 @@ Some of the custom commands from the [gore](https://github.com/motemen/gore) REP
 - ~~Troubleshoot errors, unit testing~~
 - ~~Godep~~
 - Dockerfile
+
+## License
+
+[MIT-style](LICENSE.md).
