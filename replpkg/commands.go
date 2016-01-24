@@ -280,10 +280,11 @@ func actionDoc(s *Session, in string) error {
 		}
 
 		return pager.Wait()
-	} else {
-		godoc.Stdout = os.Stdout
-		return godoc.Run()
 	}
+
+	godoc.Stdout = os.Stdout
+	return godoc.Run()
+
 }
 
 func actionHelp(s *Session, _ string) error {

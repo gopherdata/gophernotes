@@ -9,19 +9,20 @@ import (
 	uuid "github.com/nu7hatch/gouuid"
 )
 
+// MsgHeader encodes header info for ZMQ messages
 type MsgHeader struct {
-	Msg_id   string `json:"msg_id"`
+	MsgID    string `json:"msg_id"`
 	Username string `json:"username"`
 	Session  string `json:"session"`
-	Msg_type string `json:"msg_type"`
+	MsgType  string `json:"msg_type"`
 }
 
 // ComposedMsg represents an entire message in a high-level structure.
 type ComposedMsg struct {
-	Header        MsgHeader
-	Parent_header MsgHeader
-	Metadata      map[string]interface{}
-	Content       interface{}
+	Header       MsgHeader
+	ParentHeader MsgHeader
+	Metadata     map[string]interface{}
+	Content      interface{}
 }
 
 // InvalidSignatureError is returned when the signature on a received message does not
@@ -57,7 +58,7 @@ func WireMsgToComposedMsg(msgparts [][]byte, signkey []byte) (msg ComposedMsg,
 		}
 	}
 	json.Unmarshal(msgparts[i+2], &msg.Header)
-	json.Unmarshal(msgparts[i+3], &msg.Parent_header)
+	json.Unmarshal(msgparts[i+3], &msg.ParentHeader)
 	json.Unmarshal(msgparts[i+4], &msg.Metadata)
 	json.Unmarshal(msgparts[i+5], &msg.Content)
 	return
@@ -69,8 +70,8 @@ func (msg ComposedMsg) ToWireMsg(signkey []byte) (msgparts [][]byte) {
 	msgparts = make([][]byte, 5)
 	header, _ := json.Marshal(msg.Header)
 	msgparts[1] = header
-	parent_header, _ := json.Marshal(msg.Parent_header)
-	msgparts[2] = parent_header
+	parentHeader, _ := json.Marshal(msg.ParentHeader)
+	msgparts[2] = parentHeader
 	if msg.Metadata == nil {
 		msg.Metadata = make(map[string]interface{})
 	}
@@ -104,18 +105,18 @@ func (receipt *MsgReceipt) SendResponse(socket *zmq.Socket, msg ComposedMsg) {
 	socket.SendMultipart(receipt.Identities, zmq.SNDMORE)
 	socket.Send([]byte("<IDS|MSG>"), zmq.SNDMORE)
 	socket.SendMultipart(msg.ToWireMsg(receipt.Sockets.Key), 0)
-	logger.Println("<--", msg.Header.Msg_type)
+	logger.Println("<--", msg.Header.MsgType)
 	logger.Printf("%+v\n", msg.Content)
 }
 
 // NewMsg creates a new ComposedMsg to respond to a parent message. This includes setting
 // up its headers.
-func NewMsg(msg_type string, parent ComposedMsg) (msg ComposedMsg) {
-	msg.Parent_header = parent.Header
+func NewMsg(msgType string, parent ComposedMsg) (msg ComposedMsg) {
+	msg.ParentHeader = parent.Header
 	msg.Header.Session = parent.Header.Session
 	msg.Header.Username = parent.Header.Username
-	msg.Header.Msg_type = msg_type
+	msg.Header.MsgType = msgType
 	u, _ := uuid.NewV4()
-	msg.Header.Msg_id = u.String()
+	msg.Header.MsgID = u.String()
 	return
 }

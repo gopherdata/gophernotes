@@ -64,7 +64,7 @@ func PrepareSockets(conn_info ConnectionInfo) (sg SocketGroup) {
 
 // HandleShellMsg responds to a message on the shell ROUTER socket.
 func HandleShellMsg(receipt MsgReceipt) {
-	switch receipt.Msg.Header.Msg_type {
+	switch receipt.Msg.Header.MsgType {
 	case "kernel_info_request":
 		SendKernelInfo(receipt)
 	case "execute_request":
@@ -72,7 +72,7 @@ func HandleShellMsg(receipt MsgReceipt) {
 	case "shutdown_request":
 		HandleShutdownRequest(receipt)
 	default:
-		logger.Println("Unhandled shell message:", receipt.Msg.Header.Msg_type)
+		logger.Println("Unhandled shell message:", receipt.Msg.Header.MsgType)
 	}
 }
 
@@ -94,6 +94,7 @@ func SendKernelInfo(receipt MsgReceipt) {
 	receipt.SendResponse(receipt.Sockets.Shell_socket, reply)
 }
 
+// ShutdownReply encodes a boolean indication of stutdown/restart
 type ShutdownReply struct {
 	Restart bool `json:"restart"`
 }

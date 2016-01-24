@@ -11,7 +11,7 @@ var REPLSession *repl.Session
 var fset *token.FileSet
 
 // ExecCounter is incremented each time we run user code in the notebook
-var ExecCounter int = 0
+var ExecCounter int
 
 // SetupExecutionEnvironment initializes the REPL session and set of tmp files
 func SetupExecutionEnvironment() {
@@ -62,23 +62,21 @@ func HandleExecuteRequest(receipt MsgReceipt) {
 		content["user_variables"] = make(map[string]string)
 		content["user_expressions"] = make(map[string]string)
 		if len(val) > 0 && !silent {
-			var out_content OutputMsg
+			var outContent OutputMsg
 			out := NewMsg("pyout", receipt.Msg)
-			out_content.Execcount = ExecCounter
-			out_content.Data = make(map[string]string)
-			out_content.Data["text/plain"] = fmt.Sprint(val)
-			out_content.Metadata = make(map[string]interface{})
-			out.Content = out_content
+			outContent.Execcount = ExecCounter
+			outContent.Data = make(map[string]string)
+			outContent.Data["text/plain"] = fmt.Sprint(val)
+			outContent.Metadata = make(map[string]interface{})
+			out.Content = outContent
 			receipt.SendResponse(receipt.Sockets.IOPub_socket, out)
 		}
 	} else {
 		content["status"] = "error"
 		content["ename"] = "ERROR"
 		content["evalue"] = err.Error()
-		//content["traceback"] = []string{err.Error()}
 		content["traceback"] = []string{stderr.String()}
 		errormsg := NewMsg("pyerr", receipt.Msg)
-		//errormsg.Content = ErrMsg{"Error", err.Error(), []string{err.Error()}}
 		errormsg.Content = ErrMsg{"Error", err.Error(), []string{stderr.String()}}
 		receipt.SendResponse(receipt.Sockets.IOPub_socket, errormsg)
 	}

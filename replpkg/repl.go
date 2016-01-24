@@ -18,6 +18,7 @@ import (
 	"go/scanner"
 	"go/token"
 
+	// Importing this package installs Import as go/types.DefaultImport.
 	_ "golang.org/x/tools/go/gcimporter"
 	"golang.org/x/tools/go/types"
 	"golang.org/x/tools/imports"
@@ -51,6 +52,7 @@ func homeDir() (home string, err error) {
 	return
 }
 
+// Session encodes info about the current REPL session
 type Session struct {
 	FilePath       string
 	File           *ast.File
@@ -90,6 +92,7 @@ var printerPkgs = []struct {
 	{"fmt", `fmt.Printf("%#v\n", x)`},
 }
 
+// NewSession initiates a new REPL
 func NewSession() (*Session, error) {
 	var err error
 
@@ -133,6 +136,7 @@ func (s *Session) mainFunc() *ast.FuncDecl {
 	return s.File.Scope.Lookup("main").Decl.(*ast.FuncDecl)
 }
 
+// Run call "go run" with appropriate files appended
 func (s *Session) Run() ([]byte, error, bytes.Buffer) {
 	f, err := os.Create(s.FilePath)
 	if err != nil {
@@ -147,6 +151,7 @@ func (s *Session) Run() ([]byte, error, bytes.Buffer) {
 	return goRun(append(s.ExtraFilePaths, s.FilePath))
 }
 
+// tempFile prepares the temporary session file for the REPL
 func tempFile() (string, error) {
 	dir, err := ioutil.TempDir("", "")
 	if err != nil {
@@ -174,7 +179,6 @@ func goRun(files []string) ([]byte, error, bytes.Buffer) {
 	cmd.Stderr = &stderr
 	out, err := cmd.Output()
 	return out, err, stderr
-	//return cmd.Run()
 }
 
 func (s *Session) evalExpr(in string) (ast.Expr, error) {
@@ -242,8 +246,10 @@ func (s *Session) appendStatements(stmts ...ast.Stmt) {
 	s.mainBody.List = append(s.mainBody.List, stmts...)
 }
 
+// Error is an exported type error
 type Error string
 
+// ErrContinue and ErrQuit are specific exported errors
 const (
 	ErrContinue Error = "<continue input>"
 	ErrQuit     Error = "<quit session>"
@@ -290,6 +296,7 @@ func (s *Session) reset() error {
 	return nil
 }
 
+// Eval handles the evaluation of code parsed from received messages
 func (s *Session) Eval(in string) (string, error, bytes.Buffer) {
 	debugf("eval >>> %q", in)
 

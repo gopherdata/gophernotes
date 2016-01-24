@@ -1,10 +1,9 @@
 package main
 
 import (
+	repl "github.com/dwhitena/gophernotes/replpkg"
 	"github.com/stretchr/testify/assert"
 	"testing"
-	repl "github.com/dwhitena/gophernotes/replpkg"
-	zmq "github.com/alecthomas/gozmq"
 )
 
 // noError is a helper function for testing
