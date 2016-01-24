@@ -26,7 +26,7 @@ This project came out of the [Gopher Gala](http://gophergala.com/) 2016.  It is 
 
 ## Jupyter Installation/Usage
 
-- Make sure jupyter notebook is installed.  See [here](http://jupyter.readthedocs.org/en/latest/install.html) for more details.
+- Make sure jupyter notebook and `libzmq-dev` are installed.  See [here](http://jupyter.readthedocs.org/en/latest/install.html) for more details on installing jupyter.
 - Install `goimports` if you haven't already:
 
   ```
