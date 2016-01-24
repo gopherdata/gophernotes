@@ -53,8 +53,8 @@ This project came out of the [Gopher Gala](http://gophergala.com/) 2016.  It is 
 Possible Issues:
 - Depending on your environment, you may need to manually change the path to the `gophernotes` executable in `kernel/kernel.json` before copying it to `~/.ipython/kernels/gophernotes`.  You can put the **full path** to the `gophernotes` executable here, and you shouldn't have any further issues.
 
-## gophernotes custom commands
-I have kept some of the custom commands from the gore REPL here.  Note in particular the syntax for importing packages:
+## Custom commands
+Some of the custom commands from the [gore](https://github.com/motemen/gore) REPL have carried over to `gophernotes`.  Note in particular the syntax for importing packages:
 
 ```
 :import <package path>  Import package
