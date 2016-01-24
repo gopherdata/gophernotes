@@ -85,4 +85,6 @@ Some of the custom commands from the [gore](https://github.com/motemen/gore) REP
 
 ## License
 
-[MIT-style](LICENSE.md).
+`gophernotes` was created by [Daniel Whitenack](http://www.datadan.io/), and is licensed under an [MIT-style License](License.md).
+
+The golang gopher image was created by [Takuya Ueda](http://u.hinoichi.net) and is licensed under the Creative Commons 3.0 Attributions license.
