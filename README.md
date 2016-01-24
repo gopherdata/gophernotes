@@ -16,7 +16,7 @@ This project came out of the [Gopher Gala](http://gophergala.com/) 2016.  It is 
 
 ![alt tag](https://raw.githubusercontent.com/gophergala2016/gophernotes/master/files/pr-screenshot.png)
 
-### Example Notebooks (they render quite nice within Github, or use the [Jupyter Notebook Viewer](http://nbviewer.jupyter.org/)):
+### Example Notebooks (they render quite nice in Github, or you can use the [Jupyter Notebook Viewer](http://nbviewer.jupyter.org/)):
 - [Simple Printing and Channels](https://github.com/gophergala2016/gophernotes/blob/master/examples/Simple-Example.ipynb)
 - [Pattern Recognition with Golearn](https://github.com/gophergala2016/gophernotes/blob/master/examples/Pattern-Recognition.ipynb)
 - [Feed Forward, Recurrent Neural Nets](https://github.com/gophergala2016/gophernotes/blob/master/examples/Feed-Forward-Recurrent-NN.ipynb)
