@@ -12,10 +12,10 @@ import (
 	"text/tabwriter"
 	"time"
 
+	"github.com/dwhitena/gophernotes/Godeps/_workspace/src/golang.org/x/tools/go/ast/astutil"
+	"github.com/dwhitena/gophernotes/Godeps/_workspace/src/golang.org/x/tools/go/types"
 	"go/ast"
 	"go/build"
-	"golang.org/x/tools/go/ast/astutil"
-	"golang.org/x/tools/go/types"
 )
 
 type command struct {

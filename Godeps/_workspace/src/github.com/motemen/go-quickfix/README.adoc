@@ -1,0 +1,82 @@
+= goquickfix image:https://travis-ci.org/motemen/go-quickfix.svg?branch=master["Build Status", link="https://travis-ci.org/motemen/go-quickfix"] image:http://godoc.org/github.com/motemen/go-quickfix?status.svg["GoDoc", link="http://godoc.org/github.com/motemen/go-quickfix"] image:http://gocover.io/_badge/github.com/motemen/go-quickfix["Test Coverage", link="http://gocover.io/github.com/motemen/go-quickfix"]
+
+The goquickfix command quick fixes Go source that is well typed but
+Go refuses to compile e.g. "x declared and not used".
+
+== Installation
+
+    go get github.com/motemen/go-quickfix/cmd/goquickfix
+
+== Usage
+
+    goquickfix [-w] [-revert] <path>...
+
+    Flags:
+      -revert=false: try to revert possible quickfixes introduced by goquickfix
+      -w=false: write result to (source) file instead of stdout
+
+== Description
+
+While coding, sometimes you may write a Go program that is completely well typed
+but `go build` (or `run` or `test`) refuses to build, like this:
+
+[source,go]
+----
+package main
+
+import (
+	"fmt"
+	"log"
+)
+
+func main() {
+	nums := []int{3, 1, 4, 1, 5}
+	for i, n := range nums {
+		fmt.Println(n)
+	}
+}
+----
+
+The Go compiler will complain:
+
+    eg.go:5: imported and not used: "log"
+
+Or
+
+    eg.go:9: i declared and not used
+
+Do we have to bother to comment out the import line or remove
+the unused identifier one by one for the Go compiler? Of course no,
+`goquickfix` does the work instead of you.
+
+Run
+
+    goquickfix -w eg.go
+
+and you will get the source rewritten so that Go compiles it well without
+changing the semantics:
+
+[source,go]
+----
+package main
+
+import (
+	"fmt"
+	_ "log"
+)
+
+func main() {
+	nums := []int{3, 1, 4, 1, 5}
+	for i, n := range nums {
+		fmt.Println(n)
+		_ = i
+	}
+}
+----
+
+Now you can `go run` or `go test` your code safely.
+
+== TODO
+
+* `-d` option to show diffs
+* `-hard=true` option to remove erroneous code rather than adding new code

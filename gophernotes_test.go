@@ -1,8 +1,8 @@
 package main
 
 import (
+	"github.com/dwhitena/gophernotes/Godeps/_workspace/src/github.com/stretchr/testify/assert"
 	repl "github.com/dwhitena/gophernotes/replpkg"
-	"github.com/stretchr/testify/assert"
 	"testing"
 )
 

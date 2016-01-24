@@ -1,0 +1,58 @@
+{
+	"ImportPath": "github.com/dwhitena/gophernotes",
+	"GoVersion": "go1.5",
+	"Packages": [
+		"./..."
+	],
+	"Deps": [
+		{
+			"ImportPath": "github.com/alecthomas/gozmq",
+			"Rev": "d1b01a2df6b2c64f03fecaeabea541963fc4749f"
+		},
+		{
+			"ImportPath": "github.com/davecgh/go-spew/spew",
+			"Rev": "5215b55f46b2b919f50a1df0eaa5886afe4e3b3d"
+		},
+		{
+			"ImportPath": "github.com/mitchellh/go-homedir",
+			"Rev": "d682a8f0cf139663a984ff12528da460ca963de9"
+		},
+		{
+			"ImportPath": "github.com/motemen/go-quickfix",
+			"Rev": "a5d4c82f7428280897ef403a87aa78b9c5924a47"
+		},
+		{
+			"ImportPath": "github.com/nu7hatch/gouuid",
+			"Rev": "179d4d0c4d8d407a32af483c2354df1d2c91e6c3"
+		},
+		{
+			"ImportPath": "github.com/pmezard/go-difflib/difflib",
+			"Rev": "792786c7400a136282c1664665ae0a8db921c6c2"
+		},
+		{
+			"ImportPath": "github.com/stretchr/testify/assert",
+			"Comment": "v1.1.3",
+			"Rev": "f390dcf405f7b83c997eac1b06768bb9f44dec18"
+		},
+		{
+			"ImportPath": "golang.org/x/tools/go/ast/astutil",
+			"Rev": "f3a63969dd29f8cfa913fdaea22f30c1ed537cb3"
+		},
+		{
+			"ImportPath": "golang.org/x/tools/go/exact",
+			"Rev": "f3a63969dd29f8cfa913fdaea22f30c1ed537cb3"
+		},
+		{
+			"ImportPath": "golang.org/x/tools/go/gcimporter",
+			"Rev": "f3a63969dd29f8cfa913fdaea22f30c1ed537cb3"
+		},
+		{
+			"ImportPath": "golang.org/x/tools/go/types",
+			"Rev": "f3a63969dd29f8cfa913fdaea22f30c1ed537cb3"
+		},
+		{
+			"ImportPath": "golang.org/x/tools/imports",
+			"Rev": "f3a63969dd29f8cfa913fdaea22f30c1ed537cb3"
+		}
+	]
+}

@@ -19,12 +19,12 @@ import (
 	"go/token"
 
 	// Importing this package installs Import as go/types.DefaultImport.
-	_ "golang.org/x/tools/go/gcimporter"
-	"golang.org/x/tools/go/types"
-	"golang.org/x/tools/imports"
+	_ "github.com/dwhitena/gophernotes/Godeps/_workspace/src/golang.org/x/tools/go/gcimporter"
+	"github.com/dwhitena/gophernotes/Godeps/_workspace/src/golang.org/x/tools/go/types"
+	"github.com/dwhitena/gophernotes/Godeps/_workspace/src/golang.org/x/tools/imports"
 
-	"github.com/mitchellh/go-homedir"
-	"github.com/motemen/go-quickfix"
+	"github.com/dwhitena/gophernotes/Godeps/_workspace/src/github.com/mitchellh/go-homedir"
+	"github.com/dwhitena/gophernotes/Godeps/_workspace/src/github.com/motemen/go-quickfix"
 )
 
 const version = "0.2.5"

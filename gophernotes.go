@@ -3,7 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	zmq "github.com/alecthomas/gozmq"
+	zmq "github.com/dwhitena/gophernotes/Godeps/_workspace/src/github.com/alecthomas/gozmq"
 	"io"
 	"io/ioutil"
 	"log"
