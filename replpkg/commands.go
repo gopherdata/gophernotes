@@ -12,8 +12,8 @@ import (
 	"text/tabwriter"
 	"time"
 
-	"github.com/dwhitena/gophernotes/Godeps/_workspace/src/golang.org/x/tools/go/ast/astutil"
-	"github.com/dwhitena/gophernotes/Godeps/_workspace/src/golang.org/x/tools/go/types"
+	"github.com/gophergala2016/gophernotes/Godeps/_workspace/src/golang.org/x/tools/go/ast/astutil"
+	"github.com/gophergala2016/gophernotes/Godeps/_workspace/src/golang.org/x/tools/go/types"
 	"go/ast"
 	"go/build"
 )

@@ -11,7 +11,7 @@ package typeutil
 import (
 	"sync"
 
-	"github.com/dwhitena/gophernotes/Godeps/_workspace/src/golang.org/x/tools/go/types"
+	"github.com/gophergala2016/gophernotes/Godeps/_workspace/src/golang.org/x/tools/go/types"
 )
 
 // A MethodSetCache records the method set of each type T for which

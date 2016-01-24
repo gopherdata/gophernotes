@@ -6,7 +6,7 @@
 
 package types
 
-import "github.com/dwhitena/gophernotes/Godeps/_workspace/src/golang.org/x/tools/go/exact"
+import "github.com/gophergala2016/gophernotes/Godeps/_workspace/src/golang.org/x/tools/go/exact"
 
 // Conversion type-checks the conversion T(x).
 // The result is in x.

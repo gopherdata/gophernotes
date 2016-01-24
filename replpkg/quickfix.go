@@ -3,11 +3,11 @@ package replpkg
 import (
 	"strings"
 
-	"github.com/dwhitena/gophernotes/Godeps/_workspace/src/golang.org/x/tools/go/ast/astutil"
-	"github.com/dwhitena/gophernotes/Godeps/_workspace/src/golang.org/x/tools/go/types"
+	"github.com/gophergala2016/gophernotes/Godeps/_workspace/src/golang.org/x/tools/go/ast/astutil"
+	"github.com/gophergala2016/gophernotes/Godeps/_workspace/src/golang.org/x/tools/go/types"
 	"go/ast"
 
-	"github.com/dwhitena/gophernotes/Godeps/_workspace/src/github.com/motemen/go-quickfix"
+	"github.com/gophergala2016/gophernotes/Godeps/_workspace/src/github.com/motemen/go-quickfix"
 )
 
 // doQuickFix tries to fix the source AST so that it compiles well.
@@ -174,8 +174,8 @@ var pureBuiltinFuncNames = map[string]bool{
 }
 
 var pureNotBuiltinFuncNames = map[string]bool{
-	"Println":  true,
-	"Printf":   true,
+	"Println": true,
+	"Printf":  true,
 }
 
 // isPureExpr checks if an expression expr is "pure", which means

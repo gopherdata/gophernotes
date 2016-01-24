@@ -10,7 +10,7 @@ import (
 	"go/ast"
 	"go/token"
 
-	"github.com/dwhitena/gophernotes/Godeps/_workspace/src/golang.org/x/tools/go/exact"
+	"github.com/gophergala2016/gophernotes/Godeps/_workspace/src/golang.org/x/tools/go/exact"
 )
 
 // builtin type-checks a call to the built-in specified by id and

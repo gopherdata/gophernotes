@@ -1,5 +1,5 @@
 {
-	"ImportPath": "github.com/dwhitena/gophernotes",
+	"ImportPath": "github.com/gophergala2016/gophernotes",
 	"GoVersion": "go1.5",
 	"Packages": [
 		"./..."

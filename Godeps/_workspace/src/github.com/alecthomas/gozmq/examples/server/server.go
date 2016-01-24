@@ -15,7 +15,7 @@
 */
 package main
 
-import zmq "github.com/dwhitena/gophernotes/Godeps/_workspace/src/github.com/alecthomas/gozmq"
+import zmq "github.com/gophergala2016/gophernotes/Godeps/_workspace/src/github.com/alecthomas/gozmq"
 
 func main() {
 	context, _ := zmq.NewContext()

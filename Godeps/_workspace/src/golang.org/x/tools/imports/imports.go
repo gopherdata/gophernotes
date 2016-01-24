@@ -20,7 +20,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/dwhitena/gophernotes/Godeps/_workspace/src/golang.org/x/tools/go/ast/astutil"
+	"github.com/gophergala2016/gophernotes/Godeps/_workspace/src/golang.org/x/tools/go/ast/astutil"
 )
 
 // Options specifies options for processing files.

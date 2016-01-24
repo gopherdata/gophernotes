@@ -19,12 +19,12 @@ import (
 	"go/token"
 
 	// Importing this package installs Import as go/types.DefaultImport.
-	_ "github.com/dwhitena/gophernotes/Godeps/_workspace/src/golang.org/x/tools/go/gcimporter"
-	"github.com/dwhitena/gophernotes/Godeps/_workspace/src/golang.org/x/tools/go/types"
-	"github.com/dwhitena/gophernotes/Godeps/_workspace/src/golang.org/x/tools/imports"
+	_ "github.com/gophergala2016/gophernotes/Godeps/_workspace/src/golang.org/x/tools/go/gcimporter"
+	"github.com/gophergala2016/gophernotes/Godeps/_workspace/src/golang.org/x/tools/go/types"
+	"github.com/gophergala2016/gophernotes/Godeps/_workspace/src/golang.org/x/tools/imports"
 
-	"github.com/dwhitena/gophernotes/Godeps/_workspace/src/github.com/mitchellh/go-homedir"
-	"github.com/dwhitena/gophernotes/Godeps/_workspace/src/github.com/motemen/go-quickfix"
+	"github.com/gophergala2016/gophernotes/Godeps/_workspace/src/github.com/mitchellh/go-homedir"
+	"github.com/gophergala2016/gophernotes/Godeps/_workspace/src/github.com/motemen/go-quickfix"
 )
 
 const version = "0.2.5"
@@ -343,26 +343,26 @@ func (s *Session) Eval(in string) (string, error, bytes.Buffer) {
 			`
 
 			f, err := os.Create(string(filepath.Dir(s.FilePath)) + "/func_proxy.go")
-    		if err != nil {
-    			panic(err)
-    		}
+			if err != nil {
+				panic(err)
+			}
 
-    		_, err = f.Write([]byte(appendForImport + in))
-    		if err != nil {
-    			panic(err)
-    		}
-    		f.Close()
+			_, err = f.Write([]byte(appendForImport + in))
+			if err != nil {
+				panic(err)
+			}
+			f.Close()
 
-    		cmd := exec.Command("goimports", "-w", string(filepath.Dir(s.FilePath)) + "/func_proxy.go")
-    		err = cmd.Run()
-    		if err != nil {
-    			panic(err)
-    		}
+			cmd := exec.Command("goimports", "-w", string(filepath.Dir(s.FilePath))+"/func_proxy.go")
+			err = cmd.Run()
+			if err != nil {
+				panic(err)
+			}
 
-    		functproxy, err := ioutil.ReadFile(string(filepath.Dir(s.FilePath)) + "/func_proxy.go")
-    		if err != nil {
-    			panic(err)
-    		}
+			functproxy, err := ioutil.ReadFile(string(filepath.Dir(s.FilePath)) + "/func_proxy.go")
+			if err != nil {
+				panic(err)
+			}
 
 			if err = s.importFile(functproxy); err != nil {
 				errorf("%s", err)

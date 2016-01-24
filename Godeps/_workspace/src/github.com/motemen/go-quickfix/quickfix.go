@@ -10,9 +10,9 @@ import (
 	"go/ast"
 	"go/token"
 
-	"github.com/dwhitena/gophernotes/Godeps/_workspace/src/golang.org/x/tools/go/ast/astutil"
-	_ "github.com/dwhitena/gophernotes/Godeps/_workspace/src/golang.org/x/tools/go/gcimporter"
-	"github.com/dwhitena/gophernotes/Godeps/_workspace/src/golang.org/x/tools/go/types"
+	"github.com/gophergala2016/gophernotes/Godeps/_workspace/src/golang.org/x/tools/go/ast/astutil"
+	_ "github.com/gophergala2016/gophernotes/Godeps/_workspace/src/golang.org/x/tools/go/gcimporter"
+	"github.com/gophergala2016/gophernotes/Godeps/_workspace/src/golang.org/x/tools/go/types"
 )
 
 var (

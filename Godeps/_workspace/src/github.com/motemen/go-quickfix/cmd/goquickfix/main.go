@@ -20,7 +20,7 @@ import (
 	"go/printer"
 	"go/token"
 
-	"github.com/dwhitena/gophernotes/Godeps/_workspace/src/github.com/motemen/go-quickfix"
+	"github.com/gophergala2016/gophernotes/Godeps/_workspace/src/github.com/motemen/go-quickfix"
 )
 
 var (
