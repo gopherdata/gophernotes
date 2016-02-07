@@ -26,7 +26,9 @@ This project came out of the [Gopher Gala](http://gophergala.com/) 2016.  It is 
 
 ## Local Jupyter Installation/Usage
 
-- Make sure jupyter notebook and `libzmq-dev` are installed.  See [here](http://jupyter.readthedocs.org/en/latest/install.html) for more details on installing jupyter.
+- Dependencies:
+  - Jupyter (see [here](http://jupyter.readthedocs.org/en/latest/install.html) for more details on installing jupyter)
+  - ZeroMQ 2.2.X
 - Install `goimports` if you haven't already:
 
   ```
