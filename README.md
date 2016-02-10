@@ -78,16 +78,10 @@ Possible Issues:
 - Have Fun!
 
 Possible issues:
-- For OSX Docker Machine / Dlite users, you may need to set the IP to `0.0.0.0` instead of the default  `localhost` using one of these commands:
+- For OSX Docker Machine / Dlite users, you may need to set the IP to `0.0.0.0` instead of the default  `localhost` with:
 
 	```
 	docker run --net host -d dwhitena/gophernotes jupyter notebook --ip=0.0.0.0
-	```
-
-or
-
-	```
-	docker run -p 8888:8888 -d dwhitena/gophernotes jupyter notebook --ip=0.0.0.0
 	```
 
 *Note* - this is a pretty large image, because it contains a full distribution of [Anaconda](http://docs.continuum.io/anaconda/index) plus the add ons of gophernotes.  However, with this image, you can create Go notebooks, Python notebooks, text files, run ipython in the shell, etc.
