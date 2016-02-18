@@ -9,7 +9,7 @@ RUN wget https://storage.googleapis.com/golang/go1.5.linux-amd64.tar.gz
 RUN tar -C /usr/local -xzf go1.5.linux-amd64.tar.gz
 ENV PATH /usr/local/go/bin:$PATH
 ENV GOPATH /go
-ENV PATH $GOROOT/bin:$PATH
+ENV PATH $GOPATH/bin:$PATH
 RUN mkdir -p "$GOPATH/src" "$GOPATH/bin" && chmod -R 777 "$GOPATH"
 
 # install gophernotes
