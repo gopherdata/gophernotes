@@ -28,7 +28,8 @@ This project came out of the [Gopher Gala](http://gophergala.com/) 2016.  It is 
 
 - Dependencies:
   - Jupyter (see [here](http://jupyter.readthedocs.org/en/latest/install.html) for more details on installing jupyter)
-  - ZeroMQ 2.2.X
+  - [ZeroMQ](http://zeromq.org/) 4.x ([read this if using version 2.2](docs/using-zeromq-2.2.md))
+
 - Install `goimports` if you haven't already:
 
   ```
@@ -38,7 +39,7 @@ This project came out of the [Gopher Gala](http://gophergala.com/) 2016.  It is 
 - Get the kernel:
 
   ```
-  go get github.com/gophergala2016/gophernotes
+  go get -tags zmq_4_x github.com/gophergala2016/gophernotes
   ```
 
 - Create a directory for the new kernel config:
@@ -60,6 +61,7 @@ This project came out of the [Gopher Gala](http://gophergala.com/) 2016.  It is 
   ```
 
 - Select `Golang` from the `New` drop down menu.
+
 - Have Fun!
 
 Possible Issues:
