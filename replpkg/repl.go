@@ -312,7 +312,7 @@ func (s *Session) Eval(in string) (string, error, bytes.Buffer) {
 		if arg == "" || strings.HasPrefix(arg, " ") {
 			arg = strings.TrimSpace(arg)
 
-			err := command.action(s, arg)
+			result, err := command.action(s, arg)
 			if err != nil {
 				if err == ErrQuit {
 					return "", err, bytes.Buffer{}
@@ -321,7 +321,7 @@ func (s *Session) Eval(in string) (string, error, bytes.Buffer) {
 			}
 
 			s.doQuickFix()
-			return "", nil, bytes.Buffer{}
+			return result, nil, bytes.Buffer{}
 		}
 	}
 
