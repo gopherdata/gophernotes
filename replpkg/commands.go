@@ -64,6 +64,11 @@ func init() {
 			action:   actionQuit,
 			document: "quit the session",
 		},
+		{
+			name:     "containerize",
+			action:   actionContainerize,
+			document: "containerize go binary",
+		},
 	}
 }
 
@@ -302,4 +307,68 @@ func actionHelp(s *Session, _ string) (string, error) {
 
 func actionQuit(s *Session, _ string) (string, error) {
 	return "", ErrQuit
+}
+
+func actionContainerize(s *Session, _ string) error {
+
+	// get the source code
+	source, err := s.source(true)
+	if err != nil {
+		return err
+	}
+
+	// create tmp directory in GOPATH
+	gopath := os.Getenv("GOPATH")
+	os.Mkdir(gopath + "/src/tmpcontainerize",0777)
+
+	d := []byte(source)
+    err = ioutil.WriteFile(gopath + "/src/tmpcontainerize/containerize.go", d, 0777)
+    if err != nil {
+		return err
+	}
+
+	cmd := exec.Command("go", "install", "tmpcontainerize")
+	err = cmd.Run()
+	if err != nil {
+		panic(err)
+	}
+
+	// dockerize
+	dockerfile := `
+	FROM scratch
+	ADD tmpcontainerize /tmpcontainerize
+	CMD ["/tmpcontainerize"]
+	`
+	d = []byte(dockerfile)
+    err = ioutil.WriteFile(gopath + "/bin/Dockerfile", d, 0777)
+
+    out, err := exec.Command("uuidgen").Output()
+	containerid := string(out)
+	containerid = containerid[0 : len(containerid)-1]
+	if err != nil {
+		return err
+	}
+
+    fmt.Println("Dockerizing")
+	cmd = exec.Command("docker", "build", "-t", containerid, gopath + "/bin/")
+	err = cmd.Run()
+	if err != nil {
+		fmt.Println(err)
+		panic(err)
+	}
+
+	
+	fmt.Println("removing src")
+	// now that we have the binary, remove the tmp src
+	err = os.RemoveAll(gopath + "/src/tmpcontainerize/")
+	if err != nil {
+		return err
+	}
+	fmt.Println("removing docker image")
+	err = os.Remove(gopath + "/bin/Dockerfile")
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

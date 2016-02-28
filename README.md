@@ -27,8 +27,13 @@ This project came out of the [Gopher Gala](http://gophergala.com/) 2016.  It is 
 ## Local Jupyter Installation/Usage
 
 - Dependencies:
+
+  - [Go](https://golang.org/) (Tested with Go 1.5 and 1.6)
   - Jupyter (see [here](http://jupyter.readthedocs.org/en/latest/install.html) for more details on installing jupyter)
   - ZeroMQ 2.2.X
+
+- Create a workspace and setup your `GOPATH`, see https://golang.org/doc/code.html#GOPATH
+
 - Install `goimports` if you haven't already:
 
   ```
@@ -94,6 +99,7 @@ Some of the custom commands from the [gore](https://github.com/motemen/gore) REP
 :print                  Show current source (currently prints to the terminal where the notebook server is running)
 :write [<filename>]     Write out current source to file
 :help                   List commands
+:containerize           Build a Docker image that executes the compiled Go code (must have Docker installed)
 ```
 
 ## Licenses
