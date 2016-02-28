@@ -303,7 +303,6 @@ func (s *Session) Eval(in string) (string, error, bytes.Buffer) {
 	s.clearQuickFix()
 	s.storeMainBody()
 
-	var commandRan bool
 	for _, command := range commands {
 		arg := strings.TrimPrefix(in, ":"+command.name)
 		if arg == in {
@@ -312,6 +311,7 @@ func (s *Session) Eval(in string) (string, error, bytes.Buffer) {
 
 		if arg == "" || strings.HasPrefix(arg, " ") {
 			arg = strings.TrimSpace(arg)
+
 			err := command.action(s, arg)
 			if err != nil {
 				if err == ErrQuit {
@@ -319,14 +319,10 @@ func (s *Session) Eval(in string) (string, error, bytes.Buffer) {
 				}
 				errorf("%s: %s", command.name, err)
 			}
-			commandRan = true
-			break
-		}
-	}
 
-	if commandRan {
-		s.doQuickFix()
-		return "", nil, bytes.Buffer{}
+			s.doQuickFix()
+			return "", nil, bytes.Buffer{}
+		}
 	}
 
 	if _, err := s.evalExpr(in); err != nil {
@@ -338,7 +334,7 @@ func (s *Session) Eval(in string) (string, error, bytes.Buffer) {
 
 			// try to import this as a proxy function and correct for any imports
 			appendForImport := `package main
-			
+
 
 			`
 

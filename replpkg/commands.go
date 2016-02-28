@@ -149,13 +149,15 @@ func completeImport(s *Session, prefix string) []string {
 
 func actionPrint(s *Session, _ string) error {
 	source, err := s.source(true)
-	if err != nil {
-		return err
+
+	if err == nil {
+		fmt.Println(source)
+		toEval := fmt.Sprintf("fmt.Println(%q)", source)
+		fmt.Println(toEval)
+		_, err, _ = s.Eval(toEval) // str, err, buffer
 	}
 
-	fmt.Println(source)
-
-	return nil
+	return err
 }
 
 func actionWrite(s *Session, filename string) error {
