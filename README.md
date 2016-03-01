@@ -24,9 +24,31 @@ This project came out of the [Gopher Gala](http://gophergala.com/) 2016.  It is 
 - [Stateful Goroutines](https://github.com/gophergala2016/gophernotes/blob/master/examples/Stateful-Goroutines.ipynb)
 - [Worker Pools](https://github.com/gophergala2016/gophernotes/blob/master/examples/Worker-Pools.ipynb)
 
-## Local Installation
+## Installation
 
-### Linux
+### Docker
+
+- Pull down and run the [latest image](https://hub.docker.com/r/dwhitena/gophernotes/):
+
+  ```
+  docker pull dwhitena/gophernotes:latest
+  docker run --name gophernotes --net host -d dwhitena/gophernotes:latest
+  ```
+
+- Point your browser to `localhost:8888`.
+- Select `Golang` from the `New` drop down menu.
+- Have Fun!
+
+Possible issues:
+- For OSX Docker Machine / Dlite users, you may need to set the IP to `0.0.0.0` instead of the default  `localhost` with:
+
+    ```
+    docker run --net host -d dwhitena/gophernotes jupyter notebook --ip=0.0.0.0
+    ```
+
+*Note* - this is a pretty large image, because it contains a full distribution of [Anaconda](http://docs.continuum.io/anaconda/index) plus the add ons of gophernotes.  However, with this image, you can create Go notebooks, Python notebooks, text files, run ipython in the shell, etc.
+
+### Local, Linux
 
 - Dependencies:
 
@@ -60,82 +82,54 @@ This project came out of the [Gopher Gala](http://gophergala.com/) 2016.  It is 
   cp -r $GOPATH/src/github.com/gophergala2016/gophernotes/kernel/* ~/.ipython/kernels/gophernotes
   ```
 
-### OS X
+### Local, OSX
 
-Assuming you're running with `homebrew`:
-
-Install go:
-
-```
-brew install go
-mkdir ~/go
-export GOPATH=$HOME/go
-export PATH=$PATH:/usr/local/opt/go/libexec/bin:$GOPATH/bin
-```
-
-You'll probably want to add these exports to your `.bashrc` or equivalent.
-
-
-Install ZeroMQ:
-
-```
-brew tap homebrew/versions
-brew install zeromq22
-brew link --force zeromq22
-```
-
-Install gophernotes:
-
-```
-go get golang.org/x/tools/cmd/goimports
-go get github.com/gophergala2016/gophernotes
-```
-
-Copy the kernel config:
-
-```
-mkdir -p ~/.ipython/kernels/gophernotes
-cp -r $GOPATH/src/github.com/gophergala2016/gophernotes/kernel/* ~/.ipython/kernels/gophernotes
-```
-
-Update `~/.ipython/kernels/gophernotes/kernel.json` with the path to your $GOPATH installation.
-If you used the path above, your file will look like:
-
-```
-{
-    "argv": [
-      "/Users/<your username>/go/bin/gophernotes",
-      "{connection_file}"
-      ],
-    "display_name": "Golang",
-    "language": "go",
-    "name": "go"
-}
-```
-
-Head to the Getting Started section.
-
-### Docker
-
-- Pull down and run the [latest image](https://hub.docker.com/r/dwhitena/gophernotes/):
+- Assuming you're running with `homebrew`, install go:
 
   ```
-  docker pull dwhitena/gophernotes:latest
-  docker run --name gophernotes --net host -d dwhitena/gophernotes:latest
+  brew install go
+  mkdir ~/go
+  export GOPATH=$HOME/go
+  export PATH=$PATH:/usr/local/opt/go/libexec/bin:$GOPATH/bin
   ```
 
-- Point your browser to `localhost:8888`.
-- Select `Golang` from the `New` drop down menu.
-- Have Fun!
+- You'll probably want to add the above exports to your `.bashrc` or equivalent.
 
-Possible issues:
-- For OSX Docker Machine / Dlite users, you may need to set the IP to `0.0.0.0` instead of the default  `localhost` with:
+- Install ZeroMQ:
 
-    ```
-    docker run --net host -d dwhitena/gophernotes jupyter notebook --ip=0.0.0.0
-    ```
+  ```
+  brew tap homebrew/versions
+  brew install zeromq22
+  brew link --force zeromq22
+  ```
 
-*Note* - this is a pretty large image, because it contains a full distribution of [Anaconda](http://docs.continuum.io/anaconda/index) plus the add ons of gophernotes.  However, with this image, you can create Go notebooks, Python notebooks, text files, run ipython in the shell, etc.
+- Install gophernotes:
+
+  ```
+  go get golang.org/x/tools/cmd/goimports
+  go get github.com/gophergala2016/gophernotes
+  ```
+
+- Copy the kernel config:
+
+  ```
+  mkdir -p ~/.ipython/kernels/gophernotes
+  cp -r $GOPATH/src/github.com/gophergala2016/gophernotes/kernel/* ~/.ipython/kernels/gophernotes
+  ```
+
+- Update `~/.ipython/kernels/gophernotes/kernel.json` with the path to your $GOPATH installation.  If you used the path above, your file will look like:
+
+  ```
+  {
+      "argv": [
+        "/Users/<your username>/go/bin/gophernotes",
+        "{connection_file}"
+        ],
+      "display_name": "Golang",
+      "language": "go",
+      "name": "go"
+  }
+  ```
 
 ## Getting Started
 
