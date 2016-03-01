@@ -35,8 +35,7 @@ This project came out of the [Gopher Gala](http://gophergala.com/) 2016.  It is 
   docker run --name gophernotes --net host -d dwhitena/gophernotes:latest
   ```
 
-Possible issues:
-- For OSX Docker Machine / Dlite users, you may need to set the IP to `0.0.0.0` instead of the default  `localhost` with:
+*Possible issues* - For OSX Docker Machine / Dlite users, you may need to set the IP to `0.0.0.0` instead of the default  `localhost` with:
 
   ```
   docker run --net host -d dwhitena/gophernotes jupyter notebook --ip=0.0.0.0
@@ -129,20 +128,13 @@ Possible issues:
 
 ## Getting Started
 
-- Start the jupyter notebook:
+- If you completed one of the local installs above (i.e., not the Docker install), start the jupyter notebook:
 
   ```
   jupyter notebook
   ```
 
 - Select `Golang` from the `New` drop down menu.
-
-The gophernotes repo includes some sample notebooks.
-
-If you start your Jupyter server in a parent directory of your $GOPATH, you can find these in
-$GOPATH/src/github.com/gophergala2016/gophernotes/examples in the Jupyter interface.
-
-You can also clone the gophernotes repo into a subdirectory that will be visible from the notebook interface.
 
 - Have Fun!
 
