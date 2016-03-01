@@ -24,9 +24,9 @@ This project came out of the [Gopher Gala](http://gophergala.com/) 2016.  It is 
 - [Stateful Goroutines](https://github.com/gophergala2016/gophernotes/blob/master/examples/Stateful-Goroutines.ipynb)
 - [Worker Pools](https://github.com/gophergala2016/gophernotes/blob/master/examples/Worker-Pools.ipynb)
 
-## Installation
+## Local Installation
 
-### Ubuntu
+### Linux
 
 - Dependencies:
 
