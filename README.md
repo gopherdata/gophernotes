@@ -24,7 +24,9 @@ This project came out of the [Gopher Gala](http://gophergala.com/) 2016.  It is 
 - [Stateful Goroutines](https://github.com/gophergala2016/gophernotes/blob/master/examples/Stateful-Goroutines.ipynb)
 - [Worker Pools](https://github.com/gophergala2016/gophernotes/blob/master/examples/Worker-Pools.ipynb)
 
-## Local Jupyter Installation/Usage
+## Installation
+
+### Ubuntu
 
 - Dependencies:
 
@@ -58,19 +60,63 @@ This project came out of the [Gopher Gala](http://gophergala.com/) 2016.  It is 
   cp -r $GOPATH/src/github.com/gophergala2016/gophernotes/kernel/* ~/.ipython/kernels/gophernotes
   ```
 
-- Start the jupyter notebook:
+### OS X
 
-  ```
-  jupyter notebook
-  ```
+Assuming you're running with `homebrew`:
 
-- Select `Golang` from the `New` drop down menu.
-- Have Fun!
+Install go:
 
-Possible Issues:
-- Depending on your environment, you may need to manually change the path to the `gophernotes` executable in `kernel/kernel.json` before copying it to `~/.ipython/kernels/gophernotes`.  You can put the **full path** to the `gophernotes` executable here, and you shouldn't have any further issues.
+```
+brew install go
+mkdir ~/go
+export GOPATH=$HOME/go
+export PATH=$PATH:/usr/local/opt/go/libexec/bin:$GOPATH/bin
+```
 
-## Pain-Free Docker Installation/Usage
+You'll probably want to add these exports to your `.bashrc` or equivalent.
+
+
+Install ZeroMQ:
+
+```
+brew tap homebrew/versions
+brew install zeromq22
+brew link --force zeromq22
+```
+
+Install gophernotes:
+
+```
+go get golang.org/x/tools/cmd/goimports
+go get github.com/gophergala2016/gophernotes
+```
+
+Copy the kernel config:
+
+```
+mkdir -p ~/.ipython/kernels/gophernotes
+cp -r $GOPATH/src/github.com/gophergala2016/gophernotes/kernel/* ~/.ipython/kernels/gophernotes
+```
+
+Update `~/.ipython/kernels/gophernotes/kernel.json` with the path to your $GOPATH installation.
+If you used the path above, your file will look like:
+
+```
+{
+    "argv": [
+      "/Users/<your username>/go/bin/gophernotes",
+      "{connection_file}"
+      ],
+    "display_name": "Golang",
+    "language": "go",
+    "name": "go"
+}
+```
+
+Head to the Getting Started section.
+
+### Docker
+
 - Pull down and run the [latest image](https://hub.docker.com/r/dwhitena/gophernotes/):
 
   ```
@@ -85,11 +131,62 @@ Possible Issues:
 Possible issues:
 - For OSX Docker Machine / Dlite users, you may need to set the IP to `0.0.0.0` instead of the default  `localhost` with:
 
-	```
-	docker run --net host -d dwhitena/gophernotes jupyter notebook --ip=0.0.0.0
-	```
+    ```
+    docker run --net host -d dwhitena/gophernotes jupyter notebook --ip=0.0.0.0
+    ```
 
 *Note* - this is a pretty large image, because it contains a full distribution of [Anaconda](http://docs.continuum.io/anaconda/index) plus the add ons of gophernotes.  However, with this image, you can create Go notebooks, Python notebooks, text files, run ipython in the shell, etc.
+
+## Getting Started
+
+- Start the jupyter notebook:
+
+  ```
+  jupyter notebook
+  ```
+
+- Select `Golang` from the `New` drop down menu.
+
+The gophernotes repo includes some sample notebooks.
+
+If you start your Jupyter server in a parent directory of your $GOPATH, you can find these in
+$GOPATH/src/github.com/gophergala2016/gophernotes/examples in the Jupyter interface.
+
+You can also clone the gophernotes repo into a subdirectory that will be visible from the notebook interface.
+
+- Have Fun!
+
+
+## Troubleshooting
+
+### gophernotes not found
+- Depending on your environment, you may need to manually change the path to the `gophernotes` executable in `kernel/kernel.json` before copying it to `~/.ipython/kernels/gophernotes`.  You can put the **full path** to the `gophernotes` executable here, and you shouldn't have any further issues.
+
+
+### "Kernel error" in a running notebook
+
+```
+Traceback (most recent call last):
+  File "/usr/local/lib/python2.7/site-packages/notebook/base/handlers.py", line 458, in wrapper
+    result = yield gen.maybe_future(method(self, *args, **kwargs))
+  File "/usr/local/lib/python2.7/site-packages/tornado/gen.py", line 1008, in run
+    value = future.result()
+  ...
+  File "/usr/local/Cellar/python/2.7.11/Frameworks/Python.framework/Versions/2.7/lib/python2.7/subprocess.py", line 1335, in _execute_child
+    raise child_exception
+OSError: [Errno 2] No such file or directory
+```
+
+Stop jupyter, if it's already running.
+
+Add a symlink to `/go/bin/gophernotes` from your path to the gophernotes executable. If you followed the instructions above, this will be:
+
+```
+sudo ln -s $HOME/go/bin/gophernotes /go/bin/gophernotes
+```
+
+Restart jupyter, and you should now be up and running.
+
 
 ## Custom Commands
 Some of the custom commands from the [gore](https://github.com/motemen/gore) REPL have carried over to `gophernotes`.  Note, in particular, the syntax for importing packages:
