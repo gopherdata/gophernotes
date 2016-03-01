@@ -49,7 +49,7 @@ This project came out of the [Gopher Gala](http://gophergala.com/) 2016.  It is 
 
   - [Go](https://golang.org/) (Tested with Go 1.5 and 1.6)
   - Jupyter (see [here](http://jupyter.readthedocs.org/en/latest/install.html) for more details on installing jupyter)
-  - ZeroMQ 2.2.X
+  - ZeroMQ (2.2.X or 4.x)
 
 - Create a workspace and setup your `GOPATH`, see https://golang.org/doc/code.html#GOPATH
 
@@ -60,10 +60,17 @@ This project came out of the [Gopher Gala](http://gophergala.com/) 2016.  It is 
   ```
 
 - Get the kernel:
+  - with ZeroMQ 2.2.x:
 
-  ```
-  go get github.com/gophergala2016/gophernotes
-  ```
+    ```
+    go get github.com/gophergala2016/gophernotes
+    ```
+  
+  - with ZeroMQ 4.x:
+
+    ```
+    go get -tags zmq_4_x github.com/gophergala2016/gophernotes
+    ```
 
 - Create a directory for the new kernel config:
 
