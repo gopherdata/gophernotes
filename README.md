@@ -133,6 +133,12 @@ This project came out of the [Gopher Gala](http://gophergala.com/) 2016.  It is 
   }
   ```
 
+- You may need set the `PKG_CONFIG_PATH` environmental variable to the path containing `libzmq.pc`.  For example:
+
+  ```
+  export PKG_CONFIG_PATH=/usr/local/Cellar/zeromq22/2.2.0/lib/pkgconfig/
+  ```
+
 ## Getting Started
 
 - If you completed one of the local installs above (i.e., not the Docker install), start the jupyter notebook:
