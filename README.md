@@ -38,7 +38,7 @@ This project came out of the [Gopher Gala](http://gophergala.com/) 2016.  It is 
 *Possible issues* - For OSX Docker Machine / Dlite users, you may need to set the IP to `0.0.0.0` instead of the default  `localhost` with:
 
   ```
-  docker run --net host -d dwhitena/gophernotes jupyter notebook --ip=0.0.0.0
+  docker run --net host -d dwhitena/gophernotes jupyter notebook --no-browser --ip=0.0.0.0
   ```
 
 *Note* - this is a pretty large image, because it contains a full distribution of [Anaconda](http://docs.continuum.io/anaconda/index) plus the add ons of gophernotes.  However, with this image, you can create Go notebooks, Python notebooks, text files, run ipython in the shell, etc.
@@ -131,6 +131,12 @@ This project came out of the [Gopher Gala](http://gophergala.com/) 2016.  It is 
       "language": "go",
       "name": "go"
   }
+  ```
+
+- You may need set the `PKG_CONFIG_PATH` environmental variable to the path containing `libzmq.pc`.  For example:
+
+  ```
+  export PKG_CONFIG_PATH=/usr/local/Cellar/zeromq22/2.2.0/lib/pkgconfig/
   ```
 
 ## Getting Started
