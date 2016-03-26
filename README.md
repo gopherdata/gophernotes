@@ -112,7 +112,7 @@ This project came out of the [Gopher Gala](http://gophergala.com/) 2016.  It is 
   go get github.com/gophergala2016/gophernotes
   ```
   
-  if you get the error:
+  if you get this error:
   
   ```
   # pkg-config --cflags libzmq libzmq libzmq libzmq
@@ -148,12 +148,6 @@ This project came out of the [Gopher Gala](http://gophergala.com/) 2016.  It is 
       "language": "go",
       "name": "go"
   }
-  ```
-
-- You may need set the `PKG_CONFIG_PATH` environmental variable to the path containing `libzmq.pc`.  For example:
-
-  ```
-  export PKG_CONFIG_PATH=/usr/local/Cellar/zeromq22/2.2.0/lib/pkgconfig/
   ```
 
 ## Getting Started
