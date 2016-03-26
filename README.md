@@ -112,7 +112,7 @@ This project came out of the [Gopher Gala](http://gophergala.com/) 2016.  It is 
   go get github.com/gophergala2016/gophernotes
   ```
   
-if you get the error:
+  if you get the error:
   
   ```
   # pkg-config --cflags libzmq libzmq libzmq libzmq
@@ -122,7 +122,7 @@ if you get the error:
   No package 'libzmq' found
   ```
   
-then:
+  then:
   
   ```
   export PKG_CONFIG_PATH=/usr/local/Cellar/zeromq22/lib/pkgconfig/
