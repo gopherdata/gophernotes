@@ -20,7 +20,7 @@ import (
 
 type command struct {
 	name     string
-	action   func(*Session, string) error
+	action   func(*Session, string) (string, error)
 	complete func(*Session, string) []string
 	arg      string
 	document string
@@ -72,9 +72,9 @@ func init() {
 	}
 }
 
-func actionImport(s *Session, arg string) error {
+func actionImport(s *Session, arg string) (string, error) {
 	if arg == "" {
-		return fmt.Errorf("arg required")
+		return "", fmt.Errorf("arg required")
 	}
 
 	path := strings.Trim(arg, `"`)
@@ -82,12 +82,12 @@ func actionImport(s *Session, arg string) error {
 	// check if the package specified by path is importable
 	_, err := types.DefaultImport(s.Types.Packages, path)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	astutil.AddImport(s.Fset, s.File, path)
 
-	return nil
+	return "", nil
 }
 
 var gorootSrc = filepath.Join(filepath.Clean(runtime.GOROOT()), "src")
@@ -152,21 +152,20 @@ func completeImport(s *Session, prefix string) []string {
 	return result
 }
 
-func actionPrint(s *Session, _ string) error {
+func actionPrint(s *Session, _ string) (string, error) {
 	source, err := s.source(true)
-	if err != nil {
-		return err
+
+	if err == nil {
+		fmt.Println(source)
 	}
 
-	fmt.Println(source)
-
-	return nil
+	return source, err
 }
 
-func actionWrite(s *Session, filename string) error {
+func actionWrite(s *Session, filename string) (string, error) {
 	source, err := s.source(false)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	if filename == "" {
@@ -175,15 +174,15 @@ func actionWrite(s *Session, filename string) error {
 
 	err = ioutil.WriteFile(filename, []byte(source), 0644)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	infof("Source wrote to %s", filename)
 
-	return nil
+	return "", nil
 }
 
-func actionDoc(s *Session, in string) error {
+func actionDoc(s *Session, in string) (string, error) {
 	s.clearQuickFix()
 
 	s.storeMainBody()
@@ -191,7 +190,7 @@ func actionDoc(s *Session, in string) error {
 
 	expr, err := s.evalExpr(in)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	s.TypeInfo = types.Info{
@@ -235,7 +234,7 @@ func actionDoc(s *Session, in string) error {
 	}
 
 	if docObj == nil {
-		return fmt.Errorf("cannot determine the document location")
+		return "", fmt.Errorf("cannot determine the document location")
 	}
 
 	debugf("doc :: obj=%#v", docObj)
@@ -266,7 +265,7 @@ func actionDoc(s *Session, in string) error {
 	if pagerCmd := os.Getenv("GORE_PAGER"); pagerCmd != "" {
 		r, err := godoc.StdoutPipe()
 		if err != nil {
-			return err
+			return "", err
 		}
 
 		pager := exec.Command(pagerCmd)
@@ -276,23 +275,23 @@ func actionDoc(s *Session, in string) error {
 
 		err = pager.Start()
 		if err != nil {
-			return err
+			return "", err
 		}
 
 		err = godoc.Run()
 		if err != nil {
-			return err
+			return "", err
 		}
 
-		return pager.Wait()
+		return "", pager.Wait()
 	}
 
 	godoc.Stdout = os.Stdout
-	return godoc.Run()
+	return "", godoc.Run()
 
 }
 
-func actionHelp(s *Session, _ string) error {
+func actionHelp(s *Session, _ string) (string, error) {
 	w := tabwriter.NewWriter(os.Stdout, 0, 8, 4, ' ', 0)
 	for _, command := range commands {
 		cmd := ":" + command.name
@@ -303,29 +302,29 @@ func actionHelp(s *Session, _ string) error {
 	}
 	w.Flush()
 
-	return nil
+	return "", nil
 }
 
-func actionQuit(s *Session, _ string) error {
-	return ErrQuit
+func actionQuit(s *Session, _ string) (string, error) {
+	return "", ErrQuit
 }
 
-func actionContainerize(s *Session, _ string) error {
+func actionContainerize(s *Session, _ string) (string, error) {
 
 	// get the source code
 	source, err := s.source(true)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	// create tmp directory in GOPATH
 	gopath := os.Getenv("GOPATH")
-	os.Mkdir(gopath + "/src/tmpcontainerize",0777)
+	os.Mkdir(gopath+"/src/tmpcontainerize", 0777)
 
 	d := []byte(source)
-    err = ioutil.WriteFile(gopath + "/src/tmpcontainerize/containerize.go", d, 0777)
-    if err != nil {
-		return err
+	err = ioutil.WriteFile(gopath+"/src/tmpcontainerize/containerize.go", d, 0777)
+	if err != nil {
+		return "", err
 	}
 
 	cmd := exec.Command("go", "install", "tmpcontainerize")
@@ -341,35 +340,34 @@ func actionContainerize(s *Session, _ string) error {
 	CMD ["/tmpcontainerize"]
 	`
 	d = []byte(dockerfile)
-    err = ioutil.WriteFile(gopath + "/bin/Dockerfile", d, 0777)
+	err = ioutil.WriteFile(gopath+"/bin/Dockerfile", d, 0777)
 
-    out, err := exec.Command("uuidgen").Output()
+	out, err := exec.Command("uuidgen").Output()
 	containerid := string(out)
 	containerid = containerid[0 : len(containerid)-1]
 	if err != nil {
-		return err
+		return "", err
 	}
 
-    fmt.Println("Dockerizing")
-	cmd = exec.Command("docker", "build", "-t", containerid, gopath + "/bin/")
+	fmt.Println("Dockerizing")
+	cmd = exec.Command("docker", "build", "-t", containerid, gopath+"/bin/")
 	err = cmd.Run()
 	if err != nil {
 		fmt.Println(err)
 		panic(err)
 	}
 
-	
 	fmt.Println("removing src")
 	// now that we have the binary, remove the tmp src
 	err = os.RemoveAll(gopath + "/src/tmpcontainerize/")
 	if err != nil {
-		return err
+		return "", err
 	}
 	fmt.Println("removing docker image")
 	err = os.Remove(gopath + "/bin/Dockerfile")
 	if err != nil {
-		return err
+		return "", err
 	}
 
-	return nil
+	return "", nil
 }
