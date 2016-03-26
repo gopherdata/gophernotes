@@ -110,17 +110,21 @@ This project came out of the [Gopher Gala](http://gophergala.com/) 2016.  It is 
   ```
   go get golang.org/x/tools/cmd/goimports
   go get github.com/gophergala2016/gophernotes
+  ```
   
-  If you get the error:
+if you get the error:
   
+  ```
   # pkg-config --cflags libzmq libzmq libzmq libzmq
   Package libzmq was not found in the pkg-config search path.
   Perhaps you should add the directory containing `libzmq.pc'
   to the PKG_CONFIG_PATH environment variable
   No package 'libzmq' found
+  ```
   
-  then:
+then:
   
+  ```
   export PKG_CONFIG_PATH=/usr/local/Cellar/zeromq22/lib/pkgconfig/
 
   ```
