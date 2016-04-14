@@ -75,13 +75,13 @@ This project came out of the [Gopher Gala](http://gophergala.com/) 2016.  It is 
 - Create a directory for the new kernel config:
 
   ```
-  mkdir -p ~/.ipython/kernels/gophernotes
+  mkdir -p ~/.local/share/jupyter/kernels/gophernotes
   ```
 
-- Copy the kernel config into the `.ipython` directory:
+- Copy the kernel config into the `jupyter` directory:
 
   ```
-  cp -r $GOPATH/src/github.com/gophergala2016/gophernotes/kernel/* ~/.ipython/kernels/gophernotes
+  cp -r $GOPATH/src/github.com/gophergala2016/gophernotes/kernel/* ~/.local/share/jupyter/kernels/gophernotes
   ```
 
 ### Local, OSX
@@ -132,11 +132,11 @@ This project came out of the [Gopher Gala](http://gophergala.com/) 2016.  It is 
 - Copy the kernel config:
 
   ```
-  mkdir -p ~/.ipython/kernels/gophernotes
-  cp -r $GOPATH/src/github.com/gophergala2016/gophernotes/kernel/* ~/.ipython/kernels/gophernotes
+  mkdir -p ~/.local/share/jupyter/kernels/gophernotes
+  cp -r $GOPATH/src/github.com/gophergala2016/gophernotes/kernel/* ~/.local/share/jupyter/kernels/gophernotes
   ```
 
-- Update `~/.ipython/kernels/gophernotes/kernel.json` with the path to your $GOPATH installation.  If you used the path above, your file will look like:
+- Update `~/.local/share/jupyter/kernels/gophernotes/kernel.json` with the path to your $GOPATH installation.  If you used the path above, your file will look like:
 
   ```
   {
@@ -166,7 +166,7 @@ This project came out of the [Gopher Gala](http://gophergala.com/) 2016.  It is 
 ## Troubleshooting
 
 ### gophernotes not found
-- Depending on your environment, you may need to manually change the path to the `gophernotes` executable in `kernel/kernel.json` before copying it to `~/.ipython/kernels/gophernotes`.  You can put the **full path** to the `gophernotes` executable here, and you shouldn't have any further issues.
+- Depending on your environment, you may need to manually change the path to the `gophernotes` executable in `kernel/kernel.json` before copying it to `~/.local/share/jupyter/kernels/gophernotes`.  You can put the **full path** to the `gophernotes` executable here, and you shouldn't have any further issues.
 
 
 ### "Kernel error" in a running notebook
