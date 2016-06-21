@@ -83,6 +83,13 @@ This project came out of the [Gopher Gala](http://gophergala.com/) 2016.  It is 
   ```
   cp -r $GOPATH/src/github.com/gophergala2016/gophernotes/kernel/* ~/.local/share/jupyter/kernels/gophernotes
   ```
+  
+  Note, depending on which version of jupyter you are using and if you are using Anaconda, you may need to copy to `~/.ipython` rather than `~/.local/share`:
+  
+  ```
+  mkdir ~/.ipython/kernels/gophernotes
+  cp -r $GOPATH/src/github.com/gophergala2016/gophernotes/kernel/* ~/.ipython/kernels/gophernotes/
+  ```
 
 ### Local, OSX
 
@@ -134,6 +141,13 @@ This project came out of the [Gopher Gala](http://gophergala.com/) 2016.  It is 
   ```
   mkdir -p ~/.local/share/jupyter/kernels/gophernotes
   cp -r $GOPATH/src/github.com/gophergala2016/gophernotes/kernel/* ~/.local/share/jupyter/kernels/gophernotes
+  ```
+  
+  Note, depending on which version of jupyter you are using and if you are using Anaconda, you may need to copy to `~/.ipython` rather than `~/.local/share`:
+  
+  ```
+  mkdir ~/.ipython/kernels/gophernotes
+  cp -r $GOPATH/src/github.com/gophergala2016/gophernotes/kernel/* ~/.ipython/kernels/gophernotes/
   ```
 
 - Update `~/.local/share/jupyter/kernels/gophernotes/kernel.json` with the path to your $GOPATH installation.  If you used the path above, your file will look like:
