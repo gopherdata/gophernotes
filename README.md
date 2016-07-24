@@ -1,4 +1,4 @@
-![alt tag](https://raw.githubusercontent.com/gophergala2016/gophernotes/master/files/gophernotes2.jpg)
+![alt tag](https://raw.githubusercontent.com/gopherds/gophernotes/master/files/gophernotes2.jpg)
 
 # gophernotes - Go in Notebooks
 
@@ -12,19 +12,19 @@ This project came out of the [Gopher Gala](http://gophergala.com/) 2016.  It is 
 
 ### Simple interactive use:
 
-![alt tag](https://raw.githubusercontent.com/gophergala2016/gophernotes/master/files/screencast.gif)
+![alt tag](https://raw.githubusercontent.com/gopherds/gophernotes/master/files/screencast.gif)
 
 ### Story telling and pattern recognition with Markdown and Golang:
 
-![alt tag](https://raw.githubusercontent.com/gophergala2016/gophernotes/master/files/pr-screenshot.png)
+![alt tag](https://raw.githubusercontent.com/gopherds/gophernotes/master/files/pr-screenshot.png)
 
 ### Example Notebooks (dowload and run them locally, follow the links to view in Github, or use the [Jupyter Notebook Viewer](http://nbviewer.jupyter.org/)):
-- [Simple Printing and Channels](https://github.com/gophergala2016/gophernotes/blob/master/examples/Simple-Example.ipynb)
-- [Pattern Recognition with Golearn](https://github.com/gophergala2016/gophernotes/blob/master/examples/Pattern-Recognition.ipynb)
-- [Feed Forward, Recurrent Neural Nets](https://github.com/gophergala2016/gophernotes/blob/master/examples/Feed-Forward-Recurrent-NN.ipynb)
-- [Time Parsing, Formatting](https://github.com/gophergala2016/gophernotes/blob/master/examples/Time-Formatting-Parsing.ipynb)
-- [Stateful Goroutines](https://github.com/gophergala2016/gophernotes/blob/master/examples/Stateful-Goroutines.ipynb)
-- [Worker Pools](https://github.com/gophergala2016/gophernotes/blob/master/examples/Worker-Pools.ipynb)
+- [Simple Printing and Channels](https://github.com/gopherds/gophernotes/blob/master/examples/Simple-Example.ipynb)
+- [Pattern Recognition with Golearn](https://github.com/gopherds/gophernotes/blob/master/examples/Pattern-Recognition.ipynb)
+- [Feed Forward, Recurrent Neural Nets](https://github.com/gopherds/gophernotes/blob/master/examples/Feed-Forward-Recurrent-NN.ipynb)
+- [Time Parsing, Formatting](https://github.com/gopherds/gophernotes/blob/master/examples/Time-Formatting-Parsing.ipynb)
+- [Stateful Goroutines](https://github.com/gopherds/gophernotes/blob/master/examples/Stateful-Goroutines.ipynb)
+- [Worker Pools](https://github.com/gopherds/gophernotes/blob/master/examples/Worker-Pools.ipynb)
 
 ## Installation
 
@@ -65,13 +65,13 @@ This project came out of the [Gopher Gala](http://gophergala.com/) 2016.  It is 
   - with ZeroMQ 2.2.x:
 
     ```
-    go get github.com/gophergala2016/gophernotes
+    go get github.com/gopherds/gophernotes
     ```
   
   - with ZeroMQ 4.x:
 
     ```
-    go get -tags zmq_4_x github.com/gophergala2016/gophernotes
+    go get -tags zmq_4_x github.com/gopherds/gophernotes
     ```
 
 - Create a directory for the new kernel config:
@@ -83,14 +83,14 @@ This project came out of the [Gopher Gala](http://gophergala.com/) 2016.  It is 
 - Copy the kernel config into the `jupyter` directory:
 
   ```
-  cp -r $GOPATH/src/github.com/gophergala2016/gophernotes/kernel/* ~/.local/share/jupyter/kernels/gophernotes
+  cp -r $GOPATH/src/github.com/gopherds/gophernotes/kernel/* ~/.local/share/jupyter/kernels/gophernotes
   ```
   
   Note, depending on which version of jupyter you are using and if you are using Anaconda, you may need to copy to `~/.ipython` rather than `~/.local/share`:
   
   ```
   mkdir ~/.ipython/kernels/gophernotes
-  cp -r $GOPATH/src/github.com/gophergala2016/gophernotes/kernel/* ~/.ipython/kernels/gophernotes/
+  cp -r $GOPATH/src/github.com/gopherds/gophernotes/kernel/* ~/.ipython/kernels/gophernotes/
   ```
 
 ### Local, OSX
@@ -118,7 +118,7 @@ This project came out of the [Gopher Gala](http://gophergala.com/) 2016.  It is 
 
   ```
   go get golang.org/x/tools/cmd/goimports
-  go get github.com/gophergala2016/gophernotes
+  go get github.com/gopherds/gophernotes
   ```
   
   if you get this error:
@@ -142,14 +142,14 @@ This project came out of the [Gopher Gala](http://gophergala.com/) 2016.  It is 
 
   ```
   mkdir -p ~/.local/share/jupyter/kernels/gophernotes
-  cp -r $GOPATH/src/github.com/gophergala2016/gophernotes/kernel/* ~/.local/share/jupyter/kernels/gophernotes
+  cp -r $GOPATH/src/github.com/gopherds/gophernotes/kernel/* ~/.local/share/jupyter/kernels/gophernotes
   ```
   
   Note, depending on which version of jupyter you are using and if you are using Anaconda, you may need to copy to `~/.ipython` rather than `~/.local/share`:
   
   ```
   mkdir ~/.ipython/kernels/gophernotes
-  cp -r $GOPATH/src/github.com/gophergala2016/gophernotes/kernel/* ~/.ipython/kernels/gophernotes/
+  cp -r $GOPATH/src/github.com/gopherds/gophernotes/kernel/* ~/.ipython/kernels/gophernotes/
   ```
 
 - Update `~/.local/share/jupyter/kernels/gophernotes/kernel.json` with the path to your $GOPATH installation.  If you used the path above, your file will look like:
@@ -225,4 +225,4 @@ Some of the custom commands from the [gore](https://github.com/motemen/gore) REP
 
 `gophernotes` was created by [Daniel Whitenack](http://www.datadan.io/), and is licensed under an [MIT-style License](License.md).
 
-The Golang Gopher image was created by [Takuya Ueda](http://u.hinoichi.net) and is licensed under the Creative Commons 3.0 Attributions license.
+The Golang Gopher image adapted for the gophernotes logo was created by [Takuya Ueda](http://u.hinoichi.net) and is licensed under the Creative Commons 3.0 Attributions license.
