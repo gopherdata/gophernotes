@@ -2,7 +2,7 @@
 
 # gophernotes - Go in Notebooks
 
-**Note** - `gophernotes` was recently moved from the `gophergala` org to here.  We are currently refactoring `gophernotes` to make it better and provide an official release.  In the mean time, the easiest way for you to try out `gophernotes` is the docker install discussed below.  Stay tuned for good things coming soon!
+**Note** - `gophernotes` was recently moved from the `gophergala` org to here.  We are currently refactoring `gophernotes` to make it better and provide releases.  In the mean time, the easiest way for you to try out `gophernotes` is the docker install discussed below.  Stay tuned for good things coming soon!
 
 `gophernotes` is a Go kernel for [Jupyter](http://jupyter.org/) notebooks.  Finally, we can have a reliable and maintained way to use Go interactively and code in the browser.  Use `gophernotes` to create and share documents that contain live Go code, equations, visualizations and explanatory text.  These notebooks, with the live Go code, can then be shared with others via email, Dropbox, GitHub and the [Jupyter Notebook Viewer](http://nbviewer.jupyter.org/).  Go forth and do data science, or anything else interesting, with go notebooks!
 
