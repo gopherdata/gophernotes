@@ -15,15 +15,15 @@ var logger *log.Logger
 
 // ConnectionInfo stores the contents of the kernel connection file created by Jupyter.
 type ConnectionInfo struct {
-	SignatureScheme string
-	Transport       string
-	StdinPort       int
-	ControlPort     int
-	IOPubPort       int
-	HBPort          int
-	ShellPort       int
-	Key             string
-	IP              string
+	SignatureScheme string `json:"signature_scheme"`
+	Transport       string `json:"transport"`
+	StdinPort       int    `json:"stdin_port"`
+	ControlPort     int    `json:"control_port"`
+	IOPubPort       int    `json:"iopub_port"`
+	HBPort          int    `json:"hb_port"`
+	ShellPort       int    `json:"shell_port"`
+	Key             string `json:"key"`
+	IP              string `json:"ip"`
 }
 
 // SocketGroup holds the sockets needed to communicate with the kernel, and
