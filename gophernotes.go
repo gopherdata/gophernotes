@@ -3,61 +3,63 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	zmq "github.com/gophergala2016/gophernotes/Godeps/_workspace/src/github.com/alecthomas/gozmq"
 	"io"
 	"io/ioutil"
 	"log"
 	"os"
+
+	zmq "github.com/gophergala2016/gophernotes/Godeps/_workspace/src/github.com/alecthomas/gozmq"
 )
 
 var logger *log.Logger
 
 // ConnectionInfo stores the contents of the kernel connection file created by Jupyter.
 type ConnectionInfo struct {
-	Signature_scheme string
-	Transport        string
-	Stdin_port       int
-	Control_port     int
-	IOPub_port       int
-	HB_port          int
-	Shell_port       int
-	Key              string
-	IP               string
+	SignatureScheme string `json:"signature_scheme"`
+	Transport       string `json:"transport"`
+	StdinPort       int    `json:"stdin_port"`
+	ControlPort     int    `json:"control_port"`
+	IOPubPort       int    `json:"iopub_port"`
+	HBPort          int    `json:"hb_port"`
+	ShellPort       int    `json:"shell_port"`
+	Key             string `json:"key"`
+	IP              string `json:"ip"`
 }
 
 // SocketGroup holds the sockets needed to communicate with the kernel, and
 // the key for message signing.
 type SocketGroup struct {
-	Shell_socket   *zmq.Socket
-	Control_socket *zmq.Socket
-	Stdin_socket   *zmq.Socket
-	IOPub_socket   *zmq.Socket
-	Key            []byte
+	ShellSocket   *zmq.Socket
+	ControlSocket *zmq.Socket
+	StdinSocket   *zmq.Socket
+	IOPubSocket   *zmq.Socket
+	Key           []byte
 }
 
 // PrepareSockets sets up the ZMQ sockets through which the kernel will communicate.
-func PrepareSockets(conn_info ConnectionInfo) (sg SocketGroup) {
+func PrepareSockets(connInfo ConnectionInfo) (sg SocketGroup) {
 
+	// TODO handle errors.
 	context, _ := zmq.NewContext()
-	sg.Shell_socket, _ = context.NewSocket(zmq.ROUTER)
-	sg.Control_socket, _ = context.NewSocket(zmq.ROUTER)
-	sg.Stdin_socket, _ = context.NewSocket(zmq.ROUTER)
-	sg.IOPub_socket, _ = context.NewSocket(zmq.PUB)
+	sg.ShellSocket, _ = context.NewSocket(zmq.ROUTER)
+	sg.ControlSocket, _ = context.NewSocket(zmq.ROUTER)
+	sg.StdinSocket, _ = context.NewSocket(zmq.ROUTER)
+	sg.IOPubSocket, _ = context.NewSocket(zmq.PUB)
 
-	address := fmt.Sprintf("%v://%v:%%v", conn_info.Transport, conn_info.IP)
+	address := fmt.Sprintf("%v://%v:%%v", connInfo.Transport, connInfo.IP)
 
-	sg.Shell_socket.Bind(fmt.Sprintf(address, conn_info.Shell_port))
-	sg.Control_socket.Bind(fmt.Sprintf(address, conn_info.Control_port))
-	sg.Stdin_socket.Bind(fmt.Sprintf(address, conn_info.Stdin_port))
-	sg.IOPub_socket.Bind(fmt.Sprintf(address, conn_info.IOPub_port))
+	sg.ShellSocket.Bind(fmt.Sprintf(address, connInfo.ShellPort))
+	sg.ControlSocket.Bind(fmt.Sprintf(address, connInfo.ControlPort))
+	sg.StdinSocket.Bind(fmt.Sprintf(address, connInfo.StdinPort))
+	sg.IOPubSocket.Bind(fmt.Sprintf(address, connInfo.IOPubPort))
 
 	// Message signing key
-	sg.Key = []byte(conn_info.Key)
+	sg.Key = []byte(connInfo.Key)
 
 	// Start the heartbeat device
-	HB_socket, _ := context.NewSocket(zmq.REP)
-	HB_socket.Bind(fmt.Sprintf(address, conn_info.HB_port))
-	go zmq.Device(zmq.FORWARDER, HB_socket, HB_socket)
+	HBSocket, _ := context.NewSocket(zmq.REP)
+	HBSocket.Bind(fmt.Sprintf(address, connInfo.HBPort))
+	go zmq.Device(zmq.FORWARDER, HBSocket, HBSocket)
 
 	return
 }
@@ -78,8 +80,8 @@ func HandleShellMsg(receipt MsgReceipt) {
 
 // KernelInfo holds information about the igo kernel, for kernel_info_reply messages.
 type KernelInfo struct {
-	Protocol_version []int  `json:"protocol_version"`
-	Language         string `json:"language"`
+	ProtocolVersion []int  `json:"protocol_version"`
+	Language        string `json:"language"`
 }
 
 // KernelStatus holds a kernel state, for status broadcast messages.
@@ -91,7 +93,7 @@ type KernelStatus struct {
 func SendKernelInfo(receipt MsgReceipt) {
 	reply := NewMsg("kernel_info_reply", receipt.Msg)
 	reply.Content = KernelInfo{[]int{4, 0}, "go"}
-	receipt.SendResponse(receipt.Sockets.Shell_socket, reply)
+	receipt.SendResponse(receipt.Sockets.ShellSocket, reply)
 }
 
 // ShutdownReply encodes a boolean indication of stutdown/restart
@@ -105,38 +107,38 @@ func HandleShutdownRequest(receipt MsgReceipt) {
 	content := receipt.Msg.Content.(map[string]interface{})
 	restart := content["restart"].(bool)
 	reply.Content = ShutdownReply{restart}
-	receipt.SendResponse(receipt.Sockets.Shell_socket, reply)
+	receipt.SendResponse(receipt.Sockets.ShellSocket, reply)
 	logger.Println("Shutting down in response to shutdown_request")
 	os.Exit(0)
 }
 
 // RunKernel is the main entry point to start the kernel. This is what is called by the
 // gophernotes executable.
-func RunKernel(connection_file string, logwriter io.Writer) {
+func RunKernel(connectionFile string, logwriter io.Writer) {
 
 	logger = log.New(logwriter, "gophernotes ", log.LstdFlags)
 
 	// set up the "Session" with the replpkg
 	SetupExecutionEnvironment()
 
-	var conn_info ConnectionInfo
-	bs, err := ioutil.ReadFile(connection_file)
+	var connInfo ConnectionInfo
+	bs, err := ioutil.ReadFile(connectionFile)
 	if err != nil {
 		log.Fatalln(err)
 	}
-	err = json.Unmarshal(bs, &conn_info)
+	err = json.Unmarshal(bs, &connInfo)
 	if err != nil {
 		log.Fatalln(err)
 	}
-	logger.Printf("%+v\n", conn_info)
+	logger.Printf("%+v\n", connInfo)
 
 	// Set up the ZMQ sockets through which the kernel will communicate
-	sockets := PrepareSockets(conn_info)
+	sockets := PrepareSockets(connInfo)
 
 	pi := zmq.PollItems{
-		zmq.PollItem{Socket: sockets.Shell_socket, Events: zmq.POLLIN},
-		zmq.PollItem{Socket: sockets.Stdin_socket, Events: zmq.POLLIN},
-		zmq.PollItem{Socket: sockets.Control_socket, Events: zmq.POLLIN},
+		zmq.PollItem{Socket: sockets.ShellSocket, Events: zmq.POLLIN},
+		zmq.PollItem{Socket: sockets.StdinSocket, Events: zmq.POLLIN},
+		zmq.PollItem{Socket: sockets.ControlSocket, Events: zmq.POLLIN},
 	}
 
 	var msgparts [][]byte

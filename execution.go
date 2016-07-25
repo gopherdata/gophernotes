@@ -2,8 +2,9 @@ package main
 
 import (
 	"fmt"
-	repl "github.com/gophergala2016/gophernotes/replpkg"
 	"go/token"
+
+	repl "github.com/gophergala2016/gophernotes/replpkg"
 )
 
 // REPLSession manages the I/O to/from the notebook
@@ -69,7 +70,7 @@ func HandleExecuteRequest(receipt MsgReceipt) {
 			outContent.Data["text/plain"] = fmt.Sprint(val)
 			outContent.Metadata = make(map[string]interface{})
 			out.Content = outContent
-			receipt.SendResponse(receipt.Sockets.IOPub_socket, out)
+			receipt.SendResponse(receipt.Sockets.IOPubSocket, out)
 		}
 	} else {
 		content["status"] = "error"
@@ -78,13 +79,13 @@ func HandleExecuteRequest(receipt MsgReceipt) {
 		content["traceback"] = []string{stderr.String()}
 		errormsg := NewMsg("pyerr", receipt.Msg)
 		errormsg.Content = ErrMsg{"Error", err.Error(), []string{stderr.String()}}
-		receipt.SendResponse(receipt.Sockets.IOPub_socket, errormsg)
+		receipt.SendResponse(receipt.Sockets.IOPubSocket, errormsg)
 	}
 
 	// send the output back to the notebook
 	reply.Content = content
-	receipt.SendResponse(receipt.Sockets.Shell_socket, reply)
+	receipt.SendResponse(receipt.Sockets.ShellSocket, reply)
 	idle := NewMsg("status", receipt.Msg)
 	idle.Content = KernelStatus{"idle"}
-	receipt.SendResponse(receipt.Sockets.IOPub_socket, idle)
+	receipt.SendResponse(receipt.Sockets.IOPubSocket, idle)
 }
