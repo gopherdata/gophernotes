@@ -131,20 +131,20 @@ Then:
   
   - if you get this error:
   
-  ```
-  # pkg-config --cflags libzmq libzmq libzmq libzmq
-  Package libzmq was not found in the pkg-config search path.
-  Perhaps you should add the directory containing `libzmq.pc'
-  to the PKG_CONFIG_PATH environment variable
-  No package 'libzmq' found
-  ```
+    ```
+    # pkg-config --cflags libzmq libzmq libzmq libzmq
+    Package libzmq was not found in the pkg-config search path.
+    Perhaps you should add the directory containing `libzmq.pc'
+    to the PKG_CONFIG_PATH environment variable
+    No package 'libzmq' found
+    ```
+    
+    then:
+    
+    ```
+    export PKG_CONFIG_PATH=/usr/local/Cellar/zeromq22/lib/pkgconfig/
   
-  then:
-  
-  ```
-  export PKG_CONFIG_PATH=/usr/local/Cellar/zeromq22/lib/pkgconfig/
-
-  ```
+    ```
 
 3. Copy the kernel config:
 
