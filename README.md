@@ -88,16 +88,16 @@ Then:
   mkdir ~/.ipython/kernels/gophernotes
   cp -r $GOPATH/src/github.com/gopherds/gophernotes/kernel/* ~/.ipython/kernels/gophernotes/
   ```
-5. Copy the kernel config into the `jupyter` directory:
+5. Copy the kernel config into the `~/.local/jupyter` directory:
 
   ```
   cp -r $GOPATH/src/github.com/gopherds/gophernotes/kernel/* ~/.local/share/jupyter/kernels/gophernotes
   ```
   
-  OR depending on your version of jupyter:
+  Note, if you have the `JUPYTER_PATH` environmental variable set or if you are using an older version of Jupyter, you may need to copy this kernel config to another directory.  You can check which directories will be searched by executing:
   
   ```
-  cp -r $GOPATH/src/github.com/gopherds/gophernotes/kernel/* ~/.ipython/kernels/gophernotes/
+  jupyter --data-dir
   ```
 
 ### Local, OSX
@@ -148,15 +148,14 @@ Then:
 3. Copy the kernel config:
 
   ```
-  mkdir -p ~/.local/share/jupyter/kernels/gophernotes
-  cp -r $GOPATH/src/github.com/gopherds/gophernotes/kernel/* ~/.local/share/jupyter/kernels/gophernotes
+  mkdir -p ~/Library/Jupyter/kernels/gophernotes
+  cp -r $GOPATH/src/github.com/gopherds/gophernotes/kernel/* ~/Library/Jupyter/kernels/gophernotes
   ```
   
-  OR, depending on which version of jupyter you are using and if you are using Anaconda, you may need to copy to `~/.ipython` rather than `~/.local/share`:
+  Note, if you have the `JUPYTER_PATH` environmental variable set or if you are using an older version of Jupyter, you may need to copy this kernel config to another directory.  You can check which directories will be searched by executing:
   
   ```
-  mkdir ~/.ipython/kernels/gophernotes
-  cp -r $GOPATH/src/github.com/gopherds/gophernotes/kernel/* ~/.ipython/kernels/gophernotes/
+  jupyter --data-dir
   ```
 
 4. Update `~/.local/share/jupyter/kernels/gophernotes/kernel.json` with the FULL PATH to your gophernotes binary (in $GOPATH/bin).  For example:
