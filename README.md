@@ -143,7 +143,6 @@ Then:
     
     ```
     export PKG_CONFIG_PATH=/usr/local/Cellar/zeromq22/lib/pkgconfig/
-  
     ```
 
 3. Copy the kernel config:
