@@ -47,21 +47,21 @@ This project came out of the [Gopher Gala](http://gophergala.com/) 2016.  It is 
 
 ### Local, Linux
 
-- Dependencies:
+Dependencies:
 
   - [Go](https://golang.org/) (Tested with Go 1.5 and 1.6)
   - Jupyter (see [here](http://jupyter.readthedocs.org/en/latest/install.html) for more details on installing jupyter)
   - [ZeroMQ](http://zeromq.org/) (2.2.X or 4.x)
 
-- Create a workspace and setup your `GOPATH`, see https://golang.org/doc/code.html#GOPATH
+1. Create a workspace and setup your `GOPATH`, see https://golang.org/doc/code.html#GOPATH
 
-- Install `goimports` if you haven't already:
+2. Install `goimports` if you haven't already:
 
   ```
   go get golang.org/x/tools/cmd/goimports
   ```
 
-- Get the kernel:
+3. Get the kernel:
   - with ZeroMQ 2.2.x:
 
     ```
@@ -74,22 +74,27 @@ This project came out of the [Gopher Gala](http://gophergala.com/) 2016.  It is 
     go get -tags zmq_4_x github.com/gopherds/gophernotes
     ```
 
-- Create a directory for the new kernel config:
+4. Create a directory for the new kernel config:
 
   ```
   mkdir -p ~/.local/share/jupyter/kernels/gophernotes
-  ```
-
-- Copy the kernel config into the `jupyter` directory:
-
-  ```
-  cp -r $GOPATH/src/github.com/gopherds/gophernotes/kernel/* ~/.local/share/jupyter/kernels/gophernotes
   ```
   
   Note, depending on which version of jupyter you are using and if you are using Anaconda, you may need to copy to `~/.ipython` rather than `~/.local/share`:
   
   ```
   mkdir ~/.ipython/kernels/gophernotes
+  cp -r $GOPATH/src/github.com/gopherds/gophernotes/kernel/* ~/.ipython/kernels/gophernotes/
+  ```
+5. Copy the kernel config into the `jupyter` directory:
+
+  ```
+  cp -r $GOPATH/src/github.com/gopherds/gophernotes/kernel/* ~/.local/share/jupyter/kernels/gophernotes
+  ```
+  
+  OR depending on your version of jupyter:
+  
+  ```
   cp -r $GOPATH/src/github.com/gopherds/gophernotes/kernel/* ~/.ipython/kernels/gophernotes/
   ```
 
