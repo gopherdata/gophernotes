@@ -9,6 +9,7 @@ import (
 	"os"
 
 	zmq "github.com/alecthomas/gozmq"
+	"github.com/pkg/errors"
 )
 
 var logger *log.Logger
@@ -37,17 +38,16 @@ type SocketGroup struct {
 }
 
 // PrepareSockets sets up the ZMQ sockets through which the kernel will communicate.
-func PrepareSockets(connInfo ConnectionInfo) (sg SocketGroup) {
+func PrepareSockets(connInfo ConnectionInfo) (SocketGroup, error) {
 
-	// TODO handle errors.
-	context, _ := zmq.NewContext()
-	sg.ShellSocket, _ = context.NewSocket(zmq.ROUTER)
-	sg.ControlSocket, _ = context.NewSocket(zmq.ROUTER)
-	sg.StdinSocket, _ = context.NewSocket(zmq.ROUTER)
-	sg.IOPubSocket, _ = context.NewSocket(zmq.PUB)
+	// Initialize the Socket Group.
+	context, sg, err := createSockets()
+	if err != nil {
+		return sg, errors.Wrap(err, "Could not initialize context and Socket Group")
+	}
 
+	// Bind the sockets.
 	address := fmt.Sprintf("%v://%v:%%v", connInfo.Transport, connInfo.IP)
-
 	sg.ShellSocket.Bind(fmt.Sprintf(address, connInfo.ShellPort))
 	sg.ControlSocket.Bind(fmt.Sprintf(address, connInfo.ControlPort))
 	sg.StdinSocket.Bind(fmt.Sprintf(address, connInfo.StdinPort))
@@ -57,11 +57,46 @@ func PrepareSockets(connInfo ConnectionInfo) (sg SocketGroup) {
 	sg.Key = []byte(connInfo.Key)
 
 	// Start the heartbeat device
-	HBSocket, _ := context.NewSocket(zmq.REP)
+	HBSocket, err := context.NewSocket(zmq.REP)
+	if err != nil {
+		return sg, errors.Wrap(err, "Could not get the Heartbeat device socket")
+	}
 	HBSocket.Bind(fmt.Sprintf(address, connInfo.HBPort))
 	go zmq.Device(zmq.FORWARDER, HBSocket, HBSocket)
 
-	return
+	return sg, nil
+}
+
+// createSockets initializes the sockets for the socket group based on values from zmq.
+func createSockets() (*zmq.Context, SocketGroup, error) {
+
+	context, err := zmq.NewContext()
+	if err != nil {
+		return context, SocketGroup{}, errors.Wrap(err, "Could not create zmq Context")
+	}
+
+	var sg SocketGroup
+	sg.ShellSocket, err = context.NewSocket(zmq.ROUTER)
+	if err != nil {
+		return context, sg, errors.Wrap(err, "Could not get Shell Socket")
+	}
+
+	sg.ControlSocket, err = context.NewSocket(zmq.ROUTER)
+	if err != nil {
+		return context, sg, errors.Wrap(err, "Could not get Control Socket")
+	}
+
+	sg.StdinSocket, err = context.NewSocket(zmq.ROUTER)
+	if err != nil {
+		return context, sg, errors.Wrap(err, "Could not get Stdin Socket")
+	}
+
+	sg.IOPubSocket, err = context.NewSocket(zmq.PUB)
+	if err != nil {
+		return context, sg, errors.Wrap(err, "Could not get IOPub Socket")
+	}
+
+	return context, sg, nil
 }
 
 // HandleShellMsg responds to a message on the shell ROUTER socket.
@@ -126,14 +161,16 @@ func RunKernel(connectionFile string, logwriter io.Writer) {
 	if err != nil {
 		log.Fatalln(err)
 	}
-	err = json.Unmarshal(bs, &connInfo)
-	if err != nil {
+	if err = json.Unmarshal(bs, &connInfo); err != nil {
 		log.Fatalln(err)
 	}
 	logger.Printf("%+v\n", connInfo)
 
 	// Set up the ZMQ sockets through which the kernel will communicate
-	sockets := PrepareSockets(connInfo)
+	sockets, err := PrepareSockets(connInfo)
+	if err != nil {
+		log.Fatalln(err)
+	}
 
 	pi := zmq.PollItems{
 		zmq.PollItem{Socket: sockets.ShellSocket, Events: zmq.POLLIN},
@@ -144,8 +181,7 @@ func RunKernel(connectionFile string, logwriter io.Writer) {
 	var msgparts [][]byte
 	// Message receiving loop:
 	for {
-		_, err = zmq.Poll(pi, -1)
-		if err != nil {
+		if _, err = zmq.Poll(pi, -1); err != nil {
 			log.Fatalln(err)
 		}
 		switch {
