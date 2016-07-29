@@ -3,7 +3,7 @@ package main
 import (
 	"testing"
 
-	repl "github.com/gopherds/gophernotes/replpkg"
+	repl "github.com/gopherds/gophernotes/internal/repl"
 	"github.com/stretchr/testify/assert"
 )
 
