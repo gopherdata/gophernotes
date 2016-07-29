@@ -1,6 +1,7 @@
 {
-	"ImportPath": "github.com/gophergala2016/gophernotes",
-	"GoVersion": "go1.5",
+	"ImportPath": "github.com/gopherds/gophernotes",
+	"GoVersion": "go1.6",
+	"GodepVersion": "v74",
 	"Packages": [
 		"./..."
 	],
@@ -19,7 +20,7 @@
 		},
 		{
 			"ImportPath": "github.com/motemen/go-quickfix",
-			"Rev": "a5d4c82f7428280897ef403a87aa78b9c5924a47"
+			"Rev": "5c522febc6796f9c2ceabf9374a75490e2d268da"
 		},
 		{
 			"ImportPath": "github.com/nu7hatch/gouuid",
@@ -36,23 +37,11 @@
 		},
 		{
 			"ImportPath": "golang.org/x/tools/go/ast/astutil",
-			"Rev": "f3a63969dd29f8cfa913fdaea22f30c1ed537cb3"
-		},
-		{
-			"ImportPath": "golang.org/x/tools/go/exact",
-			"Rev": "f3a63969dd29f8cfa913fdaea22f30c1ed537cb3"
-		},
-		{
-			"ImportPath": "golang.org/x/tools/go/gcimporter",
-			"Rev": "f3a63969dd29f8cfa913fdaea22f30c1ed537cb3"
-		},
-		{
-			"ImportPath": "golang.org/x/tools/go/types",
-			"Rev": "f3a63969dd29f8cfa913fdaea22f30c1ed537cb3"
+			"Rev": "ed69e84b1518b5857a9f4e01d1f9cefdcc45246e"
 		},
 		{
 			"ImportPath": "golang.org/x/tools/imports",
-			"Rev": "f3a63969dd29f8cfa913fdaea22f30c1ed537cb3"
+			"Rev": "ed69e84b1518b5857a9f4e01d1f9cefdcc45246e"
 		}
 	]
 }
