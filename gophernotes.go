@@ -147,13 +147,12 @@ func HandleShutdownRequest(receipt MsgReceipt) {
 	os.Exit(0)
 }
 
-// RunKernel is the main entry point to start the kernel. This is what is called by the
-// gophernotes executable.
+// RunKernel is the main entry point to start the kernel.
 func RunKernel(connectionFile string, logwriter io.Writer) {
 
 	logger = log.New(logwriter, "gophernotes ", log.LstdFlags)
 
-	// set up the "Session" with the replpkg
+	// Set up the "Session" with the replpkg.
 	SetupExecutionEnvironment()
 
 	var connInfo ConnectionInfo
@@ -166,7 +165,7 @@ func RunKernel(connectionFile string, logwriter io.Writer) {
 	}
 	logger.Printf("%+v\n", connInfo)
 
-	// Set up the ZMQ sockets through which the kernel will communicate
+	// Set up the ZMQ sockets through which the kernel will communicate.
 	sockets, err := PrepareSockets(connInfo)
 	if err != nil {
 		log.Fatalln(err)
@@ -178,8 +177,8 @@ func RunKernel(connectionFile string, logwriter io.Writer) {
 		zmq.PollItem{Socket: sockets.ControlSocket, Events: zmq.POLLIN},
 	}
 
+	// Start a message receiving loop.
 	var msgparts [][]byte
-	// Message receiving loop:
 	for {
 		if _, err = zmq.Poll(pi, -1); err != nil {
 			log.Fatalln(err)
@@ -189,17 +188,21 @@ func RunKernel(connectionFile string, logwriter io.Writer) {
 			msgparts, _ = pi[0].Socket.RecvMultipart(0)
 			msg, ids, err := WireMsgToComposedMsg(msgparts, sockets.Key)
 			if err != nil {
-				fmt.Println(err)
+				log.Println(err)
 				return
 			}
 			HandleShellMsg(MsgReceipt{msg, ids, sockets})
 		case pi[1].REvents&zmq.POLLIN != 0: // stdin socket - not implemented.
 			pi[1].Socket.RecvMultipart(0)
 		case pi[2].REvents&zmq.POLLIN != 0: // control socket - treat like shell socket.
-			msgparts, _ = pi[2].Socket.RecvMultipart(0)
+			msgparts, err = pi[2].Socket.RecvMultipart(0)
+			if err != nil {
+				log.Println(err)
+				return
+			}
 			msg, ids, err := WireMsgToComposedMsg(msgparts, sockets.Key)
 			if err != nil {
-				fmt.Println(err)
+				log.Println(err)
 				return
 			}
 			HandleShellMsg(MsgReceipt{msg, ids, sockets})
