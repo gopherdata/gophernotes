@@ -7,14 +7,16 @@ import (
 	repl "github.com/gopherds/gophernotes/replpkg"
 )
 
-// REPLSession manages the I/O to/from the notebook
-var REPLSession *repl.Session
-var fset *token.FileSet
+var (
+	// REPLSession manages the I/O to/from the notebook.
+	REPLSession *repl.Session
+	fset        *token.FileSet
+)
 
-// ExecCounter is incremented each time we run user code in the notebook
+// ExecCounter is incremented each time we run user code in the notebook.
 var ExecCounter int
 
-// SetupExecutionEnvironment initializes the REPL session and set of tmp files
+// SetupExecutionEnvironment initializes the REPL session and set of tmp files.
 func SetupExecutionEnvironment() {
 
 	var err error
@@ -33,7 +35,7 @@ type OutputMsg struct {
 	Metadata  map[string]interface{} `json:"metadata"`
 }
 
-// ErrMsg encodes the traceback of errors output to the notebook
+// ErrMsg encodes the traceback of errors output to the notebook.
 type ErrMsg struct {
 	EName     string   `json:"ename"`
 	EValue    string   `json:"evalue"`
@@ -54,7 +56,7 @@ func HandleExecuteRequest(receipt MsgReceipt) {
 	}
 	content["execution_count"] = ExecCounter
 
-	// the compilation/execution magic happen here
+	// Do the compilation/execution magic.
 	val, err, stderr := REPLSession.Eval(code)
 
 	if err == nil {

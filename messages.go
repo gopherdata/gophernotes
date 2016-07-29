@@ -12,7 +12,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-// MsgHeader encodes header info for ZMQ messages
+// MsgHeader encodes header info for ZMQ messages.
 type MsgHeader struct {
 	MsgID    string `json:"msg_id"`
 	Username string `json:"username"`
@@ -39,15 +39,16 @@ func (e *InvalidSignatureError) Error() string {
 // WireMsgToComposedMsg translates a multipart ZMQ messages received from a socket into
 // a ComposedMsg struct and a slice of return identities. This includes verifying the
 // message signature.
-func WireMsgToComposedMsg(msgparts [][]byte, signkey []byte) (msg ComposedMsg,
-	identities [][]byte, err error) {
+func WireMsgToComposedMsg(msgparts [][]byte, signkey []byte) (ComposedMsg, [][]byte, error) {
+
 	i := 0
 	for string(msgparts[i]) != "<IDS|MSG>" {
 		i++
 	}
-	identities = msgparts[:i]
+	identities := msgparts[:i]
 
 	// Validate signature
+	var msg ComposedMsg
 	if len(signkey) != 0 {
 		mac := hmac.New(sha256.New, signkey)
 		for _, msgpart := range msgparts[i+2 : i+6] {
@@ -63,7 +64,7 @@ func WireMsgToComposedMsg(msgparts [][]byte, signkey []byte) (msg ComposedMsg,
 	json.Unmarshal(msgparts[i+3], &msg.ParentHeader)
 	json.Unmarshal(msgparts[i+4], &msg.Metadata)
 	json.Unmarshal(msgparts[i+5], &msg.Content)
-	return
+	return msg, identities, nil
 }
 
 // ToWireMsg translates a ComposedMsg into a multipart ZMQ message ready to send, and
@@ -98,7 +99,7 @@ func (msg ComposedMsg) ToWireMsg(signkey []byte) ([][]byte, error) {
 	}
 	msgparts[4] = content
 
-	// Sign the message
+	// Sign the message.
 	if len(signkey) != 0 {
 		mac := hmac.New(sha256.New, signkey)
 		for _, msgpart := range msgparts[1:] {
