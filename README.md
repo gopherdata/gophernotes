@@ -49,7 +49,7 @@ This project came out of the [Gopher Gala](http://gophergala.com/) 2016.  It is 
 
 Make sure you have the following dependencies:
 
-  - [Go](https://golang.org/) (Tested with Go 1.5 and 1.6)
+  - [Go](https://golang.org/) 1.5+
   - Jupyter (see [here](http://jupyter.readthedocs.org/en/latest/install.html) for more details on installing jupyter)
   - [ZeroMQ](http://zeromq.org/) (2.2.X or 4.x)
 
@@ -104,7 +104,7 @@ Then:
 
 Make sure you have the following dependencies:
 
-  - [Go](https://golang.org/) (Tested with Go 1.5 and 1.6)
+  - [Go](https://golang.org/) 1.5+
   - Jupyter (see [here](http://jupyter.readthedocs.org/en/latest/install.html) for more details on installing jupyter)
   - [ZeroMQ](http://zeromq.org/) (2.2.X or 4.x)
 
