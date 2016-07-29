@@ -8,7 +8,7 @@ import (
 	"log"
 	"os"
 
-	zmq "github.com/gophergala2016/gophernotes/Godeps/_workspace/src/github.com/alecthomas/gozmq"
+	zmq "github.com/alecthomas/gozmq"
 )
 
 var logger *log.Logger

@@ -1,9 +1,10 @@
 package main
 
 import (
-	"github.com/gophergala2016/gophernotes/Godeps/_workspace/src/github.com/stretchr/testify/assert"
-	repl "github.com/gophergala2016/gophernotes/replpkg"
 	"testing"
+
+	repl "github.com/gopherds/gophernotes/replpkg"
+	"github.com/stretchr/testify/assert"
 )
 
 // noError is a helper function for testing

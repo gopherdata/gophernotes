@@ -12,10 +12,12 @@ import (
 	"text/tabwriter"
 	"time"
 
-	"github.com/gophergala2016/gophernotes/Godeps/_workspace/src/golang.org/x/tools/go/ast/astutil"
-	"github.com/gophergala2016/gophernotes/Godeps/_workspace/src/golang.org/x/tools/go/types"
 	"go/ast"
 	"go/build"
+	"go/importer"
+	"go/types"
+
+	"golang.org/x/tools/go/ast/astutil"
 )
 
 type command struct {
@@ -80,7 +82,7 @@ func actionImport(s *Session, arg string) (string, error) {
 	path := strings.Trim(arg, `"`)
 
 	// check if the package specified by path is importable
-	_, err := types.DefaultImport(s.Types.Packages, path)
+	_, err := importer.Default().Import(path)
 	if err != nil {
 		return "", err
 	}

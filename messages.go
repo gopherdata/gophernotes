@@ -5,8 +5,9 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
-	zmq "github.com/gophergala2016/gophernotes/Godeps/_workspace/src/github.com/alecthomas/gozmq"
-	uuid "github.com/gophergala2016/gophernotes/Godeps/_workspace/src/github.com/nu7hatch/gouuid"
+
+	zmq "github.com/alecthomas/gozmq"
+	uuid "github.com/nu7hatch/gouuid"
 )
 
 // MsgHeader encodes header info for ZMQ messages

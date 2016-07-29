@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"go/token"
 
-	repl "github.com/gophergala2016/gophernotes/replpkg"
+	repl "github.com/gopherds/gophernotes/replpkg"
 )
 
 // REPLSession manages the I/O to/from the notebook

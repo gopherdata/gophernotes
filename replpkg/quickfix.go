@@ -3,11 +3,12 @@ package replpkg
 import (
 	"strings"
 
-	"github.com/gophergala2016/gophernotes/Godeps/_workspace/src/golang.org/x/tools/go/ast/astutil"
-	"github.com/gophergala2016/gophernotes/Godeps/_workspace/src/golang.org/x/tools/go/types"
 	"go/ast"
+	"go/types"
 
-	"github.com/gophergala2016/gophernotes/Godeps/_workspace/src/github.com/motemen/go-quickfix"
+	"golang.org/x/tools/go/ast/astutil"
+
+	"github.com/motemen/go-quickfix"
 )
 
 // doQuickFix tries to fix the source AST so that it compiles well.

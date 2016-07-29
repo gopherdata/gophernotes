@@ -13,18 +13,18 @@ import (
 
 	"go/ast"
 	"go/build"
+	"go/importer"
 	"go/parser"
 	"go/printer"
 	"go/scanner"
 	"go/token"
+	"go/types"
 
 	// Importing this package installs Import as go/types.DefaultImport.
-	_ "github.com/gophergala2016/gophernotes/Godeps/_workspace/src/golang.org/x/tools/go/gcimporter"
-	"github.com/gophergala2016/gophernotes/Godeps/_workspace/src/golang.org/x/tools/go/types"
-	"github.com/gophergala2016/gophernotes/Godeps/_workspace/src/golang.org/x/tools/imports"
+	"golang.org/x/tools/imports"
 
-	"github.com/gophergala2016/gophernotes/Godeps/_workspace/src/github.com/mitchellh/go-homedir"
-	"github.com/gophergala2016/gophernotes/Godeps/_workspace/src/github.com/motemen/go-quickfix"
+	"github.com/mitchellh/go-homedir"
+	"github.com/motemen/go-quickfix"
 )
 
 const version = "0.2.5"
@@ -99,7 +99,7 @@ func NewSession() (*Session, error) {
 	s := &Session{
 		Fset: token.NewFileSet(),
 		Types: &types.Config{
-			Packages: make(map[string]*types.Package),
+			Importer: importer.Default(),
 		},
 	}
 
@@ -110,7 +110,7 @@ func NewSession() (*Session, error) {
 
 	var initialSource string
 	for _, pp := range printerPkgs {
-		_, err := types.DefaultImport(s.Types.Packages, pp.path)
+		_, err := importer.Default().Import(pp.path)
 		if err == nil {
 			initialSource = fmt.Sprintf(initialSourceTemplate, pp.path, pp.code)
 			break
