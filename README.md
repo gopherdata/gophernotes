@@ -47,11 +47,13 @@ This project came out of the [Gopher Gala](http://gophergala.com/) 2016.  It is 
 
 ### Local, Linux
 
-Dependencies:
+Make sure you have the following dependencies:
 
   - [Go](https://golang.org/) (Tested with Go 1.5 and 1.6)
   - Jupyter (see [here](http://jupyter.readthedocs.org/en/latest/install.html) for more details on installing jupyter)
   - [ZeroMQ](http://zeromq.org/) (2.2.X or 4.x)
+
+Then:
 
 1. Create a workspace and setup your `GOPATH`, see https://golang.org/doc/code.html#GOPATH
 
@@ -100,33 +102,34 @@ Dependencies:
 
 ### Local, OSX
 
-- Assuming you're running with `homebrew`, install go:
+Make sure you have the following dependencies:
 
-  ```
-  brew install go
-  mkdir ~/go
-  export GOPATH=$HOME/go
-  export PATH=$PATH:/usr/local/opt/go/libexec/bin:$GOPATH/bin
-  ```
+  - [Go](https://golang.org/) (Tested with Go 1.5 and 1.6)
+  - Jupyter (see [here](http://jupyter.readthedocs.org/en/latest/install.html) for more details on installing jupyter)
+  - [ZeroMQ](http://zeromq.org/) (2.2.X or 4.x)
 
-- You'll probably want to add the above exports to your `.bashrc` or equivalent.
+Then: 
 
-- Install ZeroMQ:
-
-  ```
-  brew tap homebrew/versions
-  brew install zeromq22
-  brew link --force zeromq22
-  ```
-
-- Install gophernotes:
+1. Install goimports, if not already installed:
 
   ```
   go get golang.org/x/tools/cmd/goimports
-  go get github.com/gopherds/gophernotes
   ```
+
+2. Install gophernotes:
+  - with ZeroMQ 2.2.x:
+
+    ```
+    go get github.com/gopherds/gophernotes
+    ```
   
-  if you get this error:
+  - with ZeroMQ 4.x:
+
+    ```
+    go get -tags zmq_4_x github.com/gopherds/gophernotes
+    ```
+  
+  - if you get this error:
   
   ```
   # pkg-config --cflags libzmq libzmq libzmq libzmq
@@ -143,21 +146,21 @@ Dependencies:
 
   ```
 
-- Copy the kernel config:
+3. Copy the kernel config:
 
   ```
   mkdir -p ~/.local/share/jupyter/kernels/gophernotes
   cp -r $GOPATH/src/github.com/gopherds/gophernotes/kernel/* ~/.local/share/jupyter/kernels/gophernotes
   ```
   
-  Note, depending on which version of jupyter you are using and if you are using Anaconda, you may need to copy to `~/.ipython` rather than `~/.local/share`:
+  OR, depending on which version of jupyter you are using and if you are using Anaconda, you may need to copy to `~/.ipython` rather than `~/.local/share`:
   
   ```
   mkdir ~/.ipython/kernels/gophernotes
   cp -r $GOPATH/src/github.com/gopherds/gophernotes/kernel/* ~/.ipython/kernels/gophernotes/
   ```
 
-- Update `~/.local/share/jupyter/kernels/gophernotes/kernel.json` with the path to your $GOPATH installation.  If you used the path above, your file will look like:
+4. Update `~/.local/share/jupyter/kernels/gophernotes/kernel.json` with the FULL PATH to your gophernotes binary (in $GOPATH/bin).  For example:
 
   ```
   {
