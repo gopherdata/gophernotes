@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"flag"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -349,9 +350,14 @@ func (s *Session) Eval(in string) (string, error, bytes.Buffer) {
 			}
 			f.Close()
 
+			b := new(bytes.Buffer)
 			cmd := exec.Command("goimports", "-w", string(filepath.Dir(s.FilePath))+"/func_proxy.go")
+			cmd.Stdout = b
+			cmd.Stderr = b
 			err = cmd.Run()
 			if err != nil {
+				os.Stderr.WriteString("Error running goimports:\n")
+				io.Copy(os.Stderr, b)
 				panic(err)
 			}
 
