@@ -31,7 +31,7 @@ func TestRun_import(t *testing.T) {
 	}
 
 	for _, code := range codes {
-		_, err, _ := s.Eval(code)
+		_, _, err := s.Eval(code)
 		noError(t, err)
 	}
 }
@@ -52,7 +52,7 @@ func TestRun_QuickFix_evaluated_but_not_used(t *testing.T) {
 	}
 
 	for _, code := range codes {
-		_, err, _ := s.Eval(code)
+		_, _, err := s.Eval(code)
 		noError(t, err)
 	}
 }
@@ -70,7 +70,7 @@ func TestRun_QuickFix_used_as_value(t *testing.T) {
 	}
 
 	for _, code := range codes {
-		_, err, _ := s.Eval(code)
+		_, _, err := s.Eval(code)
 		noError(t, err)
 	}
 }
@@ -90,7 +90,7 @@ func TestRun_Copy(t *testing.T) {
 	}
 
 	for _, code := range codes {
-		_, err, _ := s.Eval(code)
+		_, _, err := s.Eval(code)
 		noError(t, err)
 	}
 }
@@ -107,7 +107,7 @@ func TestRun_Const(t *testing.T) {
 	}
 
 	for _, code := range codes {
-		_, err, _ := s.Eval(code)
+		_, _, err := s.Eval(code)
 		noError(t, err)
 	}
 }
