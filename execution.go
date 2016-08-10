@@ -57,7 +57,7 @@ func HandleExecuteRequest(receipt MsgReceipt) {
 	content["execution_count"] = ExecCounter
 
 	// Do the compilation/execution magic.
-	val, err, stderr := REPLSession.Eval(code)
+	val, stderr, err := REPLSession.Eval(code)
 
 	if err == nil {
 		content["status"] = "ok"
