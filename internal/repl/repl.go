@@ -279,35 +279,54 @@ func (s *Session) Eval(in string) (string, bytes.Buffer, error) {
 	// Split the lines of the input to check for special commands.
 	inLines := strings.Split(in, "\n")
 	var nonImportLines []string
-	for _, line := range inLines {
+	for idx, line := range inLines {
 
 		// Extract non-special lines.
-		if !strings.HasPrefix(line, "import") && !strings.HasPrefix(line, ":") {
+		trimLine := strings.TrimSpace(line)
+		if !strings.HasPrefix(line, "import") && !strings.HasPrefix(line, ":") && !strings.HasPrefix(trimLine, "\"") && !strings.HasPrefix(line, ")") {
 			nonImportLines = append(nonImportLines, line)
 			continue
 		}
 
 		// Process special commands.
+		var args []string
 		for _, command := range commands {
+
+			// Clear the args.
+			args = []string{}
 
 			// Extract any argument provided with the special command.
 			arg := strings.TrimPrefix(line, ":"+command.name)
 			if command.name == "import" {
 				arg = strings.TrimPrefix(arg, "import")
 			}
-			if arg == line {
+			switch {
+			case arg == line:
 				continue
+			case strings.HasPrefix(strings.TrimSpace(arg), "("):
+				advance := 1
+				currentLine := inLines[idx+advance]
+				for !strings.Contains(currentLine, ")") {
+					fmt.Println(currentLine)
+					args = append(args, currentLine)
+					advance++
+					currentLine = inLines[idx+advance]
+				}
+			default:
+				args = append(args, arg)
 			}
 
 			// Apply the action associated with the special command.
-			if arg == "" || strings.HasPrefix(arg, " ") {
-				arg = strings.TrimSpace(arg)
-				_, err := command.action(s, arg)
-				if err != nil {
-					if err == ErrQuit {
-						return "", bytes.Buffer{}, err
+			for _, arg = range args {
+				if arg == "" || strings.HasPrefix(arg, " ") {
+					arg = strings.TrimSpace(arg)
+					_, err := command.action(s, arg)
+					if err != nil {
+						if err == ErrQuit {
+							return "", bytes.Buffer{}, err
+						}
+						errorf("%s: %s", command.name, err)
 					}
-					errorf("%s: %s", command.name, err)
 				}
 			}
 		}
