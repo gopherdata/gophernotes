@@ -164,7 +164,7 @@ Then:
         "/Users/<your username>/go/bin/gophernotes",
         "{connection_file}"
         ],
-      "display_name": "Golang",
+      "display_name": "Go",
       "language": "go",
       "name": "go"
   }
