@@ -14,9 +14,9 @@ RUN mkdir -p "$GOPATH/src" "$GOPATH/bin" && chmod -R 777 "$GOPATH"
 
 # install gophernotes
 RUN go get golang.org/x/tools/cmd/goimports
-RUN go get github.com/gophergala2016/gophernotes
+RUN go get github.com/gopherds/gophernotes
 RUN mkdir -p ~/.ipython/kernels/gophernotes
-RUN cp -r $GOPATH/src/github.com/gophergala2016/gophernotes/kernel/* ~/.ipython/kernels/gophernotes
+RUN cp -r $GOPATH/src/github.com/gopherds/gophernotes/kernel/* ~/.ipython/kernels/gophernotes
 
 EXPOSE 8888
 CMD ["jupyter", "notebook"]
