@@ -214,7 +214,6 @@ Restart jupyter, and you should now be up and running.
 Some of the custom commands from the [gore](https://github.com/motemen/gore) REPL have carried over to `gophernotes`.  Note, in particular, the syntax for importing packages:
 
 ```
-:import <package path>  Import package
 :print                  Show current source (currently prints to the terminal where the notebook server is running)
 :write [<filename>]     Write out current source to file
 :help                   List commands
