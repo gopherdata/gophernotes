@@ -14,10 +14,6 @@ This project came out of the [Gopher Gala](http://gophergala.com/) 2016.  It is 
 
 ![alt tag](https://raw.githubusercontent.com/gopherds/gophernotes/master/files/screencast.gif)
 
-### Story telling and pattern recognition with Markdown and Golang:
-
-![alt tag](https://raw.githubusercontent.com/gopherds/gophernotes/master/files/pr-screenshot.png)
-
 ### Example Notebooks (dowload and run them locally, follow the links to view in Github, or use the [Jupyter Notebook Viewer](http://nbviewer.jupyter.org/)):
 - [Simple Printing and Channels](https://github.com/gopherds/gophernotes/blob/master/examples/Simple-Example.ipynb)
 - [Pattern Recognition with Golearn](https://github.com/gopherds/gophernotes/blob/master/examples/Pattern-Recognition.ipynb)
