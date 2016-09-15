@@ -154,29 +154,22 @@ func goRun(files []string) ([]byte, bytes.Buffer, error) {
 	return out, stderr, err
 }
 
-func (s *Session) evalExpr(in string) ([]ast.Expr, error) {
-	inLines := strings.Split(in, "\n")
-
-	var exprs []ast.Expr
-	for _, line := range inLines {
-
-		expr, err := parser.ParseExpr(line)
-		if err != nil {
-			return nil, err
-		}
-		exprs = append(exprs, expr)
-
-		stmt := &ast.ExprStmt{
-			X: &ast.CallExpr{
-				Fun:  ast.NewIdent(printerName),
-				Args: []ast.Expr{expr},
-			},
-		}
-
-		s.appendStatements(stmt)
+func (s *Session) evalExpr(in string) (ast.Expr, error) {
+	expr, err := parser.ParseExpr(in)
+	if err != nil {
+		return nil, err
 	}
 
-	return exprs, nil
+	stmt := &ast.ExprStmt{
+		X: &ast.CallExpr{
+			Fun:  ast.NewIdent(printerName),
+			Args: []ast.Expr{expr},
+		},
+	}
+
+	s.appendStatements(stmt)
+
+	return expr, nil
 }
 
 func isNamedIdent(expr ast.Expr, name string) bool {
@@ -184,35 +177,80 @@ func isNamedIdent(expr ast.Expr, name string) bool {
 	return ok && ident.Name == name
 }
 
-func (s *Session) evalStmt(in string) error {
+func (s *Session) evalStmt(in string, noPrint bool) error {
 	src := fmt.Sprintf("package P; func F() { %s }", in)
 	f, err := parser.ParseFile(s.Fset, "stmt.go", src, parser.Mode(0))
 	if err != nil {
-		return err
+		debugf("stmt :: err = %s", err)
+
+		// try to import this as a proxy function and correct for any imports
+		appendForImport := `package main
+
+
+			`
+
+		f, err := os.Create(string(filepath.Dir(s.FilePath)) + "/func_proxy.go")
+		if err != nil {
+			return err
+		}
+
+		_, err = f.Write([]byte(appendForImport + in))
+		if err != nil {
+			return err
+		}
+		f.Close()
+
+		b := new(bytes.Buffer)
+		cmd := exec.Command("goimports", "-w", string(filepath.Dir(s.FilePath))+"/func_proxy.go")
+		cmd.Stdout = b
+		cmd.Stderr = b
+		err = cmd.Run()
+		if err != nil {
+			os.Stderr.WriteString("Error running goimports:\n")
+			io.Copy(os.Stderr, b)
+			return err
+		}
+
+		functproxy, err := ioutil.ReadFile(string(filepath.Dir(s.FilePath)) + "/func_proxy.go")
+		if err != nil {
+			return err
+		}
+
+		if err = s.importFile(functproxy); err != nil {
+			errorf("%s", err)
+			if _, ok := err.(scanner.ErrorList); ok {
+				return ErrContinue
+			}
+		}
+
 	}
 
 	enclosingFunc := f.Scope.Lookup("F").Decl.(*ast.FuncDecl)
 	stmts := enclosingFunc.Body.List
 
 	if len(stmts) > 0 {
+
 		debugf("evalStmt :: %s", showNode(s.Fset, stmts))
 		lastStmt := stmts[len(stmts)-1]
+
 		// print last assigned/defined values
-		if assign, ok := lastStmt.(*ast.AssignStmt); ok {
-			vs := []ast.Expr{}
-			for _, v := range assign.Lhs {
-				if !isNamedIdent(v, "_") {
-					vs = append(vs, v)
+		if !noPrint {
+			if assign, ok := lastStmt.(*ast.AssignStmt); ok {
+				vs := []ast.Expr{}
+				for _, v := range assign.Lhs {
+					if !isNamedIdent(v, "_") {
+						vs = append(vs, v)
+					}
 				}
-			}
-			if len(vs) > 0 {
-				printLastValues := &ast.ExprStmt{
-					X: &ast.CallExpr{
-						Fun:  ast.NewIdent(printerName),
-						Args: vs,
-					},
+				if len(vs) > 0 {
+					printLastValues := &ast.ExprStmt{
+						X: &ast.CallExpr{
+							Fun:  ast.NewIdent(printerName),
+							Args: vs,
+						},
+					}
+					stmts = append(stmts, printLastValues)
 				}
-				stmts = append(stmts, printLastValues)
 			}
 		}
 	}
@@ -345,53 +383,9 @@ func (s *Session) Eval(in string) (string, bytes.Buffer, error) {
 		return "", bytes.Buffer{}, nil
 	}
 
-	if _, err := s.evalExpr(in); err != nil {
-		debugf("expr :: err = %s", err)
-
-		err := s.evalStmt(in)
-		if err != nil {
-			debugf("stmt :: err = %s", err)
-
-			// try to import this as a proxy function and correct for any imports
-			appendForImport := `package main
-
-
-			`
-
-			f, err := os.Create(string(filepath.Dir(s.FilePath)) + "/func_proxy.go")
-			if err != nil {
-				panic(err)
-			}
-
-			_, err = f.Write([]byte(appendForImport + in))
-			if err != nil {
-				panic(err)
-			}
-			f.Close()
-
-			b := new(bytes.Buffer)
-			cmd := exec.Command("goimports", "-w", string(filepath.Dir(s.FilePath))+"/func_proxy.go")
-			cmd.Stdout = b
-			cmd.Stderr = b
-			err = cmd.Run()
-			if err != nil {
-				os.Stderr.WriteString("Error running goimports:\n")
-				io.Copy(os.Stderr, b)
-				panic(err)
-			}
-
-			functproxy, err := ioutil.ReadFile(string(filepath.Dir(s.FilePath)) + "/func_proxy.go")
-			if err != nil {
-				panic(err)
-			}
-
-			if err = s.importFile(functproxy); err != nil {
-				errorf("%s", err)
-				if _, ok := err.(scanner.ErrorList); ok {
-					return "", bytes.Buffer{}, ErrContinue
-				}
-			}
-		}
+	// Extract statements.
+	if err := s.separateEvalStmt(in); err != nil {
+		return "", bytes.Buffer{}, err
 	}
 
 	s.doQuickFix()
@@ -411,6 +405,54 @@ func (s *Session) Eval(in string) (string, bytes.Buffer, error) {
 	}
 
 	return string(output), strerr, err
+}
+
+// separateEvalStmt separates what can be evaluated via evalExpr from what cannot.
+func (s *Session) separateEvalStmt(in string) error {
+	var stmtLines []string
+	var exprCount int
+
+	inLines := strings.Split(in, "\n")
+
+	for _, line := range inLines {
+
+		priorLen := len(s.mainBody.List)
+
+		if _, err := s.evalExpr(line); err != nil {
+			stmtLines = append(stmtLines, line)
+			continue
+		}
+
+		if len(stmtLines) != 0 {
+
+			currentLen := len(s.mainBody.List)
+			trimNum := currentLen - priorLen
+			s.mainBody.List = s.mainBody.List[0 : currentLen-trimNum]
+
+			if err := s.evalStmt(strings.Join(stmtLines, "\n"), true); err != nil {
+				return err
+			}
+			stmtLines = []string{}
+
+			if _, err := s.evalExpr(line); err != nil {
+				return err
+			}
+		}
+
+		exprCount++
+	}
+
+	if len(stmtLines) != 0 {
+		var noPrint bool
+		if exprCount > 0 {
+			noPrint = true
+		}
+		if err := s.evalStmt(strings.Join(stmtLines, "\n"), noPrint); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 // storeMainBody stores current state of code so that it can be restored

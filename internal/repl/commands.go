@@ -190,7 +190,7 @@ func actionDoc(s *Session, in string) (string, error) {
 	s.storeMainBody()
 	defer s.restoreMainBody()
 
-	exprs, err := s.evalExpr(in)
+	expr, err := s.evalExpr(in)
 	if err != nil {
 		return "", err
 	}
@@ -206,35 +206,33 @@ func actionDoc(s *Session, in string) (string, error) {
 		debugf("typecheck error (ignored): %s", err)
 	}
 
+	// :doc patterns:
+	// - "json" -> "encoding/json" (package name)
+	// - "json.Encoder" -> "encoding/json", "Encoder" (package member)
+	// - "json.NewEncoder(nil).Encode" -> "encoding/json", "Decode" (package type member)
 	var docObj types.Object
-	for _, expr := range exprs {
-		// :doc patterns:
-		// - "json" -> "encoding/json" (package name)
-		// - "json.Encoder" -> "encoding/json", "Encoder" (package member)
-		// - "json.NewEncoder(nil).Encode" -> "encoding/json", "Decode" (package type member)
-		if sel, ok := expr.(*ast.SelectorExpr); ok {
-			// package member, package type member
-			docObj = s.TypeInfo.ObjectOf(sel.Sel)
-		} else if t := s.TypeInfo.TypeOf(expr); t != nil && t != types.Typ[types.Invalid] {
-			for {
-				if pt, ok := t.(*types.Pointer); ok {
-					t = pt.Elem()
-				} else {
-					break
-				}
+	if sel, ok := expr.(*ast.SelectorExpr); ok {
+		// package member, package type member
+		docObj = s.TypeInfo.ObjectOf(sel.Sel)
+	} else if t := s.TypeInfo.TypeOf(expr); t != nil && t != types.Typ[types.Invalid] {
+		for {
+			if pt, ok := t.(*types.Pointer); ok {
+				t = pt.Elem()
+			} else {
+				break
 			}
-			switch t := t.(type) {
-			case *types.Named:
-				docObj = t.Obj()
-			case *types.Basic:
-				// builtin types
-				docObj = types.Universe.Lookup(t.Name())
-			}
-		} else if ident, ok := expr.(*ast.Ident); ok {
-			// package name
-			mainScope := s.TypeInfo.Scopes[s.mainFunc().Type]
-			_, docObj = mainScope.LookupParent(ident.Name, ident.NamePos)
 		}
+		switch t := t.(type) {
+		case *types.Named:
+			docObj = t.Obj()
+		case *types.Basic:
+			// builtin types
+			docObj = types.Universe.Lookup(t.Name())
+		}
+	} else if ident, ok := expr.(*ast.Ident); ok {
+		// package name
+		mainScope := s.TypeInfo.Scopes[s.mainFunc().Type]
+		_, docObj = mainScope.LookupParent(ident.Name, ident.NamePos)
 	}
 
 	if docObj == nil {
