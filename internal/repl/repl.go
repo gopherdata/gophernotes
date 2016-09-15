@@ -154,22 +154,29 @@ func goRun(files []string) ([]byte, bytes.Buffer, error) {
 	return out, stderr, err
 }
 
-func (s *Session) evalExpr(in string) (ast.Expr, error) {
-	expr, err := parser.ParseExpr(in)
-	if err != nil {
-		return nil, err
+func (s *Session) evalExpr(in string) ([]ast.Expr, error) {
+	inLines := strings.Split(in, "\n")
+
+	var exprs []ast.Expr
+	for _, line := range inLines {
+
+		expr, err := parser.ParseExpr(line)
+		if err != nil {
+			return nil, err
+		}
+		exprs = append(exprs, expr)
+
+		stmt := &ast.ExprStmt{
+			X: &ast.CallExpr{
+				Fun:  ast.NewIdent(printerName),
+				Args: []ast.Expr{expr},
+			},
+		}
+
+		s.appendStatements(stmt)
 	}
 
-	stmt := &ast.ExprStmt{
-		X: &ast.CallExpr{
-			Fun:  ast.NewIdent(printerName),
-			Args: []ast.Expr{expr},
-		},
-	}
-
-	s.appendStatements(stmt)
-
-	return expr, nil
+	return exprs, nil
 }
 
 func isNamedIdent(expr ast.Expr, name string) bool {
@@ -307,7 +314,6 @@ func (s *Session) Eval(in string) (string, bytes.Buffer, error) {
 				advance := 1
 				currentLine := inLines[idx+advance]
 				for !strings.Contains(currentLine, ")") {
-					fmt.Println(currentLine)
 					args = append(args, currentLine)
 					advance++
 					currentLine = inLines[idx+advance]
