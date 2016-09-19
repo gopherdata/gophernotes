@@ -204,11 +204,11 @@ func (s *Session) isPureExpr(expr ast.Expr) bool {
 	case *ast.CallExpr:
 		tv := s.TypeInfo.Types[expr.Fun]
 
-		for _, arg := range expr.Args {
-			if s.isPureExpr(arg) == false {
-				return false
-			}
-		}
+		//for _, arg := range expr.Args {
+		//	if s.isPureExpr(arg) == false {
+		//		return false
+		//	}
+		//}
 
 		if tv.IsType() {
 			return true

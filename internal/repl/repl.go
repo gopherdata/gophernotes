@@ -384,6 +384,7 @@ func (s *Session) Eval(in string) (string, bytes.Buffer, error) {
 	}
 
 	// Extract statements.
+	priorListLength := len(s.mainBody.List)
 	if err := s.separateEvalStmt(in); err != nil {
 		return "", bytes.Buffer{}, err
 	}
@@ -404,6 +405,20 @@ func (s *Session) Eval(in string) (string, bytes.Buffer, error) {
 		errorf("%s", err)
 	}
 
+	// Cleanup the session file.
+	s.mainBody.List = s.mainBody.List[0:priorListLength]
+	if err := s.cleanEvalStmt(in); err != nil {
+		return "", bytes.Buffer{}, err
+	}
+	f, err := os.Create(s.FilePath)
+	if err != nil {
+		return "", bytes.Buffer{}, err
+	}
+	err = printer.Fprint(f, s.Fset, s.File)
+	if err != nil {
+		return "", bytes.Buffer{}, err
+	}
+
 	return string(output), strerr, err
 }
 
@@ -411,32 +426,56 @@ func (s *Session) Eval(in string) (string, bytes.Buffer, error) {
 func (s *Session) separateEvalStmt(in string) error {
 	var stmtLines []string
 	var exprCount int
+	var bracketCount int
 
 	inLines := strings.Split(in, "\n")
 
 	for _, line := range inLines {
 
-		priorLen := len(s.mainBody.List)
+		if bracketCount == 0 {
+			if _, err := s.evalExpr(line); err != nil {
+				if strings.LastIndex(line, "{") == len(line)-1 {
+					bracketCount++
+				}
+				stmtLines = append(stmtLines, line)
+				continue
+			}
+			continue
+		}
+
+		if strings.LastIndex(line, "}") == len(line)-1 {
+			bracketCount--
+		}
+		stmtLines = append(stmtLines, line)
+
+		exprCount++
+	}
+
+	if len(stmtLines) != 0 {
+		var noPrint bool
+		if exprCount > 0 {
+			noPrint = true
+		}
+		if err := s.evalStmt(strings.Join(stmtLines, "\n"), noPrint); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// cleanEvalStmt cleans up prior print statements etc.
+func (s *Session) cleanEvalStmt(in string) error {
+	var stmtLines []string
+	var exprCount int
+
+	inLines := strings.Split(in, "\n")
+
+	for _, line := range inLines {
 
 		if _, err := s.evalExpr(line); err != nil {
 			stmtLines = append(stmtLines, line)
 			continue
-		}
-
-		if len(stmtLines) != 0 {
-
-			currentLen := len(s.mainBody.List)
-			trimNum := currentLen - priorLen
-			s.mainBody.List = s.mainBody.List[0 : currentLen-trimNum]
-
-			if err := s.evalStmt(strings.Join(stmtLines, "\n"), true); err != nil {
-				return err
-			}
-			stmtLines = []string{}
-
-			if _, err := s.evalExpr(line); err != nil {
-				return err
-			}
 		}
 
 		exprCount++
