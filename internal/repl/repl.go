@@ -447,9 +447,13 @@ func (s *Session) separateEvalStmt(in string) error {
 		if strings.LastIndex(line, "}") == len(line)-1 {
 			bracketCount--
 		}
+		if strings.LastIndex(line, "{") == len(line)-1 {
+			bracketCount++
+		}
 		stmtLines = append(stmtLines, line)
 
 		if bracketCount == 0 && len(stmtLines) > 0 {
+
 			if err := s.evalStmt(strings.Join(stmtLines, "\n"), true); err != nil {
 				return err
 			}
@@ -476,26 +480,24 @@ func (s *Session) separateEvalStmt(in string) error {
 // cleanEvalStmt cleans up prior print statements etc.
 func (s *Session) cleanEvalStmt(in string) error {
 	var stmtLines []string
-	var exprCount int
 
 	inLines := strings.Split(in, "\n")
 
 	for _, line := range inLines {
 
-		if _, err := s.evalExpr(line); err != nil {
-			stmtLines = append(stmtLines, line)
+		beforeLines := len(s.mainBody.List)
+		if expr, err := s.evalExpr(line); err == nil {
+			if !s.isPureExpr(expr) {
+				s.mainBody.List = s.mainBody.List[0:beforeLines]
+				stmtLines = append(stmtLines, line)
+			}
 			continue
 		}
-
-		exprCount++
+		stmtLines = append(stmtLines, line)
 	}
 
 	if len(stmtLines) != 0 {
-		var noPrint bool
-		if exprCount > 0 {
-			noPrint = true
-		}
-		if err := s.evalStmt(strings.Join(stmtLines, "\n"), noPrint); err != nil {
+		if err := s.evalStmt(strings.Join(stmtLines, "\n"), true); err != nil {
 			return err
 		}
 	}
