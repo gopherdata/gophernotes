@@ -433,25 +433,15 @@ func (s *Session) separateEvalStmt(in string) error {
 	for _, line := range inLines {
 
 		if bracketCount == 0 && len(stmtLines) == 0 {
-			if _, err := s.evalExpr(line); err != nil {
+			_, err := s.evalExpr(line)
+			if err != nil {
 				if strings.LastIndex(line, "{") == len(line)-1 {
 					bracketCount++
 				}
-				stmtLines = append(stmtLines, line)
+			}
+			if err == nil {
 				continue
 			}
-			continue
-		}
-
-		if bracketCount == 0 && len(stmtLines) > 0 {
-			var noPrint bool
-			if exprCount > 0 {
-				noPrint = true
-			}
-			if err := s.evalStmt(strings.Join(stmtLines, "\n"), noPrint); err != nil {
-				return err
-			}
-			stmtLines = []string{}
 		}
 
 		if strings.LastIndex(line, "}") == len(line)-1 {
@@ -459,10 +449,18 @@ func (s *Session) separateEvalStmt(in string) error {
 		}
 		stmtLines = append(stmtLines, line)
 
+		if bracketCount == 0 && len(stmtLines) > 0 {
+			if err := s.evalStmt(strings.Join(stmtLines, "\n"), true); err != nil {
+				return err
+			}
+			stmtLines = []string{}
+			continue
+		}
+
 		exprCount++
 	}
 
-	if len(stmtLines) != 0 {
+	if len(stmtLines) > 0 {
 		var noPrint bool
 		if exprCount > 0 {
 			noPrint = true
