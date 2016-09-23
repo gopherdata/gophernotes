@@ -152,7 +152,7 @@ Then:
   jupyter --data-dir
   ```
 
-4. Update `~/.local/share/jupyter/kernels/gophernotes/kernel.json` with the FULL PATH to your gophernotes binary (in $GOPATH/bin).  For example:
+4. Update `~/Library/Jupyter/kernels/gophernotes/kernel.json` with the FULL PATH to your gophernotes binary (in $GOPATH/bin).  For example:
 
   ```
   {
