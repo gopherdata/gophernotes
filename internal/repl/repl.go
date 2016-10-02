@@ -2,8 +2,8 @@ package replpkg
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -206,8 +206,7 @@ func (s *Session) evalStmt(in string, noPrint bool) error {
 		cmd.Stderr = b
 		err = cmd.Run()
 		if err != nil {
-			os.Stderr.WriteString("Error running goimports:\n")
-			io.Copy(os.Stderr, b)
+			err = errors.New(b.String())
 			return err
 		}
 
@@ -217,7 +216,7 @@ func (s *Session) evalStmt(in string, noPrint bool) error {
 		}
 
 		if err = s.importFile(functproxy); err != nil {
-			errorf("%s", err)
+			errorf("%s", err.Error())
 			if _, ok := err.(scanner.ErrorList); ok {
 				return ErrContinue
 			}
@@ -369,7 +368,7 @@ func (s *Session) Eval(in string) (string, bytes.Buffer, error) {
 						if err == ErrQuit {
 							return "", bytes.Buffer{}, err
 						}
-						errorf("%s: %s", command.name, err)
+						errorf("%s: %s", command.name, err.Error())
 					}
 				}
 			}
@@ -386,14 +385,14 @@ func (s *Session) Eval(in string) (string, bytes.Buffer, error) {
 	// Extract statements.
 	priorListLength := len(s.mainBody.List)
 	if err := s.separateEvalStmt(in); err != nil {
-		return "", bytes.Buffer{}, err
+		return "", *bytes.NewBuffer([]byte(err.Error())), err
 	}
 
 	s.doQuickFix()
 
-	output, strerr, err := s.Run()
-	if err != nil {
-		if exitErr, ok := err.(*exec.ExitError); ok {
+	output, stderr, runErr := s.Run()
+	if runErr != nil {
+		if exitErr, ok := runErr.(*exec.ExitError); ok {
 			// if failed with status 2, remove the last statement
 			if st, ok := exitErr.ProcessState.Sys().(syscall.WaitStatus); ok {
 				if st.ExitStatus() == 2 {
@@ -402,24 +401,24 @@ func (s *Session) Eval(in string) (string, bytes.Buffer, error) {
 				}
 			}
 		}
-		errorf("%s", err)
+		errorf("%s", runErr.Error())
 	}
 
 	// Cleanup the session file.
 	s.mainBody.List = s.mainBody.List[0:priorListLength]
 	if err := s.cleanEvalStmt(in); err != nil {
-		return "", bytes.Buffer{}, err
+		return string(output), stderr, err
 	}
 	f, err := os.Create(s.FilePath)
 	if err != nil {
-		return "", bytes.Buffer{}, err
+		return string(output), stderr, err
 	}
 	err = printer.Fprint(f, s.Fset, s.File)
 	if err != nil {
-		return "", bytes.Buffer{}, err
+		return string(output), stderr, err
 	}
 
-	return string(output), strerr, err
+	return string(output), stderr, runErr
 }
 
 // separateEvalStmt separates what can be evaluated via evalExpr from what cannot.
@@ -445,7 +444,9 @@ func (s *Session) separateEvalStmt(in string) error {
 		}
 
 		if strings.LastIndex(line, "}") == len(line)-1 {
-			bracketCount--
+			if !strings.HasSuffix(line, "{}") {
+				bracketCount--
+			}
 		}
 		if strings.LastIndex(line, "{") == len(line)-1 {
 			bracketCount++
@@ -525,17 +526,17 @@ func (s *Session) includeFiles(files []string) {
 func (s *Session) includeFile(file string) {
 	content, err := ioutil.ReadFile(file)
 	if err != nil {
-		errorf("%s", err)
+		errorf("%s", err.Error())
 		return
 	}
 
 	if err = s.importPackages(content); err != nil {
-		errorf("%s", err)
+		errorf("%s", err.Error())
 		return
 	}
 
 	if err = s.importFile(content); err != nil {
-		errorf("%s", err)
+		errorf("%s", err.Error())
 	}
 
 	infof("added file %s", file)

@@ -104,14 +104,14 @@ func completeImport(s *Session, prefix string) []string {
 
 		if fi, err := os.Stat(dir); err != nil || !fi.IsDir() {
 			if err != nil && !os.IsNotExist(err) {
-				errorf("Stat %s: %s", dir, err)
+				errorf("Stat %s: %s", dir, err.Error())
 			}
 			continue
 		}
 
 		entries, err := ioutil.ReadDir(dir)
 		if err != nil {
-			errorf("ReadDir %s: %s", dir, err)
+			errorf("ReadDir %s: %s", dir, err.Error())
 			continue
 		}
 		for _, fi := range entries {
