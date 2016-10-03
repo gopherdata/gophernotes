@@ -398,10 +398,10 @@ func (s *Session) Eval(in string) (string, bytes.Buffer, error) {
 				if st.ExitStatus() == 2 {
 					debugf("got exit status 2, popping out last input")
 					s.restoreMainBody()
+					runErr = nil
 				}
 			}
 		}
-		errorf("%s", runErr.Error())
 	}
 
 	// Cleanup the session file.

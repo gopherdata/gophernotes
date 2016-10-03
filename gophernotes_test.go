@@ -43,10 +43,10 @@ func TestRun_QuickFix_evaluated_but_not_used(t *testing.T) {
 	noError(t, err)
 
 	codes := []string{
-		//`[]byte("")`,
-		//`make([]int, 0)`,
+		`[]byte("")`,
+		`make([]int, 0)`,
 		`1+1`,
-		//`func() {}`,
+		`func() {}`,
 		`(4 & (1 << 1))`,
 		`1`,
 	}
