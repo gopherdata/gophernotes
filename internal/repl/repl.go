@@ -391,7 +391,7 @@ func (s *Session) Eval(in string) (string, bytes.Buffer, error) {
 	s.doQuickFix()
 
 	output, stderr, runErr := s.Run()
-	if runErr != nil {
+	if runErr != nil || stderr.String() != "" {
 		if exitErr, ok := runErr.(*exec.ExitError); ok {
 			// if failed with status 2, remove the last statement
 			if st, ok := exitErr.ProcessState.Sys().(syscall.WaitStatus); ok {
@@ -416,6 +416,11 @@ func (s *Session) Eval(in string) (string, bytes.Buffer, error) {
 	err = printer.Fprint(f, s.Fset, s.File)
 	if err != nil {
 		return string(output), stderr, err
+	}
+
+	// Catch any unexpected stderr.
+	if stderr.String() != "" {
+		runErr = errors.New("Unexpected stderr from execution")
 	}
 
 	return string(output), stderr, runErr
