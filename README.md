@@ -166,6 +166,71 @@ Then:
   }
   ```
 
+### Local, Windows
+
+Make sure you have the following dependencies:
+
+  - [Go](https://golang.org/) 1.5+ with cgo enabled
+  - MinGW toolchain, such as:
+    - [MinGW-w64](https://sourceforge.net/projects/mingw-w64/), for 32 and 64 bit Windows
+    - [MinGW Distro](https://nuwen.net/mingw.html), for 64 bit Windows only
+  - Jupyter (see [here](http://jupyter.readthedocs.org/en/latest/install.html) for more details on installing jupyter)
+  - [ZeroMQ](http://zeromq.org/) (2.2.X or 4.x); for convenience, pre-built binaries (v4.2.1) are included in the zmq-win directory
+
+Then: 
+
+1. Install goimports, if not already installed:
+
+  ```
+  go get golang.org/x/tools/cmd/goimports
+  ```
+
+2. Build and install gophernotes (using the pre-built binaries and `zmq-win\build.bat`):
+
+    ```
+    REM Download w/o building.
+    go get -d github.com/gopherds/gophernotes
+    cd %GOPATH%\src\github.com\gopherds\gophernotes\zmq-win
+    
+    REM Build x64 version.
+    build.bat amd64
+    move gophernotes.exe %GOPATH%\bin
+    copy lib-amd64\libzmq.dll %GOPATH%\bin
+    
+    REM Build x86 version.
+    build.bat 386
+    move gophernotes.exe %GOPATH%\bin
+    copy lib-386\libzmq.dll %GOPATH%\bin
+    ```
+
+3. Copy the kernel config:
+
+  ```
+  mkdir %APPDATA%\jupyter\kernels\gophernotes
+  xcopy %GOPATH%\src\github.com\gopherds\gophernotes\kernel %APPDATA%\jupyter\kernels\gophernotes /s
+  ```
+  
+  Note, if you have the `JUPYTER_PATH` environmental variable set or if you are using an older version of Jupyter, you may need to copy this kernel config to another directory.  You can check which directories will be searched by executing:
+  
+  ```
+  jupyter --data-dir
+  ```
+
+4. Update `%APPDATA%\jupyter\kernels\gophernotes\kernel.json` with the FULL PATH to your gophernotes.exe (in %GOPATH%\bin), unless it's already on the PATH.  For example:
+
+  ```
+  {
+      "argv": [
+        "C:\\gopath\\bin\\gophernotes.exe",
+        "{connection_file}"
+        ],
+      "display_name": "Go",
+      "language": "go",
+      "name": "go"
+  }
+  ```
+
+
 ## Getting Started
 
 - If you completed one of the local installs above (i.e., not the Docker install), start the jupyter notebook:
