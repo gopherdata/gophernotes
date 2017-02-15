@@ -17,7 +17,7 @@
 package gozmq
 
 /*
-#cgo pkg-config: libzmq
+#cgo !windows pkg-config: libzmq
 #include <zmq.h>
 */
 import "C"
