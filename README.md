@@ -239,6 +239,8 @@ Then:
   jupyter notebook
   ```
 
+- If you have a docker install, point a browser at `http://localhost:8888/`.
+
 - Select `Golang` from the `New` drop down menu.
 
 - Have Fun!
