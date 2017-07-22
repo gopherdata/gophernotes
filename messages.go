@@ -5,11 +5,9 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
-	"log"
 
-	zmq "github.com/alecthomas/gozmq"
 	uuid "github.com/nu7hatch/gouuid"
-	"github.com/pkg/errors"
+	zmq "github.com/pebbe/zmq4"
 )
 
 // MsgHeader encodes header info for ZMQ messages.
@@ -26,6 +24,28 @@ type ComposedMsg struct {
 	ParentHeader MsgHeader
 	Metadata     map[string]interface{}
 	Content      interface{}
+}
+
+// msgReceipt represents a received message, its return identities, and
+// the sockets for communication.
+type msgReceipt struct {
+	Msg        ComposedMsg
+	Identities [][]byte
+	Sockets    SocketGroup
+}
+
+// OutputMsg holds the data for a pyout message.
+type OutputMsg struct {
+	Execcount int                    `json:"execution_count"`
+	Data      map[string]string      `json:"data"`
+	Metadata  map[string]interface{} `json:"metadata"`
+}
+
+// ErrMsg encodes the traceback of errors output to the notebook.
+type ErrMsg struct {
+	EName     string   `json:"ename"`
+	EValue    string   `json:"evalue"`
+	Traceback []string `json:"traceback"`
 }
 
 // InvalidSignatureError is returned when the signature on a received message does not
@@ -47,7 +67,7 @@ func WireMsgToComposedMsg(msgparts [][]byte, signkey []byte) (ComposedMsg, [][]b
 	}
 	identities := msgparts[:i]
 
-	// Validate signature
+	// Validate signature.
 	var msg ComposedMsg
 	if len(signkey) != 0 {
 		mac := hmac.New(sha256.New, signkey)
@@ -60,6 +80,8 @@ func WireMsgToComposedMsg(msgparts [][]byte, signkey []byte) (ComposedMsg, [][]b
 			return msg, nil, &InvalidSignatureError{}
 		}
 	}
+
+	// Unmarshal contents.
 	json.Unmarshal(msgparts[i+2], &msg.Header)
 	json.Unmarshal(msgparts[i+3], &msg.ParentHeader)
 	json.Unmarshal(msgparts[i+4], &msg.Metadata)
@@ -72,30 +94,32 @@ func WireMsgToComposedMsg(msgparts [][]byte, signkey []byte) (ComposedMsg, [][]b
 func (msg ComposedMsg) ToWireMsg(signkey []byte) ([][]byte, error) {
 
 	msgparts := make([][]byte, 5)
+
 	header, err := json.Marshal(msg.Header)
 	if err != nil {
-		return msgparts, errors.Wrap(err, "Could not marshal message header")
+		return msgparts, err
 	}
 	msgparts[1] = header
 
 	parentHeader, err := json.Marshal(msg.ParentHeader)
 	if err != nil {
-		return msgparts, errors.Wrap(err, "Could not marshal parent header")
+		return msgparts, err
 	}
 	msgparts[2] = parentHeader
 
 	if msg.Metadata == nil {
 		msg.Metadata = make(map[string]interface{})
 	}
+
 	metadata, err := json.Marshal(msg.Metadata)
 	if err != nil {
-		return msgparts, errors.Wrap(err, "Could not marshal metadata")
+		return msgparts, err
 	}
 	msgparts[3] = metadata
 
 	content, err := json.Marshal(msg.Content)
 	if err != nil {
-		return msgparts, errors.Wrap(err, "Could not marshal content")
+		return msgparts, err
 	}
 	msgparts[4] = content
 
@@ -108,43 +132,49 @@ func (msg ComposedMsg) ToWireMsg(signkey []byte) ([][]byte, error) {
 		msgparts[0] = make([]byte, hex.EncodedLen(mac.Size()))
 		hex.Encode(msgparts[0], mac.Sum(nil))
 	}
+
 	return msgparts, nil
 }
 
-// MsgReceipt represents a received message, its return identities, and the sockets for
-// communication.
-type MsgReceipt struct {
-	Msg        ComposedMsg
-	Identities [][]byte
-	Sockets    SocketGroup
-}
-
 // SendResponse sends a message back to return identites of the received message.
-func (receipt *MsgReceipt) SendResponse(socket *zmq.Socket, msg ComposedMsg) {
+func (receipt *msgReceipt) SendResponse(socket *zmq.Socket, msg ComposedMsg) error {
 
-	socket.SendMultipart(receipt.Identities, zmq.SNDMORE)
-	socket.Send([]byte("<IDS|MSG>"), zmq.SNDMORE)
-
-	msgParts, err := msg.ToWireMsg(receipt.Sockets.Key)
-	if err != nil {
-		log.Fatalln(err)
+	for _, idt := range receipt.Identities {
+		_, err := socket.Send(idt, zmq.SNDMORE)
+		if err != nil {
+			return err
+		}
 	}
-	socket.SendMultipart(msgParts, 0)
-	logger.Println("<--", msg.Header.MsgType)
-	logger.Printf("%+v\n", msg.Content)
+
+	_, err := socket.Send([]byte("<IDS|MSG>"), zmq.SNDMORE)
+	if err != nil {
+		return err
+	}
+
+	msgParts, err = msg.ToWireMsg(receipt.Sockets.Key)
+	if err != nil {
+		return err
+	}
+
+	_, err = socket.SendMessage(msgParts)
+	if err != nil {
+		return err
+	}
 }
 
-// NewMsg creates a new ComposedMsg to respond to a parent message. This includes setting
-// up its headers.
-func NewMsg(msgType string, parent ComposedMsg) (msg ComposedMsg) {
+// NewMsg creates a new ComposedMsg to respond to a parent message.
+// This includes setting up its headers.
+func NewMsg(msgType string, parent ComposedMsg) (ComposedMsg, error) {
 	msg.ParentHeader = parent.Header
 	msg.Header.Session = parent.Header.Session
 	msg.Header.Username = parent.Header.Username
 	msg.Header.MsgType = msgType
+
 	u, err := uuid.NewV4()
 	if err != nil {
-		log.Fatalln(errors.Wrap(err, "Could not generate UUID"))
+		return msg, err
 	}
 	msg.Header.MsgID = u.String()
-	return
+
+	return msg, nil
 }
