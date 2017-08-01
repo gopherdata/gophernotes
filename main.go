@@ -14,5 +14,5 @@ func main() {
 	}
 
 	// Run the kernel.
-	RunKernel(flag.Arg(0))
+	runKernel(flag.Arg(0))
 }

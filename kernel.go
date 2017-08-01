@@ -101,12 +101,12 @@ func runKernel(connectionFile string) {
 
 			// Handle shell messages.
 			case sockets.ShellSocket:
-				msgparts, err := sockets.ShellSocket.RecvMessageBytes(0)
+				msgParts, err = sockets.ShellSocket.RecvMessageBytes(0)
 				if err != nil {
 					log.Println(err)
 				}
 
-				msg, ids, err := WireMsgToComposedMsg(msgparts, sockets.Key)
+				msg, ids, err := WireMsgToComposedMsg(msgParts, sockets.Key)
 				if err != nil {
 					log.Println(err)
 					return
@@ -120,13 +120,13 @@ func runKernel(connectionFile string) {
 
 			// Handle control messages.
 			case sockets.ControlSocket:
-				msgparts, err := sockets.ControlSocket.RecvMessageBytes(0)
+				msgParts, err = sockets.ControlSocket.RecvMessageBytes(0)
 				if err != nil {
 					log.Println(err)
 					return
 				}
 
-				msg, ids, err := WireMsgToComposedMsg(msgparts, sockets.Key)
+				msg, ids, err := WireMsgToComposedMsg(msgParts, sockets.Key)
 				if err != nil {
 					log.Println(err)
 					return
@@ -196,9 +196,7 @@ func handleShellMsg(ir *classic.Interp, receipt msgReceipt) {
 			log.Fatal(err)
 		}
 	case "shutdown_request":
-		if err := handleShutdownRequest(receipt); err != nil {
-			log.Fatal(err)
-		}
+		handleShutdownRequest(receipt)
 	default:
 		log.Println("Unhandled shell message: ", receipt.Msg.Header.MsgType)
 	}
@@ -241,20 +239,28 @@ func handleExecuteRequest(ir *classic.Interp, receipt msgReceipt) error {
 	content["execution_count"] = ExecCounter
 
 	// Do the compilation/execution magic.
-	rawVal, _ := ir.Eval(code)
-	val := rawVal.(string)
+	rawVal, rawErr := ir.Eval(code)
+	val := fmt.Sprintln(rawVal)
 
-	if err == nil {
+	fmt.Printf("\nThis is val: %s\n\n", val)
+	fmt.Printf("This is rawErr: %s\n\n", fmt.Sprintln(rawErr))
+
+	if len(val) > 0 {
 		content["status"] = "ok"
 		content["payload"] = make([]map[string]interface{}, 0)
 		content["user_variables"] = make(map[string]string)
 		content["user_expressions"] = make(map[string]string)
-		if len(val) > 0 && !silent {
+		if !silent {
 			var outContent OutputMsg
-			out := NewMsg("pyout", receipt.Msg)
+
+			out, err := NewMsg("pyout", receipt.Msg)
+			if err != nil {
+				return err
+			}
+
 			outContent.Execcount = ExecCounter
 			outContent.Data = make(map[string]string)
-			outContent.Data["text/plain"] = fmt.Sprint(val)
+			outContent.Data["text/plain"] = val
 			outContent.Metadata = make(map[string]interface{})
 			out.Content = outContent
 			receipt.SendResponse(receipt.Sockets.IOPubSocket, out)
@@ -262,10 +268,15 @@ func handleExecuteRequest(ir *classic.Interp, receipt msgReceipt) error {
 	} else {
 		content["status"] = "error"
 		content["ename"] = "ERROR"
-		content["evalue"] = err.Error()
+		content["evalue"] = fmt.Sprintln(rawErr)
 		content["traceback"] = nil
-		errormsg := NewMsg("pyerr", receipt.Msg)
-		errormsg.Content = ErrMsg{"Error", err.Error(), nil}
+
+		errormsg, err := NewMsg("pyerr", receipt.Msg)
+		if err != nil {
+			return err
+		}
+
+		errormsg.Content = ErrMsg{"Error", fmt.Sprintln(rawErr), nil}
 		receipt.SendResponse(receipt.Sockets.IOPubSocket, errormsg)
 	}
 
@@ -276,27 +287,33 @@ func handleExecuteRequest(ir *classic.Interp, receipt msgReceipt) error {
 		return err
 	}
 
-	idle := NewMsg("status", receipt.Msg)
-	idle.Content = KernelStatus{"idle"}
-
-	if err := receipt.SendResponse(receipt.Sockets.IOPubSocket, idle); err != nil {
-		return err
-	}
-}
-
-// handleShutdownRequest sends a "shutdown" message
-func handleShutdownRequest(receipt msgReceipt) error {
-	reply, err := NewMsg("shutdown_reply", receipt.Msg)
+	idle, err := NewMsg("status", receipt.Msg)
 	if err != nil {
 		return err
 	}
 
+	idle.Content = kernelStatus{"idle"}
+
+	if err := receipt.SendResponse(receipt.Sockets.IOPubSocket, idle); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// handleShutdownRequest sends a "shutdown" message
+func handleShutdownRequest(receipt msgReceipt) {
+	reply, err := NewMsg("shutdown_reply", receipt.Msg)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	content := receipt.Msg.Content.(map[string]interface{})
 	restart := content["restart"].(bool)
-	reply.Content = ShutdownReply{restart}
+	reply.Content = shutdownReply{restart}
 
 	if err := receipt.SendResponse(receipt.Sockets.ShellSocket, reply); err != nil {
-		return err
+		log.Fatal(err)
 	}
 
 	log.Println("Shutting down in response to shutdown_request")

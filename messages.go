@@ -140,18 +140,18 @@ func (msg ComposedMsg) ToWireMsg(signkey []byte) ([][]byte, error) {
 func (receipt *msgReceipt) SendResponse(socket *zmq.Socket, msg ComposedMsg) error {
 
 	for _, idt := range receipt.Identities {
-		_, err := socket.Send(idt, zmq.SNDMORE)
+		_, err := socket.Send(string(idt), zmq.SNDMORE)
 		if err != nil {
 			return err
 		}
 	}
 
-	_, err := socket.Send([]byte("<IDS|MSG>"), zmq.SNDMORE)
+	_, err := socket.Send("<IDS|MSG>", zmq.SNDMORE)
 	if err != nil {
 		return err
 	}
 
-	msgParts, err = msg.ToWireMsg(receipt.Sockets.Key)
+	msgParts, err := msg.ToWireMsg(receipt.Sockets.Key)
 	if err != nil {
 		return err
 	}
@@ -160,11 +160,15 @@ func (receipt *msgReceipt) SendResponse(socket *zmq.Socket, msg ComposedMsg) err
 	if err != nil {
 		return err
 	}
+
+	return nil
 }
 
 // NewMsg creates a new ComposedMsg to respond to a parent message.
 // This includes setting up its headers.
 func NewMsg(msgType string, parent ComposedMsg) (ComposedMsg, error) {
+	var msg ComposedMsg
+
 	msg.ParentHeader = parent.Header
 	msg.Header.Session = parent.Header.Session
 	msg.Header.Username = parent.Header.Username
