@@ -1,8 +1,9 @@
 FROM golang
 
 # dependencies
-RUN apt-get update
-RUN apt-get install -y pkg-config libzmq3-dev build-essential python3-pip
+RUN apt-get update && \
+  apt-get install -y pkg-config libzmq3-dev build-essential python3-pip && \
+  pip3 install --upgrade pip
 
 # set up golang
 ENV PATH /usr/local/go/bin:$PATH
