@@ -1,12 +1,17 @@
 package main
 
 import (
+	"bufio"
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
 	"os"
+	"strings"
 
+	"github.com/cosmos72/gomacro/base"
 	"github.com/cosmos72/gomacro/classic"
 	zmq "github.com/pebbe/zmq4"
 )
@@ -230,6 +235,7 @@ func handleExecuteRequest(ir *classic.Interp, receipt msgReceipt) error {
 
 	reqcontent := receipt.Msg.Content.(map[string]interface{})
 	code := reqcontent["code"].(string)
+	in := bufio.NewReader(strings.NewReader(code))
 	silent := reqcontent["silent"].(bool)
 
 	if !silent {
@@ -238,12 +244,48 @@ func handleExecuteRequest(ir *classic.Interp, receipt msgReceipt) error {
 
 	content["execution_count"] = ExecCounter
 
-	// Do the compilation/execution magic.
-	rawVal, rawErr := ir.Eval(code)
-	val := fmt.Sprintln(rawVal)
+	old := os.Stdout // keep backup of the real stdout
+	r, w, err := os.Pipe()
+	if err != nil {
+		return err
+	}
+	os.Stdout = w
 
-	fmt.Printf("\nThis is val: %s\n\n", val)
-	fmt.Printf("This is rawErr: %s\n\n", fmt.Sprintln(rawErr))
+	// Do the compilation/execution magic.
+	//rawVal, rawErr := ir.Eval(code)
+	//val := fmt.Sprintln(rawVal)
+
+	env := ir.Env
+	env.Options &^= base.OptShowPrompt
+	env.Line = 0
+
+	// Perform the first iteration manually, to collect comments
+	var comments string
+	str, firstToken := env.ReadMultiline(in, base.ReadOptCollectAllComments)
+	if firstToken >= 0 {
+		comments = str[0:firstToken]
+		if firstToken > 0 {
+			str = str[firstToken:]
+			env.IncLine(comments)
+		}
+	}
+	if ir.ParseEvalPrint(str, in) {
+		for ir.ReadParseEvalPrint(in) {
+		}
+	}
+
+	outC := make(chan string)
+	// copy the output in a separate goroutine so printing can't block indefinitely
+	go func() {
+		var buf bytes.Buffer
+		io.Copy(&buf, r)
+		outC <- buf.String()
+	}()
+
+	// back to normal state
+	w.Close()
+	os.Stdout = old // restoring the real stdout
+	val := <-outC
 
 	if len(val) > 0 {
 		content["status"] = "ok"
@@ -265,20 +307,22 @@ func handleExecuteRequest(ir *classic.Interp, receipt msgReceipt) error {
 			out.Content = outContent
 			receipt.SendResponse(receipt.Sockets.IOPubSocket, out)
 		}
-	} else {
-		content["status"] = "error"
-		content["ename"] = "ERROR"
-		content["evalue"] = fmt.Sprintln(rawErr)
-		content["traceback"] = nil
-
-		errormsg, err := NewMsg("pyerr", receipt.Msg)
-		if err != nil {
-			return err
-		}
-
-		errormsg.Content = ErrMsg{"Error", fmt.Sprintln(rawErr), nil}
-		receipt.SendResponse(receipt.Sockets.IOPubSocket, errormsg)
 	}
+
+	//if len(stdErr) > 0 {
+	//	content["status"] = "error"
+	//	content["ename"] = "ERROR"
+	//	content["evalue"] = stdErr
+	//	content["traceback"] = nil
+
+	//	errormsg, err := NewMsg("pyerr", receipt.Msg)
+	//	if err != nil {
+	//		return err
+	//	}
+
+	//	errormsg.Content = ErrMsg{"Error", stdErr, nil}
+	//	receipt.SendResponse(receipt.Sockets.IOPubSocket, errormsg)
+	//}
 
 	// Send the output back to the notebook.
 	reply.Content = content
