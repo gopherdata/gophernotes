@@ -94,6 +94,7 @@ func runKernel(connectionFile string) {
 
 	// Start a message receiving loop.
 	for {
+
 		polled, err := poller.Poll(-1)
 		if err != nil {
 			log.Fatal(err)
@@ -200,6 +201,7 @@ func handleShellMsg(ir *classic.Interp, receipt msgReceipt) {
 		if err := handleExecuteRequest(ir, receipt); err != nil {
 			log.Fatal(err)
 		}
+
 	case "shutdown_request":
 		handleShutdownRequest(receipt)
 	default:
@@ -226,6 +228,7 @@ func sendKernelInfo(receipt msgReceipt) error {
 // and sends the various reply messages.
 func handleExecuteRequest(ir *classic.Interp, receipt msgReceipt) error {
 
+	// Prepare the reply message.
 	reply, err := NewMsg("execute_reply", receipt.Msg)
 	if err != nil {
 		return err
@@ -244,17 +247,22 @@ func handleExecuteRequest(ir *classic.Interp, receipt msgReceipt) error {
 
 	content["execution_count"] = ExecCounter
 
-	old := os.Stdout // keep backup of the real stdout
+	// Redirect the standard out from the REPL.
+	old := os.Stdout
 	r, w, err := os.Pipe()
 	if err != nil {
 		return err
 	}
 	os.Stdout = w
 
-	// Do the compilation/execution magic.
-	//rawVal, rawErr := ir.Eval(code)
-	//val := fmt.Sprintln(rawVal)
+	// Redirect the standard error from the REPL.
+	rErr, wErr, err := os.Pipe()
+	if err != nil {
+		return err
+	}
+	ir.Stderr = wErr
 
+	// Prepare and perform the multiline evaluation.
 	env := ir.Env
 	env.Options &^= base.OptShowPrompt
 	env.Line = 0
@@ -270,22 +278,36 @@ func handleExecuteRequest(ir *classic.Interp, receipt msgReceipt) error {
 		}
 	}
 	if ir.ParseEvalPrint(str, in) {
-		for ir.ReadParseEvalPrint(in) {
-		}
+		ir.Repl(in)
 	}
 
+	// Copy the output in a separate goroutine to prevent
+	// blocking on printing.
 	outC := make(chan string)
-	// copy the output in a separate goroutine so printing can't block indefinitely
 	go func() {
 		var buf bytes.Buffer
 		io.Copy(&buf, r)
 		outC <- buf.String()
 	}()
 
-	// back to normal state
+	// Return standard out back to normal state.
 	w.Close()
-	os.Stdout = old // restoring the real stdout
+	os.Stdout = old
 	val := <-outC
+
+	// Copy the output in a separate goroutine to prevent
+	// blocking on printing.
+	outCErr := make(chan string)
+	go func() {
+		var buf bytes.Buffer
+		io.Copy(&buf, rErr)
+		outCErr <- buf.String()
+	}()
+
+	wErr.Close()
+	stdErr := <-outCErr
+
+	fmt.Printf("This is stderr: %s\n", stdErr)
 
 	if len(val) > 0 {
 		content["status"] = "ok"
@@ -309,20 +331,20 @@ func handleExecuteRequest(ir *classic.Interp, receipt msgReceipt) error {
 		}
 	}
 
-	//if len(stdErr) > 0 {
-	//	content["status"] = "error"
-	//	content["ename"] = "ERROR"
-	//	content["evalue"] = stdErr
-	//	content["traceback"] = nil
+	if len(stdErr) > 0 {
+		content["status"] = "error"
+		content["ename"] = "ERROR"
+		content["evalue"] = stdErr
+		content["traceback"] = nil
 
-	//	errormsg, err := NewMsg("pyerr", receipt.Msg)
-	//	if err != nil {
-	//		return err
-	//	}
+		errormsg, err := NewMsg("pyerr", receipt.Msg)
+		if err != nil {
+			return err
+		}
 
-	//	errormsg.Content = ErrMsg{"Error", stdErr, nil}
-	//	receipt.SendResponse(receipt.Sockets.IOPubSocket, errormsg)
-	//}
+		errormsg.Content = ErrMsg{"Error", stdErr, []string{stdErr}}
+		receipt.SendResponse(receipt.Sockets.IOPubSocket, errormsg)
+	}
 
 	// Send the output back to the notebook.
 	reply.Content = content
