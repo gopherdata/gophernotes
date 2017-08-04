@@ -1,0 +1,104 @@
+/*
+ * gomacro - A Go interpreter with Lisp-like macros
+ *
+ * Copyright (C) 2017 Massimiliano Ghilardi
+ *
+ *     This program is free software: you can redistribute it and/or modify
+ *     it under the terms of the GNU Lesser General Public License as published
+ *     by the Free Software Foundation, either version 3 of the License, or
+ *     (at your option) any later version.
+ *
+ *     This program is distributed in the hope that it will be useful,
+ *     but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *     GNU Lesser General Public License for more details.
+ *
+ *     You should have received a copy of the GNU Lesser General Public License
+ *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ *
+ * func0ret1.go
+ *
+ *  Created on Apr 16, 2017
+ *      Author Massimiliano Ghilardi
+ */
+
+package fast
+
+import (
+	r "reflect"
+	xr "github.com/cosmos72/gomacro/xreflect"
+)
+
+:import (
+	r "reflect"
+	"go/ast"
+)
+
+
+// ----------------- func() t0 ---------------------
+
+:macro mfunc0ret1(ret0typ ast.Node) ast.Node {
+	if EvalType(ret0typ) == nil {
+		// not a well-known type
+		return ~"{
+			return c.funcGeneric(t, m)
+		}
+	}
+	return ~"{
+		if funcbody == nil {
+			return func(env *Env) r.Value {
+				return r.ValueOf(func() (ret0 ~,ret0typ) {
+					return
+				})
+			}
+		}
+		resultfun := m.resultfuns[0].(func (*Env) ~,ret0typ)
+		return func(env *Env) r.Value {
+			// function is closed over the env used to DECLARE it
+			env.MarkUsedByClosure()
+			return r.ValueOf(func() (ret0 ~,ret0typ) {
+				env := NewEnv4Func(env, nbinds, nintbinds)
+
+				// execute the body
+				funcbody(env)
+
+				// extract result
+				ret0 = resultfun(env)
+				env.FreeEnv()
+				return
+			})
+		}
+	}
+}
+
+func (c *Comp) func0ret1(t xr.Type, m *funcMaker) func(*Env) r.Value {
+	// do NOT keep a reference to funcMaker
+	nbinds := m.nbinds
+	nintbinds := m.nintbinds
+	funcbody := m.funcbody
+
+	tret0 := t.Out(0)
+	kret0 := tret0.Kind()
+	switch kret0 {
+	case r.Bool:      {mfunc0ret1; bool}
+	case r.Int:       {mfunc0ret1; int}
+	case r.Int8:      {mfunc0ret1; int8}
+	case r.Int16:     {mfunc0ret1; int16}
+	case r.Int32:     {mfunc0ret1; int32}
+	case r.Int64:     {mfunc0ret1; int64}
+	case r.Uint:      {mfunc0ret1; uint}
+	case r.Uint8:     {mfunc0ret1; uint8}
+	case r.Uint16:    {mfunc0ret1; uint16}
+	case r.Uint32:    {mfunc0ret1; uint32}
+	case r.Uint64:    {mfunc0ret1; uint64}
+	case r.Uintptr:   {mfunc0ret1; uintptr}
+	case r.Float32:   {mfunc0ret1; float32}
+	case r.Float64:   {mfunc0ret1; float64}
+	case r.Complex64: {mfunc0ret1; complex64}
+	case r.Complex128:{mfunc0ret1; complex128}
+	case r.String:    {mfunc0ret1; string}
+	default:          return nil
+	}
+}
+

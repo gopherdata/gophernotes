@@ -1,0 +1,45 @@
+// empty file. stops "go build" from complaining that
+// no buildable files are in the directory "examples"
+
+package main
+
+type Bag struct {
+	B   bool
+	I   int
+	I8  int8
+	I16 int16
+	I32 int32
+	I64 int64
+	U   uint
+	U8  uint8
+	U16 uint16
+	U32 uint32
+	U64 uint64
+	// Uptr uintptr
+	S string
+	// E    error
+	Any interface{}
+	Box *Box
+}
+
+type Box struct {
+	B   []bool
+	I   []int
+	I8  []int8
+	I16 []int16
+	I32 []int32
+	I64 []int64
+	U   []uint
+	U8  []uint8
+	U16 []uint16
+	U32 []uint32
+	U64 []uint64
+	// Uptr []uintptr
+	S []string
+	// E    []error
+	Any []interface{}
+	Bag []*Bag
+}
+
+func main() {
+}

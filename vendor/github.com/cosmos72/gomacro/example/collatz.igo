@@ -1,0 +1,7 @@
+
+collatz := func(n int) { for n > 1 { if n&1 != 0 { n = ((n * 3) + 1) / 2 } else { n = n / 2 } } }
+
+
+collatz_loop := func() { for i := 0; i < 100000; i++ { collatz(837799) } }
+
+collatz_loop()

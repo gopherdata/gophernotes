@@ -201,7 +201,6 @@ func handleShellMsg(ir *classic.Interp, receipt msgReceipt) {
 		if err := handleExecuteRequest(ir, receipt); err != nil {
 			log.Fatal(err)
 		}
-
 	case "shutdown_request":
 		handleShutdownRequest(receipt)
 	default:
@@ -248,12 +247,12 @@ func handleExecuteRequest(ir *classic.Interp, receipt msgReceipt) error {
 	content["execution_count"] = ExecCounter
 
 	// Redirect the standard out from the REPL.
-	old := os.Stdout
-	r, w, err := os.Pipe()
+	oldStdout := os.Stdout
+	rOut, wOut, err := os.Pipe()
 	if err != nil {
 		return err
 	}
-	os.Stdout = w
+	os.Stdout = wOut
 
 	// Redirect the standard error from the REPL.
 	rErr, wErr, err := os.Pipe()
@@ -281,33 +280,31 @@ func handleExecuteRequest(ir *classic.Interp, receipt msgReceipt) error {
 		ir.Repl(in)
 	}
 
-	// Copy the output in a separate goroutine to prevent
+	// Copy the stdout in a separate goroutine to prevent
 	// blocking on printing.
-	outC := make(chan string)
+	outStdout := make(chan string)
 	go func() {
 		var buf bytes.Buffer
-		io.Copy(&buf, r)
-		outC <- buf.String()
+		io.Copy(&buf, rOut)
+		outStdout <- buf.String()
 	}()
 
-	// Return standard out back to normal state.
-	w.Close()
-	os.Stdout = old
-	val := <-outC
+	// Return stdout back to normal state.
+	wOut.Close()
+	os.Stdout = oldStdout
+	val := <-outStdout
 
-	// Copy the output in a separate goroutine to prevent
+	// Copy the stderr in a separate goroutine to prevent
 	// blocking on printing.
-	outCErr := make(chan string)
+	outStderr := make(chan string)
 	go func() {
 		var buf bytes.Buffer
 		io.Copy(&buf, rErr)
-		outCErr <- buf.String()
+		outStderr <- buf.String()
 	}()
 
 	wErr.Close()
-	stdErr := <-outCErr
-
-	fmt.Printf("This is stderr: %s\n", stdErr)
+	stdErr := <-outStderr
 
 	if len(val) > 0 {
 		content["status"] = "ok"
