@@ -6,7 +6,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 
-	uuid "github.com/nu7hatch/gouuid"
+	"github.com/nu7hatch/gouuid"
 	zmq "github.com/pebbe/zmq4"
 )
 
@@ -181,4 +181,30 @@ func NewMsg(msgType string, parent ComposedMsg) (ComposedMsg, error) {
 	msg.Header.MsgID = u.String()
 
 	return msg, nil
+}
+
+// Publish creates a new ComposedMsg and sends it back to the return identities over the
+// IOPub channel
+func (receipt *msgReceipt) Publish(msgType string, content interface{}) error {
+	msg, err := NewMsg(msgType, receipt.Msg)
+
+	if err != nil {
+		return err
+	}
+
+	msg.Content = content
+	return receipt.SendResponse(receipt.Sockets.IOPubSocket, msg)
+}
+
+// Reply creates a new ComposedMsg and sends it back to the return identities over the
+// Shell channel
+func (receipt *msgReceipt) Reply(msgType string, content interface{}) error {
+	msg, err := NewMsg(msgType, receipt.Msg)
+
+	if err != nil {
+		return err
+	}
+
+	msg.Content = content
+	return receipt.SendResponse(receipt.Sockets.ShellSocket, msg)
 }
