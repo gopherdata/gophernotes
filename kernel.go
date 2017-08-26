@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"runtime"
 	"strings"
 
 	"github.com/cosmos72/gomacro/base"
@@ -43,16 +44,36 @@ type SocketGroup struct {
 	Key           []byte
 }
 
-// kernelInfo holds information about the igo kernel, for
-// kernel_info_reply messages.
-type kernelInfo struct {
-	ProtocolVersion []int  `json:"protocol_version"`
-	Language        string `json:"language"`
-}
-
 // kernelStatus holds a kernel state, for status broadcast messages.
 type kernelStatus struct {
 	ExecutionState string `json:"execution_state"`
+}
+
+// KernelLanguageInfo holds information about the language that this kernel executes code in
+type kernelLanguageInfo struct {
+	Name              string `json:"name"`
+	Version           string `json:"version"`
+	MIMEType          string `json:"mimetype"`
+	FileExtension     string `json:"file_extension"`
+	PygmentsLexer     string `json:"pygments_lexer"`
+	CodeMirrorMode    string `json:"codemirror_mode"`
+	NBConvertExporter string `json:"nbconvert_exporter"`
+}
+
+// HelpLink stores data to be displayed in the help menu of the notebook
+type helpLink struct {
+	Text string `json:"text"`
+	URL  string `json:"url"`
+}
+
+// KernelInfo holds information about the igo kernel, for kernel_info_reply messages.
+type kernelInfo struct {
+	ProtocolVersion       string             `json:"protocol_version"`
+	Implementation        string             `json:"implementation"`
+	ImplementationVersion string             `json:"implementation_version"`
+	LanguageInfo          kernelLanguageInfo `json:"language_info"`
+	Banner                string             `json:"banner"`
+	HelpLinks             []helpLink         `json:"help_links"`
 }
 
 // shutdownReply encodes a boolean indication of stutdown/restart
@@ -120,11 +141,11 @@ func runKernel(connectionFile string) {
 
 				handleShellMsg(ir, msgReceipt{msg, ids, sockets})
 
-			// TODO Handle stdin socket.
+				// TODO Handle stdin socket.
 			case sockets.StdinSocket:
 				sockets.StdinSocket.RecvMessageBytes(0)
 
-			// Handle control messages.
+				// Handle control messages.
 			case sockets.ControlSocket:
 				msgParts, err = sockets.ControlSocket.RecvMessageBytes(0)
 				if err != nil {
@@ -210,31 +231,29 @@ func handleShellMsg(ir *classic.Interp, receipt msgReceipt) {
 
 // sendKernelInfo sends a kernel_info_reply message.
 func sendKernelInfo(receipt msgReceipt) error {
-	reply, err := NewMsg("kernel_info_reply", receipt.Msg)
-	if err != nil {
-		return err
-	}
-
-	reply.Content = kernelInfo{[]int{4, 0}, "go"}
-	if err := receipt.SendResponse(receipt.Sockets.ShellSocket, reply); err != nil {
-		return err
-	}
-
-	return nil
+	return receipt.Reply("kernel_info_reply",
+		kernelInfo{
+			ProtocolVersion:       "5.0",
+			Implementation:        "gophernotes",
+			ImplementationVersion: Version,
+			Banner:                fmt.Sprintf("Go kernel: gophernotes - v%s", Version),
+			LanguageInfo: kernelLanguageInfo{
+				Name:          "go",
+				Version:       runtime.Version(),
+				FileExtension: ".go",
+			},
+			HelpLinks: []helpLink{
+				{Text: "Go", URL: "https://golang.org/"},
+				{Text: "gophernotes", URL: "https://github.com/gopherdata/gophernotes"},
+			},
+		},
+	)
 }
 
 // handleExecuteRequest runs code from an execute_request method,
 // and sends the various reply messages.
 func handleExecuteRequest(ir *classic.Interp, receipt msgReceipt) error {
-
-	// Prepare the reply message.
-	reply, err := NewMsg("execute_reply", receipt.Msg)
-	if err != nil {
-		return err
-	}
-
-	content := make(map[string]interface{})
-
+	// Extract the data from the request
 	reqcontent := receipt.Msg.Content.(map[string]interface{})
 	code := reqcontent["code"].(string)
 	in := bufio.NewReader(strings.NewReader(code))
@@ -244,7 +263,17 @@ func handleExecuteRequest(ir *classic.Interp, receipt msgReceipt) error {
 		ExecCounter++
 	}
 
+	// Prepare the map that will hold the reply content
+	content := make(map[string]interface{})
 	content["execution_count"] = ExecCounter
+
+	// Tell the front-end that the kernel is working and when finished notify the
+	// front-end that the kernel is idle again
+	receipt.PublishKernelBusy()
+	defer receipt.PublishKernelIdle()
+
+	// Tell the front-end what the kernel is about to execute
+	receipt.PublishExecutionInput(ExecCounter, code)
 
 	// Redirect the standard out from the REPL.
 	oldStdout := os.Stdout
@@ -306,25 +335,15 @@ func handleExecuteRequest(ir *classic.Interp, receipt msgReceipt) error {
 	wErr.Close()
 	stdErr := <-outStderr
 
+	// TODO write stdout and stderr to streams rather than publishing as results
+
 	if len(val) > 0 {
 		content["status"] = "ok"
-		content["payload"] = make([]map[string]interface{}, 0)
-		content["user_variables"] = make(map[string]string)
 		content["user_expressions"] = make(map[string]string)
+
 		if !silent {
-			var outContent OutputMsg
-
-			out, err := NewMsg("execute_result", receipt.Msg)
-			if err != nil {
-				return err
-			}
-
-			outContent.Execcount = ExecCounter
-			outContent.Data = make(map[string]string)
-			outContent.Data["text/plain"] = val
-			outContent.Metadata = make(map[string]interface{})
-			out.Content = outContent
-			receipt.SendResponse(receipt.Sockets.IOPubSocket, out)
+			// Publish the result of the execution
+			receipt.PublishExecutionResult(ExecCounter, val)
 		}
 	}
 
@@ -334,50 +353,28 @@ func handleExecuteRequest(ir *classic.Interp, receipt msgReceipt) error {
 		content["evalue"] = stdErr
 		content["traceback"] = nil
 
-		errormsg, err := NewMsg("pyerr", receipt.Msg)
-		if err != nil {
-			return err
-		}
-
-		errormsg.Content = ErrMsg{"Error", stdErr, []string{stdErr}}
-		receipt.SendResponse(receipt.Sockets.IOPubSocket, errormsg)
+		receipt.PublishExecutionError(stdErr, stdErr)
 	}
 
 	// Send the output back to the notebook.
-	reply.Content = content
-
-	if err := receipt.SendResponse(receipt.Sockets.ShellSocket, reply); err != nil {
-		return err
-	}
-
-	idle, err := NewMsg("status", receipt.Msg)
-	if err != nil {
-		return err
-	}
-
-	idle.Content = kernelStatus{"idle"}
-
-	if err := receipt.SendResponse(receipt.Sockets.IOPubSocket, idle); err != nil {
-		return err
-	}
-
-	return nil
+	return receipt.Reply("execute_reply", content)
 }
 
 // handleShutdownRequest sends a "shutdown" message
 func handleShutdownRequest(receipt msgReceipt) {
-	reply, err := NewMsg("shutdown_reply", receipt.Msg)
+	content := receipt.Msg.Content.(map[string]interface{})
+	restart := content["restart"].(bool)
+
+	err := receipt.Reply("shutdown_reply",
+		shutdownReply{
+			Restart: restart,
+		},
+	)
+
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	content := receipt.Msg.Content.(map[string]interface{})
-	restart := content["restart"].(bool)
-	reply.Content = shutdownReply{restart}
-
-	if err := receipt.SendResponse(receipt.Sockets.ShellSocket, reply); err != nil {
-		log.Fatal(err)
-	}
 
 	log.Println("Shutting down in response to shutdown_request")
 	os.Exit(0)

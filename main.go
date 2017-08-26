@@ -5,6 +5,8 @@ import (
 	"log"
 )
 
+const Version string = "1.0.0"
+
 func main() {
 
 	// Parse the connection file.
