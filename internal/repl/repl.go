@@ -4,13 +4,6 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"io/ioutil"
-	"os"
-	"os/exec"
-	"path/filepath"
-	"strings"
-	"syscall"
-
 	"go/ast"
 	"go/build"
 	"go/importer"
@@ -19,14 +12,20 @@ import (
 	"go/scanner"
 	"go/token"
 	"go/types"
-
-	// Importing this package installs Import as go/types.DefaultImport.
-	"golang.org/x/tools/imports"
+	"io/ioutil"
+	"os"
+	"os/exec"
+	"path/filepath"
+	"strings"
+	"syscall"
 
 	"github.com/motemen/go-quickfix"
+	// Importing this package installs Import as go/types.DefaultImport.
+	"golang.org/x/tools/imports"
 )
 
 const printerName = "__gophernotes"
+const oldStdout = "__oldStdout"
 
 // Session encodes info about the current REPL session.
 type Session struct {
@@ -45,7 +44,10 @@ type Session struct {
 const initialSourceTemplate = `
 package main
 
-import %q
+import (
+	%q
+	"os"
+)
 
 func ` + printerName + `(xx ...interface{}) {
 	for _, x := range xx {
@@ -54,6 +56,8 @@ func ` + printerName + `(xx ...interface{}) {
 }
 
 func main() {
+	` + oldStdout + ` := os.Stdout
+	os.Stdout = nil
 }
 `
 
@@ -151,6 +155,7 @@ func goRun(files []string) ([]byte, bytes.Buffer, error) {
 	cmd.Stdin = os.Stdin
 	cmd.Stderr = &stderr
 	out, err := cmd.Output()
+
 	return out, stderr, err
 }
 
@@ -384,6 +389,16 @@ func (s *Session) Eval(in string) (string, bytes.Buffer, error) {
 
 	// Extract statements.
 	priorListLength := len(s.mainBody.List)
+
+	// Restore stdout before executing the content for the current cell
+	restoreStdout := &ast.AssignStmt{
+		Lhs:    []ast.Expr{ast.NewIdent("os.Stdout")},
+		TokPos: token.NoPos,
+		Tok:    token.ASSIGN,
+		Rhs:    []ast.Expr{ast.NewIdent(oldStdout)},
+	}
+	s.appendStatements(restoreStdout)
+
 	if err := s.separateEvalStmt(in); err != nil {
 		return "", *bytes.NewBuffer([]byte(err.Error())), err
 	}
@@ -404,11 +419,9 @@ func (s *Session) Eval(in string) (string, bytes.Buffer, error) {
 		}
 	}
 
-	// Cleanup the session file.
-	s.mainBody.List = s.mainBody.List[0:priorListLength]
-	if err := s.cleanEvalStmt(in); err != nil {
-		return string(output), stderr, err
-	}
+	// Delete the `restoreStdout` statement appended
+	s.mainBody.List = append(s.mainBody.List[:priorListLength], s.mainBody.List[priorListLength+1:]...)
+
 	f, err := os.Create(s.FilePath)
 	if err != nil {
 		return string(output), stderr, err
@@ -476,34 +489,6 @@ func (s *Session) separateEvalStmt(in string) error {
 			noPrint = true
 		}
 		if err := s.evalStmt(strings.Join(stmtLines, "\n"), noPrint); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-// cleanEvalStmt cleans up prior print statements etc.
-func (s *Session) cleanEvalStmt(in string) error {
-	var stmtLines []string
-
-	inLines := strings.Split(in, "\n")
-
-	for _, line := range inLines {
-
-		beforeLines := len(s.mainBody.List)
-		if expr, err := s.evalExpr(line); err == nil {
-			if !s.isPureExpr(expr) {
-				s.mainBody.List = s.mainBody.List[0:beforeLines]
-				stmtLines = append(stmtLines, line)
-			}
-			continue
-		}
-		stmtLines = append(stmtLines, line)
-	}
-
-	if len(stmtLines) != 0 {
-		if err := s.evalStmt(strings.Join(stmtLines, "\n"), true); err != nil {
 			return err
 		}
 	}
