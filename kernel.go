@@ -314,7 +314,7 @@ func handleExecuteRequest(ir *classic.Interp, receipt msgReceipt) error {
 		if !silent {
 			var outContent OutputMsg
 
-			out, err := NewMsg("pyout", receipt.Msg)
+			out, err := NewMsg("execute_result", receipt.Msg)
 			if err != nil {
 				return err
 			}
