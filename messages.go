@@ -71,7 +71,7 @@ func WireMsgToComposedMsg(msgparts [][]byte, signkey []byte) (ComposedMsg, [][]b
 	var msg ComposedMsg
 	if len(signkey) != 0 {
 		mac := hmac.New(sha256.New, signkey)
-		for _, msgpart := range msgparts[i+2: i+6] {
+		for _, msgpart := range msgparts[i+2 : i+6] {
 			mac.Write(msgpart)
 		}
 		signature := make([]byte, hex.DecodedLen(len(msgparts[i+1])))
@@ -184,7 +184,7 @@ func NewMsg(msgType string, parent ComposedMsg) (ComposedMsg, error) {
 }
 
 // Publish creates a new ComposedMsg and sends it back to the return identities over the
-// IOPub channel
+// IOPub channel.
 func (receipt *msgReceipt) Publish(msgType string, content interface{}) error {
 	msg, err := NewMsg(msgType, receipt.Msg)
 
@@ -197,7 +197,7 @@ func (receipt *msgReceipt) Publish(msgType string, content interface{}) error {
 }
 
 // Reply creates a new ComposedMsg and sends it back to the return identities over the
-// Shell channel
+// Shell channel.
 func (receipt *msgReceipt) Reply(msgType string, content interface{}) error {
 	msg, err := NewMsg(msgType, receipt.Msg)
 
@@ -215,77 +215,54 @@ func (receipt *msgReceipt) Reply(msgType string, content interface{}) error {
 type MIMEDataBundle map[string]interface{}
 
 // NewTextMIMEDataBundle creates a MIMEDataBundle that only contains a text representation described
-// the the parameter 'value'
+// the the parameter 'value'.
 func NewTextMIMEDataBundle(value string) MIMEDataBundle {
 	return MIMEDataBundle{
 		"text/plain": value,
 	}
 }
 
-// KernelStatus holds a kernel execution state, for status broadcast messages.
-type KernelStatus struct {
-	ExecutionState string `json:"execution_state"`
-}
+type KernelStatus string
 
-// PublishKernelStarting publishes a status message notifying front-ends that the kernel is
-// starting up.
-func (receipt *msgReceipt) PublishKernelStarting() {
-	receipt.Publish("status",
-		KernelStatus{
-			ExecutionState: "starting",
+const (
+	KernelStarting KernelStatus = "starting"
+	KernelBusy                  = "busy"
+	KernelIdle                  = "idle"
+)
+
+// PublishKernelStatus publishes a status message notifying front-ends of the state the kernel is in.
+func (receipt *msgReceipt) PublishKernelStatus(status KernelStatus) error {
+	return receipt.Publish("status",
+		struct {
+			ExecutionState KernelStatus `json:"execution_state"`
+		}{
+			ExecutionState: status,
 		},
 	)
-}
-
-// PublishKernelBusy publishes a status message notifying front-ends that the kernel is
-// doing work.
-func (receipt *msgReceipt) PublishKernelBusy() {
-	receipt.Publish("status",
-		KernelStatus{
-			ExecutionState: "busy",
-		},
-	)
-}
-
-// PublishKernelIdle publishes a status message notifying front-ends that the kernel is
-// free.
-func (receipt *msgReceipt) PublishKernelIdle() {
-	receipt.Publish("status",
-		KernelStatus{
-			ExecutionState: "idle",
-		},
-	)
-}
-
-// ExecuteInput holds the source code being executed and the execution counter value
-// associated with source being run.
-type ExecuteInput struct {
-	ExecCount int    `json:"execution_count"`
-	Code      string `json:"code"`
 }
 
 // PublishExecutionInput publishes a status message notifying front-ends of what code is
 // currently being executed.
-func (receipt *msgReceipt) PublishExecutionInput(execCount int, code string) {
-	receipt.Publish("execute_input",
-		ExecuteInput{
+func (receipt *msgReceipt) PublishExecutionInput(execCount int, code string) error {
+	return receipt.Publish("execute_input",
+		struct {
+			ExecCount int    `json:"execution_count"`
+			Code      string `json:"code"`
+		}{
 			ExecCount: execCount,
 			Code:      code,
 		},
 	)
 }
 
-// ExecuteResult holds the output to the 'ExecCount'th code execution.
-type ExecuteResult struct {
-	ExecCount int            `json:"execution_count"`
-	Data      MIMEDataBundle `json:"data"`
-	Metadata  MIMEDataBundle `json:"metadata"`
-}
-
-// PublishExecuteResult publishes the result of the 'execCount'th execution as a string.
-func (receipt *msgReceipt) PublishExecutionResult(execCount int, output string) {
-	receipt.Publish("execute_result",
-		ExecuteResult{
+// PublishExecuteResult publishes the result of the `execCount` execution as a string.
+func (receipt *msgReceipt) PublishExecutionResult(execCount int, output string) error {
+	return receipt.Publish("execute_result",
+		struct {
+			ExecCount int            `json:"execution_count"`
+			Data      MIMEDataBundle `json:"data"`
+			Metadata  MIMEDataBundle `json:"metadata"`
+		}{
 			ExecCount: execCount,
 			Data:      NewTextMIMEDataBundle(output),
 			Metadata:  make(MIMEDataBundle),
@@ -293,45 +270,37 @@ func (receipt *msgReceipt) PublishExecutionResult(execCount int, output string) 
 	)
 }
 
-// ExecuteError holds data describing an error encountered during execution.
-type ExecuteError struct {
-	Name  string   `json:"ename"`
-	Value string   `json:"evalue"`
-	Trace []string `json:"traceback"`
-}
-
 // PublishExecuteResult publishes a serialized error that was encountered during execution.
-func (receipt *msgReceipt) PublishExecutionError(err string, trace string) {
-	receipt.Publish("error",
-		ExecuteError{
+func (receipt *msgReceipt) PublishExecutionError(err string, trace []string) error {
+	return receipt.Publish("error",
+		struct {
+			Name  string   `json:"ename"`
+			Value string   `json:"evalue"`
+			Trace []string `json:"traceback"`
+		}{
 			Name:  "ERROR",
 			Value: err,
-			Trace: []string{trace},
+			Trace: trace,
 		},
 	)
 }
 
-// WriteStreamData holds data to be written to a stream (stdout, stderr)
-type WriteStreamData struct {
-	Stream string `json:"name"`
-	Data   string `json:"text"`
-}
+type Stream string
 
-// PublishWriteStdOut publishes the data string to the front-end's stdout
-func (receipt *msgReceipt) PublishWriteStdOut(data string) {
-	receipt.Publish("stream",
-		WriteStreamData{
-			Stream: "stdout",
-			Data:   data,
-		},
-	)
-}
+const (
+	StreamStdout Stream = "stdout"
+	StreamStderr        = "stderr"
+)
 
-// PublishWriteStdErr publishes the data string to the front-end's stderr
-func (receipt *msgReceipt) PublishWriteStdErr(data string) {
-	receipt.Publish("stream",
-		WriteStreamData{
-			Stream: "stderr",
+// PublishWriteStream prints the data string to a stream on the front-end. This is
+// either `StreamStdout` or `StreamStderr`.
+func (receipt *msgReceipt) PublishWriteStream(stream Stream, data string) error {
+	return receipt.Publish("stream",
+		struct {
+			Stream Stream `json:"name"`
+			Data   string `json:"text"`
+		}{
+			Stream: stream,
 			Data:   data,
 		},
 	)

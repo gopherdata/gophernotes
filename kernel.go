@@ -49,7 +49,7 @@ type kernelStatus struct {
 	ExecutionState string `json:"execution_state"`
 }
 
-// KernelLanguageInfo holds information about the language that this kernel executes code in
+// KernelLanguageInfo holds information about the language that this kernel executes code in.
 type kernelLanguageInfo struct {
 	Name              string `json:"name"`
 	Version           string `json:"version"`
@@ -60,7 +60,7 @@ type kernelLanguageInfo struct {
 	NBConvertExporter string `json:"nbconvert_exporter"`
 }
 
-// HelpLink stores data to be displayed in the help menu of the notebook
+// HelpLink stores data to be displayed in the help menu of the notebook.
 type helpLink struct {
 	Text string `json:"text"`
 	URL  string `json:"url"`
@@ -76,7 +76,7 @@ type kernelInfo struct {
 	HelpLinks             []helpLink         `json:"help_links"`
 }
 
-// shutdownReply encodes a boolean indication of stutdown/restart
+// shutdownReply encodes a boolean indication of stutdown/restart.
 type shutdownReply struct {
 	Restart bool `json:"restart"`
 }
@@ -263,17 +263,25 @@ func handleExecuteRequest(ir *classic.Interp, receipt msgReceipt) error {
 		ExecCounter++
 	}
 
-	// Prepare the map that will hold the reply content
+	// Prepare the map that will hold the reply content.
 	content := make(map[string]interface{})
 	content["execution_count"] = ExecCounter
 
 	// Tell the front-end that the kernel is working and when finished notify the
-	// front-end that the kernel is idle again
-	receipt.PublishKernelBusy()
-	defer receipt.PublishKernelIdle()
+	// front-end that the kernel is idle again.
+	if err := receipt.PublishKernelStatus(KernelBusy); err != nil {
+		log.Printf("Error publishing kernel status 'busy': %v\n", err)
+	}
+	defer func() {
+		if err := receipt.PublishKernelStatus(KernelIdle); err != nil {
+			log.Printf("Error publishing kernel status 'idle': %v\n", err)
+		}
+	}()
 
-	// Tell the front-end what the kernel is about to execute
-	receipt.PublishExecutionInput(ExecCounter, code)
+	// Tell the front-end what the kernel is about to execute.
+	if err := receipt.PublishExecutionInput(ExecCounter, code); err != nil {
+		log.Printf("Error publishing execution input: %v\n", err)
+	}
 
 	// Redirect the standard out from the REPL.
 	oldStdout := os.Stdout
@@ -295,7 +303,7 @@ func handleExecuteRequest(ir *classic.Interp, receipt msgReceipt) error {
 	env.Options &^= base.OptShowPrompt
 	env.Line = 0
 
-	// Perform the first iteration manually, to collect comments
+	// Perform the first iteration manually, to collect comments.
 	var comments string
 	str, firstToken := env.ReadMultiline(in, base.ReadOptCollectAllComments)
 	if firstToken >= 0 {
@@ -342,8 +350,10 @@ func handleExecuteRequest(ir *classic.Interp, receipt msgReceipt) error {
 		content["user_expressions"] = make(map[string]string)
 
 		if !silent {
-			// Publish the result of the execution
-			receipt.PublishExecutionResult(ExecCounter, val)
+			// Publish the result of the execution.
+			if err := receipt.PublishExecutionResult(ExecCounter, val); err != nil {
+				log.Printf("Error publishing execution result: %v\n", err)
+			}
 		}
 	}
 
@@ -353,28 +363,27 @@ func handleExecuteRequest(ir *classic.Interp, receipt msgReceipt) error {
 		content["evalue"] = stdErr
 		content["traceback"] = nil
 
-		receipt.PublishExecutionError(stdErr, stdErr)
+		if err := receipt.PublishExecutionError(stdErr, []string{stdErr}); err != nil {
+			log.Printf("Error publishing execution error: %v\n", err)
+		}
 	}
 
 	// Send the output back to the notebook.
 	return receipt.Reply("execute_reply", content)
 }
 
-// handleShutdownRequest sends a "shutdown" message
+// handleShutdownRequest sends a "shutdown" message.
 func handleShutdownRequest(receipt msgReceipt) {
 	content := receipt.Msg.Content.(map[string]interface{})
 	restart := content["restart"].(bool)
 
-	err := receipt.Reply("shutdown_reply",
-		shutdownReply{
-			Restart: restart,
-		},
-	)
-
-	if err != nil {
-		log.Fatal(err)
+	reply := shutdownReply{
+		Restart: restart,
 	}
 
+	if err := receipt.Reply("shutdown_reply", reply); err != nil {
+		log.Fatal(err)
+	}
 
 	log.Println("Shutting down in response to shutdown_request")
 	os.Exit(0)
