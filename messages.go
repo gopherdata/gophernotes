@@ -5,17 +5,20 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
+	"time"
 
-	uuid "github.com/nu7hatch/gouuid"
+	"github.com/nu7hatch/gouuid"
 	zmq "github.com/pebbe/zmq4"
 )
 
 // MsgHeader encodes header info for ZMQ messages.
 type MsgHeader struct {
-	MsgID    string `json:"msg_id"`
-	Username string `json:"username"`
-	Session  string `json:"session"`
-	MsgType  string `json:"msg_type"`
+	MsgID           string `json:"msg_id"`
+	Username        string `json:"username"`
+	Session         string `json:"session"`
+	MsgType         string `json:"msg_type"`
+	ProtocolVersion string `json:"version"`
+	Timestamp       string `json:"date"`
 }
 
 // ComposedMsg represents an entire message in a high-level structure.
@@ -34,19 +37,10 @@ type msgReceipt struct {
 	Sockets    SocketGroup
 }
 
-// OutputMsg holds the data for a pyout message.
-type OutputMsg struct {
-	Execcount int                    `json:"execution_count"`
-	Data      map[string]string      `json:"data"`
-	Metadata  map[string]interface{} `json:"metadata"`
-}
-
-// ErrMsg encodes the traceback of errors output to the notebook.
-type ErrMsg struct {
-	EName     string   `json:"ename"`
-	EValue    string   `json:"evalue"`
-	Traceback []string `json:"traceback"`
-}
+// bundledMIMEData holds data that can be presented in multiple formats. The keys are MIME types
+// and the values are the data formatted with respect to it's MIME type. All bundles should contain
+// at least a "text/plain" representation with a string value.
+type bundledMIMEData map[string]interface{}
 
 // InvalidSignatureError is returned when the signature on a received message does not
 // validate.
@@ -173,6 +167,8 @@ func NewMsg(msgType string, parent ComposedMsg) (ComposedMsg, error) {
 	msg.Header.Session = parent.Header.Session
 	msg.Header.Username = parent.Header.Username
 	msg.Header.MsgType = msgType
+	msg.Header.ProtocolVersion = ProtocolVersion
+	msg.Header.Timestamp = time.Now().UTC().Format(time.RFC3339)
 
 	u, err := uuid.NewV4()
 	if err != nil {
@@ -181,4 +177,94 @@ func NewMsg(msgType string, parent ComposedMsg) (ComposedMsg, error) {
 	msg.Header.MsgID = u.String()
 
 	return msg, nil
+}
+
+// Publish creates a new ComposedMsg and sends it back to the return identities over the
+// IOPub channel.
+func (receipt *msgReceipt) Publish(msgType string, content interface{}) error {
+	msg, err := NewMsg(msgType, receipt.Msg)
+
+	if err != nil {
+		return err
+	}
+
+	msg.Content = content
+	return receipt.SendResponse(receipt.Sockets.IOPubSocket, msg)
+}
+
+// Reply creates a new ComposedMsg and sends it back to the return identities over the
+// Shell channel.
+func (receipt *msgReceipt) Reply(msgType string, content interface{}) error {
+	msg, err := NewMsg(msgType, receipt.Msg)
+
+	if err != nil {
+		return err
+	}
+
+	msg.Content = content
+	return receipt.SendResponse(receipt.Sockets.ShellSocket, msg)
+}
+
+// newTextMIMEDataBundle creates a bundledMIMEData that only contains a text representation described
+// by the value parameter.
+func newTextBundledMIMEData(value string) bundledMIMEData {
+	return bundledMIMEData{
+		"text/plain": value,
+	}
+}
+
+// PublishKernelStatus publishes a status message notifying front-ends of the state the kernel is in. Supports
+// states "starting", "busy", and "idle".
+func (receipt *msgReceipt) PublishKernelStatus(status string) error {
+	return receipt.Publish("status",
+		struct {
+			ExecutionState string `json:"execution_state"`
+		}{
+			ExecutionState: status,
+		},
+	)
+}
+
+// PublishExecutionInput publishes a status message notifying front-ends of what code is
+// currently being executed.
+func (receipt *msgReceipt) PublishExecutionInput(execCount int, code string) error {
+	return receipt.Publish("execute_input",
+		struct {
+			ExecCount int    `json:"execution_count"`
+			Code      string `json:"code"`
+		}{
+			ExecCount: execCount,
+			Code:      code,
+		},
+	)
+}
+
+// PublishExecuteResult publishes the result of the `execCount` execution as a string.
+func (receipt *msgReceipt) PublishExecutionResult(execCount int, output string) error {
+	return receipt.Publish("execute_result",
+		struct {
+			ExecCount int             `json:"execution_count"`
+			Data      bundledMIMEData `json:"data"`
+			Metadata  bundledMIMEData `json:"metadata"`
+		}{
+			ExecCount: execCount,
+			Data:      newTextBundledMIMEData(output),
+			Metadata:  make(bundledMIMEData),
+		},
+	)
+}
+
+// PublishExecuteResult publishes a serialized error that was encountered during execution.
+func (receipt *msgReceipt) PublishExecutionError(err string, trace []string) error {
+	return receipt.Publish("error",
+		struct {
+			Name  string   `json:"ename"`
+			Value string   `json:"evalue"`
+			Trace []string `json:"traceback"`
+		}{
+			Name:  "ERROR",
+			Value: err,
+			Trace: trace,
+		},
+	)
 }
