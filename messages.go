@@ -37,19 +37,10 @@ type msgReceipt struct {
 	Sockets    SocketGroup
 }
 
-// OutputMsg holds the data for a pyout message.
-type OutputMsg struct {
-	Execcount int                    `json:"execution_count"`
-	Data      map[string]string      `json:"data"`
-	Metadata  map[string]interface{} `json:"metadata"`
-}
-
-// ErrMsg encodes the traceback of errors output to the notebook.
-type ErrMsg struct {
-	EName     string   `json:"ename"`
-	EValue    string   `json:"evalue"`
-	Traceback []string `json:"traceback"`
-}
+// bundledMIMEData holds data that can be presented in multiple formats. The keys are MIME types
+// and the values are the data formatted with respect to it's MIME type. All bundles should contain
+// at least a "text/plain" representation with a string value.
+type bundledMIMEData map[string]interface{}
 
 // InvalidSignatureError is returned when the signature on a received message does not
 // validate.
@@ -214,32 +205,20 @@ func (receipt *msgReceipt) Reply(msgType string, content interface{}) error {
 	return receipt.SendResponse(receipt.Sockets.ShellSocket, msg)
 }
 
-// MIMEDataBundle holds data that can be presented in multiple formats. The keys are MIME types
-// and the values are the data formatted with respect to it's MIME type. All bundle should contain
-// at least a "text/plain" representation with a string value.
-type MIMEDataBundle map[string]interface{}
-
-// NewTextMIMEDataBundle creates a MIMEDataBundle that only contains a text representation described
-// the the parameter 'value'.
-func NewTextMIMEDataBundle(value string) MIMEDataBundle {
-	return MIMEDataBundle{
+// newTextMIMEDataBundle creates a bundledMIMEData that only contains a text representation described
+// by the value parameter.
+func newTextBundledMIMEData(value string) bundledMIMEData {
+	return bundledMIMEData{
 		"text/plain": value,
 	}
 }
 
-type KernelStatus string
-
-const (
-	KernelStarting KernelStatus = "starting"
-	KernelBusy                  = "busy"
-	KernelIdle                  = "idle"
-)
-
-// PublishKernelStatus publishes a status message notifying front-ends of the state the kernel is in.
-func (receipt *msgReceipt) PublishKernelStatus(status KernelStatus) error {
+// PublishKernelStatus publishes a status message notifying front-ends of the state the kernel is in. Supports
+// states "starting", "busy", and "idle".
+func (receipt *msgReceipt) PublishKernelStatus(status string) error {
 	return receipt.Publish("status",
 		struct {
-			ExecutionState KernelStatus `json:"execution_state"`
+			ExecutionState string `json:"execution_state"`
 		}{
 			ExecutionState: status,
 		},
@@ -264,13 +243,13 @@ func (receipt *msgReceipt) PublishExecutionInput(execCount int, code string) err
 func (receipt *msgReceipt) PublishExecutionResult(execCount int, output string) error {
 	return receipt.Publish("execute_result",
 		struct {
-			ExecCount int            `json:"execution_count"`
-			Data      MIMEDataBundle `json:"data"`
-			Metadata  MIMEDataBundle `json:"metadata"`
+			ExecCount int             `json:"execution_count"`
+			Data      bundledMIMEData `json:"data"`
+			Metadata  bundledMIMEData `json:"metadata"`
 		}{
 			ExecCount: execCount,
-			Data:      NewTextMIMEDataBundle(output),
-			Metadata:  make(MIMEDataBundle),
+			Data:      newTextBundledMIMEData(output),
+			Metadata:  make(bundledMIMEData),
 		},
 	)
 }
@@ -286,27 +265,6 @@ func (receipt *msgReceipt) PublishExecutionError(err string, trace []string) err
 			Name:  "ERROR",
 			Value: err,
 			Trace: trace,
-		},
-	)
-}
-
-type Stream string
-
-const (
-	StreamStdout Stream = "stdout"
-	StreamStderr        = "stderr"
-)
-
-// PublishWriteStream prints the data string to a stream on the front-end. This is
-// either `StreamStdout` or `StreamStderr`.
-func (receipt *msgReceipt) PublishWriteStream(stream Stream, data string) error {
-	return receipt.Publish("stream",
-		struct {
-			Stream Stream `json:"name"`
-			Data   string `json:"text"`
-		}{
-			Stream: stream,
-			Data:   data,
 		},
 	)
 }

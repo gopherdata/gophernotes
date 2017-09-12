@@ -44,11 +44,6 @@ type SocketGroup struct {
 	Key           []byte
 }
 
-// kernelStatus holds a kernel state, for status broadcast messages.
-type kernelStatus struct {
-	ExecutionState string `json:"execution_state"`
-}
-
 // KernelLanguageInfo holds information about the language that this kernel executes code in.
 type kernelLanguageInfo struct {
 	Name              string `json:"name"`
@@ -80,6 +75,12 @@ type kernelInfo struct {
 type shutdownReply struct {
 	Restart bool `json:"restart"`
 }
+
+const (
+	kernelStarting = "starting"
+	kernelBusy     = "busy"
+	kernelIdle     = "idle"
+)
 
 // runKernel is the main entry point to start the kernel.
 func runKernel(connectionFile string) {
@@ -269,11 +270,11 @@ func handleExecuteRequest(ir *classic.Interp, receipt msgReceipt) error {
 
 	// Tell the front-end that the kernel is working and when finished notify the
 	// front-end that the kernel is idle again.
-	if err := receipt.PublishKernelStatus(KernelBusy); err != nil {
+	if err := receipt.PublishKernelStatus(kernelBusy); err != nil {
 		log.Printf("Error publishing kernel status 'busy': %v\n", err)
 	}
 	defer func() {
-		if err := receipt.PublishKernelStatus(KernelIdle); err != nil {
+		if err := receipt.PublishKernelStatus(kernelIdle); err != nil {
 			log.Printf("Error publishing kernel status 'idle': %v\n", err)
 		}
 	}()
