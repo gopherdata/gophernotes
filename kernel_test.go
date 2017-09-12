@@ -10,6 +10,11 @@ import (
 	zmq "github.com/pebbe/zmq4"
 )
 
+const (
+	failure = "\u2717"
+	success = "\u2713"
+)
+
 func TestMain(m *testing.M) {
 	os.Exit(runTest(m))
 }
@@ -34,19 +39,26 @@ func TestEvaluate(t *testing.T) {
 	}{
 		{"import \"fmt\"\na := 1\nfmt.Println(a)", "1\n"},
 		{"a = 2\nfmt.Println(a)", "2\n"},
-		{"func myFunc(x int) int {\nreturn x+1\n}\nfmt.Println(\"func defined\")", "func defined\n"},
+		{"func myFunc(x int) int {\nreturn x+1\n}\nfmt.Println(\"func defined\")", "func dfined\n"},
 		{"b := myFunc(1)\nfmt.Println(b)", "2\n"},
 	}
 
+	t.Logf("Should be able to evaluate valid code in notebook cells.")
+
 	for k, tc := range cases {
+
+		// Give a progress report.
+		t.Logf("  Evaluating code snippet %d/%d.", k+1, len(cases))
 
 		// Get the result.
 		result := testEvaluate(t, tc.Input, k)
 
 		// Compare the result.
 		if result != tc.Output {
-			t.Fatalf("[test case %d]: result -> %s\n expected -> %s", k+1, result, tc.Output)
+			t.Errorf("\t%s Test case produced unexpected results.", failure)
+			continue
 		}
+		t.Logf("\t%s Should return the correct cell output.", success)
 	}
 }
 
