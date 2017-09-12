@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
+	"time"
 
 	"github.com/nu7hatch/gouuid"
 	zmq "github.com/pebbe/zmq4"
@@ -12,10 +13,12 @@ import (
 
 // MsgHeader encodes header info for ZMQ messages.
 type MsgHeader struct {
-	MsgID    string `json:"msg_id"`
-	Username string `json:"username"`
-	Session  string `json:"session"`
-	MsgType  string `json:"msg_type"`
+	MsgID           string `json:"msg_id"`
+	Username        string `json:"username"`
+	Session         string `json:"session"`
+	MsgType         string `json:"msg_type"`
+	ProtocolVersion string `json:"version"`
+	Timestamp       string `json:"date"`
 }
 
 // ComposedMsg represents an entire message in a high-level structure.
@@ -173,6 +176,8 @@ func NewMsg(msgType string, parent ComposedMsg) (ComposedMsg, error) {
 	msg.Header.Session = parent.Header.Session
 	msg.Header.Username = parent.Header.Username
 	msg.Header.MsgType = msgType
+	msg.Header.ProtocolVersion = ProtocolVersion
+	msg.Header.Timestamp = time.Now().UTC().Format(time.RFC3339)
 
 	u, err := uuid.NewV4()
 	if err != nil {

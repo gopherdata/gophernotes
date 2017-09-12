@@ -6,6 +6,7 @@ import (
 )
 
 const Version string = "1.0.0"
+const ProtocolVersion string = "5.0"
 
 func main() {
 

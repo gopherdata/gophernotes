@@ -233,7 +233,7 @@ func handleShellMsg(ir *classic.Interp, receipt msgReceipt) {
 func sendKernelInfo(receipt msgReceipt) error {
 	return receipt.Reply("kernel_info_reply",
 		kernelInfo{
-			ProtocolVersion:       "5.0",
+			ProtocolVersion:       ProtocolVersion,
 			Implementation:        "gophernotes",
 			ImplementationVersion: Version,
 			Banner:                fmt.Sprintf("Go kernel: gophernotes - v%s", Version),
