@@ -33,6 +33,8 @@ type testJupyterClient struct {
 // newTestJupyterClient creates and connects a fresh client to the kernel. Upon error, newTestJupyterClient
 // will Fail the test.
 func newTestJupyterClient(t *testing.T) (testJupyterClient, func()) {
+	t.Helper()
+
 	addrShell := fmt.Sprintf("%s://%s:%d", transport, ip, shellPort)
 	addrIO := fmt.Sprintf("%s://%s:%d", transport, ip, iopubPort)
 
@@ -76,6 +78,8 @@ func newTestJupyterClient(t *testing.T) (testJupyterClient, func()) {
 // sendShellRequest sends a message to the kernel over the shell channel. Upon error, sendShellRequest
 // will Fail the test.
 func (client *testJupyterClient) sendShellRequest(t *testing.T, request ComposedMsg) {
+	t.Helper()
+
 	if _, err := client.shellSocket.Send("<IDS|MSG>", zmq.SNDMORE); err != nil {
 		t.Fatal("shellSocket.Send:", err)
 	}
@@ -93,6 +97,8 @@ func (client *testJupyterClient) sendShellRequest(t *testing.T, request Composed
 // recvShellReply tries to read a reply message from the shell channel. It will timeout after the given
 // timeout delay. Upon error or timeout, recvShellReply will Fail the test.
 func (client *testJupyterClient) recvShellReply(t *testing.T, timeout time.Duration) (reply ComposedMsg) {
+	t.Helper()
+
 	ch := make(chan ComposedMsg)
 
 	go func() {
@@ -121,6 +127,8 @@ func (client *testJupyterClient) recvShellReply(t *testing.T, timeout time.Durat
 // recvIOSub tries to read a published message from the IOPub channel. It will timeout after the given
 // timeout delay. Upon error or timeout, recvIOSub will Fail the test.
 func (client *testJupyterClient) recvIOSub(t *testing.T, timeout time.Duration) (sub ComposedMsg) {
+	t.Helper()
+
 	ch := make(chan ComposedMsg)
 
 	go func() {
@@ -150,24 +158,17 @@ func (client *testJupyterClient) recvIOSub(t *testing.T, timeout time.Duration) 
 // between the opening 'busy' messages and closing 'idle' message are captured and returned. The request will timeout
 // after the given timeout delay. Upon error or timeout, request will Fail the test.
 func (client *testJupyterClient) request(t *testing.T, request ComposedMsg, timeout time.Duration) (reply ComposedMsg, pub []ComposedMsg) {
+	t.Helper()
+
 	client.sendShellRequest(t, request)
 	reply = client.recvShellReply(t, timeout)
 
 	// Read the expected 'busy' message and ensure it is in fact, a 'busy' message
 	subMsg := client.recvIOSub(t, 1*time.Second)
-	if subMsg.Header.MsgType != "status" {
-		t.Fatalf("Expected a 'status' message but received a '%s' message on IOPub", subMsg.Header.MsgType)
-	}
+	assertMsgTypeEquals(t, subMsg, "status")
 
-	subData, ok := subMsg.Content.(map[string]interface{})
-	if !ok {
-		t.Fatal("'status' message content is not a json object")
-	}
-
-	execState, ok := subData["execution_state"]
-	if !ok {
-		t.Fatal("'status' message content is missing the 'execution_state' field")
-	}
+	subData := getMsgContentAsJsonObject(t, subMsg)
+	execState := getString(t, "content", subData, "execution_state")
 
 	if execState != kernelBusy {
 		t.Fatalf("Expected a 'busy' status message but got '%v'", execState)
@@ -179,15 +180,8 @@ func (client *testJupyterClient) request(t *testing.T, request ComposedMsg, time
 
 		// If the message is a 'status' message, ensure it is an 'idle' status
 		if subMsg.Header.MsgType == "status" {
-			subData, ok = subMsg.Content.(map[string]interface{})
-			if !ok {
-				t.Fatal("'status' message content is not a json object")
-			}
-
-			execState, ok = subData["execution_state"]
-			if !ok {
-				t.Fatal("'status' message content is missing the 'execution_state' field")
-			}
+			subData = getMsgContentAsJsonObject(t, subMsg)
+			execState = getString(t, "content", subData, "execution_state")
 
 			if execState != kernelIdle {
 				t.Fatalf("Expected a 'idle' status message but got '%v'", execState)
@@ -202,6 +196,67 @@ func (client *testJupyterClient) request(t *testing.T, request ComposedMsg, time
 	}
 
 	return
+}
+
+// assertMsgTypeEquals is a test helper that fails the test if the message header's MsgType is not the
+// expectedType.
+func assertMsgTypeEquals(t *testing.T, msg ComposedMsg, expectedType string) {
+	t.Helper()
+
+	if msg.Header.MsgType != expectedType {
+		t.Fatalf("Expected message of type '%s' but was '%s'\n", expectedType, msg.Header.MsgType)
+	}
+}
+
+// getMsgContentAsJsonObject is a test helper that fails the rest if the message content is not a
+// map[string]interface{} and returns the content as a map[string]interface{} if it is of the correct type.
+func getMsgContentAsJsonObject(t *testing.T, msg ComposedMsg) map[string]interface{} {
+	t.Helper()
+
+	content, ok := msg.Content.(map[string]interface{})
+	if !ok {
+		t.Fatal("Message content is not a JSON object")
+	}
+
+	return content
+}
+
+// getString is a test helper that retrieves a value as a string from the content at the given key. If the key
+// does not exist in the content map or the value is not a string this will fail the test. The jsonObjectName
+// parameter is a string used to name the content for more helpful fail messages.
+func getString(t *testing.T, jsonObjectName string, content map[string]interface{}, key string) string {
+	t.Helper()
+
+	raw, ok := content[key]
+	if !ok {
+		t.Fatal(jsonObjectName+"[\""+key+"\"]", errors.New("\""+key+"\" field not present"))
+	}
+
+	value, ok := raw.(string)
+	if !ok {
+		t.Fatal(jsonObjectName+"[\""+key+"\"]", errors.New("\""+key+"\" is not a string"))
+	}
+
+	return value
+}
+
+// getString is a test helper that retrieves a value as a map[string]interface{} from the content at the given key.
+// If the key  does not exist in the content map or the value is not a map[string]interface{} this will fail the test.
+// The jsonObjectName parameter is a string used to name the content for more helpful fail messages.
+func getJsonObject(t *testing.T, jsonObjectName string, content map[string]interface{}, key string) map[string]interface{} {
+	t.Helper()
+
+	raw, ok := content[key]
+	if !ok {
+		t.Fatal(jsonObjectName+"[\""+key+"\"]", errors.New("\""+key+"\" field not present"))
+	}
+
+	value, ok := raw.(map[string]interface{})
+	if !ok {
+		t.Fatal(jsonObjectName+"[\""+key+"\"]", errors.New("\""+key+"\" is not a string"))
+	}
+
+	return value
 }
 
 func TestMain(m *testing.M) {
@@ -220,7 +275,7 @@ func runTest(m *testing.M) int {
 
 //==============================================================================
 
-// TestEvaluate tests the evaluation of consecutive cells..
+// TestEvaluate tests the evaluation of consecutive cells.
 func TestEvaluate(t *testing.T) {
 	cases := []struct {
 		Input  []string
@@ -292,24 +347,10 @@ func testEvaluate(t *testing.T, codeIn string) string {
 
 	reply, pub := client.request(t, request, 10*time.Second)
 
-	if reply.Header.MsgType != "execute_reply" {
-		t.Fatal("reply.Header.MsgType", errors.New("reply is not an 'execute_reply'"))
-	}
+	assertMsgTypeEquals(t, reply, "execute_reply")
 
-	content, ok := reply.Content.(map[string]interface{})
-	if !ok {
-		t.Fatal("reply.Content.(map[string]interface{})", errors.New("reply content is not a json object"))
-	}
-
-	statusRaw, ok := content["status"]
-	if !ok {
-		t.Fatal("content[\"status\"]", errors.New("status field not present in 'execute_reply'"))
-	}
-
-	status, ok := statusRaw.(string)
-	if !ok {
-		t.Fatal("content[\"status\"]", errors.New("status field value is not a string"))
-	}
+	content = getMsgContentAsJsonObject(t, reply)
+	status := getString(t, "content", content, "status")
 
 	if status != "ok" {
 		t.Fatalf("Execution encountered error [%s]: %s", content["ename"], content["evalue"])
@@ -317,34 +358,62 @@ func testEvaluate(t *testing.T, codeIn string) string {
 
 	for _, pubMsg := range pub {
 		if pubMsg.Header.MsgType == "execute_result" {
-			content, ok := pubMsg.Content.(map[string]interface{})
-			if !ok {
-				t.Fatal("pubMsg.Content.(map[string]interface{})", errors.New("pubMsg 'execute_result' content is not a json object"))
-			}
+			content = getMsgContentAsJsonObject(t, pubMsg)
 
-			bundledMIMEDataRaw, ok := content["data"]
-			if !ok {
-				t.Fatal("content[\"data\"]", errors.New("data field not present in 'execute_result'"))
-			}
-
-			bundledMIMEData, ok := bundledMIMEDataRaw.(map[string]interface{})
-			if !ok {
-				t.Fatal("content[\"data\"]", errors.New("data field is not a MIME data bundle in 'execute_result'"))
-			}
-
-			textRepRaw, ok := bundledMIMEData["text/plain"]
-			if !ok {
-				t.Fatal("content[\"data\"]", errors.New("data field doesn't contain a text representation in 'execute_result'"))
-			}
-
-			textRep, ok := textRepRaw.(string)
-			if !ok {
-				t.Fatal("content[\"data\"][\"text/plain\"]", errors.New("text representation is not a string in 'execute_result'"))
-			}
+			bundledMIMEData := getJsonObject(t, "content", content, "data")
+			textRep := getString(t, "content[\"data\"]", bundledMIMEData, "test/plain")
 
 			return textRep
 		}
 	}
 
 	return ""
+}
+
+// TestPanicGeneratesError tests that executing code with an un-recovered panic properly generates both
+// an error "execute_reply" and publishes an "error" message.
+func TestPanicGeneratesError(t *testing.T) {
+	client, closeClient := newTestJupyterClient(t)
+	defer closeClient()
+
+	// Create a message.
+	request, err := NewMsg("execute_request", ComposedMsg{})
+	if err != nil {
+		t.Fatal("NewMessage:", err)
+	}
+
+	// Fill in remaining header information.
+	request.Header.Session = sessionID
+	request.Header.Username = "KernelTester"
+
+	// Fill in Metadata.
+	request.Metadata = make(map[string]interface{})
+
+	// Fill in content.
+	content := make(map[string]interface{})
+	content["code"] = "panic(\"Error\")"
+	content["silent"] = false
+	request.Content = content
+
+	reply, pub := client.request(t, request, 10*time.Second)
+
+	assertMsgTypeEquals(t, reply, "execute_reply")
+
+	content = getMsgContentAsJsonObject(t, reply)
+	status := getString(t, "content", content, "status")
+
+	if status != "error" {
+		t.Fatal("Execution did not raise expected error")
+	}
+
+	foundPublishedError := false
+	for _, pubMsg := range pub {
+		if pubMsg.Header.MsgType == "error" {
+			foundPublishedError = true
+		}
+	}
+
+	if !foundPublishedError {
+		t.Fatal("Execution did not publish an expected \"error\" message")
+	}
 }
