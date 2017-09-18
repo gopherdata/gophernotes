@@ -18,7 +18,10 @@ const (
 	success = "\u2713"
 )
 
-const sessionID = "ba65a05c-106a-4799-9a94-7f5631bbe216"
+const (
+	connectionFile = "fixtures/connection_file.json"
+	sessionID      = "ba65a05c-106a-4799-9a94-7f5631bbe216"
+)
 
 var (
 	connectionKey string
@@ -37,8 +40,6 @@ func TestMain(m *testing.M) {
 // runTest initializes the environment for the tests and allows for
 // the proper exit if the test fails or succeeds.
 func runTest(m *testing.M) int {
-	const connectionFile = "fixtures/connection_file.json"
-
 	// Parse the connection info.
 	var connInfo ConnectionInfo
 
@@ -140,7 +141,7 @@ func testEvaluate(t *testing.T, codeIn string) string {
 
 	assertMsgTypeEquals(t, reply, "execute_reply")
 
-	content = getMsgContentAsJsonObject(t, reply)
+	content = getMsgContentAsJSONObject(t, reply)
 	status := getString(t, "content", content, "status")
 
 	if status != "ok" {
@@ -149,9 +150,9 @@ func testEvaluate(t *testing.T, codeIn string) string {
 
 	for _, pubMsg := range pub {
 		if pubMsg.Header.MsgType == "execute_result" {
-			content = getMsgContentAsJsonObject(t, pubMsg)
+			content = getMsgContentAsJSONObject(t, pubMsg)
 
-			bundledMIMEData := getJsonObject(t, "content", content, "data")
+			bundledMIMEData := getJSONObject(t, "content", content, "data")
 			textRep := getString(t, "content[\"data\"]", bundledMIMEData, "text/plain")
 
 			return textRep
@@ -190,7 +191,7 @@ func TestPanicGeneratesError(t *testing.T) {
 
 	assertMsgTypeEquals(t, reply, "execute_reply")
 
-	content = getMsgContentAsJsonObject(t, reply)
+	content = getMsgContentAsJSONObject(t, reply)
 	status := getString(t, "content", content, "status")
 
 	if status != "error" {
@@ -355,7 +356,7 @@ func (client *testJupyterClient) performJupyterRequest(t *testing.T, request Com
 	subMsg := client.recvIOSub(t, 1*time.Second)
 	assertMsgTypeEquals(t, subMsg, "status")
 
-	subData := getMsgContentAsJsonObject(t, subMsg)
+	subData := getMsgContentAsJSONObject(t, subMsg)
 	execState := getString(t, "content", subData, "execution_state")
 
 	if execState != kernelBusy {
@@ -368,7 +369,7 @@ func (client *testJupyterClient) performJupyterRequest(t *testing.T, request Com
 
 		// If the message is a 'status' message, ensure it is an 'idle' status.
 		if subMsg.Header.MsgType == "status" {
-			subData = getMsgContentAsJsonObject(t, subMsg)
+			subData = getMsgContentAsJSONObject(t, subMsg)
 			execState = getString(t, "content", subData, "execution_state")
 
 			if execState != kernelIdle {
@@ -396,9 +397,9 @@ func assertMsgTypeEquals(t *testing.T, msg ComposedMsg, expectedType string) {
 	}
 }
 
-// getMsgContentAsJsonObject is a test helper that fails the rest if the message content is not a
+// getMsgContentAsJSONObject is a test helper that fails the rest if the message content is not a
 // map[string]interface{} and returns the content as a map[string]interface{} if it is of the correct type.
-func getMsgContentAsJsonObject(t *testing.T, msg ComposedMsg) map[string]interface{} {
+func getMsgContentAsJSONObject(t *testing.T, msg ComposedMsg) map[string]interface{} {
 	t.Helper()
 
 	content, ok := msg.Content.(map[string]interface{})
@@ -428,10 +429,10 @@ func getString(t *testing.T, jsonObjectName string, content map[string]interface
 	return value
 }
 
-// getString is a test helper that retrieves a value as a map[string]interface{} from the content at the given key.
+// getJSONObject is a test helper that retrieves a value as a map[string]interface{} from the content at the given key.
 // If the key  does not exist in the content map or the value is not a map[string]interface{} this will fail the test.
 // The jsonObjectName parameter is a string used to name the content for more helpful fail messages.
-func getJsonObject(t *testing.T, jsonObjectName string, content map[string]interface{}, key string) map[string]interface{} {
+func getJSONObject(t *testing.T, jsonObjectName string, content map[string]interface{}, key string) map[string]interface{} {
 	t.Helper()
 
 	raw, ok := content[key]
