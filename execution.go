@@ -5,6 +5,7 @@ import (
 	"go/token"
 
 	repl "github.com/gopherds/gophernotes/internal/repl"
+	"strings"
 )
 
 var (
@@ -28,7 +29,62 @@ func SetupExecutionEnvironment() {
 	fset = token.NewFileSet()
 }
 
-// OutputMsg holds the data for a pyout message.
+type KernelStatusMsg struct {
+	ExecState string `json:"execution_state"`
+}
+
+func setBusy(receipt MsgReceipt) {
+	var status KernelStatusMsg
+
+	msg := NewMsg("status", receipt.Msg)
+	status.ExecState = "busy"
+	msg.Content = status
+
+	receipt.SendResponse(receipt.Sockets.IOPubSocket, msg)
+}
+
+func setIdle(receipt MsgReceipt) {
+	var status KernelStatusMsg
+
+	msg := NewMsg("status", receipt.Msg)
+	status.ExecState = "idle"
+	msg.Content = status
+
+	receipt.SendResponse(receipt.Sockets.IOPubSocket, msg)
+}
+
+
+type ExecuteInputMsg struct {
+	ExecCount int    `json:"execution_count"`
+	Code      string `json:"code"`
+}
+
+func publishExecuteInput(receipt MsgReceipt, execCount int, code string) {
+	var pubExecInputContent ExecuteInputMsg
+	pubExecInput := NewMsg("execute_input", receipt.Msg)
+	pubExecInputContent.ExecCount = execCount
+	pubExecInputContent.Code = code
+	receipt.SendResponse(receipt.Sockets.IOPubSocket, pubExecInput)
+}
+
+type StreamMsg struct {
+	Stream string `json:"name"`
+	Data string `json:"text"`
+}
+func publishWriteStream(receipt MsgReceipt, stdout bool, text string) {
+	var pubWriteStreamContent StreamMsg
+	pubWriteStream := NewMsg("stream", receipt.Msg)
+
+	if stdout {
+		pubWriteStreamContent.Stream = "stdout"
+	} else {
+		pubWriteStreamContent.Stream = "stderr"
+	}
+	pubWriteStreamContent.Data = text
+
+	receipt.SendResponse(receipt.Sockets.IOPubSocket, pubWriteStream)
+}
+
 type OutputMsg struct {
 	Execcount int                    `json:"execution_count"`
 	Data      map[string]string      `json:"data"`
@@ -42,52 +98,73 @@ type ErrMsg struct {
 	Traceback []string `json:"traceback"`
 }
 
+type ExecuteResultMsg struct {
+	Execcount int                    `json:"execution_count"`
+	Data      map[string]string      `json:"data"`
+	Metadata  map[string]interface{} `json:"metadata"`
+}
+
 // HandleExecuteRequest runs code from an execute_request method, and sends the various
 // reply messages.
 func HandleExecuteRequest(receipt MsgReceipt) {
 
 	reply := NewMsg("execute_reply", receipt.Msg)
-	content := make(map[string]interface{})
-	reqcontent := receipt.Msg.Content.(map[string]interface{})
-	code := reqcontent["code"].(string)
-	silent := reqcontent["silent"].(bool)
+	replyContent := make(map[string]interface{})
+
+	reqContent := receipt.Msg.Content.(map[string]interface{})
+	code := reqContent["code"].(string)
+	silent := reqContent["silent"].(bool)
+
 	if !silent {
 		ExecCounter++
 	}
-	content["execution_count"] = ExecCounter
+	replyContent["execution_count"] = ExecCounter
 
+	// Tell the front-end the kernel is working and when finished publish idle status
+    setBusy(receipt)
+	defer setIdle(receipt)
+    
+    // Tell the front-end what is being executed
+    publishExecuteInput(receipt, ExecCounter, code)
+    
 	// Do the compilation/execution magic.
 	val, stderr, err := REPLSession.Eval(code)
 
 	if err == nil {
-		content["status"] = "ok"
-		content["payload"] = make([]map[string]interface{}, 0)
-		content["user_variables"] = make(map[string]string)
-		content["user_expressions"] = make(map[string]string)
-		if len(val) > 0 && !silent {
+		replyContent["status"] = "ok"
+		replyContent["payload"] = make([]map[string]interface{}, 0)
+		replyContent["user_variables"] = make(map[string]string)
+		replyContent["user_expressions"] = make(map[string]string)
+        
+		if !silent && len(val) > 0 {
 			var outContent OutputMsg
-			out := NewMsg("pyout", receipt.Msg)
+			out := NewMsg("execute_result", receipt.Msg)
+            
 			outContent.Execcount = ExecCounter
 			outContent.Data = make(map[string]string)
-			outContent.Data["text/plain"] = fmt.Sprint(val)
+			outContent.Data["text/plain"] = fmt.Sprintf("%s", val)
 			outContent.Metadata = make(map[string]interface{})
+            
 			out.Content = outContent
+            
 			receipt.SendResponse(receipt.Sockets.IOPubSocket, out)
 		}
+
+		if !silent && stderr.String() != "" {
+			publishWriteStream(receipt, false, stderr.String())
+		}
 	} else {
-		content["status"] = "error"
-		content["ename"] = "ERROR"
-		content["evalue"] = err.Error()
-		content["traceback"] = []string{stderr.String()}
-		errormsg := NewMsg("pyerr", receipt.Msg)
-		errormsg.Content = ErrMsg{"Error", err.Error(), []string{stderr.String()}}
-		receipt.SendResponse(receipt.Sockets.IOPubSocket, errormsg)
+		replyContent["status"] = "error"
+		replyContent["ename"] = "ERROR"
+		replyContent["evalue"] = err.Error()
+		replyContent["traceback"] = []string{strings.TrimSpace(stderr.String())}
+
+		errMsg := NewMsg("error", receipt.Msg)
+		errMsg.Content = ErrMsg{"Error", err.Error(), []string{strings.TrimSpace(stderr.String())}}
+		receipt.SendResponse(receipt.Sockets.IOPubSocket, errMsg)
 	}
 
 	// send the output back to the notebook
-	reply.Content = content
+	reply.Content = replyContent
 	receipt.SendResponse(receipt.Sockets.ShellSocket, reply)
-	idle := NewMsg("status", receipt.Msg)
-	idle.Content = KernelStatus{"idle"}
-	receipt.SendResponse(receipt.Sockets.IOPubSocket, idle)
 }

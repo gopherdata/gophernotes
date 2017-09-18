@@ -251,6 +251,15 @@ Then:
 ### gophernotes not found
 - Depending on your environment, you may need to manually change the path to the `gophernotes` executable in `kernel/kernel.json` before copying it to `~/.local/share/jupyter/kernels/gophernotes`.  You can put the **full path** to the `gophernotes` executable here, and you shouldn't have any further issues.
 
+### Print outputs string length followed by `<nil>`
+
+Expressions in the top level scope of the notebook are printed out by default. This means that calling
+```go
+fmt.Println("Hello world")
+```
+the string `"Hello world"` is printed and then the two return values `11` and `nil` (bytes written, and error) are also printed.
+
+Instead, if at the top level of the notebook, simply evaluate to a string such as using `fmt.Sprintf` or `"Hello " + "world"`
 
 ### "Kernel error" in a running notebook
 

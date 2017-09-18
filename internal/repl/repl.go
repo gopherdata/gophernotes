@@ -9,14 +9,12 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
-	"syscall"
 
 	"go/ast"
 	"go/build"
 	"go/importer"
 	"go/parser"
 	"go/printer"
-	"go/scanner"
 	"go/token"
 	"go/types"
 
@@ -42,10 +40,14 @@ type Session struct {
 	storedBodyLength int
 }
 
+const oldStdout = "__oldStdOut"
 const initialSourceTemplate = `
 package main
 
-import %q
+import (
+	%q
+	"os"
+)
 
 func ` + printerName + `(xx ...interface{}) {
 	for _, x := range xx {
@@ -54,6 +56,9 @@ func ` + printerName + `(xx ...interface{}) {
 }
 
 func main() {
+    // Discard any print statements. This should be restore before the current cell is executed
+	` + oldStdout + ` := os.Stdout
+	os.Stdout = nil
 }
 `
 
@@ -151,9 +156,12 @@ func goRun(files []string) ([]byte, bytes.Buffer, error) {
 	cmd.Stdin = os.Stdin
 	cmd.Stderr = &stderr
 	out, err := cmd.Output()
+
 	return out, stderr, err
 }
 
+// If a valid expression, wraps the expression in a print statement to display
+// the output as expected in a notebook context
 func (s *Session) evalExpr(in string) (ast.Expr, error) {
 	expr, err := parser.ParseExpr(in)
 	if err != nil {
@@ -180,48 +188,10 @@ func isNamedIdent(expr ast.Expr, name string) bool {
 func (s *Session) evalStmt(in string, noPrint bool) error {
 	src := fmt.Sprintf("package P; func F() { %s }", in)
 	f, err := parser.ParseFile(s.Fset, "stmt.go", src, parser.Mode(0))
+
+	// If it can't be parsed as a statement then the last option is to include it as a function
 	if err != nil {
-		debugf("stmt :: err = %s", err)
-
-		// try to import this as a proxy function and correct for any imports
-		appendForImport := `package main
-
-
-			`
-
-		f, err := os.Create(string(filepath.Dir(s.FilePath)) + "/func_proxy.go")
-		if err != nil {
-			return err
-		}
-
-		_, err = f.Write([]byte(appendForImport + in))
-		if err != nil {
-			return err
-		}
-		f.Close()
-
-		b := new(bytes.Buffer)
-		cmd := exec.Command("goimports", "-w", string(filepath.Dir(s.FilePath))+"/func_proxy.go")
-		cmd.Stdout = b
-		cmd.Stderr = b
-		err = cmd.Run()
-		if err != nil {
-			err = errors.New(b.String())
-			return err
-		}
-
-		functproxy, err := ioutil.ReadFile(string(filepath.Dir(s.FilePath)) + "/func_proxy.go")
-		if err != nil {
-			return err
-		}
-
-		if err = s.importFile(functproxy); err != nil {
-			errorf("%s", err.Error())
-			if _, ok := err.(scanner.ErrorList); ok {
-				return ErrContinue
-			}
-		}
-
+		return s.evalFunction(in)
 	}
 
 	enclosingFunc := f.Scope.Lookup("F").Decl.(*ast.FuncDecl)
@@ -241,6 +211,7 @@ func (s *Session) evalStmt(in string, noPrint bool) error {
 						vs = append(vs, v)
 					}
 				}
+
 				if len(vs) > 0 {
 					printLastValues := &ast.ExprStmt{
 						X: &ast.CallExpr{
@@ -255,6 +226,83 @@ func (s *Session) evalStmt(in string, noPrint bool) error {
 	}
 
 	s.appendStatements(stmts...)
+
+	return nil
+}
+
+func (s *Session) evalFunction(in string) error {
+	// try to import this as a proxy function and correct for any imports
+	appendForImport := `package main
+
+
+			`
+
+	proxyFilePath := string(filepath.Dir(s.FilePath)) + "/func_proxy.go"
+
+	proxyFile, err := os.Create(proxyFilePath)
+	if err != nil {
+		return err
+	}
+
+	_, err = proxyFile.Write([]byte(appendForImport + in))
+	if err != nil {
+		return err
+	}
+	proxyFile.Close()
+
+	b := new(bytes.Buffer)
+	cmd := exec.Command("goimports", "-w", proxyFilePath)
+	cmd.Stdout = b
+	cmd.Stderr = b
+	err = cmd.Run()
+
+	if err != nil {
+		err = errors.New(err.Error() + "\n" + b.String())
+		return err
+	}
+
+	funcProxy, err := ioutil.ReadFile(proxyFilePath)
+	if err != nil {
+		return err
+	}
+
+	// Parse the proxy
+	parsedProxyFile, err := parser.ParseFile(s.Fset, "func_proxy.go", funcProxy, parser.Mode(0))
+	if err != nil {
+		return err
+	}
+
+	return s.mergeFunctionDeclarations(parsedProxyFile.Decls)
+}
+
+func (s *Session) mergeFunctionDeclarations(newFunctionDecls []ast.Decl) error {
+	newFuncs := make(map[string]*ast.FuncDecl)
+	for _, decl := range newFunctionDecls {
+		if funcDecl, ok := decl.(*ast.FuncDecl); ok {
+			funcName := funcDecl.Name.Name
+			if funcName == "main" {
+				return errors.New("Cannot declare main function")
+			} else if funcName == printerName {
+				return errors.New("Cannot overwrite printer magic function " + printerName)
+			}
+			newFuncs[funcName] = funcDecl
+		}
+	}
+
+	currentDecls := s.File.Decls
+	for i, decl := range currentDecls {
+		if funcDecl, ok := decl.(*ast.FuncDecl); ok {
+			funcName := funcDecl.Name.Name
+			if overwriteDecl := newFuncs[funcName]; overwriteDecl != nil {
+				currentDecls[i] = overwriteDecl
+				delete(newFuncs, funcName)
+			}
+		}
+	}
+
+	for _, newFuncDecl := range newFuncs {
+		s.File.Decls = append(s.File.Decls, newFuncDecl)
+	}
 
 	return nil
 }
@@ -323,11 +371,26 @@ func (s *Session) Eval(in string) (string, bytes.Buffer, error) {
 	// Split the lines of the input to check for special commands.
 	inLines := strings.Split(in, "\n")
 	var nonImportLines []string
+	inMultilineImport := false
 	for idx, line := range inLines {
-
 		// Extract non-special lines.
 		trimLine := strings.TrimSpace(line)
-		if !strings.HasPrefix(line, "import") && !strings.HasPrefix(line, ":") && !strings.HasPrefix(trimLine, "\"") && !strings.HasPrefix(line, ")") {
+
+		isImport := strings.HasPrefix(trimLine, "import")
+		isSpecialCommand := strings.HasPrefix(line, ":")
+		wasPartOfMultiline := inMultilineImport
+
+		// If in a multi-line import and we find the closing paren, exit this mode
+		if inMultilineImport && (strings.Count(line, "(")-strings.Count(line, ")")) < 0 {
+			inMultilineImport = false
+		}
+
+		// If this import line has an opening paren and not a closing one, assume in multi-line import
+		if isImport && (strings.Count(line, "(")-strings.Count(line, ")")) > 0 {
+			inMultilineImport = true
+		}
+
+		if !isImport && !isSpecialCommand && !wasPartOfMultiline {
 			nonImportLines = append(nonImportLines, line)
 			continue
 		}
@@ -384,7 +447,20 @@ func (s *Session) Eval(in string) (string, bytes.Buffer, error) {
 
 	// Extract statements.
 	priorListLength := len(s.mainBody.List)
+
+	// Reenable stdout for the most recent execution
+	restoreStdout := &ast.AssignStmt{
+		Lhs:    []ast.Expr{ast.NewIdent("os.Stdout")},
+		TokPos: token.NoPos,
+		Tok:    token.ASSIGN,
+		Rhs:    []ast.Expr{ast.NewIdent(oldStdout)},
+	}
+	s.appendStatements(restoreStdout)
+
 	if err := s.separateEvalStmt(in); err != nil {
+		// Remove any newly added statements as there was an error parsing
+		// the cell
+		s.mainBody.List = s.mainBody.List[0:priorListLength]
 		return "", *bytes.NewBuffer([]byte(err.Error())), err
 	}
 
@@ -392,7 +468,7 @@ func (s *Session) Eval(in string) (string, bytes.Buffer, error) {
 
 	output, stderr, runErr := s.Run()
 	if runErr != nil || stderr.String() != "" {
-		if exitErr, ok := runErr.(*exec.ExitError); ok {
+		/*if exitErr, ok := runErr.(*exec.ExitError); ok {
 			// if failed with status 2, remove the last statement
 			if st, ok := exitErr.ProcessState.Sys().(syscall.WaitStatus); ok {
 				if st.ExitStatus() == 2 {
@@ -401,14 +477,18 @@ func (s *Session) Eval(in string) (string, bytes.Buffer, error) {
 					runErr = nil
 				}
 			}
-		}
+		}*/
+
+		// Remove any newly added statements as there was an error executing
+		// the cell
+		s.mainBody.List = s.mainBody.List[0:priorListLength]
+		return string(output), stderr, runErr
 	}
 
-	// Cleanup the session file.
-	s.mainBody.List = s.mainBody.List[0:priorListLength]
-	if err := s.cleanEvalStmt(in); err != nil {
-		return string(output), stderr, err
-	}
+	// Delete the single stdout redirection injected before the current execution so that it doesn't happen
+	// for the next execution.
+	s.mainBody.List = append(s.mainBody.List[:priorListLength], s.mainBody.List[priorListLength+1:]...)
+
 	f, err := os.Create(s.FilePath)
 	if err != nil {
 		return string(output), stderr, err
@@ -426,57 +506,48 @@ func (s *Session) Eval(in string) (string, bytes.Buffer, error) {
 	return string(output), stderr, runErr
 }
 
+func scopeDepthChange(line string) int {
+	return strings.Count(line, "{") - strings.Count(line, "}")
+}
+
 // separateEvalStmt separates what can be evaluated via evalExpr from what cannot.
 func (s *Session) separateEvalStmt(in string) error {
 	var stmtLines []string
-	var exprCount int
 	var bracketCount int
 
 	inLines := strings.Split(in, "\n")
+	lastLineIdx := len(inLines) - 1
 
-	for _, line := range inLines {
-
-		if bracketCount == 0 && len(stmtLines) == 0 {
+	for idx, line := range inLines {
+		// If at the top level, try to evaluate the line as an expression
+		if bracketCount == 0 {
 			_, err := s.evalExpr(line)
-			if err != nil {
-				if strings.LastIndex(line, "{") == len(line)-1 {
-					bracketCount++
-				}
-			}
+
+			// Successfully parsed the single line as an expression so this line
+			// is handled, continue to the next one
 			if err == nil {
 				continue
 			}
 		}
 
-		if strings.LastIndex(line, "}") == len(line)-1 {
-			if !strings.HasSuffix(line, "{}") {
-				bracketCount--
-			}
-		}
-		if strings.LastIndex(line, "{") == len(line)-1 {
-			bracketCount++
-		}
+		// Adjust the scope depth by counting the opening and closing brackets on this
+		// next line.
+		bracketCount += scopeDepthChange(line)
+
+		// Append the current line to the list of lines making up the multi line statement
 		stmtLines = append(stmtLines, line)
 
+		// If at the top level and the brackets are all matched up, put together the
+		// multiline statement and evalualte it.
+		// Note: this could be a single line if it contains all the matching braces but
+		// is at the top level
 		if bracketCount == 0 && len(stmtLines) > 0 {
-
-			if err := s.evalStmt(strings.Join(stmtLines, "\n"), true); err != nil {
+			// Try and evaluate the statement. It fails then this is actually a
+			// syntax error.
+			if err := s.evalStmt(strings.Join(stmtLines, "\n"), idx != lastLineIdx); err != nil {
 				return err
 			}
 			stmtLines = []string{}
-			continue
-		}
-
-		exprCount++
-	}
-
-	if len(stmtLines) > 0 {
-		var noPrint bool
-		if exprCount > 0 {
-			noPrint = true
-		}
-		if err := s.evalStmt(strings.Join(stmtLines, "\n"), noPrint); err != nil {
-			return err
 		}
 	}
 
@@ -490,15 +561,16 @@ func (s *Session) cleanEvalStmt(in string) error {
 	inLines := strings.Split(in, "\n")
 
 	for _, line := range inLines {
-
 		beforeLines := len(s.mainBody.List)
 		if expr, err := s.evalExpr(line); err == nil {
-			if !s.isPureExpr(expr) {
-				s.mainBody.List = s.mainBody.List[0:beforeLines]
-				stmtLines = append(stmtLines, line)
+			// Remove the statement appended by evalExpr
+			s.mainBody.List = s.mainBody.List[0:beforeLines]
+			// If the statement is pure it can be skipped during the replay
+			if s.isPureExpr(expr) {
+				continue
 			}
-			continue
 		}
+
 		stmtLines = append(stmtLines, line)
 	}
 
@@ -565,7 +637,7 @@ func (s *Session) importPackages(src []byte) error {
 // importFile adds external golang file to goRun target to use its function
 func (s *Session) importFile(src []byte) error {
 	// Don't need to same directory
-	tmp, err := ioutil.TempFile(filepath.Dir(s.FilePath), "gore_extarnal_")
+	tmp, err := ioutil.TempFile(filepath.Dir(s.FilePath), "gore_external_")
 	if err != nil {
 		return err
 	}
