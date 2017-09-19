@@ -1,0 +1,30 @@
+# This is the official list of people who can contribute
+# (and typically have contributed) code to the gophernotes
+# repository.
+#
+# Names should be added to this file only after verifying that
+# the individual or the individual's organization has agreed to
+# the appropriate Contributor License Agreement, found here:
+#
+#     http://code.google.com/legal/individual-cla-v1.0.html
+#     http://code.google.com/legal/corporate-cla-v1.0.html
+#
+# The agreement for individuals can be filled out on the web.
+#
+# Names should be added to this file like so:
+#     Name <email address>
+#
+# Please keep the list sorted.
+
+Bobby Norton <bobby@testedminds.com>
+Dan Kortschak <dan@kortschak.io>
+Daniel Whitenack <whitenack.daniel@gmail.com>
+Fransesc Campoy <campoy@golang.org>
+Harry Moreno <harry@capsulerx.com>
+Josh Cheek <josh.cheek@gmail.com>
+Kevin Burke <kev@inburke.com>
+Matthew Steffen <matt@pachyderm.io>
+Sebastien Binet <binet@cern.ch>
+Spencer Park <spinnr95@gmail.com>
+Thomas Kluyver <thomas@kluyver.me.uk>
+Yang Yang <wdscxsj@gmail.com>
