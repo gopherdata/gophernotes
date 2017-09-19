@@ -1,10 +1,10 @@
-![alt tag](https://raw.githubusercontent.com/gopherds/gophernotes/master/files/gophernotes2.jpg)
+![alt tag](file/gophernotes-logo.png)
 
-# gophernotes - Go in Notebooks
+# gophernotes - Use Go in Jupyter notebooks and nteract
 
-`gophernotes` is a Go kernel for [Jupyter](http://jupyter.org/) notebooks.  Finally, we can have a reliable and maintained way to use Go interactively and code in the browser.  Use `gophernotes` to create and share documents that contain live Go code, equations, visualizations and explanatory text.  These notebooks, with the live Go code, can then be shared with others via email, Dropbox, GitHub and the [Jupyter Notebook Viewer](http://nbviewer.jupyter.org/).  Go forth and do data science, or anything else interesting, with go notebooks!
+`gophernotes` is a Go kernel for [Jupyter](http://jupyter.org/) notebooks and [nteract](https://nteract.io/).  It lets you use Go interactively in a browser-based notebook or desktop app.  Use `gophernotes` to create and share documents that contain live Go code, equations, visualizations and explanatory text.  These notebooks, with the live Go code, can then be shared with others via email, Dropbox, GitHub and the [Jupyter Notebook Viewer](http://nbviewer.jupyter.org/). Go forth and do data science, or anything else interesting, with Go notebooks!
 
-This project came out of the [Gopher Gala](http://gophergala.com/) 2016.  It is inspired by a REPL called [gore](https://github.com/motemen/gore) and by a, no longer maintained and self-described as limited, ipython kernel call [iGo](https://github.com/takluyver/igo).
+This project utilizes a Go interpreter called [gomacro](https://github.com/cosmos72/gomacro) under the hood to evaluate Go code interactively.
 
 ## Screenshots/Examples
 
