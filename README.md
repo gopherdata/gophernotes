@@ -8,9 +8,11 @@ This project utilizes a Go interpreter called [gomacro](https://github.com/cosmo
 
 ## Examples
 
-Jupyter Notebook           |  nteract
-:-------------------------:|:-------------------------:
-![](files/jupyter.gif)     |  ![](files/nteract.gif)
+Jupyter Notebook:  
+![](files/jupyter.gif)  
+
+nteract:
+![](files/nteract.gif)
 
 ### Example Notebooks (dowload and run them locally, follow the links to view in Github, or use the [Jupyter Notebook Viewer](http://nbviewer.jupyter.org/)):
 - [Simple Printing and Channels](https://github.com/gopherds/gophernotes/blob/master/examples/Simple-Example.ipynb)
