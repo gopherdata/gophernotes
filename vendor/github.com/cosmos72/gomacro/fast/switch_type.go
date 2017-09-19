@@ -26,6 +26,7 @@
 package fast
 
 import (
+	"fmt"
 	"go/ast"
 	"go/token"
 	"go/types"
@@ -391,7 +392,7 @@ func (c *Comp) typeswitchBody(list []ast.Stmt, varname string, t xr.Type, bind *
 	locals := declvar || containLocalBinds(list1...)
 	var nbinds [2]int
 
-	c2, locals2 := c.pushEnvIfFlag(&nbinds, locals)
+	c2, locals2 := c.pushEnvIfFlag(&nbinds, locals || c.IsCompiled())
 	if declvar {
 		sym := bind.AsSymbol(c2.UpCost)
 		if t == nil {
@@ -409,6 +410,8 @@ func (c *Comp) typeswitchBody(list []ast.Stmt, varname string, t xr.Type, bind *
 
 // typeswitchVar compiles the tag variable declaration in a type-switch.
 func (c *Comp) typeswitchVar(varname string, t xr.Type, sym *Symbol) {
+	c.ErrorIfCompiled(fmt.Sprintf("switch %s.(type)", varname))
+
 	sidx := sym.Bind.Desc.Index()
 
 	bind := c.AddBind(varname, VarBind, t)

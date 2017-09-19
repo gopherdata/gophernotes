@@ -2,10 +2,10 @@
 
 
 [[projects]]
+  branch = "master"
   name = "github.com/cosmos72/gomacro"
   packages = ["ast2","base","classic","fast","imports","parser","scanner","token","typeutil","xreflect"]
-  revision = "cb2aedf8c257af98c51e08d1aace0142954c592e"
-  version = "v2.0"
+  revision = "b90dd5143957e920ac0ce87f9a3277bbc3ce1641"
 
 [[projects]]
   branch = "master"
@@ -17,7 +17,7 @@
   branch = "master"
   name = "github.com/pebbe/zmq4"
   packages = ["."]
-  revision = "651d7b11cd31b16fb4c76741c234e258b6a8039b"
+  revision = "90d69e412a09549f2e90bac70fbb449081f1e5c1"
 
 [[projects]]
   branch = "master"
@@ -28,6 +28,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "8e7fe89ae8ac8aaac86f7e7381a28ce0c2ad0ac61f9e4beaf35d631a9200da2f"
+  inputs-digest = "fa5d7d9ec51b9210ed3ca68de1105ddbbc070a941c737b3955518eaee951d10c"
   solver-name = "gps-cdcl"
   solver-version = 1

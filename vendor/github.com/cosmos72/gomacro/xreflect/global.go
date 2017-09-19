@@ -40,6 +40,21 @@ type InterfaceHeader struct {
 	typ Type
 }
 
+func MakeInterfaceHeader(val reflect.Value, typ Type) InterfaceHeader {
+	if val.IsValid() && val.CanSet() {
+		val = val.Convert(val.Type()) // make a copy
+	}
+	return InterfaceHeader{val, typ}
+}
+
+func (h InterfaceHeader) Value() reflect.Value {
+	return h.val
+}
+
+func (h InterfaceHeader) Type() Type {
+	return h.typ
+}
+
 type Method struct {
 	Name       string
 	Pkg        *Package

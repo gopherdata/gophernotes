@@ -223,7 +223,7 @@ func (e *Expr) AsX1() func(*Env) r.Value {
 		return eNil
 	}
 	if e.Const() {
-		return valueAsX1(e.Value, e.Type, CompileDefaults)
+		return valueAsX1(e.Value, e.Type, OptDefaults)
 	}
 	e.CheckX1()
 	return funAsX1(e.Fun, e.Type)
@@ -240,7 +240,7 @@ func (e *Expr) AsXV(opts CompileOptions) func(*Env) (r.Value, []r.Value) {
 }
 
 func valueAsX1(any I, t xr.Type, opts CompileOptions) func(*Env) r.Value {
-	convertuntyped := opts&CompileKeepUntyped == 0
+	convertuntyped := opts&OptKeepUntyped == 0
 	untyp, untyped := any.(UntypedLit)
 	if untyped && convertuntyped {
 		if t == nil || t.ReflectType() == rtypeOfUntypedLit {
@@ -264,7 +264,7 @@ func valueAsX1(any I, t xr.Type, opts CompileOptions) func(*Env) r.Value {
 }
 
 func valueAsXV(any I, t xr.Type, opts CompileOptions) func(*Env) (r.Value, []r.Value) {
-	convertuntyped := opts&CompileKeepUntyped == 0
+	convertuntyped := opts&OptKeepUntyped == 0
 	untyp, untyped := any.(UntypedLit)
 	if convertuntyped {
 		if untyped {
@@ -1190,7 +1190,7 @@ func funList(funs []func(*Env), last *Expr, opts CompileOptions) I {
 	var rt r.Type
 	if last.Type != nil {
 		// keep untyped constants only if requested
-		if opts != CompileKeepUntyped && last.Untyped() {
+		if opts != OptKeepUntyped && last.Untyped() {
 			last.ConstTo(last.DefaultType())
 		}
 		rt = last.Type.ReflectType()

@@ -61,8 +61,20 @@ func (c *Comp) FuncDecl(funcdecl *ast.FuncDecl) {
 	functype := funcdecl.Type
 	t, paramnames, resultnames := c.TypeFunction(functype)
 
-	// declare the function name and type before compiling its body: allows recursive functions/macros
+	// declare the function name and type before compiling its body: allows recursive functions/macros.
 	funcname := funcdecl.Name.Name
+	oldbind := c.Binds[funcname]
+	panicking := true
+	defer func() {
+		// On compile error, restore pre-existing declaration
+		if !panicking || c.Binds == nil {
+			// nothing to do
+		} else if oldbind != nil {
+			c.Binds[funcname] = oldbind
+		} else {
+			delete(c.Binds, funcname)
+		}
+	}()
 	var funcbind *Bind
 	if ismacro {
 		// use a ConstBind, as builtins do
@@ -84,6 +96,7 @@ func (c *Comp) FuncDecl(funcdecl *ast.FuncDecl) {
 	funcindex := funcbind.Desc.Index()
 	if funcname == "_" || (!ismacro && funcindex == NoIndex) {
 		// function/macro named "_". still compile it (to check for compile errors) but discard the compiled code
+		panicking = false
 		return
 	}
 	// do NOT keep a reference to compile environment!
@@ -117,6 +130,7 @@ func (c *Comp) FuncDecl(funcdecl *ast.FuncDecl) {
 		}
 	}
 	c.Code.Append(stmt, funcdecl.Pos())
+	panicking = false
 }
 
 func (c *Comp) methodAdd(funcdecl *ast.FuncDecl, t xr.Type) (methodindex int, methods *[]r.Value) {
@@ -317,6 +331,8 @@ func (c *Comp) funcMaker(info *FuncInfo, resultfuns []I, funcbody func(*Env)) *f
 
 // actually create the function
 func (c *Comp) funcCreate(t xr.Type, info *FuncInfo, resultfuns []I, funcbody func(*Env)) func(*Env) r.Value {
+	c.ErrorIfCompiled(t)
+
 	m := c.funcMaker(info, resultfuns, funcbody)
 
 	rtype := t.ReflectType() // has receiver as first parameter

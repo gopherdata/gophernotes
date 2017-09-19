@@ -107,7 +107,7 @@ func (c *Comp) selectorType(node *ast.SelectorExpr, t xr.Type) *Expr {
 	if count == 0 {
 		c.Errorf("type <%v> has no method %q: %v", t, node.Sel, node)
 	} else if count > 1 {
-		c.Errorf("type <%v> has %d wrapper methods %q all at the same depth - expression is ambiguous: %v", t, count, node.Sel, node)
+		c.Errorf("type <%v> has %d wrapper methods %q all at the same depth=%d - expression is ambiguous: %v", t, count, node.Sel, len(mtd.FieldIndex), node)
 	}
 	return c.compileMethodAsFunc(t, mtd)
 }

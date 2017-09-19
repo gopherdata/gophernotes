@@ -10,9 +10,12 @@ import (
 	r "reflect"
 )
 
-var TypeOfInterface = r.TypeOf((*interface{})(nil)).Elem()
-
 func main() {
+	conv()
+}
+
+func main2() {
+	var TypeOfInterface = r.TypeOf((*interface{})(nil)).Elem()
 	p := r.ValueOf(new(interface{}))
 	i := p.Elem()
 	c := i.Convert(TypeOfInterface)

@@ -68,6 +68,7 @@ func (c *Comp) compositeLitArray(t xr.Type, ellipsis bool, node *ast.CompositeLi
 
 	rtval := rtype.Elem()
 	zeroval := r.Zero(rtval)
+
 	return exprX1(t, func(env *Env) r.Value {
 		obj := r.New(rtype).Elem()
 		var val r.Value
@@ -159,6 +160,8 @@ func (c *Comp) compositeLitElements(t xr.Type, ellipsis bool, node *ast.Composit
 			eval.ConstTo(tval)
 		} else if !eval.Type.AssignableTo(tval) {
 			c.Errorf("cannot use %v <%v> as type <%v> in %s value", elv, eval.Type, tval, t.Kind())
+		} else {
+			eval.To(c, tval)
 		}
 		funvals[i] = eval.AsX1()
 	}
@@ -192,12 +195,16 @@ func (c *Comp) compositeLitMap(t xr.Type, node *ast.CompositeLit) *Expr {
 				seen[ekey.Value] = true
 			} else if !ekey.Type.AssignableTo(tkey) {
 				c.Errorf("cannot use %v <%v> as type <%v> in map key", elkv.Key, ekey.Type, tkey)
+			} else {
+				ekey.To(c, tkey)
 			}
 			eval := c.Expr1(elkv.Value)
 			if eval.Const() {
 				eval.ConstTo(tval)
 			} else if !eval.Type.AssignableTo(tval) {
 				c.Errorf("cannot use %v <%v> as type <%v> in map value", elkv.Value, eval.Type, tval)
+			} else {
+				eval.To(c, tval)
 			}
 			funkeys[i] = ekey.AsX1()
 			funvals[i] = eval.AsX1()
@@ -206,24 +213,12 @@ func (c *Comp) compositeLitMap(t xr.Type, node *ast.CompositeLit) *Expr {
 			c.Errorf("missing key in map literal: %v", el)
 		}
 	}
-	rtkey, rtval := rtype.Key(), rtype.Elem()
-	zerokey, zeroval := r.Zero(rtkey), r.Zero(rtval)
 	return exprX1(t, func(env *Env) r.Value {
 		obj := r.MakeMap(rtype)
 		var key, val r.Value
 		for i, funkey := range funkeys {
 			key = funkey(env)
-			if key == Nil || key == None {
-				key = zerokey
-			} else if key.Type() != rtkey {
-				key = key.Convert(rtkey)
-			}
 			val = funvals[i](env)
-			if val == Nil || val == None {
-				val = zeroval
-			} else if val.Type() != rtval {
-				val = val.Convert(rtval)
-			}
 			obj.SetMapIndex(key, val)
 		}
 		return obj
@@ -270,6 +265,8 @@ func (c *Comp) compositeLitStruct(t xr.Type, node *ast.CompositeLit) *Expr {
 					expr.ConstTo(field.Type)
 				} else if !expr.Type.AssignableTo(field.Type) {
 					c.Errorf("cannot use %v <%v> as type <%v> in field value", elkv.Value, expr.Type, field.Type)
+				} else {
+					expr.To(c, field.Type)
 				}
 				inits[i] = expr.AsX1()
 				indexes[i] = field.Index[0]
@@ -287,6 +284,8 @@ func (c *Comp) compositeLitStruct(t xr.Type, node *ast.CompositeLit) *Expr {
 				expr.ConstTo(field.Type)
 			} else if !expr.Type.AssignableTo(field.Type) {
 				c.Errorf("cannot use %v <%v> as type <%v> in field value", el, expr.Type, field.Type)
+			} else {
+				expr.To(c, field.Type)
 			}
 			if !ast.IsExported(field.Name) && field.Pkg.Path() != c.FileComp().Path {
 				c.Errorf("implicit assignment of unexported field '%v' in struct literal <%v>", field.Name, t)

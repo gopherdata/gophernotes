@@ -103,10 +103,10 @@ func (gen *genimport) write() {
 	gen.writeUntypeds()
 	gen.writeWrappers()
 
-	if gen.mode == ImBuiltin {
-		gen.out.WriteString("\n\t}\n}\n")
-	} else {
+	if gen.mode == ImSharedLib {
 		gen.out.WriteString("\n}\n")
+	} else {
+		gen.out.WriteString("\n\t}\n}\n")
 	}
 	gen.writeInterfaceProxies()
 }
@@ -120,7 +120,7 @@ type mapdecl struct {
 func (gen *genimport) mapdecl(head, althead string) mapdecl {
 	var foot string
 	if gen.mode == ImSharedLib {
-		foot = "nil,"
+		foot = "nil"
 	} else if strings.IndexByte(althead, '%') < 0 {
 		head = althead
 	} else {
@@ -134,13 +134,16 @@ func (d *mapdecl) header() {
 		d.out.WriteString(d.head)
 		d.out.WriteByte('{')
 		d.head = ""
-		d.foot = "\n\t},"
+		d.foot = "\n\t}"
 	}
 }
 
-func (d *mapdecl) footer() {
+func (d *mapdecl) footer(more bool) {
 	if len(d.foot) != 0 {
 		d.out.WriteString(d.foot)
+		if more {
+			d.out.WriteString(", ")
+		}
 	}
 }
 
@@ -226,7 +229,7 @@ func (gen *genimport) writeBinds() {
 			}
 		}
 	}
-	d.footer()
+	d.footer(true)
 }
 
 func (gen *genimport) writeTypes() {
@@ -241,7 +244,7 @@ func (gen *genimport) writeTypes() {
 			}
 		}
 	}
-	d.footer()
+	d.footer(true)
 }
 
 func (gen *genimport) writeProxies() {
@@ -255,7 +258,7 @@ func (gen *genimport) writeProxies() {
 			}
 		}
 	}
-	d.footer()
+	d.footer(true)
 }
 
 func (gen *genimport) writeUntypeds() {
@@ -275,7 +278,7 @@ func (gen *genimport) writeUntypeds() {
 			}
 		}
 	}
-	d.footer()
+	d.footer(true)
 }
 
 func (gen *genimport) writeWrappers() {
@@ -302,7 +305,7 @@ func (gen *genimport) writeWrappers() {
 			}
 		}
 	}
-	d.footer()
+	d.footer(false)
 }
 
 func (gen *genimport) writeInterfaceProxies() {

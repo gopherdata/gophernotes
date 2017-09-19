@@ -218,7 +218,7 @@ func (c *Comp) AddFuncBind(name string, t xr.Type) *Bind {
 // AddBind reserves space for a subsequent constant, function or variable declaration
 func (c *Comp) AddBind(name string, class BindClass, t xr.Type) *Bind {
 	if class == IntBind || class == VarBind {
-		if base.IsCategory(t.Kind(), r.Bool, r.Int, r.Uint, r.Float64) || t.Kind() == r.Complex64 {
+		if !c.IsCompiled() && (base.IsCategory(t.Kind(), r.Bool, r.Int, r.Uint, r.Float64) || t.Kind() == r.Complex64) {
 			class = IntBind
 		} else {
 			class = VarBind
@@ -275,28 +275,29 @@ func (c *Comp) AddBind(name string, class BindClass, t xr.Type) *Bind {
 	return bind
 }
 
-func (c *Comp) declUnnamedBind(e *Expr, o *Comp, upn int) *Symbol {
-	t := e.Type
+func (c *Comp) declUnnamedBind(init *Expr, o *Comp, upn int) *Symbol {
+	t := init.Type
 	bind := o.AddBind("", VarBind, t)
 	// c.Debugf("declUnnamedBind: allocated bind %v, upn = %d", bind, upn)
 	switch bind.Desc.Class() {
 	case IntBind:
 		// no difference between declaration and assignment for this class
 		va := bind.AsVar(upn, PlaceSettable)
-		c.SetVar(va, token.ASSIGN, e)
+		c.SetVar(va, token.ASSIGN, init)
 	case VarBind:
 		// cannot use c.DeclVar0 because the variable is declared in o
 		// cannot use o.DeclVar0 because the initializer must be evaluated in c
 		// so initialize the binding manually
 		index := bind.Desc.Index()
-		init := e.AsX1()
+		f := init.AsX1()
+		conv := c.Converter(init.Type, t)
 		rtype := t.ReflectType()
 		switch upn {
 		case 0:
 			c.append(func(env *Env) (Stmt, *Env) {
-				v := init(env)
-				if v.Type() != rtype {
-					v = v.Convert(rtype)
+				v := f(env)
+				if conv != nil {
+					v = conv(v, rtype)
 				}
 				// no need to create a settable reflect.Value
 				env.Binds[index] = v
@@ -305,9 +306,9 @@ func (c *Comp) declUnnamedBind(e *Expr, o *Comp, upn int) *Symbol {
 			})
 		case 1:
 			c.append(func(env *Env) (Stmt, *Env) {
-				v := init(env)
-				if v.Type() != rtype {
-					v = v.Convert(rtype)
+				v := f(env)
+				if conv != nil {
+					v = conv(v, rtype)
 				}
 				// no need to create a settable reflect.Value
 				env.Outer.Binds[index] = v
@@ -320,9 +321,9 @@ func (c *Comp) declUnnamedBind(e *Expr, o *Comp, upn int) *Symbol {
 				for i := 0; i < upn; i++ {
 					o = o.Outer
 				}
-				v := init(env)
-				if v.Type() != rtype {
-					v = v.Convert(rtype)
+				v := f(env)
+				if conv != nil {
+					v = conv(v, rtype)
 				}
 				// no need to create a settable reflect.Value
 				o.Binds[index] = v
@@ -399,25 +400,48 @@ func (c *Comp) DeclVar0(name string, t xr.Type, init *Expr) *Bind {
 			return bind
 		}
 		var ret func(env *Env) (Stmt, *Env)
-		// optimization: no need to wrap multiple-valued function into a single-value function
+		conv := c.Converter(init.Type, t)
 		rtype := t.ReflectType()
+		// optimization: no need to wrap multiple-valued function into a single-value function
 		if f, ok := init.Fun.(func(*Env) (r.Value, []r.Value)); ok {
-			ret = func(env *Env) (Stmt, *Env) {
-				ret, _ := f(env)
-				place := r.New(rtype).Elem()
-				place.Set(ret.Convert(rtype))
-				env.Binds[index] = place
-				env.IP++
-				return env.Code[env.IP], env
+			if conv != nil {
+				ret = func(env *Env) (Stmt, *Env) {
+					ret, _ := f(env)
+					place := r.New(rtype).Elem()
+					place.Set(conv(ret, rtype))
+					env.Binds[index] = place
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					ret, _ := f(env)
+					place := r.New(rtype).Elem()
+					place.Set(ret)
+					env.Binds[index] = place
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		} else {
-			ret = func(env *Env) (Stmt, *Env) {
-				ret := fun(env)
-				place := r.New(rtype).Elem()
-				place.Set(ret.Convert(rtype))
-				env.Binds[index] = place
-				env.IP++
-				return env.Code[env.IP], env
+			if conv != nil {
+				ret = func(env *Env) (Stmt, *Env) {
+					ret := fun(env)
+					place := r.New(rtype).Elem()
+					place.Set(conv(ret, rtype))
+					env.Binds[index] = place
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					ret := fun(env)
+					place := r.New(rtype).Elem()
+					place.Set(ret)
+					env.Binds[index] = place
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		}
 		c.append(ret)

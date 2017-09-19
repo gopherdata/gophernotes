@@ -93,7 +93,7 @@ func (expr *Expr) EvalConst(opts CompileOptions) I {
 		return nil
 	}
 	if expr.Const() {
-		if opts == CompileDefaults && expr.Untyped() {
+		if opts == OptDefaults && expr.Untyped() {
 			return expr.ConstTo(expr.DefaultType())
 		}
 		return expr.Value

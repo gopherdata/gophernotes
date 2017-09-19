@@ -40,10 +40,10 @@ func init() {
 			"MakeQuote":               r.ValueOf(MakeQuote),
 			"MakeQuote2":              r.ValueOf(MakeQuote2),
 			"MarshalUntyped":          r.ValueOf(MarshalUntyped),
-			"MaxInt":                  r.ValueOf(int64(MaxInt)),
-			"MaxUint":                 r.ValueOf(uint64(MaxUint)),
+			"MaxInt":                  r.ValueOf(MaxInt),
+			"MaxUint":                 r.ValueOf(MaxUint),
 			"MaxUint16":               r.ValueOf(MaxUint16),
-			"MinInt":                  r.ValueOf(int64(MinInt)),
+			"MinInt":                  r.ValueOf(MinInt),
 			"MinUint":                 r.ValueOf(MinUint),
 			"NewGlobals":              r.ValueOf(NewGlobals),
 			"Nil":                     r.ValueOf(&Nil).Elem(),
@@ -56,7 +56,9 @@ func init() {
 			"OptDebugMacroExpand":        r.ValueOf(OptDebugMacroExpand),
 			"OptDebugMethod":             r.ValueOf(OptDebugMethod),
 			"OptDebugPanicRecover":       r.ValueOf(OptDebugPanicRecover),
+			"OptDebugParse":              r.ValueOf(OptDebugParse),
 			"OptDebugQuasiquote":         r.ValueOf(OptDebugQuasiquote),
+			"OptDebugSleepOnSwitch":      r.ValueOf(OptDebugSleepOnSwitch),
 			"OptFastInterpreter":         r.ValueOf(OptFastInterpreter),
 			"OptMacroExpandOnly":         r.ValueOf(OptMacroExpandOnly),
 			"OptPanicStackTrace":         r.ValueOf(OptPanicStackTrace),
@@ -137,8 +139,7 @@ func init() {
 			"ZeroStrings":                r.ValueOf(&ZeroStrings).Elem(),
 			"ZeroTypes":                  r.ValueOf(&ZeroTypes).Elem(),
 			"ZeroValues":                 r.ValueOf(&ZeroValues).Elem(),
-		},
-		Types: map[string]r.Type{
+		}, Types: map[string]r.Type{
 			"Globals":          r.TypeOf((*Globals)(nil)).Elem(),
 			"ImportMode":       r.TypeOf((*ImportMode)(nil)).Elem(),
 			"Importer":         r.TypeOf((*Importer)(nil)).Elem(),
@@ -150,6 +151,16 @@ func init() {
 			"Stringer":         r.TypeOf((*Stringer)(nil)).Elem(),
 			"TypeVisitor":      r.TypeOf((*TypeVisitor)(nil)).Elem(),
 			"WhichMacroExpand": r.TypeOf((*WhichMacroExpand)(nil)).Elem(),
+		}, Untypeds: map[string]string{
+			"MinUint":            "int:0",
+			"StrGensym":          "string:𒒭",
+			"StrGensymEmbedded":  "string:»",
+			"StrGensymInterface": "string:\u0080",
+			"StrGensymPrivate":   "string:\u00ad",
+		}, Wrappers: map[string][]string{
+			"Globals":    []string{"CollectPackageImports", "Copy", "Debugf", "Error", "Errorf", "Fprintf", "IncLine", "IncLineBytes", "Position", "Sprintf", "ToString", "WarnExtraValues", "Warnf"},
+			"Output":     []string{"Copy", "Errorf", "Fprintf", "IncLine", "IncLineBytes", "Position", "Sprintf", "ToString"},
+			"PackageRef": []string{"Init", "Merge", "SaveToPackages"},
 		},
-		Proxies: map[string]r.Type{}}
+	}
 }

@@ -399,7 +399,7 @@ func (lit *Lit) Set(x I) {
 // To checks that an Expr can be used as (i.e. is assignable to) the given type,
 // and converts Expr to the given type.
 // panics if Expr has an incompatible type.
-func (e *Expr) To(t xr.Type) {
+func (e *Expr) To(c *Comp, t xr.Type) {
 	if e.Const() {
 		e.ConstTo(t)
 		return
@@ -408,7 +408,7 @@ func (e *Expr) To(t xr.Type) {
 		return
 	}
 	if !e.Type.AssignableTo(t) {
-		Errorf("cannot use <%v> as <%v>", e.Type, t)
+		c.Errorf("cannot use <%v> as <%v>", e.Type, t)
 	}
 	k := e.Type.Kind()
 	if IsOptimizedKind(k) {
@@ -421,19 +421,30 @@ func (e *Expr) To(t xr.Type) {
 			e.Type = t
 			return
 		}
-		Errorf("internal error: cannot use <%v> as <%v> (should not happen, <%v> is assignable to <%v>", e.Type, t, e.Type, t)
+		c.Errorf("internal error: cannot use <%v> as <%v> (should not happen, <%v> is assignable to <%v>", e.Type, t, e.Type, t)
 	}
 	fun := e.AsX1()
 	rtype := t.ReflectType()
 	zero := r.Zero(rtype)
-	e.Fun = func(env *Env) r.Value {
-		v := fun(env)
-		if !v.IsValid() {
-			v = zero
-		} else if v.Type() != rtype {
-			v = v.Convert(rtype)
+
+	if conv := c.Converter(e.Type, t); conv == nil {
+		e.Fun = func(env *Env) r.Value {
+			v := fun(env)
+			if !v.IsValid() {
+				v = zero
+			}
+			return v
 		}
-		return v
+	} else {
+		e.Fun = func(env *Env) r.Value {
+			v := fun(env)
+			if !v.IsValid() {
+				v = zero
+			} else {
+				v = conv(v, rtype)
+			}
+			return v
+		}
 	}
 	e.Type = t
 }

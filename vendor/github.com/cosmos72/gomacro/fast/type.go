@@ -44,14 +44,27 @@ func (c *Comp) DeclType(node ast.Spec) {
 		if unary, ok := node.Type.(*ast.UnaryExpr); ok && unary.Op == token.ASSIGN {
 			t := c.Type(unary.X)
 			c.DeclTypeAlias(name, t)
-		} else {
-			// support self-referencing types, as for example: type List struct { First int; Rest *List }
-			t := c.DeclNamedType(name)
-			u := c.Type(node.Type)
-			if t != nil { // t == nil means name == "_", discard the result of type declaration
-				c.SetUnderlyingType(t, u)
-			}
+			break
 		}
+		// support self-referencing types, as for example: type List struct { First int; Rest *List }
+		oldt := c.Types[name]
+		panicking := true
+		defer func() {
+			// On compile error, restore pre-existing declaration
+			if !panicking || c.Types == nil {
+				// nothing to do
+			} else if oldt != nil {
+				c.Types[name] = oldt
+			} else {
+				delete(c.Types, name)
+			}
+		}()
+		t := c.DeclNamedType(name)
+		u := c.Type(node.Type)
+		if t != nil { // t == nil means name == "_", discard the result of type declaration
+			c.SetUnderlyingType(t, u)
+		}
+		panicking = false
 	default:
 		c.Errorf("Compile: unexpected type declaration, expecting <*ast.TypeSpec>, found: %v <%v>", node, r.TypeOf(node))
 	}

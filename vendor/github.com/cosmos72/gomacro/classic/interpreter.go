@@ -47,6 +47,31 @@ func New() *Interp {
 	return &Interp{env}
 }
 
+func (ir *Interp) ChangePackage(path string) {
+	ir.Env = ir.Env.ChangePackage(path)
+}
+
+// cmd is expected to start with 'package'
+func (ir *Interp) cmdPackage(cmd string) {
+	cmd = strings.TrimSpace(cmd)
+	space := strings.IndexByte(cmd, ' ')
+	var arg string
+	if space >= 0 {
+		arg = strings.TrimSpace(cmd[1+space:])
+	}
+	n := len(arg)
+	env := ir.Env
+	switch {
+	case n == 0:
+		fmt.Fprintf(env.Stdout, "// current package: %s %q\n", env.Filename, env.PackagePath)
+	case arg[0] == '"' && arg[n-1] == '"':
+		arg := arg[1 : n-1]
+		ir.Env = env.ChangePackage(arg)
+	default:
+		env.Filename = arg
+	}
+}
+
 func (ir *Interp) ReplStdin() {
 	if ir.Options&OptShowPrompt != 0 {
 		fmt.Fprint(ir.Stdout, `// GOMACRO, an interactive Go interpreter with macros <https://github.com/cosmos72/gomacro>
@@ -149,7 +174,7 @@ func (ir *Interp) parseEvalPrint(src string, in *bufio.Reader) (callAgain bool) 
 		case strings.HasPrefix(":fast", cmd):
 			if len(args) <= 1 {
 				if env.Options&OptFastInterpreter == 0 {
-					env.Debugf("switched to fast interpreter (incomplete)")
+					env.Debugf("switched to fast interpreter")
 				}
 				env.Options |= OptFastInterpreter
 				return true
@@ -201,17 +226,7 @@ func (ir *Interp) parseEvalPrint(src string, in *bufio.Reader) (callAgain bool) 
 	}
 	if !fast {
 		if src == "package" || src == " package" || strings.HasPrefix(src, "package ") || strings.HasPrefix(src, " package ") {
-			arg := ""
-			src = strings.TrimSpace(src)
-			space := strings.IndexByte(src, ' ')
-			if space >= 0 {
-				arg = strings.TrimSpace(src[1+space:])
-			}
-			if len(arg) == 0 {
-				fmt.Fprintf(env.Stdout, "// current package: %v\n", env.PackagePath)
-			} else {
-				ir.Env = env.ChangePackage(arg)
-			}
+			ir.cmdPackage(src)
 			return true
 		}
 	}
@@ -228,7 +243,7 @@ func (ir *Interp) parseEvalPrint(src string, in *bufio.Reader) (callAgain bool) 
 	if form != nil {
 		if fast {
 			// macroexpand + collect + eval
-			xvalue, xvalues, xtype, xtypes := env.FastEval(form)
+			xvalue, xvalues, xtype, xtypes := env.fastEval(form)
 			value, values, typ = xvalue, xvalues, xtype
 			types := make([]interface{}, len(xtypes))
 			for i, xt := range xtypes {
@@ -236,7 +251,7 @@ func (ir *Interp) parseEvalPrint(src string, in *bufio.Reader) (callAgain bool) 
 			}
 		} else {
 			// macroexpand + collect + eval
-			value, values = env.ClassicEval(form)
+			value, values = env.classicEval(form)
 		}
 	}
 	// print phase
@@ -270,4 +285,27 @@ func (ir *Interp) parseEvalPrint(src string, in *bufio.Reader) (callAgain bool) 
 		}
 	}
 	return true
+}
+
+func (ir *Interp) EvalFile(filePath string, pkgPath string) {
+	file, err := os.Open(filePath)
+	if err != nil {
+		ir.Errorf("error opening file '%s': %v", filePath, err)
+		return
+	}
+	defer file.Close()
+
+	savePath := ir.Env.ThreadGlobals.PackagePath
+	saveOpts := ir.Env.Options
+
+	ir.ChangePackage(pkgPath)
+	ir.Env.Options &^= OptShowEval
+
+	defer func() {
+		ir.ChangePackage(savePath)
+		ir.Env.Options = saveOpts
+	}()
+
+	in := bufio.NewReader(file)
+	ir.Repl(in)
 }

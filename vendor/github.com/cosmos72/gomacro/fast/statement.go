@@ -534,7 +534,7 @@ func (c *Comp) Return(node *ast.ReturnStmt) {
 func (c *Comp) returnMultiValues(node *ast.ReturnStmt, resultBinds []*Bind, upn int, exprs []ast.Expr) {
 	n := len(resultBinds)
 	e := c.ExprsMultipleValues(exprs, n)[0]
-	fun := e.AsXV(CompileDefaults)
+	fun := e.AsXV(OptDefaults)
 	assigns := make([]func(*Env, r.Value), n)
 	for i := 0; i < n; i++ {
 		texpected := resultBinds[i].Type
@@ -611,7 +611,7 @@ func (c *Comp) pushEnvIfLocalBinds(nbinds *[2]int, list ...ast.Stmt) (inner *Com
 	if len(list) == 0 {
 		inner.Errorf("internal error: pushEnvIfLocalBinds() invoked on empty statement list")
 	}
-	// optimization: examine statements. if none of them is a function/variable declaration,
+	// 2. optimization: examine statements. if none of them is a function/variable declaration,
 	// no need to create a new *Env at runtime
 	// note: we still create a new *Comp at compile time to handle constant/type declarations
 	locals = containLocalBinds(list...)

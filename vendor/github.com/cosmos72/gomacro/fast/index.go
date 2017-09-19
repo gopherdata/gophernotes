@@ -73,7 +73,7 @@ func (c *Comp) indexExpr(node *ast.IndexExpr, multivalued bool) *Expr {
 		return nil
 	}
 	if obj.Const() && idx.Const() {
-		ret.EvalConst(CompileKeepUntyped)
+		ret.EvalConst(OptKeepUntyped)
 	}
 	return ret
 }

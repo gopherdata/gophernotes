@@ -7,6 +7,14 @@ This requires ZeroMQ version 4.0.1 or above. To use CURVE security in
 versions prior to 4.2, ZeroMQ must be installed with
 [libsodium](https://github.com/jedisct1/libsodium) enabled.
 
+Partial support for ZeroMQ 4.2 DRAFT is available in the alternate
+version of zmq4 `draft`. The API pertaining to this is subject to
+change. To use this:
+
+    import (
+        zmq "github.com/pebbe/zmq4/draft"
+    )
+
 For ZeroMQ version 3, see: http://github.com/pebbe/zmq3
 
 For ZeroMQ version 2, see: http://github.com/pebbe/zmq2

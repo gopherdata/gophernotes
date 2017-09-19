@@ -33,7 +33,7 @@ import (
 	xr "github.com/cosmos72/gomacro/xreflect"
 )
 
-// Convert compiles a type conversion
+// Convert compiles a type conversion expression
 func (c *Comp) Convert(node ast.Expr, t xr.Type) *Expr {
 	e := c.Expr1(node)
 	if e.Untyped() {
@@ -144,9 +144,38 @@ func (c *Comp) Convert(node ast.Expr, t xr.Type) *Expr {
 			return val.String()
 		}
 	default:
-		ret = func(env *Env) r.Value {
-			return fun(env).Convert(rtype)
+		if conv := c.Converter(e.Type, t); conv != nil {
+			ret = func(env *Env) r.Value {
+				return conv(fun(env), rtype)
+			}
+		} else {
+			ret = func(env *Env) r.Value {
+				return fun(env)
+			}
 		}
 	}
 	return exprFun(t, ret)
+}
+
+// Converter returns a function that converts reflect.Value from tin to tout
+// also supports conversion from interpreted types to interfaces
+func (c *Comp) Converter(tin, tout xr.Type) func(val r.Value, rtout r.Type) r.Value {
+	if !tin.ConvertibleTo(tout) {
+		c.Errorf("cannot convert from <%v> to <%v>", tin, tout)
+	}
+	rtin := tin.ReflectType()
+	rtout := tout.ReflectType()
+	switch {
+	case rtin == rtout:
+		return nil
+	case rtin.ConvertibleTo(rtout):
+		// most conversions, including from compiled type to compiled interface
+		return r.Value.Convert
+	case tin.Kind() != r.Interface && rtout.Kind() == r.Interface:
+		// conversion from interpreted type to compiled interface
+		return c.converterToInterface(tin, tout)
+	default:
+		c.Errorf("unimplemented conversion from <%v> to <%v>", tin, tout)
+		return nil
+	}
 }

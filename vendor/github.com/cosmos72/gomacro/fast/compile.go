@@ -253,6 +253,16 @@ func (env *Env) FreeEnv() {
 	common.PoolSize = n + 1
 }
 
+func (c *Comp) IsCompiled() bool {
+	return c.CompileOptions.IsCompiled()
+}
+
+func (c *Comp) ErrorIfCompiled(x interface{}) {
+	if c.IsCompiled() {
+		c.Errorf("internal error: compiler for %v has flag OptIsCompiled set. this should not happen!", x)
+	}
+}
+
 func (env *Env) Top() *Env {
 	for ; env != nil; env = env.Outer {
 		if env.Outer == nil {

@@ -36,15 +36,18 @@ import (
 	"unsafe"
 
 	. "github.com/cosmos72/gomacro/base"
-	xr "github.com/cosmos72/gomacro/xreflect"
 )
 
-func (c *Comp) varAddConst(upn int, index int, t xr.Type, val I) {
+func (c *Comp) varAddConst(va *Var, val I) {
 	if isLiteralNumber(val, 0) || val == "" {
 		return
 	}
 
 	{
+		t := va.Type
+		upn := va.Upn
+		index := va.Desc.Index()
+		intbinds := va.Desc.Class() == IntBind
 		var ret Stmt
 		switch t.Kind() {
 		case r.Int:
@@ -52,53 +55,131 @@ func (c *Comp) varAddConst(upn int, index int, t xr.Type, val I) {
 			switch upn {
 			case 0:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int)(unsafe.Pointer(&env.
-						IntBinds[index])) += val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int)(unsafe.Pointer(&env.IntBinds[index])) += val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Binds[index]
+							lhs.SetInt(lhs.Int() + int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int)(unsafe.Pointer(&env.
-						Outer.
-						IntBinds[index])) += val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int)(unsafe.Pointer(&env.
+							Outer.IntBinds[index])) += val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.
+								Binds[index]
+							lhs.SetInt(lhs.Int() + int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 2:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int)(unsafe.Pointer(&env.
-						Outer.Outer.
-						IntBinds[index])) += val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int)(unsafe.Pointer(&env.
+							Outer.Outer.IntBinds[index])) += val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.Outer.
+								Binds[index]
+							lhs.SetInt(lhs.Int() + int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			default:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					o := env.Outer.Outer.Outer
-					for i := 3; i < upn; i++ {
-						o = o.Outer
-					}
-					*(*int)(unsafe.Pointer(&o.IntBinds[index])) += val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						*(*int)(unsafe.Pointer(&o.IntBinds[index])) += val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						{
+							lhs :=
+
+								o.Binds[index]
+							lhs.SetInt(lhs.Int() + int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case c.Depth - 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-						IntBinds[index])) += val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) += val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.ThreadGlobals.FileEnv.
+								Binds[index]
+							lhs.SetInt(lhs.Int() + int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			}
 		case r.Int8:
@@ -106,53 +187,131 @@ func (c *Comp) varAddConst(upn int, index int, t xr.Type, val I) {
 			switch upn {
 			case 0:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int8)(unsafe.Pointer(&env.
-						IntBinds[index])) += val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int8)(unsafe.Pointer(&env.IntBinds[index])) += val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Binds[index]
+							lhs.SetInt(lhs.Int() + int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int8)(unsafe.Pointer(&env.
-						Outer.
-						IntBinds[index])) += val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int8)(unsafe.Pointer(&env.
+							Outer.IntBinds[index])) += val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.
+								Binds[index]
+							lhs.SetInt(lhs.Int() + int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 2:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int8)(unsafe.Pointer(&env.
-						Outer.Outer.
-						IntBinds[index])) += val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int8)(unsafe.Pointer(&env.
+							Outer.Outer.IntBinds[index])) += val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.Outer.
+								Binds[index]
+							lhs.SetInt(lhs.Int() + int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			default:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					o := env.Outer.Outer.Outer
-					for i := 3; i < upn; i++ {
-						o = o.Outer
-					}
-					*(*int8)(unsafe.Pointer(&o.IntBinds[index])) += val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						*(*int8)(unsafe.Pointer(&o.IntBinds[index])) += val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						{
+							lhs :=
+
+								o.Binds[index]
+							lhs.SetInt(lhs.Int() + int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case c.Depth - 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int8)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-						IntBinds[index])) += val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int8)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) += val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.ThreadGlobals.FileEnv.
+								Binds[index]
+							lhs.SetInt(lhs.Int() + int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			}
 		case r.Int16:
@@ -160,53 +319,131 @@ func (c *Comp) varAddConst(upn int, index int, t xr.Type, val I) {
 			switch upn {
 			case 0:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int16)(unsafe.Pointer(&env.
-						IntBinds[index])) += val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int16)(unsafe.Pointer(&env.IntBinds[index])) += val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Binds[index]
+							lhs.SetInt(lhs.Int() + int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int16)(unsafe.Pointer(&env.
-						Outer.
-						IntBinds[index])) += val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int16)(unsafe.Pointer(&env.
+							Outer.IntBinds[index])) += val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.
+								Binds[index]
+							lhs.SetInt(lhs.Int() + int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 2:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int16)(unsafe.Pointer(&env.
-						Outer.Outer.
-						IntBinds[index])) += val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int16)(unsafe.Pointer(&env.
+							Outer.Outer.IntBinds[index])) += val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.Outer.
+								Binds[index]
+							lhs.SetInt(lhs.Int() + int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			default:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					o := env.Outer.Outer.Outer
-					for i := 3; i < upn; i++ {
-						o = o.Outer
-					}
-					*(*int16)(unsafe.Pointer(&o.IntBinds[index])) += val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						*(*int16)(unsafe.Pointer(&o.IntBinds[index])) += val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						{
+							lhs :=
+
+								o.Binds[index]
+							lhs.SetInt(lhs.Int() + int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case c.Depth - 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int16)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-						IntBinds[index])) += val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int16)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) += val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.ThreadGlobals.FileEnv.
+								Binds[index]
+							lhs.SetInt(lhs.Int() + int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			}
 		case r.Int32:
@@ -214,53 +451,131 @@ func (c *Comp) varAddConst(upn int, index int, t xr.Type, val I) {
 			switch upn {
 			case 0:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int32)(unsafe.Pointer(&env.
-						IntBinds[index])) += val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int32)(unsafe.Pointer(&env.IntBinds[index])) += val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Binds[index]
+							lhs.SetInt(lhs.Int() + int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int32)(unsafe.Pointer(&env.
-						Outer.
-						IntBinds[index])) += val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int32)(unsafe.Pointer(&env.
+							Outer.IntBinds[index])) += val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.
+								Binds[index]
+							lhs.SetInt(lhs.Int() + int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 2:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int32)(unsafe.Pointer(&env.
-						Outer.Outer.
-						IntBinds[index])) += val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int32)(unsafe.Pointer(&env.
+							Outer.Outer.IntBinds[index])) += val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.Outer.
+								Binds[index]
+							lhs.SetInt(lhs.Int() + int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			default:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					o := env.Outer.Outer.Outer
-					for i := 3; i < upn; i++ {
-						o = o.Outer
-					}
-					*(*int32)(unsafe.Pointer(&o.IntBinds[index])) += val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						*(*int32)(unsafe.Pointer(&o.IntBinds[index])) += val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						{
+							lhs :=
+
+								o.Binds[index]
+							lhs.SetInt(lhs.Int() + int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case c.Depth - 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int32)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-						IntBinds[index])) += val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int32)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) += val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.ThreadGlobals.FileEnv.
+								Binds[index]
+							lhs.SetInt(lhs.Int() + int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			}
 		case r.Int64:
@@ -268,53 +583,131 @@ func (c *Comp) varAddConst(upn int, index int, t xr.Type, val I) {
 			switch upn {
 			case 0:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int64)(unsafe.Pointer(&env.
-						IntBinds[index])) += val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int64)(unsafe.Pointer(&env.IntBinds[index])) += val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Binds[index]
+							lhs.SetInt(lhs.Int() + int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int64)(unsafe.Pointer(&env.
-						Outer.
-						IntBinds[index])) += val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int64)(unsafe.Pointer(&env.
+							Outer.IntBinds[index])) += val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.
+								Binds[index]
+							lhs.SetInt(lhs.Int() + int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 2:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int64)(unsafe.Pointer(&env.
-						Outer.Outer.
-						IntBinds[index])) += val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int64)(unsafe.Pointer(&env.
+							Outer.Outer.IntBinds[index])) += val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.Outer.
+								Binds[index]
+							lhs.SetInt(lhs.Int() + int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			default:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					o := env.Outer.Outer.Outer
-					for i := 3; i < upn; i++ {
-						o = o.Outer
-					}
-					*(*int64)(unsafe.Pointer(&o.IntBinds[index])) += val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						*(*int64)(unsafe.Pointer(&o.IntBinds[index])) += val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						{
+							lhs :=
+
+								o.Binds[index]
+							lhs.SetInt(lhs.Int() + int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case c.Depth - 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int64)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-						IntBinds[index])) += val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int64)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) += val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.ThreadGlobals.FileEnv.
+								Binds[index]
+							lhs.SetInt(lhs.Int() + int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			}
 		case r.Uint:
@@ -322,53 +715,131 @@ func (c *Comp) varAddConst(upn int, index int, t xr.Type, val I) {
 			switch upn {
 			case 0:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint)(unsafe.Pointer(&env.
-						IntBinds[index])) += val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint)(unsafe.Pointer(&env.IntBinds[index])) += val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() + uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint)(unsafe.Pointer(&env.
-						Outer.
-						IntBinds[index])) += val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint)(unsafe.Pointer(&env.
+							Outer.IntBinds[index])) += val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() + uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 2:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint)(unsafe.Pointer(&env.
-						Outer.Outer.
-						IntBinds[index])) += val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint)(unsafe.Pointer(&env.
+							Outer.Outer.IntBinds[index])) += val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.Outer.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() + uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			default:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					o := env.Outer.Outer.Outer
-					for i := 3; i < upn; i++ {
-						o = o.Outer
-					}
-					*(*uint)(unsafe.Pointer(&o.IntBinds[index])) += val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						*(*uint)(unsafe.Pointer(&o.IntBinds[index])) += val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+
+						{
+							lhs := o.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() + uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case c.Depth - 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-						IntBinds[index])) += val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) += val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.ThreadGlobals.FileEnv.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() + uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			}
 		case r.Uint8:
@@ -376,53 +847,131 @@ func (c *Comp) varAddConst(upn int, index int, t xr.Type, val I) {
 			switch upn {
 			case 0:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint8)(unsafe.Pointer(&env.
-						IntBinds[index])) += val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint8)(unsafe.Pointer(&env.IntBinds[index])) += val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() + uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint8)(unsafe.Pointer(&env.
-						Outer.
-						IntBinds[index])) += val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint8)(unsafe.Pointer(&env.
+							Outer.IntBinds[index])) += val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() + uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 2:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint8)(unsafe.Pointer(&env.
-						Outer.Outer.
-						IntBinds[index])) += val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint8)(unsafe.Pointer(&env.
+							Outer.Outer.IntBinds[index])) += val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.Outer.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() + uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			default:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					o := env.Outer.Outer.Outer
-					for i := 3; i < upn; i++ {
-						o = o.Outer
-					}
-					*(*uint8)(unsafe.Pointer(&o.IntBinds[index])) += val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						*(*uint8)(unsafe.Pointer(&o.IntBinds[index])) += val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+
+						{
+							lhs := o.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() + uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case c.Depth - 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint8)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-						IntBinds[index])) += val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint8)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) += val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.ThreadGlobals.FileEnv.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() + uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			}
 		case r.Uint16:
@@ -430,53 +979,131 @@ func (c *Comp) varAddConst(upn int, index int, t xr.Type, val I) {
 			switch upn {
 			case 0:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint16)(unsafe.Pointer(&env.
-						IntBinds[index])) += val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint16)(unsafe.Pointer(&env.IntBinds[index])) += val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() + uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint16)(unsafe.Pointer(&env.
-						Outer.
-						IntBinds[index])) += val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint16)(unsafe.Pointer(&env.
+							Outer.IntBinds[index])) += val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() + uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 2:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint16)(unsafe.Pointer(&env.
-						Outer.Outer.
-						IntBinds[index])) += val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint16)(unsafe.Pointer(&env.
+							Outer.Outer.IntBinds[index])) += val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.Outer.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() + uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			default:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					o := env.Outer.Outer.Outer
-					for i := 3; i < upn; i++ {
-						o = o.Outer
-					}
-					*(*uint16)(unsafe.Pointer(&o.IntBinds[index])) += val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						*(*uint16)(unsafe.Pointer(&o.IntBinds[index])) += val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+
+						{
+							lhs := o.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() + uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case c.Depth - 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint16)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-						IntBinds[index])) += val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint16)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) += val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.ThreadGlobals.FileEnv.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() + uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			}
 		case r.Uint32:
@@ -484,53 +1111,131 @@ func (c *Comp) varAddConst(upn int, index int, t xr.Type, val I) {
 			switch upn {
 			case 0:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint32)(unsafe.Pointer(&env.
-						IntBinds[index])) += val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint32)(unsafe.Pointer(&env.IntBinds[index])) += val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() + uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint32)(unsafe.Pointer(&env.
-						Outer.
-						IntBinds[index])) += val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint32)(unsafe.Pointer(&env.
+							Outer.IntBinds[index])) += val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() + uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 2:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint32)(unsafe.Pointer(&env.
-						Outer.Outer.
-						IntBinds[index])) += val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint32)(unsafe.Pointer(&env.
+							Outer.Outer.IntBinds[index])) += val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.Outer.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() + uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			default:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					o := env.Outer.Outer.Outer
-					for i := 3; i < upn; i++ {
-						o = o.Outer
-					}
-					*(*uint32)(unsafe.Pointer(&o.IntBinds[index])) += val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						*(*uint32)(unsafe.Pointer(&o.IntBinds[index])) += val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+
+						{
+							lhs := o.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() + uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case c.Depth - 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint32)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-						IntBinds[index])) += val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint32)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) += val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.ThreadGlobals.FileEnv.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() + uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			}
 		case r.Uint64:
@@ -538,54 +1243,137 @@ func (c *Comp) varAddConst(upn int, index int, t xr.Type, val I) {
 			switch upn {
 			case 0:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					env.
-						IntBinds[index] += val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						env.
+							IntBinds[index] += val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() + uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					env.
-						Outer.
-						IntBinds[index] += val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						env.
+							Outer.
+							IntBinds[index] += val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() + uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 2:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					env.
-						Outer.Outer.
-						IntBinds[index] += val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						env.
+							Outer.Outer.
+							IntBinds[index] += val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.Outer.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() + uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			default:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					o := env.Outer.Outer.Outer
-					for i := 3; i < upn; i++ {
-						o = o.Outer
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+
+						o.
+							IntBinds[index] += val
+
+						env.IP++
+						return env.Code[env.IP], env
 					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
 
-					o.IntBinds[index] += val
+						{
+							lhs := o.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() + uint64(val,
+							),
+							)
+						}
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case c.Depth - 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					env.ThreadGlobals.FileEnv.
-						IntBinds[index] += val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						env.ThreadGlobals.FileEnv.
+							IntBinds[index] += val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.ThreadGlobals.FileEnv.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() + uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			}
 		case r.Uintptr:
@@ -593,53 +1381,131 @@ func (c *Comp) varAddConst(upn int, index int, t xr.Type, val I) {
 			switch upn {
 			case 0:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uintptr)(unsafe.Pointer(&env.
-						IntBinds[index])) += val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uintptr)(unsafe.Pointer(&env.IntBinds[index])) += val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() + uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uintptr)(unsafe.Pointer(&env.
-						Outer.
-						IntBinds[index])) += val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uintptr)(unsafe.Pointer(&env.
+							Outer.IntBinds[index])) += val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() + uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 2:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uintptr)(unsafe.Pointer(&env.
-						Outer.Outer.
-						IntBinds[index])) += val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uintptr)(unsafe.Pointer(&env.
+							Outer.Outer.IntBinds[index])) += val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.Outer.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() + uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			default:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					o := env.Outer.Outer.Outer
-					for i := 3; i < upn; i++ {
-						o = o.Outer
-					}
-					*(*uintptr)(unsafe.Pointer(&o.IntBinds[index])) += val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						*(*uintptr)(unsafe.Pointer(&o.IntBinds[index])) += val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+
+						{
+							lhs := o.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() + uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case c.Depth - 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uintptr)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-						IntBinds[index])) += val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uintptr)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) += val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.ThreadGlobals.FileEnv.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() + uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			}
 		case r.Float32:
@@ -649,53 +1515,131 @@ func (c *Comp) varAddConst(upn int, index int, t xr.Type, val I) {
 			switch upn {
 			case 0:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*float32)(unsafe.Pointer(&env.
-						IntBinds[index])) += val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*float32)(unsafe.Pointer(&env.IntBinds[index])) += val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Binds[index]
+							lhs.SetFloat(lhs.Float() + float64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*float32)(unsafe.Pointer(&env.
-						Outer.
-						IntBinds[index])) += val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*float32)(unsafe.Pointer(&env.
+							Outer.IntBinds[index])) += val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.
+								Binds[index]
+							lhs.SetFloat(lhs.Float() + float64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 2:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*float32)(unsafe.Pointer(&env.
-						Outer.Outer.
-						IntBinds[index])) += val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*float32)(unsafe.Pointer(&env.
+							Outer.Outer.IntBinds[index])) += val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.Outer.
+								Binds[index]
+							lhs.SetFloat(lhs.Float() + float64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			default:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					o := env.Outer.Outer.Outer
-					for i := 3; i < upn; i++ {
-						o = o.Outer
-					}
-					*(*float32)(unsafe.Pointer(&o.IntBinds[index])) += val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						*(*float32)(unsafe.Pointer(&o.IntBinds[index])) += val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+
+						{
+							lhs := o.
+								Binds[index]
+							lhs.SetFloat(lhs.Float() + float64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case c.Depth - 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*float32)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-						IntBinds[index])) += val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*float32)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) += val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.ThreadGlobals.FileEnv.
+								Binds[index]
+							lhs.SetFloat(lhs.Float() + float64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			}
 		case r.Float64:
@@ -703,53 +1647,131 @@ func (c *Comp) varAddConst(upn int, index int, t xr.Type, val I) {
 			switch upn {
 			case 0:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*float64)(unsafe.Pointer(&env.
-						IntBinds[index])) += val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*float64)(unsafe.Pointer(&env.IntBinds[index])) += val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Binds[index]
+							lhs.SetFloat(lhs.Float() + float64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*float64)(unsafe.Pointer(&env.
-						Outer.
-						IntBinds[index])) += val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*float64)(unsafe.Pointer(&env.
+							Outer.IntBinds[index])) += val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.
+								Binds[index]
+							lhs.SetFloat(lhs.Float() + float64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 2:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*float64)(unsafe.Pointer(&env.
-						Outer.Outer.
-						IntBinds[index])) += val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*float64)(unsafe.Pointer(&env.
+							Outer.Outer.IntBinds[index])) += val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.Outer.
+								Binds[index]
+							lhs.SetFloat(lhs.Float() + float64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			default:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					o := env.Outer.Outer.Outer
-					for i := 3; i < upn; i++ {
-						o = o.Outer
-					}
-					*(*float64)(unsafe.Pointer(&o.IntBinds[index])) += val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						*(*float64)(unsafe.Pointer(&o.IntBinds[index])) += val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+
+						{
+							lhs := o.
+								Binds[index]
+							lhs.SetFloat(lhs.Float() + float64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case c.Depth - 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*float64)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-						IntBinds[index])) += val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*float64)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) += val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.ThreadGlobals.FileEnv.
+								Binds[index]
+							lhs.SetFloat(lhs.Float() + float64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			}
 		case r.Complex64:
@@ -759,53 +1781,131 @@ func (c *Comp) varAddConst(upn int, index int, t xr.Type, val I) {
 			switch upn {
 			case 0:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*complex64)(unsafe.Pointer(&env.
-						IntBinds[index])) += val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*complex64)(unsafe.Pointer(&env.IntBinds[index])) += val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Binds[index]
+							lhs.SetComplex(lhs.Complex() + complex128(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*complex64)(unsafe.Pointer(&env.
-						Outer.
-						IntBinds[index])) += val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*complex64)(unsafe.Pointer(&env.
+							Outer.IntBinds[index])) += val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.
+								Binds[index]
+							lhs.SetComplex(lhs.Complex() + complex128(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 2:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*complex64)(unsafe.Pointer(&env.
-						Outer.Outer.
-						IntBinds[index])) += val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*complex64)(unsafe.Pointer(&env.
+							Outer.Outer.IntBinds[index])) += val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.Outer.
+								Binds[index]
+							lhs.SetComplex(lhs.Complex() + complex128(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			default:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					o := env.Outer.Outer.Outer
-					for i := 3; i < upn; i++ {
-						o = o.Outer
-					}
-					*(*complex64)(unsafe.Pointer(&o.IntBinds[index])) += val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						*(*complex64)(unsafe.Pointer(&o.IntBinds[index])) += val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+
+						{
+							lhs := o.
+								Binds[index]
+							lhs.SetComplex(lhs.Complex() + complex128(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case c.Depth - 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*complex64)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-						IntBinds[index])) += val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*complex64)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) += val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.ThreadGlobals.FileEnv.
+								Binds[index]
+							lhs.SetComplex(lhs.Complex() + complex128(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			}
 		case r.Complex128:
@@ -862,10 +1962,10 @@ func (c *Comp) varAddConst(upn int, index int, t xr.Type, val I) {
 					for i := 3; i < upn; i++ {
 						o = o.Outer
 					}
-					{
-						lhs :=
 
-							o.Binds[index]
+					{
+						lhs := o.
+							Binds[index]
 						lhs.SetComplex(lhs.Complex() +
 							val,
 						)
@@ -878,9 +1978,8 @@ func (c *Comp) varAddConst(upn int, index int, t xr.Type, val I) {
 
 				ret = func(env *Env) (Stmt, *Env) {
 					{
-						lhs :=
-
-							env.ThreadGlobals.FileEnv.Binds[index]
+						lhs := env.ThreadGlobals.FileEnv.
+							Binds[index]
 						lhs.SetComplex(lhs.Complex() +
 							val,
 						)
@@ -944,10 +2043,10 @@ func (c *Comp) varAddConst(upn int, index int, t xr.Type, val I) {
 					for i := 3; i < upn; i++ {
 						o = o.Outer
 					}
-					{
-						lhs :=
 
-							o.Binds[index]
+					{
+						lhs := o.
+							Binds[index]
 						lhs.SetString(lhs.String() +
 							val,
 						)
@@ -978,750 +2077,1851 @@ func (c *Comp) varAddConst(upn int, index int, t xr.Type, val I) {
 		c.append(ret)
 	}
 }
-func (c *Comp) varAddExpr(upn int, index int, t xr.Type, fun I) {
+func (c *Comp) varAddExpr(va *Var, fun I) {
+	t := va.Type
+	upn := va.Upn
+	index := va.Desc.Index()
+	intbinds := va.Desc.Class() == IntBind
 	var ret Stmt
 	switch fun := fun.(type) {
 	case func(*Env) int:
 		switch upn {
 		case 0:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int)(unsafe.Pointer(&env.
-					IntBinds[index])) += fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int)(unsafe.Pointer(&env.IntBinds[index])) += fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Binds[index]
+						lhs.SetInt(lhs.Int() + int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int)(unsafe.Pointer(&env.
-					Outer.
-					IntBinds[index])) += fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int)(unsafe.Pointer(&env.
+						Outer.IntBinds[index])) += fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.
+							Binds[index]
+						lhs.SetInt(lhs.Int() + int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 2:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int)(unsafe.Pointer(&env.
-					Outer.Outer.
-					IntBinds[index])) += fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int)(unsafe.Pointer(&env.
+						Outer.Outer.IntBinds[index])) += fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.Outer.
+							Binds[index]
+						lhs.SetInt(lhs.Int() + int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		default:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				o := env.Outer.Outer.Outer
-				for i := 3; i < upn; i++ {
-					o = o.Outer
-				}
-				*(*int)(unsafe.Pointer(&o.IntBinds[index])) += fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					*(*int)(unsafe.Pointer(&o.IntBinds[index])) += fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					{
+						lhs :=
+
+							o.Binds[index]
+						lhs.SetInt(lhs.Int() + int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case c.Depth - 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-					IntBinds[index])) += fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) += fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.ThreadGlobals.FileEnv.
+							Binds[index]
+						lhs.SetInt(lhs.Int() + int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		}
 	case func(*Env) int8:
 		switch upn {
 		case 0:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int8)(unsafe.Pointer(&env.
-					IntBinds[index])) += fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int8)(unsafe.Pointer(&env.IntBinds[index])) += fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Binds[index]
+						lhs.SetInt(lhs.Int() + int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int8)(unsafe.Pointer(&env.
-					Outer.
-					IntBinds[index])) += fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int8)(unsafe.Pointer(&env.
+						Outer.IntBinds[index])) += fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.
+							Binds[index]
+						lhs.SetInt(lhs.Int() + int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 2:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int8)(unsafe.Pointer(&env.
-					Outer.Outer.
-					IntBinds[index])) += fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int8)(unsafe.Pointer(&env.
+						Outer.Outer.IntBinds[index])) += fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.Outer.
+							Binds[index]
+						lhs.SetInt(lhs.Int() + int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		default:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				o := env.Outer.Outer.Outer
-				for i := 3; i < upn; i++ {
-					o = o.Outer
-				}
-				*(*int8)(unsafe.Pointer(&o.IntBinds[index])) += fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					*(*int8)(unsafe.Pointer(&o.IntBinds[index])) += fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					{
+						lhs :=
+
+							o.Binds[index]
+						lhs.SetInt(lhs.Int() + int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case c.Depth - 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int8)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-					IntBinds[index])) += fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int8)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) += fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.ThreadGlobals.FileEnv.
+							Binds[index]
+						lhs.SetInt(lhs.Int() + int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		}
 	case func(*Env) int16:
 		switch upn {
 		case 0:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int16)(unsafe.Pointer(&env.
-					IntBinds[index])) += fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int16)(unsafe.Pointer(&env.IntBinds[index])) += fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Binds[index]
+						lhs.SetInt(lhs.Int() + int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int16)(unsafe.Pointer(&env.
-					Outer.
-					IntBinds[index])) += fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int16)(unsafe.Pointer(&env.
+						Outer.IntBinds[index])) += fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.
+							Binds[index]
+						lhs.SetInt(lhs.Int() + int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 2:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int16)(unsafe.Pointer(&env.
-					Outer.Outer.
-					IntBinds[index])) += fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int16)(unsafe.Pointer(&env.
+						Outer.Outer.IntBinds[index])) += fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.Outer.
+							Binds[index]
+						lhs.SetInt(lhs.Int() + int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		default:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				o := env.Outer.Outer.Outer
-				for i := 3; i < upn; i++ {
-					o = o.Outer
-				}
-				*(*int16)(unsafe.Pointer(&o.IntBinds[index])) += fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					*(*int16)(unsafe.Pointer(&o.IntBinds[index])) += fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					{
+						lhs :=
+
+							o.Binds[index]
+						lhs.SetInt(lhs.Int() + int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case c.Depth - 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int16)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-					IntBinds[index])) += fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int16)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) += fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.ThreadGlobals.FileEnv.
+							Binds[index]
+						lhs.SetInt(lhs.Int() + int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		}
 	case func(*Env) int32:
 		switch upn {
 		case 0:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int32)(unsafe.Pointer(&env.
-					IntBinds[index])) += fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int32)(unsafe.Pointer(&env.IntBinds[index])) += fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Binds[index]
+						lhs.SetInt(lhs.Int() + int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int32)(unsafe.Pointer(&env.
-					Outer.
-					IntBinds[index])) += fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int32)(unsafe.Pointer(&env.
+						Outer.IntBinds[index])) += fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.
+							Binds[index]
+						lhs.SetInt(lhs.Int() + int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 2:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int32)(unsafe.Pointer(&env.
-					Outer.Outer.
-					IntBinds[index])) += fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int32)(unsafe.Pointer(&env.
+						Outer.Outer.IntBinds[index])) += fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.Outer.
+							Binds[index]
+						lhs.SetInt(lhs.Int() + int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		default:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				o := env.Outer.Outer.Outer
-				for i := 3; i < upn; i++ {
-					o = o.Outer
-				}
-				*(*int32)(unsafe.Pointer(&o.IntBinds[index])) += fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					*(*int32)(unsafe.Pointer(&o.IntBinds[index])) += fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					{
+						lhs :=
+
+							o.Binds[index]
+						lhs.SetInt(lhs.Int() + int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case c.Depth - 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int32)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-					IntBinds[index])) += fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int32)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) += fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.ThreadGlobals.FileEnv.
+							Binds[index]
+						lhs.SetInt(lhs.Int() + int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		}
 	case func(*Env) int64:
 		switch upn {
 		case 0:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int64)(unsafe.Pointer(&env.
-					IntBinds[index])) += fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int64)(unsafe.Pointer(&env.IntBinds[index])) += fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Binds[index]
+						lhs.SetInt(lhs.Int() + int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int64)(unsafe.Pointer(&env.
-					Outer.
-					IntBinds[index])) += fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int64)(unsafe.Pointer(&env.
+						Outer.IntBinds[index])) += fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.
+							Binds[index]
+						lhs.SetInt(lhs.Int() + int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 2:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int64)(unsafe.Pointer(&env.
-					Outer.Outer.
-					IntBinds[index])) += fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int64)(unsafe.Pointer(&env.
+						Outer.Outer.IntBinds[index])) += fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.Outer.
+							Binds[index]
+						lhs.SetInt(lhs.Int() + int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		default:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				o := env.Outer.Outer.Outer
-				for i := 3; i < upn; i++ {
-					o = o.Outer
-				}
-				*(*int64)(unsafe.Pointer(&o.IntBinds[index])) += fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					*(*int64)(unsafe.Pointer(&o.IntBinds[index])) += fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					{
+						lhs :=
+
+							o.Binds[index]
+						lhs.SetInt(lhs.Int() + int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case c.Depth - 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int64)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-					IntBinds[index])) += fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int64)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) += fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.ThreadGlobals.FileEnv.
+							Binds[index]
+						lhs.SetInt(lhs.Int() + int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		}
 	case func(*Env) uint:
 		switch upn {
 		case 0:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint)(unsafe.Pointer(&env.
-					IntBinds[index])) += fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint)(unsafe.Pointer(&env.IntBinds[index])) += fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() + uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint)(unsafe.Pointer(&env.
-					Outer.
-					IntBinds[index])) += fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint)(unsafe.Pointer(&env.
+						Outer.IntBinds[index])) += fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() + uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 2:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint)(unsafe.Pointer(&env.
-					Outer.Outer.
-					IntBinds[index])) += fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint)(unsafe.Pointer(&env.
+						Outer.Outer.IntBinds[index])) += fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.Outer.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() + uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		default:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				o := env.Outer.Outer.Outer
-				for i := 3; i < upn; i++ {
-					o = o.Outer
-				}
-				*(*uint)(unsafe.Pointer(&o.IntBinds[index])) += fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					*(*uint)(unsafe.Pointer(&o.IntBinds[index])) += fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+
+					{
+						lhs := o.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() + uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case c.Depth - 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-					IntBinds[index])) += fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) += fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.ThreadGlobals.FileEnv.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() + uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		}
 	case func(*Env) uint8:
 		switch upn {
 		case 0:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint8)(unsafe.Pointer(&env.
-					IntBinds[index])) += fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint8)(unsafe.Pointer(&env.IntBinds[index])) += fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() + uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint8)(unsafe.Pointer(&env.
-					Outer.
-					IntBinds[index])) += fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint8)(unsafe.Pointer(&env.
+						Outer.IntBinds[index])) += fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() + uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 2:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint8)(unsafe.Pointer(&env.
-					Outer.Outer.
-					IntBinds[index])) += fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint8)(unsafe.Pointer(&env.
+						Outer.Outer.IntBinds[index])) += fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.Outer.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() + uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		default:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				o := env.Outer.Outer.Outer
-				for i := 3; i < upn; i++ {
-					o = o.Outer
-				}
-				*(*uint8)(unsafe.Pointer(&o.IntBinds[index])) += fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					*(*uint8)(unsafe.Pointer(&o.IntBinds[index])) += fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+
+					{
+						lhs := o.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() + uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case c.Depth - 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint8)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-					IntBinds[index])) += fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint8)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) += fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.ThreadGlobals.FileEnv.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() + uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		}
 	case func(*Env) uint16:
 		switch upn {
 		case 0:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint16)(unsafe.Pointer(&env.
-					IntBinds[index])) += fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint16)(unsafe.Pointer(&env.IntBinds[index])) += fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() + uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint16)(unsafe.Pointer(&env.
-					Outer.
-					IntBinds[index])) += fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint16)(unsafe.Pointer(&env.
+						Outer.IntBinds[index])) += fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() + uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 2:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint16)(unsafe.Pointer(&env.
-					Outer.Outer.
-					IntBinds[index])) += fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint16)(unsafe.Pointer(&env.
+						Outer.Outer.IntBinds[index])) += fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.Outer.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() + uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		default:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				o := env.Outer.Outer.Outer
-				for i := 3; i < upn; i++ {
-					o = o.Outer
-				}
-				*(*uint16)(unsafe.Pointer(&o.IntBinds[index])) += fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					*(*uint16)(unsafe.Pointer(&o.IntBinds[index])) += fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+
+					{
+						lhs := o.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() + uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case c.Depth - 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint16)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-					IntBinds[index])) += fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint16)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) += fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.ThreadGlobals.FileEnv.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() + uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		}
 	case func(*Env) uint32:
 		switch upn {
 		case 0:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint32)(unsafe.Pointer(&env.
-					IntBinds[index])) += fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint32)(unsafe.Pointer(&env.IntBinds[index])) += fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() + uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint32)(unsafe.Pointer(&env.
-					Outer.
-					IntBinds[index])) += fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint32)(unsafe.Pointer(&env.
+						Outer.IntBinds[index])) += fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() + uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 2:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint32)(unsafe.Pointer(&env.
-					Outer.Outer.
-					IntBinds[index])) += fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint32)(unsafe.Pointer(&env.
+						Outer.Outer.IntBinds[index])) += fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.Outer.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() + uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		default:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				o := env.Outer.Outer.Outer
-				for i := 3; i < upn; i++ {
-					o = o.Outer
-				}
-				*(*uint32)(unsafe.Pointer(&o.IntBinds[index])) += fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					*(*uint32)(unsafe.Pointer(&o.IntBinds[index])) += fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+
+					{
+						lhs := o.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() + uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case c.Depth - 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint32)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-					IntBinds[index])) += fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint32)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) += fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.ThreadGlobals.FileEnv.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() + uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		}
 	case func(*Env) uint64:
 		switch upn {
 		case 0:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				env.
-					IntBinds[index] += fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					env.
+						IntBinds[index] += fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() + uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				env.
-					Outer.
-					IntBinds[index] += fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					env.
+						Outer.
+						IntBinds[index] += fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() + uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 2:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				env.
-					Outer.Outer.
-					IntBinds[index] += fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					env.
+						Outer.Outer.
+						IntBinds[index] += fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.Outer.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() + uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		default:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				o := env.Outer.Outer.Outer
-				for i := 3; i < upn; i++ {
-					o = o.Outer
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+
+					o.
+						IntBinds[index] += fun(env)
+
+					env.IP++
+					return env.Code[env.IP], env
 				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
 
-				o.IntBinds[index] += fun(env)
+					{
+						lhs := o.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() + uint64(fun(env),
+						),
+						)
+					}
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case c.Depth - 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				env.ThreadGlobals.FileEnv.
-					IntBinds[index] += fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					env.ThreadGlobals.FileEnv.
+						IntBinds[index] += fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.ThreadGlobals.FileEnv.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() + uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		}
 	case func(*Env) uintptr:
 		switch upn {
 		case 0:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uintptr)(unsafe.Pointer(&env.
-					IntBinds[index])) += fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uintptr)(unsafe.Pointer(&env.IntBinds[index])) += fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() + uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uintptr)(unsafe.Pointer(&env.
-					Outer.
-					IntBinds[index])) += fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uintptr)(unsafe.Pointer(&env.
+						Outer.IntBinds[index])) += fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() + uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 2:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uintptr)(unsafe.Pointer(&env.
-					Outer.Outer.
-					IntBinds[index])) += fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uintptr)(unsafe.Pointer(&env.
+						Outer.Outer.IntBinds[index])) += fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.Outer.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() + uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		default:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				o := env.Outer.Outer.Outer
-				for i := 3; i < upn; i++ {
-					o = o.Outer
-				}
-				*(*uintptr)(unsafe.Pointer(&o.IntBinds[index])) += fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					*(*uintptr)(unsafe.Pointer(&o.IntBinds[index])) += fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+
+					{
+						lhs := o.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() + uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case c.Depth - 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uintptr)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-					IntBinds[index])) += fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uintptr)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) += fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.ThreadGlobals.FileEnv.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() + uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		}
 	case func(*Env) float32:
 		switch upn {
 		case 0:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*float32)(unsafe.Pointer(&env.
-					IntBinds[index])) += fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*float32)(unsafe.Pointer(&env.IntBinds[index])) += fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Binds[index]
+						lhs.SetFloat(lhs.Float() + float64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*float32)(unsafe.Pointer(&env.
-					Outer.
-					IntBinds[index])) += fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*float32)(unsafe.Pointer(&env.
+						Outer.IntBinds[index])) += fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.
+							Binds[index]
+						lhs.SetFloat(lhs.Float() + float64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 2:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*float32)(unsafe.Pointer(&env.
-					Outer.Outer.
-					IntBinds[index])) += fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*float32)(unsafe.Pointer(&env.
+						Outer.Outer.IntBinds[index])) += fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.Outer.
+							Binds[index]
+						lhs.SetFloat(lhs.Float() + float64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		default:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				o := env.Outer.Outer.Outer
-				for i := 3; i < upn; i++ {
-					o = o.Outer
-				}
-				*(*float32)(unsafe.Pointer(&o.IntBinds[index])) += fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					*(*float32)(unsafe.Pointer(&o.IntBinds[index])) += fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+
+					{
+						lhs := o.
+							Binds[index]
+						lhs.SetFloat(lhs.Float() + float64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case c.Depth - 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*float32)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-					IntBinds[index])) += fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*float32)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) += fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.ThreadGlobals.FileEnv.
+							Binds[index]
+						lhs.SetFloat(lhs.Float() + float64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		}
 	case func(*Env) float64:
 		switch upn {
 		case 0:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*float64)(unsafe.Pointer(&env.
-					IntBinds[index])) += fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*float64)(unsafe.Pointer(&env.IntBinds[index])) += fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Binds[index]
+						lhs.SetFloat(lhs.Float() + float64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*float64)(unsafe.Pointer(&env.
-					Outer.
-					IntBinds[index])) += fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*float64)(unsafe.Pointer(&env.
+						Outer.IntBinds[index])) += fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.
+							Binds[index]
+						lhs.SetFloat(lhs.Float() + float64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 2:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*float64)(unsafe.Pointer(&env.
-					Outer.Outer.
-					IntBinds[index])) += fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*float64)(unsafe.Pointer(&env.
+						Outer.Outer.IntBinds[index])) += fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.Outer.
+							Binds[index]
+						lhs.SetFloat(lhs.Float() + float64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		default:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				o := env.Outer.Outer.Outer
-				for i := 3; i < upn; i++ {
-					o = o.Outer
-				}
-				*(*float64)(unsafe.Pointer(&o.IntBinds[index])) += fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					*(*float64)(unsafe.Pointer(&o.IntBinds[index])) += fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+
+					{
+						lhs := o.
+							Binds[index]
+						lhs.SetFloat(lhs.Float() + float64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case c.Depth - 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*float64)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-					IntBinds[index])) += fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*float64)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) += fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.ThreadGlobals.FileEnv.
+							Binds[index]
+						lhs.SetFloat(lhs.Float() + float64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		}
 	case func(*Env) complex64:
 		switch upn {
 		case 0:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*complex64)(unsafe.Pointer(&env.
-					IntBinds[index])) += fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*complex64)(unsafe.Pointer(&env.IntBinds[index])) += fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Binds[index]
+						lhs.SetComplex(lhs.Complex() + complex128(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*complex64)(unsafe.Pointer(&env.
-					Outer.
-					IntBinds[index])) += fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*complex64)(unsafe.Pointer(&env.
+						Outer.IntBinds[index])) += fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.
+							Binds[index]
+						lhs.SetComplex(lhs.Complex() + complex128(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 2:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*complex64)(unsafe.Pointer(&env.
-					Outer.Outer.
-					IntBinds[index])) += fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*complex64)(unsafe.Pointer(&env.
+						Outer.Outer.IntBinds[index])) += fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.Outer.
+							Binds[index]
+						lhs.SetComplex(lhs.Complex() + complex128(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		default:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				o := env.Outer.Outer.Outer
-				for i := 3; i < upn; i++ {
-					o = o.Outer
-				}
-				*(*complex64)(unsafe.Pointer(&o.IntBinds[index])) += fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					*(*complex64)(unsafe.Pointer(&o.IntBinds[index])) += fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+
+					{
+						lhs := o.
+							Binds[index]
+						lhs.SetComplex(lhs.Complex() + complex128(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case c.Depth - 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*complex64)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-					IntBinds[index])) += fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*complex64)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) += fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.ThreadGlobals.FileEnv.
+							Binds[index]
+						lhs.SetComplex(lhs.Complex() + complex128(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		}
 	case func(*Env) complex128:
@@ -1777,10 +3977,10 @@ func (c *Comp) varAddExpr(upn int, index int, t xr.Type, fun I) {
 				for i := 3; i < upn; i++ {
 					o = o.Outer
 				}
-				{
-					lhs :=
 
-						o.Binds[index]
+				{
+					lhs := o.
+						Binds[index]
 					lhs.SetComplex(lhs.Complex() +
 						fun(env),
 					)
@@ -1793,9 +3993,8 @@ func (c *Comp) varAddExpr(upn int, index int, t xr.Type, fun I) {
 
 			ret = func(env *Env) (Stmt, *Env) {
 				{
-					lhs :=
-
-						env.ThreadGlobals.FileEnv.Binds[index]
+					lhs := env.ThreadGlobals.FileEnv.
+						Binds[index]
 					lhs.SetComplex(lhs.Complex() +
 						fun(env),
 					)
@@ -1858,10 +4057,10 @@ func (c *Comp) varAddExpr(upn int, index int, t xr.Type, fun I) {
 				for i := 3; i < upn; i++ {
 					o = o.Outer
 				}
-				{
-					lhs :=
 
-						o.Binds[index]
+				{
+					lhs := o.
+						Binds[index]
 					lhs.SetString(lhs.String() +
 						fun(env),
 					)
@@ -1891,12 +4090,16 @@ func (c *Comp) varAddExpr(upn int, index int, t xr.Type, fun I) {
 	}
 	c.append(ret)
 }
-func (c *Comp) varSubConst(upn int, index int, t xr.Type, val I) {
+func (c *Comp) varSubConst(va *Var, val I) {
 	if isLiteralNumber(val, 0) {
 		return
 	}
 
 	{
+		t := va.Type
+		upn := va.Upn
+		index := va.Desc.Index()
+		intbinds := va.Desc.Class() == IntBind
 		var ret Stmt
 		switch t.Kind() {
 		case r.Int:
@@ -1904,53 +4107,131 @@ func (c *Comp) varSubConst(upn int, index int, t xr.Type, val I) {
 			switch upn {
 			case 0:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int)(unsafe.Pointer(&env.
-						IntBinds[index])) -= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int)(unsafe.Pointer(&env.IntBinds[index])) -= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Binds[index]
+							lhs.SetInt(lhs.Int() - int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int)(unsafe.Pointer(&env.
-						Outer.
-						IntBinds[index])) -= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int)(unsafe.Pointer(&env.
+							Outer.IntBinds[index])) -= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.
+								Binds[index]
+							lhs.SetInt(lhs.Int() - int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 2:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int)(unsafe.Pointer(&env.
-						Outer.Outer.
-						IntBinds[index])) -= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int)(unsafe.Pointer(&env.
+							Outer.Outer.IntBinds[index])) -= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.Outer.
+								Binds[index]
+							lhs.SetInt(lhs.Int() - int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			default:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					o := env.Outer.Outer.Outer
-					for i := 3; i < upn; i++ {
-						o = o.Outer
-					}
-					*(*int)(unsafe.Pointer(&o.IntBinds[index])) -= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						*(*int)(unsafe.Pointer(&o.IntBinds[index])) -= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						{
+							lhs :=
+
+								o.Binds[index]
+							lhs.SetInt(lhs.Int() - int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case c.Depth - 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-						IntBinds[index])) -= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) -= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.ThreadGlobals.FileEnv.
+								Binds[index]
+							lhs.SetInt(lhs.Int() - int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			}
 		case r.Int8:
@@ -1958,53 +4239,131 @@ func (c *Comp) varSubConst(upn int, index int, t xr.Type, val I) {
 			switch upn {
 			case 0:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int8)(unsafe.Pointer(&env.
-						IntBinds[index])) -= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int8)(unsafe.Pointer(&env.IntBinds[index])) -= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Binds[index]
+							lhs.SetInt(lhs.Int() - int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int8)(unsafe.Pointer(&env.
-						Outer.
-						IntBinds[index])) -= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int8)(unsafe.Pointer(&env.
+							Outer.IntBinds[index])) -= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.
+								Binds[index]
+							lhs.SetInt(lhs.Int() - int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 2:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int8)(unsafe.Pointer(&env.
-						Outer.Outer.
-						IntBinds[index])) -= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int8)(unsafe.Pointer(&env.
+							Outer.Outer.IntBinds[index])) -= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.Outer.
+								Binds[index]
+							lhs.SetInt(lhs.Int() - int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			default:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					o := env.Outer.Outer.Outer
-					for i := 3; i < upn; i++ {
-						o = o.Outer
-					}
-					*(*int8)(unsafe.Pointer(&o.IntBinds[index])) -= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						*(*int8)(unsafe.Pointer(&o.IntBinds[index])) -= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						{
+							lhs :=
+
+								o.Binds[index]
+							lhs.SetInt(lhs.Int() - int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case c.Depth - 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int8)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-						IntBinds[index])) -= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int8)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) -= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.ThreadGlobals.FileEnv.
+								Binds[index]
+							lhs.SetInt(lhs.Int() - int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			}
 		case r.Int16:
@@ -2012,53 +4371,131 @@ func (c *Comp) varSubConst(upn int, index int, t xr.Type, val I) {
 			switch upn {
 			case 0:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int16)(unsafe.Pointer(&env.
-						IntBinds[index])) -= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int16)(unsafe.Pointer(&env.IntBinds[index])) -= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Binds[index]
+							lhs.SetInt(lhs.Int() - int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int16)(unsafe.Pointer(&env.
-						Outer.
-						IntBinds[index])) -= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int16)(unsafe.Pointer(&env.
+							Outer.IntBinds[index])) -= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.
+								Binds[index]
+							lhs.SetInt(lhs.Int() - int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 2:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int16)(unsafe.Pointer(&env.
-						Outer.Outer.
-						IntBinds[index])) -= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int16)(unsafe.Pointer(&env.
+							Outer.Outer.IntBinds[index])) -= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.Outer.
+								Binds[index]
+							lhs.SetInt(lhs.Int() - int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			default:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					o := env.Outer.Outer.Outer
-					for i := 3; i < upn; i++ {
-						o = o.Outer
-					}
-					*(*int16)(unsafe.Pointer(&o.IntBinds[index])) -= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						*(*int16)(unsafe.Pointer(&o.IntBinds[index])) -= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						{
+							lhs :=
+
+								o.Binds[index]
+							lhs.SetInt(lhs.Int() - int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case c.Depth - 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int16)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-						IntBinds[index])) -= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int16)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) -= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.ThreadGlobals.FileEnv.
+								Binds[index]
+							lhs.SetInt(lhs.Int() - int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			}
 		case r.Int32:
@@ -2066,53 +4503,131 @@ func (c *Comp) varSubConst(upn int, index int, t xr.Type, val I) {
 			switch upn {
 			case 0:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int32)(unsafe.Pointer(&env.
-						IntBinds[index])) -= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int32)(unsafe.Pointer(&env.IntBinds[index])) -= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Binds[index]
+							lhs.SetInt(lhs.Int() - int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int32)(unsafe.Pointer(&env.
-						Outer.
-						IntBinds[index])) -= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int32)(unsafe.Pointer(&env.
+							Outer.IntBinds[index])) -= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.
+								Binds[index]
+							lhs.SetInt(lhs.Int() - int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 2:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int32)(unsafe.Pointer(&env.
-						Outer.Outer.
-						IntBinds[index])) -= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int32)(unsafe.Pointer(&env.
+							Outer.Outer.IntBinds[index])) -= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.Outer.
+								Binds[index]
+							lhs.SetInt(lhs.Int() - int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			default:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					o := env.Outer.Outer.Outer
-					for i := 3; i < upn; i++ {
-						o = o.Outer
-					}
-					*(*int32)(unsafe.Pointer(&o.IntBinds[index])) -= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						*(*int32)(unsafe.Pointer(&o.IntBinds[index])) -= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						{
+							lhs :=
+
+								o.Binds[index]
+							lhs.SetInt(lhs.Int() - int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case c.Depth - 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int32)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-						IntBinds[index])) -= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int32)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) -= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.ThreadGlobals.FileEnv.
+								Binds[index]
+							lhs.SetInt(lhs.Int() - int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			}
 		case r.Int64:
@@ -2120,53 +4635,131 @@ func (c *Comp) varSubConst(upn int, index int, t xr.Type, val I) {
 			switch upn {
 			case 0:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int64)(unsafe.Pointer(&env.
-						IntBinds[index])) -= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int64)(unsafe.Pointer(&env.IntBinds[index])) -= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Binds[index]
+							lhs.SetInt(lhs.Int() - int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int64)(unsafe.Pointer(&env.
-						Outer.
-						IntBinds[index])) -= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int64)(unsafe.Pointer(&env.
+							Outer.IntBinds[index])) -= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.
+								Binds[index]
+							lhs.SetInt(lhs.Int() - int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 2:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int64)(unsafe.Pointer(&env.
-						Outer.Outer.
-						IntBinds[index])) -= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int64)(unsafe.Pointer(&env.
+							Outer.Outer.IntBinds[index])) -= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.Outer.
+								Binds[index]
+							lhs.SetInt(lhs.Int() - int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			default:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					o := env.Outer.Outer.Outer
-					for i := 3; i < upn; i++ {
-						o = o.Outer
-					}
-					*(*int64)(unsafe.Pointer(&o.IntBinds[index])) -= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						*(*int64)(unsafe.Pointer(&o.IntBinds[index])) -= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						{
+							lhs :=
+
+								o.Binds[index]
+							lhs.SetInt(lhs.Int() - int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case c.Depth - 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int64)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-						IntBinds[index])) -= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int64)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) -= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.ThreadGlobals.FileEnv.
+								Binds[index]
+							lhs.SetInt(lhs.Int() - int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			}
 		case r.Uint:
@@ -2174,53 +4767,131 @@ func (c *Comp) varSubConst(upn int, index int, t xr.Type, val I) {
 			switch upn {
 			case 0:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint)(unsafe.Pointer(&env.
-						IntBinds[index])) -= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint)(unsafe.Pointer(&env.IntBinds[index])) -= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() - uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint)(unsafe.Pointer(&env.
-						Outer.
-						IntBinds[index])) -= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint)(unsafe.Pointer(&env.
+							Outer.IntBinds[index])) -= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() - uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 2:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint)(unsafe.Pointer(&env.
-						Outer.Outer.
-						IntBinds[index])) -= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint)(unsafe.Pointer(&env.
+							Outer.Outer.IntBinds[index])) -= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.Outer.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() - uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			default:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					o := env.Outer.Outer.Outer
-					for i := 3; i < upn; i++ {
-						o = o.Outer
-					}
-					*(*uint)(unsafe.Pointer(&o.IntBinds[index])) -= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						*(*uint)(unsafe.Pointer(&o.IntBinds[index])) -= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+
+						{
+							lhs := o.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() - uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case c.Depth - 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-						IntBinds[index])) -= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) -= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.ThreadGlobals.FileEnv.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() - uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			}
 		case r.Uint8:
@@ -2228,53 +4899,131 @@ func (c *Comp) varSubConst(upn int, index int, t xr.Type, val I) {
 			switch upn {
 			case 0:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint8)(unsafe.Pointer(&env.
-						IntBinds[index])) -= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint8)(unsafe.Pointer(&env.IntBinds[index])) -= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() - uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint8)(unsafe.Pointer(&env.
-						Outer.
-						IntBinds[index])) -= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint8)(unsafe.Pointer(&env.
+							Outer.IntBinds[index])) -= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() - uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 2:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint8)(unsafe.Pointer(&env.
-						Outer.Outer.
-						IntBinds[index])) -= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint8)(unsafe.Pointer(&env.
+							Outer.Outer.IntBinds[index])) -= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.Outer.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() - uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			default:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					o := env.Outer.Outer.Outer
-					for i := 3; i < upn; i++ {
-						o = o.Outer
-					}
-					*(*uint8)(unsafe.Pointer(&o.IntBinds[index])) -= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						*(*uint8)(unsafe.Pointer(&o.IntBinds[index])) -= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+
+						{
+							lhs := o.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() - uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case c.Depth - 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint8)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-						IntBinds[index])) -= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint8)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) -= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.ThreadGlobals.FileEnv.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() - uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			}
 		case r.Uint16:
@@ -2282,53 +5031,131 @@ func (c *Comp) varSubConst(upn int, index int, t xr.Type, val I) {
 			switch upn {
 			case 0:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint16)(unsafe.Pointer(&env.
-						IntBinds[index])) -= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint16)(unsafe.Pointer(&env.IntBinds[index])) -= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() - uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint16)(unsafe.Pointer(&env.
-						Outer.
-						IntBinds[index])) -= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint16)(unsafe.Pointer(&env.
+							Outer.IntBinds[index])) -= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() - uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 2:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint16)(unsafe.Pointer(&env.
-						Outer.Outer.
-						IntBinds[index])) -= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint16)(unsafe.Pointer(&env.
+							Outer.Outer.IntBinds[index])) -= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.Outer.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() - uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			default:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					o := env.Outer.Outer.Outer
-					for i := 3; i < upn; i++ {
-						o = o.Outer
-					}
-					*(*uint16)(unsafe.Pointer(&o.IntBinds[index])) -= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						*(*uint16)(unsafe.Pointer(&o.IntBinds[index])) -= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+
+						{
+							lhs := o.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() - uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case c.Depth - 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint16)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-						IntBinds[index])) -= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint16)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) -= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.ThreadGlobals.FileEnv.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() - uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			}
 		case r.Uint32:
@@ -2336,53 +5163,131 @@ func (c *Comp) varSubConst(upn int, index int, t xr.Type, val I) {
 			switch upn {
 			case 0:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint32)(unsafe.Pointer(&env.
-						IntBinds[index])) -= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint32)(unsafe.Pointer(&env.IntBinds[index])) -= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() - uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint32)(unsafe.Pointer(&env.
-						Outer.
-						IntBinds[index])) -= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint32)(unsafe.Pointer(&env.
+							Outer.IntBinds[index])) -= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() - uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 2:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint32)(unsafe.Pointer(&env.
-						Outer.Outer.
-						IntBinds[index])) -= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint32)(unsafe.Pointer(&env.
+							Outer.Outer.IntBinds[index])) -= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.Outer.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() - uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			default:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					o := env.Outer.Outer.Outer
-					for i := 3; i < upn; i++ {
-						o = o.Outer
-					}
-					*(*uint32)(unsafe.Pointer(&o.IntBinds[index])) -= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						*(*uint32)(unsafe.Pointer(&o.IntBinds[index])) -= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+
+						{
+							lhs := o.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() - uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case c.Depth - 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint32)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-						IntBinds[index])) -= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint32)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) -= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.ThreadGlobals.FileEnv.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() - uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			}
 		case r.Uint64:
@@ -2390,54 +5295,137 @@ func (c *Comp) varSubConst(upn int, index int, t xr.Type, val I) {
 			switch upn {
 			case 0:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					env.
-						IntBinds[index] -= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						env.
+							IntBinds[index] -= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() - uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					env.
-						Outer.
-						IntBinds[index] -= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						env.
+							Outer.
+							IntBinds[index] -= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() - uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 2:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					env.
-						Outer.Outer.
-						IntBinds[index] -= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						env.
+							Outer.Outer.
+							IntBinds[index] -= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.Outer.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() - uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			default:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					o := env.Outer.Outer.Outer
-					for i := 3; i < upn; i++ {
-						o = o.Outer
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+
+						o.
+							IntBinds[index] -= val
+
+						env.IP++
+						return env.Code[env.IP], env
 					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
 
-					o.IntBinds[index] -= val
+						{
+							lhs := o.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() - uint64(val,
+							),
+							)
+						}
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case c.Depth - 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					env.ThreadGlobals.FileEnv.
-						IntBinds[index] -= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						env.ThreadGlobals.FileEnv.
+							IntBinds[index] -= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.ThreadGlobals.FileEnv.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() - uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			}
 		case r.Uintptr:
@@ -2445,53 +5433,131 @@ func (c *Comp) varSubConst(upn int, index int, t xr.Type, val I) {
 			switch upn {
 			case 0:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uintptr)(unsafe.Pointer(&env.
-						IntBinds[index])) -= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uintptr)(unsafe.Pointer(&env.IntBinds[index])) -= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() - uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uintptr)(unsafe.Pointer(&env.
-						Outer.
-						IntBinds[index])) -= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uintptr)(unsafe.Pointer(&env.
+							Outer.IntBinds[index])) -= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() - uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 2:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uintptr)(unsafe.Pointer(&env.
-						Outer.Outer.
-						IntBinds[index])) -= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uintptr)(unsafe.Pointer(&env.
+							Outer.Outer.IntBinds[index])) -= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.Outer.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() - uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			default:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					o := env.Outer.Outer.Outer
-					for i := 3; i < upn; i++ {
-						o = o.Outer
-					}
-					*(*uintptr)(unsafe.Pointer(&o.IntBinds[index])) -= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						*(*uintptr)(unsafe.Pointer(&o.IntBinds[index])) -= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+
+						{
+							lhs := o.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() - uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case c.Depth - 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uintptr)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-						IntBinds[index])) -= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uintptr)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) -= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.ThreadGlobals.FileEnv.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() - uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			}
 		case r.Float32:
@@ -2501,53 +5567,131 @@ func (c *Comp) varSubConst(upn int, index int, t xr.Type, val I) {
 			switch upn {
 			case 0:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*float32)(unsafe.Pointer(&env.
-						IntBinds[index])) -= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*float32)(unsafe.Pointer(&env.IntBinds[index])) -= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Binds[index]
+							lhs.SetFloat(lhs.Float() - float64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*float32)(unsafe.Pointer(&env.
-						Outer.
-						IntBinds[index])) -= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*float32)(unsafe.Pointer(&env.
+							Outer.IntBinds[index])) -= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.
+								Binds[index]
+							lhs.SetFloat(lhs.Float() - float64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 2:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*float32)(unsafe.Pointer(&env.
-						Outer.Outer.
-						IntBinds[index])) -= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*float32)(unsafe.Pointer(&env.
+							Outer.Outer.IntBinds[index])) -= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.Outer.
+								Binds[index]
+							lhs.SetFloat(lhs.Float() - float64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			default:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					o := env.Outer.Outer.Outer
-					for i := 3; i < upn; i++ {
-						o = o.Outer
-					}
-					*(*float32)(unsafe.Pointer(&o.IntBinds[index])) -= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						*(*float32)(unsafe.Pointer(&o.IntBinds[index])) -= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+
+						{
+							lhs := o.
+								Binds[index]
+							lhs.SetFloat(lhs.Float() - float64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case c.Depth - 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*float32)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-						IntBinds[index])) -= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*float32)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) -= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.ThreadGlobals.FileEnv.
+								Binds[index]
+							lhs.SetFloat(lhs.Float() - float64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			}
 		case r.Float64:
@@ -2555,53 +5699,131 @@ func (c *Comp) varSubConst(upn int, index int, t xr.Type, val I) {
 			switch upn {
 			case 0:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*float64)(unsafe.Pointer(&env.
-						IntBinds[index])) -= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*float64)(unsafe.Pointer(&env.IntBinds[index])) -= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Binds[index]
+							lhs.SetFloat(lhs.Float() - float64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*float64)(unsafe.Pointer(&env.
-						Outer.
-						IntBinds[index])) -= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*float64)(unsafe.Pointer(&env.
+							Outer.IntBinds[index])) -= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.
+								Binds[index]
+							lhs.SetFloat(lhs.Float() - float64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 2:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*float64)(unsafe.Pointer(&env.
-						Outer.Outer.
-						IntBinds[index])) -= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*float64)(unsafe.Pointer(&env.
+							Outer.Outer.IntBinds[index])) -= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.Outer.
+								Binds[index]
+							lhs.SetFloat(lhs.Float() - float64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			default:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					o := env.Outer.Outer.Outer
-					for i := 3; i < upn; i++ {
-						o = o.Outer
-					}
-					*(*float64)(unsafe.Pointer(&o.IntBinds[index])) -= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						*(*float64)(unsafe.Pointer(&o.IntBinds[index])) -= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+
+						{
+							lhs := o.
+								Binds[index]
+							lhs.SetFloat(lhs.Float() - float64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case c.Depth - 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*float64)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-						IntBinds[index])) -= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*float64)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) -= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.ThreadGlobals.FileEnv.
+								Binds[index]
+							lhs.SetFloat(lhs.Float() - float64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			}
 		case r.Complex64:
@@ -2611,53 +5833,131 @@ func (c *Comp) varSubConst(upn int, index int, t xr.Type, val I) {
 			switch upn {
 			case 0:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*complex64)(unsafe.Pointer(&env.
-						IntBinds[index])) -= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*complex64)(unsafe.Pointer(&env.IntBinds[index])) -= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Binds[index]
+							lhs.SetComplex(lhs.Complex() - complex128(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*complex64)(unsafe.Pointer(&env.
-						Outer.
-						IntBinds[index])) -= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*complex64)(unsafe.Pointer(&env.
+							Outer.IntBinds[index])) -= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.
+								Binds[index]
+							lhs.SetComplex(lhs.Complex() - complex128(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 2:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*complex64)(unsafe.Pointer(&env.
-						Outer.Outer.
-						IntBinds[index])) -= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*complex64)(unsafe.Pointer(&env.
+							Outer.Outer.IntBinds[index])) -= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.Outer.
+								Binds[index]
+							lhs.SetComplex(lhs.Complex() - complex128(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			default:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					o := env.Outer.Outer.Outer
-					for i := 3; i < upn; i++ {
-						o = o.Outer
-					}
-					*(*complex64)(unsafe.Pointer(&o.IntBinds[index])) -= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						*(*complex64)(unsafe.Pointer(&o.IntBinds[index])) -= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+
+						{
+							lhs := o.
+								Binds[index]
+							lhs.SetComplex(lhs.Complex() - complex128(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case c.Depth - 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*complex64)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-						IntBinds[index])) -= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*complex64)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) -= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.ThreadGlobals.FileEnv.
+								Binds[index]
+							lhs.SetComplex(lhs.Complex() - complex128(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			}
 		case r.Complex128:
@@ -2714,10 +6014,10 @@ func (c *Comp) varSubConst(upn int, index int, t xr.Type, val I) {
 					for i := 3; i < upn; i++ {
 						o = o.Outer
 					}
-					{
-						lhs :=
 
-							o.Binds[index]
+					{
+						lhs := o.
+							Binds[index]
 						lhs.SetComplex(lhs.Complex() -
 							val,
 						)
@@ -2730,9 +6030,8 @@ func (c *Comp) varSubConst(upn int, index int, t xr.Type, val I) {
 
 				ret = func(env *Env) (Stmt, *Env) {
 					{
-						lhs :=
-
-							env.ThreadGlobals.FileEnv.Binds[index]
+						lhs := env.ThreadGlobals.FileEnv.
+							Binds[index]
 						lhs.SetComplex(lhs.Complex() -
 							val,
 						)
@@ -2749,750 +6048,1851 @@ func (c *Comp) varSubConst(upn int, index int, t xr.Type, val I) {
 		c.append(ret)
 	}
 }
-func (c *Comp) varSubExpr(upn int, index int, t xr.Type, fun I) {
+func (c *Comp) varSubExpr(va *Var, fun I) {
+	t := va.Type
+	upn := va.Upn
+	index := va.Desc.Index()
+	intbinds := va.Desc.Class() == IntBind
 	var ret Stmt
 	switch fun := fun.(type) {
 	case func(*Env) int:
 		switch upn {
 		case 0:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int)(unsafe.Pointer(&env.
-					IntBinds[index])) -= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int)(unsafe.Pointer(&env.IntBinds[index])) -= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Binds[index]
+						lhs.SetInt(lhs.Int() - int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int)(unsafe.Pointer(&env.
-					Outer.
-					IntBinds[index])) -= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int)(unsafe.Pointer(&env.
+						Outer.IntBinds[index])) -= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.
+							Binds[index]
+						lhs.SetInt(lhs.Int() - int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 2:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int)(unsafe.Pointer(&env.
-					Outer.Outer.
-					IntBinds[index])) -= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int)(unsafe.Pointer(&env.
+						Outer.Outer.IntBinds[index])) -= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.Outer.
+							Binds[index]
+						lhs.SetInt(lhs.Int() - int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		default:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				o := env.Outer.Outer.Outer
-				for i := 3; i < upn; i++ {
-					o = o.Outer
-				}
-				*(*int)(unsafe.Pointer(&o.IntBinds[index])) -= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					*(*int)(unsafe.Pointer(&o.IntBinds[index])) -= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					{
+						lhs :=
+
+							o.Binds[index]
+						lhs.SetInt(lhs.Int() - int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case c.Depth - 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-					IntBinds[index])) -= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) -= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.ThreadGlobals.FileEnv.
+							Binds[index]
+						lhs.SetInt(lhs.Int() - int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		}
 	case func(*Env) int8:
 		switch upn {
 		case 0:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int8)(unsafe.Pointer(&env.
-					IntBinds[index])) -= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int8)(unsafe.Pointer(&env.IntBinds[index])) -= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Binds[index]
+						lhs.SetInt(lhs.Int() - int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int8)(unsafe.Pointer(&env.
-					Outer.
-					IntBinds[index])) -= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int8)(unsafe.Pointer(&env.
+						Outer.IntBinds[index])) -= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.
+							Binds[index]
+						lhs.SetInt(lhs.Int() - int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 2:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int8)(unsafe.Pointer(&env.
-					Outer.Outer.
-					IntBinds[index])) -= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int8)(unsafe.Pointer(&env.
+						Outer.Outer.IntBinds[index])) -= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.Outer.
+							Binds[index]
+						lhs.SetInt(lhs.Int() - int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		default:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				o := env.Outer.Outer.Outer
-				for i := 3; i < upn; i++ {
-					o = o.Outer
-				}
-				*(*int8)(unsafe.Pointer(&o.IntBinds[index])) -= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					*(*int8)(unsafe.Pointer(&o.IntBinds[index])) -= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					{
+						lhs :=
+
+							o.Binds[index]
+						lhs.SetInt(lhs.Int() - int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case c.Depth - 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int8)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-					IntBinds[index])) -= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int8)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) -= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.ThreadGlobals.FileEnv.
+							Binds[index]
+						lhs.SetInt(lhs.Int() - int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		}
 	case func(*Env) int16:
 		switch upn {
 		case 0:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int16)(unsafe.Pointer(&env.
-					IntBinds[index])) -= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int16)(unsafe.Pointer(&env.IntBinds[index])) -= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Binds[index]
+						lhs.SetInt(lhs.Int() - int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int16)(unsafe.Pointer(&env.
-					Outer.
-					IntBinds[index])) -= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int16)(unsafe.Pointer(&env.
+						Outer.IntBinds[index])) -= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.
+							Binds[index]
+						lhs.SetInt(lhs.Int() - int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 2:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int16)(unsafe.Pointer(&env.
-					Outer.Outer.
-					IntBinds[index])) -= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int16)(unsafe.Pointer(&env.
+						Outer.Outer.IntBinds[index])) -= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.Outer.
+							Binds[index]
+						lhs.SetInt(lhs.Int() - int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		default:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				o := env.Outer.Outer.Outer
-				for i := 3; i < upn; i++ {
-					o = o.Outer
-				}
-				*(*int16)(unsafe.Pointer(&o.IntBinds[index])) -= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					*(*int16)(unsafe.Pointer(&o.IntBinds[index])) -= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					{
+						lhs :=
+
+							o.Binds[index]
+						lhs.SetInt(lhs.Int() - int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case c.Depth - 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int16)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-					IntBinds[index])) -= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int16)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) -= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.ThreadGlobals.FileEnv.
+							Binds[index]
+						lhs.SetInt(lhs.Int() - int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		}
 	case func(*Env) int32:
 		switch upn {
 		case 0:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int32)(unsafe.Pointer(&env.
-					IntBinds[index])) -= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int32)(unsafe.Pointer(&env.IntBinds[index])) -= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Binds[index]
+						lhs.SetInt(lhs.Int() - int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int32)(unsafe.Pointer(&env.
-					Outer.
-					IntBinds[index])) -= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int32)(unsafe.Pointer(&env.
+						Outer.IntBinds[index])) -= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.
+							Binds[index]
+						lhs.SetInt(lhs.Int() - int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 2:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int32)(unsafe.Pointer(&env.
-					Outer.Outer.
-					IntBinds[index])) -= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int32)(unsafe.Pointer(&env.
+						Outer.Outer.IntBinds[index])) -= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.Outer.
+							Binds[index]
+						lhs.SetInt(lhs.Int() - int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		default:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				o := env.Outer.Outer.Outer
-				for i := 3; i < upn; i++ {
-					o = o.Outer
-				}
-				*(*int32)(unsafe.Pointer(&o.IntBinds[index])) -= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					*(*int32)(unsafe.Pointer(&o.IntBinds[index])) -= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					{
+						lhs :=
+
+							o.Binds[index]
+						lhs.SetInt(lhs.Int() - int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case c.Depth - 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int32)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-					IntBinds[index])) -= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int32)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) -= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.ThreadGlobals.FileEnv.
+							Binds[index]
+						lhs.SetInt(lhs.Int() - int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		}
 	case func(*Env) int64:
 		switch upn {
 		case 0:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int64)(unsafe.Pointer(&env.
-					IntBinds[index])) -= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int64)(unsafe.Pointer(&env.IntBinds[index])) -= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Binds[index]
+						lhs.SetInt(lhs.Int() - int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int64)(unsafe.Pointer(&env.
-					Outer.
-					IntBinds[index])) -= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int64)(unsafe.Pointer(&env.
+						Outer.IntBinds[index])) -= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.
+							Binds[index]
+						lhs.SetInt(lhs.Int() - int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 2:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int64)(unsafe.Pointer(&env.
-					Outer.Outer.
-					IntBinds[index])) -= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int64)(unsafe.Pointer(&env.
+						Outer.Outer.IntBinds[index])) -= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.Outer.
+							Binds[index]
+						lhs.SetInt(lhs.Int() - int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		default:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				o := env.Outer.Outer.Outer
-				for i := 3; i < upn; i++ {
-					o = o.Outer
-				}
-				*(*int64)(unsafe.Pointer(&o.IntBinds[index])) -= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					*(*int64)(unsafe.Pointer(&o.IntBinds[index])) -= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					{
+						lhs :=
+
+							o.Binds[index]
+						lhs.SetInt(lhs.Int() - int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case c.Depth - 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int64)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-					IntBinds[index])) -= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int64)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) -= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.ThreadGlobals.FileEnv.
+							Binds[index]
+						lhs.SetInt(lhs.Int() - int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		}
 	case func(*Env) uint:
 		switch upn {
 		case 0:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint)(unsafe.Pointer(&env.
-					IntBinds[index])) -= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint)(unsafe.Pointer(&env.IntBinds[index])) -= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() - uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint)(unsafe.Pointer(&env.
-					Outer.
-					IntBinds[index])) -= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint)(unsafe.Pointer(&env.
+						Outer.IntBinds[index])) -= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() - uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 2:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint)(unsafe.Pointer(&env.
-					Outer.Outer.
-					IntBinds[index])) -= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint)(unsafe.Pointer(&env.
+						Outer.Outer.IntBinds[index])) -= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.Outer.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() - uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		default:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				o := env.Outer.Outer.Outer
-				for i := 3; i < upn; i++ {
-					o = o.Outer
-				}
-				*(*uint)(unsafe.Pointer(&o.IntBinds[index])) -= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					*(*uint)(unsafe.Pointer(&o.IntBinds[index])) -= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+
+					{
+						lhs := o.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() - uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case c.Depth - 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-					IntBinds[index])) -= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) -= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.ThreadGlobals.FileEnv.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() - uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		}
 	case func(*Env) uint8:
 		switch upn {
 		case 0:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint8)(unsafe.Pointer(&env.
-					IntBinds[index])) -= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint8)(unsafe.Pointer(&env.IntBinds[index])) -= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() - uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint8)(unsafe.Pointer(&env.
-					Outer.
-					IntBinds[index])) -= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint8)(unsafe.Pointer(&env.
+						Outer.IntBinds[index])) -= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() - uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 2:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint8)(unsafe.Pointer(&env.
-					Outer.Outer.
-					IntBinds[index])) -= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint8)(unsafe.Pointer(&env.
+						Outer.Outer.IntBinds[index])) -= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.Outer.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() - uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		default:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				o := env.Outer.Outer.Outer
-				for i := 3; i < upn; i++ {
-					o = o.Outer
-				}
-				*(*uint8)(unsafe.Pointer(&o.IntBinds[index])) -= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					*(*uint8)(unsafe.Pointer(&o.IntBinds[index])) -= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+
+					{
+						lhs := o.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() - uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case c.Depth - 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint8)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-					IntBinds[index])) -= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint8)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) -= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.ThreadGlobals.FileEnv.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() - uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		}
 	case func(*Env) uint16:
 		switch upn {
 		case 0:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint16)(unsafe.Pointer(&env.
-					IntBinds[index])) -= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint16)(unsafe.Pointer(&env.IntBinds[index])) -= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() - uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint16)(unsafe.Pointer(&env.
-					Outer.
-					IntBinds[index])) -= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint16)(unsafe.Pointer(&env.
+						Outer.IntBinds[index])) -= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() - uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 2:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint16)(unsafe.Pointer(&env.
-					Outer.Outer.
-					IntBinds[index])) -= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint16)(unsafe.Pointer(&env.
+						Outer.Outer.IntBinds[index])) -= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.Outer.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() - uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		default:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				o := env.Outer.Outer.Outer
-				for i := 3; i < upn; i++ {
-					o = o.Outer
-				}
-				*(*uint16)(unsafe.Pointer(&o.IntBinds[index])) -= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					*(*uint16)(unsafe.Pointer(&o.IntBinds[index])) -= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+
+					{
+						lhs := o.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() - uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case c.Depth - 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint16)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-					IntBinds[index])) -= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint16)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) -= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.ThreadGlobals.FileEnv.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() - uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		}
 	case func(*Env) uint32:
 		switch upn {
 		case 0:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint32)(unsafe.Pointer(&env.
-					IntBinds[index])) -= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint32)(unsafe.Pointer(&env.IntBinds[index])) -= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() - uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint32)(unsafe.Pointer(&env.
-					Outer.
-					IntBinds[index])) -= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint32)(unsafe.Pointer(&env.
+						Outer.IntBinds[index])) -= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() - uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 2:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint32)(unsafe.Pointer(&env.
-					Outer.Outer.
-					IntBinds[index])) -= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint32)(unsafe.Pointer(&env.
+						Outer.Outer.IntBinds[index])) -= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.Outer.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() - uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		default:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				o := env.Outer.Outer.Outer
-				for i := 3; i < upn; i++ {
-					o = o.Outer
-				}
-				*(*uint32)(unsafe.Pointer(&o.IntBinds[index])) -= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					*(*uint32)(unsafe.Pointer(&o.IntBinds[index])) -= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+
+					{
+						lhs := o.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() - uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case c.Depth - 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint32)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-					IntBinds[index])) -= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint32)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) -= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.ThreadGlobals.FileEnv.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() - uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		}
 	case func(*Env) uint64:
 		switch upn {
 		case 0:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				env.
-					IntBinds[index] -= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					env.
+						IntBinds[index] -= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() - uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				env.
-					Outer.
-					IntBinds[index] -= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					env.
+						Outer.
+						IntBinds[index] -= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() - uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 2:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				env.
-					Outer.Outer.
-					IntBinds[index] -= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					env.
+						Outer.Outer.
+						IntBinds[index] -= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.Outer.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() - uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		default:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				o := env.Outer.Outer.Outer
-				for i := 3; i < upn; i++ {
-					o = o.Outer
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+
+					o.
+						IntBinds[index] -= fun(env)
+
+					env.IP++
+					return env.Code[env.IP], env
 				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
 
-				o.IntBinds[index] -= fun(env)
+					{
+						lhs := o.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() - uint64(fun(env),
+						),
+						)
+					}
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case c.Depth - 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				env.ThreadGlobals.FileEnv.
-					IntBinds[index] -= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					env.ThreadGlobals.FileEnv.
+						IntBinds[index] -= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.ThreadGlobals.FileEnv.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() - uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		}
 	case func(*Env) uintptr:
 		switch upn {
 		case 0:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uintptr)(unsafe.Pointer(&env.
-					IntBinds[index])) -= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uintptr)(unsafe.Pointer(&env.IntBinds[index])) -= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() - uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uintptr)(unsafe.Pointer(&env.
-					Outer.
-					IntBinds[index])) -= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uintptr)(unsafe.Pointer(&env.
+						Outer.IntBinds[index])) -= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() - uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 2:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uintptr)(unsafe.Pointer(&env.
-					Outer.Outer.
-					IntBinds[index])) -= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uintptr)(unsafe.Pointer(&env.
+						Outer.Outer.IntBinds[index])) -= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.Outer.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() - uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		default:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				o := env.Outer.Outer.Outer
-				for i := 3; i < upn; i++ {
-					o = o.Outer
-				}
-				*(*uintptr)(unsafe.Pointer(&o.IntBinds[index])) -= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					*(*uintptr)(unsafe.Pointer(&o.IntBinds[index])) -= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+
+					{
+						lhs := o.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() - uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case c.Depth - 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uintptr)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-					IntBinds[index])) -= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uintptr)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) -= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.ThreadGlobals.FileEnv.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() - uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		}
 	case func(*Env) float32:
 		switch upn {
 		case 0:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*float32)(unsafe.Pointer(&env.
-					IntBinds[index])) -= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*float32)(unsafe.Pointer(&env.IntBinds[index])) -= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Binds[index]
+						lhs.SetFloat(lhs.Float() - float64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*float32)(unsafe.Pointer(&env.
-					Outer.
-					IntBinds[index])) -= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*float32)(unsafe.Pointer(&env.
+						Outer.IntBinds[index])) -= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.
+							Binds[index]
+						lhs.SetFloat(lhs.Float() - float64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 2:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*float32)(unsafe.Pointer(&env.
-					Outer.Outer.
-					IntBinds[index])) -= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*float32)(unsafe.Pointer(&env.
+						Outer.Outer.IntBinds[index])) -= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.Outer.
+							Binds[index]
+						lhs.SetFloat(lhs.Float() - float64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		default:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				o := env.Outer.Outer.Outer
-				for i := 3; i < upn; i++ {
-					o = o.Outer
-				}
-				*(*float32)(unsafe.Pointer(&o.IntBinds[index])) -= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					*(*float32)(unsafe.Pointer(&o.IntBinds[index])) -= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+
+					{
+						lhs := o.
+							Binds[index]
+						lhs.SetFloat(lhs.Float() - float64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case c.Depth - 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*float32)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-					IntBinds[index])) -= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*float32)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) -= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.ThreadGlobals.FileEnv.
+							Binds[index]
+						lhs.SetFloat(lhs.Float() - float64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		}
 	case func(*Env) float64:
 		switch upn {
 		case 0:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*float64)(unsafe.Pointer(&env.
-					IntBinds[index])) -= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*float64)(unsafe.Pointer(&env.IntBinds[index])) -= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Binds[index]
+						lhs.SetFloat(lhs.Float() - float64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*float64)(unsafe.Pointer(&env.
-					Outer.
-					IntBinds[index])) -= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*float64)(unsafe.Pointer(&env.
+						Outer.IntBinds[index])) -= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.
+							Binds[index]
+						lhs.SetFloat(lhs.Float() - float64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 2:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*float64)(unsafe.Pointer(&env.
-					Outer.Outer.
-					IntBinds[index])) -= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*float64)(unsafe.Pointer(&env.
+						Outer.Outer.IntBinds[index])) -= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.Outer.
+							Binds[index]
+						lhs.SetFloat(lhs.Float() - float64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		default:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				o := env.Outer.Outer.Outer
-				for i := 3; i < upn; i++ {
-					o = o.Outer
-				}
-				*(*float64)(unsafe.Pointer(&o.IntBinds[index])) -= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					*(*float64)(unsafe.Pointer(&o.IntBinds[index])) -= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+
+					{
+						lhs := o.
+							Binds[index]
+						lhs.SetFloat(lhs.Float() - float64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case c.Depth - 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*float64)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-					IntBinds[index])) -= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*float64)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) -= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.ThreadGlobals.FileEnv.
+							Binds[index]
+						lhs.SetFloat(lhs.Float() - float64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		}
 	case func(*Env) complex64:
 		switch upn {
 		case 0:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*complex64)(unsafe.Pointer(&env.
-					IntBinds[index])) -= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*complex64)(unsafe.Pointer(&env.IntBinds[index])) -= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Binds[index]
+						lhs.SetComplex(lhs.Complex() - complex128(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*complex64)(unsafe.Pointer(&env.
-					Outer.
-					IntBinds[index])) -= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*complex64)(unsafe.Pointer(&env.
+						Outer.IntBinds[index])) -= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.
+							Binds[index]
+						lhs.SetComplex(lhs.Complex() - complex128(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 2:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*complex64)(unsafe.Pointer(&env.
-					Outer.Outer.
-					IntBinds[index])) -= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*complex64)(unsafe.Pointer(&env.
+						Outer.Outer.IntBinds[index])) -= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.Outer.
+							Binds[index]
+						lhs.SetComplex(lhs.Complex() - complex128(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		default:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				o := env.Outer.Outer.Outer
-				for i := 3; i < upn; i++ {
-					o = o.Outer
-				}
-				*(*complex64)(unsafe.Pointer(&o.IntBinds[index])) -= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					*(*complex64)(unsafe.Pointer(&o.IntBinds[index])) -= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+
+					{
+						lhs := o.
+							Binds[index]
+						lhs.SetComplex(lhs.Complex() - complex128(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case c.Depth - 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*complex64)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-					IntBinds[index])) -= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*complex64)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) -= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.ThreadGlobals.FileEnv.
+							Binds[index]
+						lhs.SetComplex(lhs.Complex() - complex128(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		}
 	case func(*Env) complex128:
@@ -3548,10 +7948,10 @@ func (c *Comp) varSubExpr(upn int, index int, t xr.Type, fun I) {
 				for i := 3; i < upn; i++ {
 					o = o.Outer
 				}
-				{
-					lhs :=
 
-						o.Binds[index]
+				{
+					lhs := o.
+						Binds[index]
 					lhs.SetComplex(lhs.Complex() -
 						fun(env),
 					)
@@ -3564,9 +7964,8 @@ func (c *Comp) varSubExpr(upn int, index int, t xr.Type, fun I) {
 
 			ret = func(env *Env) (Stmt, *Env) {
 				{
-					lhs :=
-
-						env.ThreadGlobals.FileEnv.Binds[index]
+					lhs := env.ThreadGlobals.FileEnv.
+						Binds[index]
 					lhs.SetComplex(lhs.Complex() -
 						fun(env),
 					)
@@ -3582,16 +7981,20 @@ func (c *Comp) varSubExpr(upn int, index int, t xr.Type, fun I) {
 	}
 	c.append(ret)
 }
-func (c *Comp) varMulConst(upn int, index int, t xr.Type, val I) {
+func (c *Comp) varMulConst(va *Var, val I) {
 	if isLiteralNumber(val, 0) {
 
-		c.varSetZero(upn, index, t)
+		c.varSetZero(va)
 		return
 	} else if isLiteralNumber(val, 1) {
 		return
 	}
 
 	{
+		t := va.Type
+		upn := va.Upn
+		index := va.Desc.Index()
+		intbinds := va.Desc.Class() == IntBind
 		var ret Stmt
 		switch t.Kind() {
 		case r.Int:
@@ -3599,53 +8002,131 @@ func (c *Comp) varMulConst(upn int, index int, t xr.Type, val I) {
 			switch upn {
 			case 0:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int)(unsafe.Pointer(&env.
-						IntBinds[index])) *= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int)(unsafe.Pointer(&env.IntBinds[index])) *= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Binds[index]
+							lhs.SetInt(lhs.Int() * int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int)(unsafe.Pointer(&env.
-						Outer.
-						IntBinds[index])) *= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int)(unsafe.Pointer(&env.
+							Outer.IntBinds[index])) *= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.
+								Binds[index]
+							lhs.SetInt(lhs.Int() * int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 2:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int)(unsafe.Pointer(&env.
-						Outer.Outer.
-						IntBinds[index])) *= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int)(unsafe.Pointer(&env.
+							Outer.Outer.IntBinds[index])) *= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.Outer.
+								Binds[index]
+							lhs.SetInt(lhs.Int() * int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			default:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					o := env.Outer.Outer.Outer
-					for i := 3; i < upn; i++ {
-						o = o.Outer
-					}
-					*(*int)(unsafe.Pointer(&o.IntBinds[index])) *= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						*(*int)(unsafe.Pointer(&o.IntBinds[index])) *= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						{
+							lhs :=
+
+								o.Binds[index]
+							lhs.SetInt(lhs.Int() * int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case c.Depth - 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-						IntBinds[index])) *= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) *= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.ThreadGlobals.FileEnv.
+								Binds[index]
+							lhs.SetInt(lhs.Int() * int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			}
 		case r.Int8:
@@ -3653,53 +8134,131 @@ func (c *Comp) varMulConst(upn int, index int, t xr.Type, val I) {
 			switch upn {
 			case 0:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int8)(unsafe.Pointer(&env.
-						IntBinds[index])) *= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int8)(unsafe.Pointer(&env.IntBinds[index])) *= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Binds[index]
+							lhs.SetInt(lhs.Int() * int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int8)(unsafe.Pointer(&env.
-						Outer.
-						IntBinds[index])) *= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int8)(unsafe.Pointer(&env.
+							Outer.IntBinds[index])) *= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.
+								Binds[index]
+							lhs.SetInt(lhs.Int() * int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 2:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int8)(unsafe.Pointer(&env.
-						Outer.Outer.
-						IntBinds[index])) *= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int8)(unsafe.Pointer(&env.
+							Outer.Outer.IntBinds[index])) *= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.Outer.
+								Binds[index]
+							lhs.SetInt(lhs.Int() * int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			default:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					o := env.Outer.Outer.Outer
-					for i := 3; i < upn; i++ {
-						o = o.Outer
-					}
-					*(*int8)(unsafe.Pointer(&o.IntBinds[index])) *= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						*(*int8)(unsafe.Pointer(&o.IntBinds[index])) *= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						{
+							lhs :=
+
+								o.Binds[index]
+							lhs.SetInt(lhs.Int() * int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case c.Depth - 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int8)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-						IntBinds[index])) *= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int8)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) *= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.ThreadGlobals.FileEnv.
+								Binds[index]
+							lhs.SetInt(lhs.Int() * int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			}
 		case r.Int16:
@@ -3707,53 +8266,131 @@ func (c *Comp) varMulConst(upn int, index int, t xr.Type, val I) {
 			switch upn {
 			case 0:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int16)(unsafe.Pointer(&env.
-						IntBinds[index])) *= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int16)(unsafe.Pointer(&env.IntBinds[index])) *= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Binds[index]
+							lhs.SetInt(lhs.Int() * int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int16)(unsafe.Pointer(&env.
-						Outer.
-						IntBinds[index])) *= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int16)(unsafe.Pointer(&env.
+							Outer.IntBinds[index])) *= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.
+								Binds[index]
+							lhs.SetInt(lhs.Int() * int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 2:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int16)(unsafe.Pointer(&env.
-						Outer.Outer.
-						IntBinds[index])) *= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int16)(unsafe.Pointer(&env.
+							Outer.Outer.IntBinds[index])) *= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.Outer.
+								Binds[index]
+							lhs.SetInt(lhs.Int() * int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			default:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					o := env.Outer.Outer.Outer
-					for i := 3; i < upn; i++ {
-						o = o.Outer
-					}
-					*(*int16)(unsafe.Pointer(&o.IntBinds[index])) *= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						*(*int16)(unsafe.Pointer(&o.IntBinds[index])) *= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						{
+							lhs :=
+
+								o.Binds[index]
+							lhs.SetInt(lhs.Int() * int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case c.Depth - 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int16)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-						IntBinds[index])) *= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int16)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) *= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.ThreadGlobals.FileEnv.
+								Binds[index]
+							lhs.SetInt(lhs.Int() * int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			}
 		case r.Int32:
@@ -3761,53 +8398,131 @@ func (c *Comp) varMulConst(upn int, index int, t xr.Type, val I) {
 			switch upn {
 			case 0:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int32)(unsafe.Pointer(&env.
-						IntBinds[index])) *= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int32)(unsafe.Pointer(&env.IntBinds[index])) *= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Binds[index]
+							lhs.SetInt(lhs.Int() * int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int32)(unsafe.Pointer(&env.
-						Outer.
-						IntBinds[index])) *= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int32)(unsafe.Pointer(&env.
+							Outer.IntBinds[index])) *= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.
+								Binds[index]
+							lhs.SetInt(lhs.Int() * int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 2:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int32)(unsafe.Pointer(&env.
-						Outer.Outer.
-						IntBinds[index])) *= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int32)(unsafe.Pointer(&env.
+							Outer.Outer.IntBinds[index])) *= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.Outer.
+								Binds[index]
+							lhs.SetInt(lhs.Int() * int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			default:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					o := env.Outer.Outer.Outer
-					for i := 3; i < upn; i++ {
-						o = o.Outer
-					}
-					*(*int32)(unsafe.Pointer(&o.IntBinds[index])) *= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						*(*int32)(unsafe.Pointer(&o.IntBinds[index])) *= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						{
+							lhs :=
+
+								o.Binds[index]
+							lhs.SetInt(lhs.Int() * int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case c.Depth - 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int32)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-						IntBinds[index])) *= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int32)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) *= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.ThreadGlobals.FileEnv.
+								Binds[index]
+							lhs.SetInt(lhs.Int() * int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			}
 		case r.Int64:
@@ -3815,53 +8530,131 @@ func (c *Comp) varMulConst(upn int, index int, t xr.Type, val I) {
 			switch upn {
 			case 0:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int64)(unsafe.Pointer(&env.
-						IntBinds[index])) *= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int64)(unsafe.Pointer(&env.IntBinds[index])) *= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Binds[index]
+							lhs.SetInt(lhs.Int() * int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int64)(unsafe.Pointer(&env.
-						Outer.
-						IntBinds[index])) *= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int64)(unsafe.Pointer(&env.
+							Outer.IntBinds[index])) *= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.
+								Binds[index]
+							lhs.SetInt(lhs.Int() * int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 2:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int64)(unsafe.Pointer(&env.
-						Outer.Outer.
-						IntBinds[index])) *= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int64)(unsafe.Pointer(&env.
+							Outer.Outer.IntBinds[index])) *= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.Outer.
+								Binds[index]
+							lhs.SetInt(lhs.Int() * int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			default:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					o := env.Outer.Outer.Outer
-					for i := 3; i < upn; i++ {
-						o = o.Outer
-					}
-					*(*int64)(unsafe.Pointer(&o.IntBinds[index])) *= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						*(*int64)(unsafe.Pointer(&o.IntBinds[index])) *= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						{
+							lhs :=
+
+								o.Binds[index]
+							lhs.SetInt(lhs.Int() * int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case c.Depth - 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int64)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-						IntBinds[index])) *= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int64)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) *= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.ThreadGlobals.FileEnv.
+								Binds[index]
+							lhs.SetInt(lhs.Int() * int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			}
 		case r.Uint:
@@ -3869,53 +8662,131 @@ func (c *Comp) varMulConst(upn int, index int, t xr.Type, val I) {
 			switch upn {
 			case 0:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint)(unsafe.Pointer(&env.
-						IntBinds[index])) *= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint)(unsafe.Pointer(&env.IntBinds[index])) *= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() * uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint)(unsafe.Pointer(&env.
-						Outer.
-						IntBinds[index])) *= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint)(unsafe.Pointer(&env.
+							Outer.IntBinds[index])) *= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() * uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 2:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint)(unsafe.Pointer(&env.
-						Outer.Outer.
-						IntBinds[index])) *= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint)(unsafe.Pointer(&env.
+							Outer.Outer.IntBinds[index])) *= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.Outer.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() * uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			default:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					o := env.Outer.Outer.Outer
-					for i := 3; i < upn; i++ {
-						o = o.Outer
-					}
-					*(*uint)(unsafe.Pointer(&o.IntBinds[index])) *= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						*(*uint)(unsafe.Pointer(&o.IntBinds[index])) *= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+
+						{
+							lhs := o.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() * uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case c.Depth - 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-						IntBinds[index])) *= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) *= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.ThreadGlobals.FileEnv.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() * uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			}
 		case r.Uint8:
@@ -3923,53 +8794,131 @@ func (c *Comp) varMulConst(upn int, index int, t xr.Type, val I) {
 			switch upn {
 			case 0:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint8)(unsafe.Pointer(&env.
-						IntBinds[index])) *= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint8)(unsafe.Pointer(&env.IntBinds[index])) *= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() * uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint8)(unsafe.Pointer(&env.
-						Outer.
-						IntBinds[index])) *= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint8)(unsafe.Pointer(&env.
+							Outer.IntBinds[index])) *= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() * uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 2:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint8)(unsafe.Pointer(&env.
-						Outer.Outer.
-						IntBinds[index])) *= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint8)(unsafe.Pointer(&env.
+							Outer.Outer.IntBinds[index])) *= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.Outer.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() * uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			default:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					o := env.Outer.Outer.Outer
-					for i := 3; i < upn; i++ {
-						o = o.Outer
-					}
-					*(*uint8)(unsafe.Pointer(&o.IntBinds[index])) *= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						*(*uint8)(unsafe.Pointer(&o.IntBinds[index])) *= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+
+						{
+							lhs := o.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() * uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case c.Depth - 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint8)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-						IntBinds[index])) *= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint8)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) *= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.ThreadGlobals.FileEnv.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() * uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			}
 		case r.Uint16:
@@ -3977,53 +8926,131 @@ func (c *Comp) varMulConst(upn int, index int, t xr.Type, val I) {
 			switch upn {
 			case 0:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint16)(unsafe.Pointer(&env.
-						IntBinds[index])) *= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint16)(unsafe.Pointer(&env.IntBinds[index])) *= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() * uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint16)(unsafe.Pointer(&env.
-						Outer.
-						IntBinds[index])) *= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint16)(unsafe.Pointer(&env.
+							Outer.IntBinds[index])) *= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() * uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 2:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint16)(unsafe.Pointer(&env.
-						Outer.Outer.
-						IntBinds[index])) *= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint16)(unsafe.Pointer(&env.
+							Outer.Outer.IntBinds[index])) *= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.Outer.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() * uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			default:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					o := env.Outer.Outer.Outer
-					for i := 3; i < upn; i++ {
-						o = o.Outer
-					}
-					*(*uint16)(unsafe.Pointer(&o.IntBinds[index])) *= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						*(*uint16)(unsafe.Pointer(&o.IntBinds[index])) *= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+
+						{
+							lhs := o.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() * uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case c.Depth - 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint16)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-						IntBinds[index])) *= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint16)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) *= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.ThreadGlobals.FileEnv.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() * uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			}
 		case r.Uint32:
@@ -4031,53 +9058,131 @@ func (c *Comp) varMulConst(upn int, index int, t xr.Type, val I) {
 			switch upn {
 			case 0:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint32)(unsafe.Pointer(&env.
-						IntBinds[index])) *= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint32)(unsafe.Pointer(&env.IntBinds[index])) *= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() * uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint32)(unsafe.Pointer(&env.
-						Outer.
-						IntBinds[index])) *= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint32)(unsafe.Pointer(&env.
+							Outer.IntBinds[index])) *= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() * uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 2:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint32)(unsafe.Pointer(&env.
-						Outer.Outer.
-						IntBinds[index])) *= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint32)(unsafe.Pointer(&env.
+							Outer.Outer.IntBinds[index])) *= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.Outer.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() * uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			default:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					o := env.Outer.Outer.Outer
-					for i := 3; i < upn; i++ {
-						o = o.Outer
-					}
-					*(*uint32)(unsafe.Pointer(&o.IntBinds[index])) *= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						*(*uint32)(unsafe.Pointer(&o.IntBinds[index])) *= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+
+						{
+							lhs := o.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() * uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case c.Depth - 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint32)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-						IntBinds[index])) *= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint32)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) *= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.ThreadGlobals.FileEnv.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() * uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			}
 		case r.Uint64:
@@ -4085,54 +9190,137 @@ func (c *Comp) varMulConst(upn int, index int, t xr.Type, val I) {
 			switch upn {
 			case 0:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					env.
-						IntBinds[index] *= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						env.
+							IntBinds[index] *= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() * uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					env.
-						Outer.
-						IntBinds[index] *= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						env.
+							Outer.
+							IntBinds[index] *= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() * uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 2:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					env.
-						Outer.Outer.
-						IntBinds[index] *= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						env.
+							Outer.Outer.
+							IntBinds[index] *= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.Outer.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() * uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			default:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					o := env.Outer.Outer.Outer
-					for i := 3; i < upn; i++ {
-						o = o.Outer
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+
+						o.
+							IntBinds[index] *= val
+
+						env.IP++
+						return env.Code[env.IP], env
 					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
 
-					o.IntBinds[index] *= val
+						{
+							lhs := o.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() * uint64(val,
+							),
+							)
+						}
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case c.Depth - 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					env.ThreadGlobals.FileEnv.
-						IntBinds[index] *= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						env.ThreadGlobals.FileEnv.
+							IntBinds[index] *= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.ThreadGlobals.FileEnv.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() * uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			}
 		case r.Uintptr:
@@ -4140,53 +9328,131 @@ func (c *Comp) varMulConst(upn int, index int, t xr.Type, val I) {
 			switch upn {
 			case 0:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uintptr)(unsafe.Pointer(&env.
-						IntBinds[index])) *= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uintptr)(unsafe.Pointer(&env.IntBinds[index])) *= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() * uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uintptr)(unsafe.Pointer(&env.
-						Outer.
-						IntBinds[index])) *= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uintptr)(unsafe.Pointer(&env.
+							Outer.IntBinds[index])) *= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() * uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 2:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uintptr)(unsafe.Pointer(&env.
-						Outer.Outer.
-						IntBinds[index])) *= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uintptr)(unsafe.Pointer(&env.
+							Outer.Outer.IntBinds[index])) *= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.Outer.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() * uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			default:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					o := env.Outer.Outer.Outer
-					for i := 3; i < upn; i++ {
-						o = o.Outer
-					}
-					*(*uintptr)(unsafe.Pointer(&o.IntBinds[index])) *= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						*(*uintptr)(unsafe.Pointer(&o.IntBinds[index])) *= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+
+						{
+							lhs := o.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() * uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case c.Depth - 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uintptr)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-						IntBinds[index])) *= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uintptr)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) *= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.ThreadGlobals.FileEnv.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() * uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			}
 		case r.Float32:
@@ -4196,53 +9462,131 @@ func (c *Comp) varMulConst(upn int, index int, t xr.Type, val I) {
 			switch upn {
 			case 0:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*float32)(unsafe.Pointer(&env.
-						IntBinds[index])) *= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*float32)(unsafe.Pointer(&env.IntBinds[index])) *= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Binds[index]
+							lhs.SetFloat(lhs.Float() * float64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*float32)(unsafe.Pointer(&env.
-						Outer.
-						IntBinds[index])) *= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*float32)(unsafe.Pointer(&env.
+							Outer.IntBinds[index])) *= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.
+								Binds[index]
+							lhs.SetFloat(lhs.Float() * float64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 2:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*float32)(unsafe.Pointer(&env.
-						Outer.Outer.
-						IntBinds[index])) *= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*float32)(unsafe.Pointer(&env.
+							Outer.Outer.IntBinds[index])) *= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.Outer.
+								Binds[index]
+							lhs.SetFloat(lhs.Float() * float64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			default:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					o := env.Outer.Outer.Outer
-					for i := 3; i < upn; i++ {
-						o = o.Outer
-					}
-					*(*float32)(unsafe.Pointer(&o.IntBinds[index])) *= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						*(*float32)(unsafe.Pointer(&o.IntBinds[index])) *= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+
+						{
+							lhs := o.
+								Binds[index]
+							lhs.SetFloat(lhs.Float() * float64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case c.Depth - 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*float32)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-						IntBinds[index])) *= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*float32)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) *= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.ThreadGlobals.FileEnv.
+								Binds[index]
+							lhs.SetFloat(lhs.Float() * float64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			}
 		case r.Float64:
@@ -4250,53 +9594,131 @@ func (c *Comp) varMulConst(upn int, index int, t xr.Type, val I) {
 			switch upn {
 			case 0:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*float64)(unsafe.Pointer(&env.
-						IntBinds[index])) *= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*float64)(unsafe.Pointer(&env.IntBinds[index])) *= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Binds[index]
+							lhs.SetFloat(lhs.Float() * float64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*float64)(unsafe.Pointer(&env.
-						Outer.
-						IntBinds[index])) *= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*float64)(unsafe.Pointer(&env.
+							Outer.IntBinds[index])) *= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.
+								Binds[index]
+							lhs.SetFloat(lhs.Float() * float64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 2:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*float64)(unsafe.Pointer(&env.
-						Outer.Outer.
-						IntBinds[index])) *= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*float64)(unsafe.Pointer(&env.
+							Outer.Outer.IntBinds[index])) *= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.Outer.
+								Binds[index]
+							lhs.SetFloat(lhs.Float() * float64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			default:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					o := env.Outer.Outer.Outer
-					for i := 3; i < upn; i++ {
-						o = o.Outer
-					}
-					*(*float64)(unsafe.Pointer(&o.IntBinds[index])) *= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						*(*float64)(unsafe.Pointer(&o.IntBinds[index])) *= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+
+						{
+							lhs := o.
+								Binds[index]
+							lhs.SetFloat(lhs.Float() * float64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case c.Depth - 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*float64)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-						IntBinds[index])) *= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*float64)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) *= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.ThreadGlobals.FileEnv.
+								Binds[index]
+							lhs.SetFloat(lhs.Float() * float64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			}
 		case r.Complex64:
@@ -4306,53 +9728,131 @@ func (c *Comp) varMulConst(upn int, index int, t xr.Type, val I) {
 			switch upn {
 			case 0:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*complex64)(unsafe.Pointer(&env.
-						IntBinds[index])) *= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*complex64)(unsafe.Pointer(&env.IntBinds[index])) *= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Binds[index]
+							lhs.SetComplex(lhs.Complex() * complex128(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*complex64)(unsafe.Pointer(&env.
-						Outer.
-						IntBinds[index])) *= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*complex64)(unsafe.Pointer(&env.
+							Outer.IntBinds[index])) *= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.
+								Binds[index]
+							lhs.SetComplex(lhs.Complex() * complex128(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 2:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*complex64)(unsafe.Pointer(&env.
-						Outer.Outer.
-						IntBinds[index])) *= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*complex64)(unsafe.Pointer(&env.
+							Outer.Outer.IntBinds[index])) *= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.Outer.
+								Binds[index]
+							lhs.SetComplex(lhs.Complex() * complex128(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			default:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					o := env.Outer.Outer.Outer
-					for i := 3; i < upn; i++ {
-						o = o.Outer
-					}
-					*(*complex64)(unsafe.Pointer(&o.IntBinds[index])) *= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						*(*complex64)(unsafe.Pointer(&o.IntBinds[index])) *= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+
+						{
+							lhs := o.
+								Binds[index]
+							lhs.SetComplex(lhs.Complex() * complex128(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case c.Depth - 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*complex64)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-						IntBinds[index])) *= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*complex64)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) *= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.ThreadGlobals.FileEnv.
+								Binds[index]
+							lhs.SetComplex(lhs.Complex() * complex128(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			}
 		case r.Complex128:
@@ -4409,10 +9909,10 @@ func (c *Comp) varMulConst(upn int, index int, t xr.Type, val I) {
 					for i := 3; i < upn; i++ {
 						o = o.Outer
 					}
-					{
-						lhs :=
 
-							o.Binds[index]
+					{
+						lhs := o.
+							Binds[index]
 						lhs.SetComplex(lhs.Complex() *
 							val,
 						)
@@ -4425,9 +9925,8 @@ func (c *Comp) varMulConst(upn int, index int, t xr.Type, val I) {
 
 				ret = func(env *Env) (Stmt, *Env) {
 					{
-						lhs :=
-
-							env.ThreadGlobals.FileEnv.Binds[index]
+						lhs := env.ThreadGlobals.FileEnv.
+							Binds[index]
 						lhs.SetComplex(lhs.Complex() *
 							val,
 						)
@@ -4444,750 +9943,1851 @@ func (c *Comp) varMulConst(upn int, index int, t xr.Type, val I) {
 		c.append(ret)
 	}
 }
-func (c *Comp) varMulExpr(upn int, index int, t xr.Type, fun I) {
+func (c *Comp) varMulExpr(va *Var, fun I) {
+	t := va.Type
+	upn := va.Upn
+	index := va.Desc.Index()
+	intbinds := va.Desc.Class() == IntBind
 	var ret Stmt
 	switch fun := fun.(type) {
 	case func(*Env) int:
 		switch upn {
 		case 0:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int)(unsafe.Pointer(&env.
-					IntBinds[index])) *= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int)(unsafe.Pointer(&env.IntBinds[index])) *= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Binds[index]
+						lhs.SetInt(lhs.Int() * int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int)(unsafe.Pointer(&env.
-					Outer.
-					IntBinds[index])) *= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int)(unsafe.Pointer(&env.
+						Outer.IntBinds[index])) *= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.
+							Binds[index]
+						lhs.SetInt(lhs.Int() * int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 2:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int)(unsafe.Pointer(&env.
-					Outer.Outer.
-					IntBinds[index])) *= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int)(unsafe.Pointer(&env.
+						Outer.Outer.IntBinds[index])) *= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.Outer.
+							Binds[index]
+						lhs.SetInt(lhs.Int() * int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		default:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				o := env.Outer.Outer.Outer
-				for i := 3; i < upn; i++ {
-					o = o.Outer
-				}
-				*(*int)(unsafe.Pointer(&o.IntBinds[index])) *= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					*(*int)(unsafe.Pointer(&o.IntBinds[index])) *= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					{
+						lhs :=
+
+							o.Binds[index]
+						lhs.SetInt(lhs.Int() * int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case c.Depth - 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-					IntBinds[index])) *= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) *= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.ThreadGlobals.FileEnv.
+							Binds[index]
+						lhs.SetInt(lhs.Int() * int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		}
 	case func(*Env) int8:
 		switch upn {
 		case 0:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int8)(unsafe.Pointer(&env.
-					IntBinds[index])) *= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int8)(unsafe.Pointer(&env.IntBinds[index])) *= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Binds[index]
+						lhs.SetInt(lhs.Int() * int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int8)(unsafe.Pointer(&env.
-					Outer.
-					IntBinds[index])) *= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int8)(unsafe.Pointer(&env.
+						Outer.IntBinds[index])) *= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.
+							Binds[index]
+						lhs.SetInt(lhs.Int() * int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 2:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int8)(unsafe.Pointer(&env.
-					Outer.Outer.
-					IntBinds[index])) *= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int8)(unsafe.Pointer(&env.
+						Outer.Outer.IntBinds[index])) *= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.Outer.
+							Binds[index]
+						lhs.SetInt(lhs.Int() * int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		default:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				o := env.Outer.Outer.Outer
-				for i := 3; i < upn; i++ {
-					o = o.Outer
-				}
-				*(*int8)(unsafe.Pointer(&o.IntBinds[index])) *= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					*(*int8)(unsafe.Pointer(&o.IntBinds[index])) *= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					{
+						lhs :=
+
+							o.Binds[index]
+						lhs.SetInt(lhs.Int() * int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case c.Depth - 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int8)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-					IntBinds[index])) *= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int8)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) *= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.ThreadGlobals.FileEnv.
+							Binds[index]
+						lhs.SetInt(lhs.Int() * int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		}
 	case func(*Env) int16:
 		switch upn {
 		case 0:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int16)(unsafe.Pointer(&env.
-					IntBinds[index])) *= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int16)(unsafe.Pointer(&env.IntBinds[index])) *= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Binds[index]
+						lhs.SetInt(lhs.Int() * int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int16)(unsafe.Pointer(&env.
-					Outer.
-					IntBinds[index])) *= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int16)(unsafe.Pointer(&env.
+						Outer.IntBinds[index])) *= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.
+							Binds[index]
+						lhs.SetInt(lhs.Int() * int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 2:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int16)(unsafe.Pointer(&env.
-					Outer.Outer.
-					IntBinds[index])) *= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int16)(unsafe.Pointer(&env.
+						Outer.Outer.IntBinds[index])) *= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.Outer.
+							Binds[index]
+						lhs.SetInt(lhs.Int() * int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		default:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				o := env.Outer.Outer.Outer
-				for i := 3; i < upn; i++ {
-					o = o.Outer
-				}
-				*(*int16)(unsafe.Pointer(&o.IntBinds[index])) *= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					*(*int16)(unsafe.Pointer(&o.IntBinds[index])) *= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					{
+						lhs :=
+
+							o.Binds[index]
+						lhs.SetInt(lhs.Int() * int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case c.Depth - 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int16)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-					IntBinds[index])) *= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int16)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) *= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.ThreadGlobals.FileEnv.
+							Binds[index]
+						lhs.SetInt(lhs.Int() * int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		}
 	case func(*Env) int32:
 		switch upn {
 		case 0:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int32)(unsafe.Pointer(&env.
-					IntBinds[index])) *= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int32)(unsafe.Pointer(&env.IntBinds[index])) *= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Binds[index]
+						lhs.SetInt(lhs.Int() * int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int32)(unsafe.Pointer(&env.
-					Outer.
-					IntBinds[index])) *= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int32)(unsafe.Pointer(&env.
+						Outer.IntBinds[index])) *= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.
+							Binds[index]
+						lhs.SetInt(lhs.Int() * int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 2:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int32)(unsafe.Pointer(&env.
-					Outer.Outer.
-					IntBinds[index])) *= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int32)(unsafe.Pointer(&env.
+						Outer.Outer.IntBinds[index])) *= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.Outer.
+							Binds[index]
+						lhs.SetInt(lhs.Int() * int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		default:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				o := env.Outer.Outer.Outer
-				for i := 3; i < upn; i++ {
-					o = o.Outer
-				}
-				*(*int32)(unsafe.Pointer(&o.IntBinds[index])) *= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					*(*int32)(unsafe.Pointer(&o.IntBinds[index])) *= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					{
+						lhs :=
+
+							o.Binds[index]
+						lhs.SetInt(lhs.Int() * int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case c.Depth - 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int32)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-					IntBinds[index])) *= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int32)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) *= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.ThreadGlobals.FileEnv.
+							Binds[index]
+						lhs.SetInt(lhs.Int() * int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		}
 	case func(*Env) int64:
 		switch upn {
 		case 0:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int64)(unsafe.Pointer(&env.
-					IntBinds[index])) *= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int64)(unsafe.Pointer(&env.IntBinds[index])) *= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Binds[index]
+						lhs.SetInt(lhs.Int() * int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int64)(unsafe.Pointer(&env.
-					Outer.
-					IntBinds[index])) *= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int64)(unsafe.Pointer(&env.
+						Outer.IntBinds[index])) *= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.
+							Binds[index]
+						lhs.SetInt(lhs.Int() * int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 2:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int64)(unsafe.Pointer(&env.
-					Outer.Outer.
-					IntBinds[index])) *= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int64)(unsafe.Pointer(&env.
+						Outer.Outer.IntBinds[index])) *= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.Outer.
+							Binds[index]
+						lhs.SetInt(lhs.Int() * int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		default:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				o := env.Outer.Outer.Outer
-				for i := 3; i < upn; i++ {
-					o = o.Outer
-				}
-				*(*int64)(unsafe.Pointer(&o.IntBinds[index])) *= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					*(*int64)(unsafe.Pointer(&o.IntBinds[index])) *= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					{
+						lhs :=
+
+							o.Binds[index]
+						lhs.SetInt(lhs.Int() * int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case c.Depth - 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int64)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-					IntBinds[index])) *= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int64)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) *= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.ThreadGlobals.FileEnv.
+							Binds[index]
+						lhs.SetInt(lhs.Int() * int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		}
 	case func(*Env) uint:
 		switch upn {
 		case 0:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint)(unsafe.Pointer(&env.
-					IntBinds[index])) *= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint)(unsafe.Pointer(&env.IntBinds[index])) *= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() * uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint)(unsafe.Pointer(&env.
-					Outer.
-					IntBinds[index])) *= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint)(unsafe.Pointer(&env.
+						Outer.IntBinds[index])) *= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() * uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 2:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint)(unsafe.Pointer(&env.
-					Outer.Outer.
-					IntBinds[index])) *= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint)(unsafe.Pointer(&env.
+						Outer.Outer.IntBinds[index])) *= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.Outer.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() * uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		default:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				o := env.Outer.Outer.Outer
-				for i := 3; i < upn; i++ {
-					o = o.Outer
-				}
-				*(*uint)(unsafe.Pointer(&o.IntBinds[index])) *= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					*(*uint)(unsafe.Pointer(&o.IntBinds[index])) *= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+
+					{
+						lhs := o.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() * uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case c.Depth - 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-					IntBinds[index])) *= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) *= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.ThreadGlobals.FileEnv.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() * uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		}
 	case func(*Env) uint8:
 		switch upn {
 		case 0:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint8)(unsafe.Pointer(&env.
-					IntBinds[index])) *= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint8)(unsafe.Pointer(&env.IntBinds[index])) *= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() * uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint8)(unsafe.Pointer(&env.
-					Outer.
-					IntBinds[index])) *= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint8)(unsafe.Pointer(&env.
+						Outer.IntBinds[index])) *= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() * uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 2:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint8)(unsafe.Pointer(&env.
-					Outer.Outer.
-					IntBinds[index])) *= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint8)(unsafe.Pointer(&env.
+						Outer.Outer.IntBinds[index])) *= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.Outer.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() * uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		default:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				o := env.Outer.Outer.Outer
-				for i := 3; i < upn; i++ {
-					o = o.Outer
-				}
-				*(*uint8)(unsafe.Pointer(&o.IntBinds[index])) *= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					*(*uint8)(unsafe.Pointer(&o.IntBinds[index])) *= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+
+					{
+						lhs := o.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() * uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case c.Depth - 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint8)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-					IntBinds[index])) *= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint8)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) *= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.ThreadGlobals.FileEnv.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() * uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		}
 	case func(*Env) uint16:
 		switch upn {
 		case 0:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint16)(unsafe.Pointer(&env.
-					IntBinds[index])) *= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint16)(unsafe.Pointer(&env.IntBinds[index])) *= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() * uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint16)(unsafe.Pointer(&env.
-					Outer.
-					IntBinds[index])) *= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint16)(unsafe.Pointer(&env.
+						Outer.IntBinds[index])) *= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() * uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 2:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint16)(unsafe.Pointer(&env.
-					Outer.Outer.
-					IntBinds[index])) *= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint16)(unsafe.Pointer(&env.
+						Outer.Outer.IntBinds[index])) *= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.Outer.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() * uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		default:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				o := env.Outer.Outer.Outer
-				for i := 3; i < upn; i++ {
-					o = o.Outer
-				}
-				*(*uint16)(unsafe.Pointer(&o.IntBinds[index])) *= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					*(*uint16)(unsafe.Pointer(&o.IntBinds[index])) *= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+
+					{
+						lhs := o.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() * uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case c.Depth - 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint16)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-					IntBinds[index])) *= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint16)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) *= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.ThreadGlobals.FileEnv.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() * uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		}
 	case func(*Env) uint32:
 		switch upn {
 		case 0:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint32)(unsafe.Pointer(&env.
-					IntBinds[index])) *= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint32)(unsafe.Pointer(&env.IntBinds[index])) *= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() * uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint32)(unsafe.Pointer(&env.
-					Outer.
-					IntBinds[index])) *= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint32)(unsafe.Pointer(&env.
+						Outer.IntBinds[index])) *= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() * uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 2:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint32)(unsafe.Pointer(&env.
-					Outer.Outer.
-					IntBinds[index])) *= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint32)(unsafe.Pointer(&env.
+						Outer.Outer.IntBinds[index])) *= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.Outer.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() * uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		default:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				o := env.Outer.Outer.Outer
-				for i := 3; i < upn; i++ {
-					o = o.Outer
-				}
-				*(*uint32)(unsafe.Pointer(&o.IntBinds[index])) *= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					*(*uint32)(unsafe.Pointer(&o.IntBinds[index])) *= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+
+					{
+						lhs := o.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() * uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case c.Depth - 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint32)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-					IntBinds[index])) *= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint32)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) *= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.ThreadGlobals.FileEnv.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() * uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		}
 	case func(*Env) uint64:
 		switch upn {
 		case 0:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				env.
-					IntBinds[index] *= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					env.
+						IntBinds[index] *= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() * uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				env.
-					Outer.
-					IntBinds[index] *= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					env.
+						Outer.
+						IntBinds[index] *= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() * uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 2:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				env.
-					Outer.Outer.
-					IntBinds[index] *= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					env.
+						Outer.Outer.
+						IntBinds[index] *= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.Outer.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() * uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		default:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				o := env.Outer.Outer.Outer
-				for i := 3; i < upn; i++ {
-					o = o.Outer
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+
+					o.
+						IntBinds[index] *= fun(env)
+
+					env.IP++
+					return env.Code[env.IP], env
 				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
 
-				o.IntBinds[index] *= fun(env)
+					{
+						lhs := o.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() * uint64(fun(env),
+						),
+						)
+					}
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case c.Depth - 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				env.ThreadGlobals.FileEnv.
-					IntBinds[index] *= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					env.ThreadGlobals.FileEnv.
+						IntBinds[index] *= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.ThreadGlobals.FileEnv.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() * uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		}
 	case func(*Env) uintptr:
 		switch upn {
 		case 0:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uintptr)(unsafe.Pointer(&env.
-					IntBinds[index])) *= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uintptr)(unsafe.Pointer(&env.IntBinds[index])) *= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() * uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uintptr)(unsafe.Pointer(&env.
-					Outer.
-					IntBinds[index])) *= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uintptr)(unsafe.Pointer(&env.
+						Outer.IntBinds[index])) *= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() * uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 2:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uintptr)(unsafe.Pointer(&env.
-					Outer.Outer.
-					IntBinds[index])) *= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uintptr)(unsafe.Pointer(&env.
+						Outer.Outer.IntBinds[index])) *= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.Outer.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() * uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		default:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				o := env.Outer.Outer.Outer
-				for i := 3; i < upn; i++ {
-					o = o.Outer
-				}
-				*(*uintptr)(unsafe.Pointer(&o.IntBinds[index])) *= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					*(*uintptr)(unsafe.Pointer(&o.IntBinds[index])) *= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+
+					{
+						lhs := o.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() * uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case c.Depth - 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uintptr)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-					IntBinds[index])) *= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uintptr)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) *= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.ThreadGlobals.FileEnv.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() * uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		}
 	case func(*Env) float32:
 		switch upn {
 		case 0:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*float32)(unsafe.Pointer(&env.
-					IntBinds[index])) *= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*float32)(unsafe.Pointer(&env.IntBinds[index])) *= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Binds[index]
+						lhs.SetFloat(lhs.Float() * float64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*float32)(unsafe.Pointer(&env.
-					Outer.
-					IntBinds[index])) *= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*float32)(unsafe.Pointer(&env.
+						Outer.IntBinds[index])) *= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.
+							Binds[index]
+						lhs.SetFloat(lhs.Float() * float64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 2:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*float32)(unsafe.Pointer(&env.
-					Outer.Outer.
-					IntBinds[index])) *= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*float32)(unsafe.Pointer(&env.
+						Outer.Outer.IntBinds[index])) *= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.Outer.
+							Binds[index]
+						lhs.SetFloat(lhs.Float() * float64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		default:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				o := env.Outer.Outer.Outer
-				for i := 3; i < upn; i++ {
-					o = o.Outer
-				}
-				*(*float32)(unsafe.Pointer(&o.IntBinds[index])) *= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					*(*float32)(unsafe.Pointer(&o.IntBinds[index])) *= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+
+					{
+						lhs := o.
+							Binds[index]
+						lhs.SetFloat(lhs.Float() * float64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case c.Depth - 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*float32)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-					IntBinds[index])) *= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*float32)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) *= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.ThreadGlobals.FileEnv.
+							Binds[index]
+						lhs.SetFloat(lhs.Float() * float64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		}
 	case func(*Env) float64:
 		switch upn {
 		case 0:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*float64)(unsafe.Pointer(&env.
-					IntBinds[index])) *= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*float64)(unsafe.Pointer(&env.IntBinds[index])) *= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Binds[index]
+						lhs.SetFloat(lhs.Float() * float64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*float64)(unsafe.Pointer(&env.
-					Outer.
-					IntBinds[index])) *= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*float64)(unsafe.Pointer(&env.
+						Outer.IntBinds[index])) *= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.
+							Binds[index]
+						lhs.SetFloat(lhs.Float() * float64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 2:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*float64)(unsafe.Pointer(&env.
-					Outer.Outer.
-					IntBinds[index])) *= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*float64)(unsafe.Pointer(&env.
+						Outer.Outer.IntBinds[index])) *= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.Outer.
+							Binds[index]
+						lhs.SetFloat(lhs.Float() * float64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		default:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				o := env.Outer.Outer.Outer
-				for i := 3; i < upn; i++ {
-					o = o.Outer
-				}
-				*(*float64)(unsafe.Pointer(&o.IntBinds[index])) *= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					*(*float64)(unsafe.Pointer(&o.IntBinds[index])) *= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+
+					{
+						lhs := o.
+							Binds[index]
+						lhs.SetFloat(lhs.Float() * float64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case c.Depth - 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*float64)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-					IntBinds[index])) *= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*float64)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) *= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.ThreadGlobals.FileEnv.
+							Binds[index]
+						lhs.SetFloat(lhs.Float() * float64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		}
 	case func(*Env) complex64:
 		switch upn {
 		case 0:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*complex64)(unsafe.Pointer(&env.
-					IntBinds[index])) *= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*complex64)(unsafe.Pointer(&env.IntBinds[index])) *= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Binds[index]
+						lhs.SetComplex(lhs.Complex() * complex128(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*complex64)(unsafe.Pointer(&env.
-					Outer.
-					IntBinds[index])) *= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*complex64)(unsafe.Pointer(&env.
+						Outer.IntBinds[index])) *= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.
+							Binds[index]
+						lhs.SetComplex(lhs.Complex() * complex128(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 2:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*complex64)(unsafe.Pointer(&env.
-					Outer.Outer.
-					IntBinds[index])) *= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*complex64)(unsafe.Pointer(&env.
+						Outer.Outer.IntBinds[index])) *= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.Outer.
+							Binds[index]
+						lhs.SetComplex(lhs.Complex() * complex128(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		default:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				o := env.Outer.Outer.Outer
-				for i := 3; i < upn; i++ {
-					o = o.Outer
-				}
-				*(*complex64)(unsafe.Pointer(&o.IntBinds[index])) *= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					*(*complex64)(unsafe.Pointer(&o.IntBinds[index])) *= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+
+					{
+						lhs := o.
+							Binds[index]
+						lhs.SetComplex(lhs.Complex() * complex128(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case c.Depth - 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*complex64)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-					IntBinds[index])) *= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*complex64)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) *= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.ThreadGlobals.FileEnv.
+							Binds[index]
+						lhs.SetComplex(lhs.Complex() * complex128(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		}
 	case func(*Env) complex128:
@@ -5243,10 +11843,10 @@ func (c *Comp) varMulExpr(upn int, index int, t xr.Type, fun I) {
 				for i := 3; i < upn; i++ {
 					o = o.Outer
 				}
-				{
-					lhs :=
 
-						o.Binds[index]
+				{
+					lhs := o.
+						Binds[index]
 					lhs.SetComplex(lhs.Complex() *
 						fun(env),
 					)
@@ -5259,9 +11859,8 @@ func (c *Comp) varMulExpr(upn int, index int, t xr.Type, fun I) {
 
 			ret = func(env *Env) (Stmt, *Env) {
 				{
-					lhs :=
-
-						env.ThreadGlobals.FileEnv.Binds[index]
+					lhs := env.ThreadGlobals.FileEnv.
+						Binds[index]
 					lhs.SetComplex(lhs.Complex() *
 						fun(env),
 					)
@@ -5277,7 +11876,8 @@ func (c *Comp) varMulExpr(upn int, index int, t xr.Type, fun I) {
 	}
 	c.append(ret)
 }
-func (c *Comp) varQuoPow2(upn int, index int, t xr.Type, val I) bool {
+func (c *Comp) varQuoPow2(va *Var, val I) bool {
+	t := va.Type
 	if isLiteralNumber(val, 0) {
 		c.Errorf("division by %v <%v>", val, t)
 		return false
@@ -5308,6 +11908,8 @@ func (c *Comp) varQuoPow2(upn int, index int, t xr.Type, val I) bool {
 	}
 
 	shift := integerLen(y) - 1
+	upn := va.Upn
+	index := va.Desc.Index()
 	var ret Stmt
 
 	switch t.Kind() {
@@ -6587,12 +13189,16 @@ func (c *Comp) varQuoPow2(upn int, index int, t xr.Type, val I) bool {
 	c.append(ret)
 	return true
 }
-func (c *Comp) varQuoConst(upn int, index int, t xr.Type, val I) {
-	if c.varQuoPow2(upn, index, t, val) {
+func (c *Comp) varQuoConst(va *Var, val I) {
+	if c.varQuoPow2(va, val) {
 		return
 	}
 
 	{
+		t := va.Type
+		upn := va.Upn
+		index := va.Desc.Index()
+		intbinds := va.Desc.Class() == IntBind
 		var ret Stmt
 		switch t.Kind() {
 		case r.Int:
@@ -6600,53 +13206,131 @@ func (c *Comp) varQuoConst(upn int, index int, t xr.Type, val I) {
 			switch upn {
 			case 0:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int)(unsafe.Pointer(&env.
-						IntBinds[index])) /= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int)(unsafe.Pointer(&env.IntBinds[index])) /= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Binds[index]
+							lhs.SetInt(lhs.Int() / int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int)(unsafe.Pointer(&env.
-						Outer.
-						IntBinds[index])) /= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int)(unsafe.Pointer(&env.
+							Outer.IntBinds[index])) /= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.
+								Binds[index]
+							lhs.SetInt(lhs.Int() / int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 2:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int)(unsafe.Pointer(&env.
-						Outer.Outer.
-						IntBinds[index])) /= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int)(unsafe.Pointer(&env.
+							Outer.Outer.IntBinds[index])) /= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.Outer.
+								Binds[index]
+							lhs.SetInt(lhs.Int() / int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			default:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					o := env.Outer.Outer.Outer
-					for i := 3; i < upn; i++ {
-						o = o.Outer
-					}
-					*(*int)(unsafe.Pointer(&o.IntBinds[index])) /= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						*(*int)(unsafe.Pointer(&o.IntBinds[index])) /= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						{
+							lhs :=
+
+								o.Binds[index]
+							lhs.SetInt(lhs.Int() / int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case c.Depth - 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-						IntBinds[index])) /= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) /= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.ThreadGlobals.FileEnv.
+								Binds[index]
+							lhs.SetInt(lhs.Int() / int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			}
 		case r.Int8:
@@ -6654,53 +13338,131 @@ func (c *Comp) varQuoConst(upn int, index int, t xr.Type, val I) {
 			switch upn {
 			case 0:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int8)(unsafe.Pointer(&env.
-						IntBinds[index])) /= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int8)(unsafe.Pointer(&env.IntBinds[index])) /= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Binds[index]
+							lhs.SetInt(lhs.Int() / int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int8)(unsafe.Pointer(&env.
-						Outer.
-						IntBinds[index])) /= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int8)(unsafe.Pointer(&env.
+							Outer.IntBinds[index])) /= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.
+								Binds[index]
+							lhs.SetInt(lhs.Int() / int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 2:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int8)(unsafe.Pointer(&env.
-						Outer.Outer.
-						IntBinds[index])) /= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int8)(unsafe.Pointer(&env.
+							Outer.Outer.IntBinds[index])) /= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.Outer.
+								Binds[index]
+							lhs.SetInt(lhs.Int() / int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			default:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					o := env.Outer.Outer.Outer
-					for i := 3; i < upn; i++ {
-						o = o.Outer
-					}
-					*(*int8)(unsafe.Pointer(&o.IntBinds[index])) /= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						*(*int8)(unsafe.Pointer(&o.IntBinds[index])) /= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						{
+							lhs :=
+
+								o.Binds[index]
+							lhs.SetInt(lhs.Int() / int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case c.Depth - 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int8)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-						IntBinds[index])) /= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int8)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) /= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.ThreadGlobals.FileEnv.
+								Binds[index]
+							lhs.SetInt(lhs.Int() / int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			}
 		case r.Int16:
@@ -6708,53 +13470,131 @@ func (c *Comp) varQuoConst(upn int, index int, t xr.Type, val I) {
 			switch upn {
 			case 0:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int16)(unsafe.Pointer(&env.
-						IntBinds[index])) /= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int16)(unsafe.Pointer(&env.IntBinds[index])) /= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Binds[index]
+							lhs.SetInt(lhs.Int() / int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int16)(unsafe.Pointer(&env.
-						Outer.
-						IntBinds[index])) /= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int16)(unsafe.Pointer(&env.
+							Outer.IntBinds[index])) /= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.
+								Binds[index]
+							lhs.SetInt(lhs.Int() / int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 2:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int16)(unsafe.Pointer(&env.
-						Outer.Outer.
-						IntBinds[index])) /= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int16)(unsafe.Pointer(&env.
+							Outer.Outer.IntBinds[index])) /= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.Outer.
+								Binds[index]
+							lhs.SetInt(lhs.Int() / int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			default:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					o := env.Outer.Outer.Outer
-					for i := 3; i < upn; i++ {
-						o = o.Outer
-					}
-					*(*int16)(unsafe.Pointer(&o.IntBinds[index])) /= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						*(*int16)(unsafe.Pointer(&o.IntBinds[index])) /= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						{
+							lhs :=
+
+								o.Binds[index]
+							lhs.SetInt(lhs.Int() / int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case c.Depth - 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int16)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-						IntBinds[index])) /= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int16)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) /= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.ThreadGlobals.FileEnv.
+								Binds[index]
+							lhs.SetInt(lhs.Int() / int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			}
 		case r.Int32:
@@ -6762,53 +13602,131 @@ func (c *Comp) varQuoConst(upn int, index int, t xr.Type, val I) {
 			switch upn {
 			case 0:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int32)(unsafe.Pointer(&env.
-						IntBinds[index])) /= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int32)(unsafe.Pointer(&env.IntBinds[index])) /= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Binds[index]
+							lhs.SetInt(lhs.Int() / int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int32)(unsafe.Pointer(&env.
-						Outer.
-						IntBinds[index])) /= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int32)(unsafe.Pointer(&env.
+							Outer.IntBinds[index])) /= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.
+								Binds[index]
+							lhs.SetInt(lhs.Int() / int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 2:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int32)(unsafe.Pointer(&env.
-						Outer.Outer.
-						IntBinds[index])) /= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int32)(unsafe.Pointer(&env.
+							Outer.Outer.IntBinds[index])) /= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.Outer.
+								Binds[index]
+							lhs.SetInt(lhs.Int() / int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			default:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					o := env.Outer.Outer.Outer
-					for i := 3; i < upn; i++ {
-						o = o.Outer
-					}
-					*(*int32)(unsafe.Pointer(&o.IntBinds[index])) /= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						*(*int32)(unsafe.Pointer(&o.IntBinds[index])) /= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						{
+							lhs :=
+
+								o.Binds[index]
+							lhs.SetInt(lhs.Int() / int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case c.Depth - 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int32)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-						IntBinds[index])) /= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int32)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) /= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.ThreadGlobals.FileEnv.
+								Binds[index]
+							lhs.SetInt(lhs.Int() / int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			}
 		case r.Int64:
@@ -6816,53 +13734,131 @@ func (c *Comp) varQuoConst(upn int, index int, t xr.Type, val I) {
 			switch upn {
 			case 0:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int64)(unsafe.Pointer(&env.
-						IntBinds[index])) /= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int64)(unsafe.Pointer(&env.IntBinds[index])) /= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Binds[index]
+							lhs.SetInt(lhs.Int() / int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int64)(unsafe.Pointer(&env.
-						Outer.
-						IntBinds[index])) /= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int64)(unsafe.Pointer(&env.
+							Outer.IntBinds[index])) /= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.
+								Binds[index]
+							lhs.SetInt(lhs.Int() / int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 2:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int64)(unsafe.Pointer(&env.
-						Outer.Outer.
-						IntBinds[index])) /= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int64)(unsafe.Pointer(&env.
+							Outer.Outer.IntBinds[index])) /= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.Outer.
+								Binds[index]
+							lhs.SetInt(lhs.Int() / int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			default:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					o := env.Outer.Outer.Outer
-					for i := 3; i < upn; i++ {
-						o = o.Outer
-					}
-					*(*int64)(unsafe.Pointer(&o.IntBinds[index])) /= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						*(*int64)(unsafe.Pointer(&o.IntBinds[index])) /= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						{
+							lhs :=
+
+								o.Binds[index]
+							lhs.SetInt(lhs.Int() / int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case c.Depth - 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int64)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-						IntBinds[index])) /= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int64)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) /= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.ThreadGlobals.FileEnv.
+								Binds[index]
+							lhs.SetInt(lhs.Int() / int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			}
 		case r.Uint:
@@ -6870,53 +13866,131 @@ func (c *Comp) varQuoConst(upn int, index int, t xr.Type, val I) {
 			switch upn {
 			case 0:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint)(unsafe.Pointer(&env.
-						IntBinds[index])) /= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint)(unsafe.Pointer(&env.IntBinds[index])) /= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() / uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint)(unsafe.Pointer(&env.
-						Outer.
-						IntBinds[index])) /= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint)(unsafe.Pointer(&env.
+							Outer.IntBinds[index])) /= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() / uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 2:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint)(unsafe.Pointer(&env.
-						Outer.Outer.
-						IntBinds[index])) /= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint)(unsafe.Pointer(&env.
+							Outer.Outer.IntBinds[index])) /= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.Outer.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() / uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			default:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					o := env.Outer.Outer.Outer
-					for i := 3; i < upn; i++ {
-						o = o.Outer
-					}
-					*(*uint)(unsafe.Pointer(&o.IntBinds[index])) /= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						*(*uint)(unsafe.Pointer(&o.IntBinds[index])) /= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+
+						{
+							lhs := o.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() / uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case c.Depth - 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-						IntBinds[index])) /= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) /= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.ThreadGlobals.FileEnv.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() / uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			}
 		case r.Uint8:
@@ -6924,53 +13998,131 @@ func (c *Comp) varQuoConst(upn int, index int, t xr.Type, val I) {
 			switch upn {
 			case 0:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint8)(unsafe.Pointer(&env.
-						IntBinds[index])) /= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint8)(unsafe.Pointer(&env.IntBinds[index])) /= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() / uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint8)(unsafe.Pointer(&env.
-						Outer.
-						IntBinds[index])) /= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint8)(unsafe.Pointer(&env.
+							Outer.IntBinds[index])) /= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() / uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 2:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint8)(unsafe.Pointer(&env.
-						Outer.Outer.
-						IntBinds[index])) /= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint8)(unsafe.Pointer(&env.
+							Outer.Outer.IntBinds[index])) /= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.Outer.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() / uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			default:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					o := env.Outer.Outer.Outer
-					for i := 3; i < upn; i++ {
-						o = o.Outer
-					}
-					*(*uint8)(unsafe.Pointer(&o.IntBinds[index])) /= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						*(*uint8)(unsafe.Pointer(&o.IntBinds[index])) /= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+
+						{
+							lhs := o.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() / uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case c.Depth - 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint8)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-						IntBinds[index])) /= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint8)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) /= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.ThreadGlobals.FileEnv.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() / uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			}
 		case r.Uint16:
@@ -6978,53 +14130,131 @@ func (c *Comp) varQuoConst(upn int, index int, t xr.Type, val I) {
 			switch upn {
 			case 0:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint16)(unsafe.Pointer(&env.
-						IntBinds[index])) /= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint16)(unsafe.Pointer(&env.IntBinds[index])) /= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() / uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint16)(unsafe.Pointer(&env.
-						Outer.
-						IntBinds[index])) /= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint16)(unsafe.Pointer(&env.
+							Outer.IntBinds[index])) /= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() / uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 2:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint16)(unsafe.Pointer(&env.
-						Outer.Outer.
-						IntBinds[index])) /= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint16)(unsafe.Pointer(&env.
+							Outer.Outer.IntBinds[index])) /= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.Outer.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() / uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			default:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					o := env.Outer.Outer.Outer
-					for i := 3; i < upn; i++ {
-						o = o.Outer
-					}
-					*(*uint16)(unsafe.Pointer(&o.IntBinds[index])) /= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						*(*uint16)(unsafe.Pointer(&o.IntBinds[index])) /= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+
+						{
+							lhs := o.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() / uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case c.Depth - 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint16)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-						IntBinds[index])) /= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint16)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) /= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.ThreadGlobals.FileEnv.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() / uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			}
 		case r.Uint32:
@@ -7032,53 +14262,131 @@ func (c *Comp) varQuoConst(upn int, index int, t xr.Type, val I) {
 			switch upn {
 			case 0:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint32)(unsafe.Pointer(&env.
-						IntBinds[index])) /= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint32)(unsafe.Pointer(&env.IntBinds[index])) /= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() / uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint32)(unsafe.Pointer(&env.
-						Outer.
-						IntBinds[index])) /= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint32)(unsafe.Pointer(&env.
+							Outer.IntBinds[index])) /= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() / uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 2:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint32)(unsafe.Pointer(&env.
-						Outer.Outer.
-						IntBinds[index])) /= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint32)(unsafe.Pointer(&env.
+							Outer.Outer.IntBinds[index])) /= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.Outer.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() / uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			default:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					o := env.Outer.Outer.Outer
-					for i := 3; i < upn; i++ {
-						o = o.Outer
-					}
-					*(*uint32)(unsafe.Pointer(&o.IntBinds[index])) /= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						*(*uint32)(unsafe.Pointer(&o.IntBinds[index])) /= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+
+						{
+							lhs := o.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() / uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case c.Depth - 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint32)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-						IntBinds[index])) /= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint32)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) /= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.ThreadGlobals.FileEnv.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() / uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			}
 		case r.Uint64:
@@ -7086,54 +14394,137 @@ func (c *Comp) varQuoConst(upn int, index int, t xr.Type, val I) {
 			switch upn {
 			case 0:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					env.
-						IntBinds[index] /= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						env.
+							IntBinds[index] /= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() / uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					env.
-						Outer.
-						IntBinds[index] /= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						env.
+							Outer.
+							IntBinds[index] /= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() / uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 2:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					env.
-						Outer.Outer.
-						IntBinds[index] /= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						env.
+							Outer.Outer.
+							IntBinds[index] /= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.Outer.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() / uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			default:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					o := env.Outer.Outer.Outer
-					for i := 3; i < upn; i++ {
-						o = o.Outer
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+
+						o.
+							IntBinds[index] /= val
+
+						env.IP++
+						return env.Code[env.IP], env
 					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
 
-					o.IntBinds[index] /= val
+						{
+							lhs := o.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() / uint64(val,
+							),
+							)
+						}
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case c.Depth - 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					env.ThreadGlobals.FileEnv.
-						IntBinds[index] /= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						env.ThreadGlobals.FileEnv.
+							IntBinds[index] /= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.ThreadGlobals.FileEnv.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() / uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			}
 		case r.Uintptr:
@@ -7141,53 +14532,131 @@ func (c *Comp) varQuoConst(upn int, index int, t xr.Type, val I) {
 			switch upn {
 			case 0:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uintptr)(unsafe.Pointer(&env.
-						IntBinds[index])) /= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uintptr)(unsafe.Pointer(&env.IntBinds[index])) /= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() / uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uintptr)(unsafe.Pointer(&env.
-						Outer.
-						IntBinds[index])) /= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uintptr)(unsafe.Pointer(&env.
+							Outer.IntBinds[index])) /= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() / uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 2:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uintptr)(unsafe.Pointer(&env.
-						Outer.Outer.
-						IntBinds[index])) /= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uintptr)(unsafe.Pointer(&env.
+							Outer.Outer.IntBinds[index])) /= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.Outer.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() / uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			default:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					o := env.Outer.Outer.Outer
-					for i := 3; i < upn; i++ {
-						o = o.Outer
-					}
-					*(*uintptr)(unsafe.Pointer(&o.IntBinds[index])) /= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						*(*uintptr)(unsafe.Pointer(&o.IntBinds[index])) /= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+
+						{
+							lhs := o.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() / uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case c.Depth - 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uintptr)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-						IntBinds[index])) /= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uintptr)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) /= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.ThreadGlobals.FileEnv.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() / uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			}
 		case r.Float32:
@@ -7197,53 +14666,131 @@ func (c *Comp) varQuoConst(upn int, index int, t xr.Type, val I) {
 			switch upn {
 			case 0:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*float32)(unsafe.Pointer(&env.
-						IntBinds[index])) /= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*float32)(unsafe.Pointer(&env.IntBinds[index])) /= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Binds[index]
+							lhs.SetFloat(lhs.Float() / float64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*float32)(unsafe.Pointer(&env.
-						Outer.
-						IntBinds[index])) /= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*float32)(unsafe.Pointer(&env.
+							Outer.IntBinds[index])) /= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.
+								Binds[index]
+							lhs.SetFloat(lhs.Float() / float64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 2:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*float32)(unsafe.Pointer(&env.
-						Outer.Outer.
-						IntBinds[index])) /= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*float32)(unsafe.Pointer(&env.
+							Outer.Outer.IntBinds[index])) /= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.Outer.
+								Binds[index]
+							lhs.SetFloat(lhs.Float() / float64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			default:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					o := env.Outer.Outer.Outer
-					for i := 3; i < upn; i++ {
-						o = o.Outer
-					}
-					*(*float32)(unsafe.Pointer(&o.IntBinds[index])) /= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						*(*float32)(unsafe.Pointer(&o.IntBinds[index])) /= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+
+						{
+							lhs := o.
+								Binds[index]
+							lhs.SetFloat(lhs.Float() / float64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case c.Depth - 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*float32)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-						IntBinds[index])) /= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*float32)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) /= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.ThreadGlobals.FileEnv.
+								Binds[index]
+							lhs.SetFloat(lhs.Float() / float64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			}
 		case r.Float64:
@@ -7251,53 +14798,131 @@ func (c *Comp) varQuoConst(upn int, index int, t xr.Type, val I) {
 			switch upn {
 			case 0:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*float64)(unsafe.Pointer(&env.
-						IntBinds[index])) /= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*float64)(unsafe.Pointer(&env.IntBinds[index])) /= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Binds[index]
+							lhs.SetFloat(lhs.Float() / float64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*float64)(unsafe.Pointer(&env.
-						Outer.
-						IntBinds[index])) /= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*float64)(unsafe.Pointer(&env.
+							Outer.IntBinds[index])) /= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.
+								Binds[index]
+							lhs.SetFloat(lhs.Float() / float64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 2:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*float64)(unsafe.Pointer(&env.
-						Outer.Outer.
-						IntBinds[index])) /= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*float64)(unsafe.Pointer(&env.
+							Outer.Outer.IntBinds[index])) /= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.Outer.
+								Binds[index]
+							lhs.SetFloat(lhs.Float() / float64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			default:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					o := env.Outer.Outer.Outer
-					for i := 3; i < upn; i++ {
-						o = o.Outer
-					}
-					*(*float64)(unsafe.Pointer(&o.IntBinds[index])) /= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						*(*float64)(unsafe.Pointer(&o.IntBinds[index])) /= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+
+						{
+							lhs := o.
+								Binds[index]
+							lhs.SetFloat(lhs.Float() / float64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case c.Depth - 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*float64)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-						IntBinds[index])) /= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*float64)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) /= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.ThreadGlobals.FileEnv.
+								Binds[index]
+							lhs.SetFloat(lhs.Float() / float64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			}
 		case r.Complex64:
@@ -7307,53 +14932,131 @@ func (c *Comp) varQuoConst(upn int, index int, t xr.Type, val I) {
 			switch upn {
 			case 0:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*complex64)(unsafe.Pointer(&env.
-						IntBinds[index])) /= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*complex64)(unsafe.Pointer(&env.IntBinds[index])) /= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Binds[index]
+							lhs.SetComplex(lhs.Complex() / complex128(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*complex64)(unsafe.Pointer(&env.
-						Outer.
-						IntBinds[index])) /= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*complex64)(unsafe.Pointer(&env.
+							Outer.IntBinds[index])) /= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.
+								Binds[index]
+							lhs.SetComplex(lhs.Complex() / complex128(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 2:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*complex64)(unsafe.Pointer(&env.
-						Outer.Outer.
-						IntBinds[index])) /= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*complex64)(unsafe.Pointer(&env.
+							Outer.Outer.IntBinds[index])) /= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.Outer.
+								Binds[index]
+							lhs.SetComplex(lhs.Complex() / complex128(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			default:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					o := env.Outer.Outer.Outer
-					for i := 3; i < upn; i++ {
-						o = o.Outer
-					}
-					*(*complex64)(unsafe.Pointer(&o.IntBinds[index])) /= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						*(*complex64)(unsafe.Pointer(&o.IntBinds[index])) /= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+
+						{
+							lhs := o.
+								Binds[index]
+							lhs.SetComplex(lhs.Complex() / complex128(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case c.Depth - 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*complex64)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-						IntBinds[index])) /= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*complex64)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) /= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.ThreadGlobals.FileEnv.
+								Binds[index]
+							lhs.SetComplex(lhs.Complex() / complex128(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			}
 		case r.Complex128:
@@ -7410,10 +15113,10 @@ func (c *Comp) varQuoConst(upn int, index int, t xr.Type, val I) {
 					for i := 3; i < upn; i++ {
 						o = o.Outer
 					}
-					{
-						lhs :=
 
-							o.Binds[index]
+					{
+						lhs := o.
+							Binds[index]
 						lhs.SetComplex(lhs.Complex() /
 							val,
 						)
@@ -7426,9 +15129,8 @@ func (c *Comp) varQuoConst(upn int, index int, t xr.Type, val I) {
 
 				ret = func(env *Env) (Stmt, *Env) {
 					{
-						lhs :=
-
-							env.ThreadGlobals.FileEnv.Binds[index]
+						lhs := env.ThreadGlobals.FileEnv.
+							Binds[index]
 						lhs.SetComplex(lhs.Complex() /
 							val,
 						)
@@ -7445,750 +15147,1851 @@ func (c *Comp) varQuoConst(upn int, index int, t xr.Type, val I) {
 		c.append(ret)
 	}
 }
-func (c *Comp) varQuoExpr(upn int, index int, t xr.Type, fun I) {
+func (c *Comp) varQuoExpr(va *Var, fun I) {
+	t := va.Type
+	upn := va.Upn
+	index := va.Desc.Index()
+	intbinds := va.Desc.Class() == IntBind
 	var ret Stmt
 	switch fun := fun.(type) {
 	case func(*Env) int:
 		switch upn {
 		case 0:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int)(unsafe.Pointer(&env.
-					IntBinds[index])) /= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int)(unsafe.Pointer(&env.IntBinds[index])) /= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Binds[index]
+						lhs.SetInt(lhs.Int() / int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int)(unsafe.Pointer(&env.
-					Outer.
-					IntBinds[index])) /= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int)(unsafe.Pointer(&env.
+						Outer.IntBinds[index])) /= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.
+							Binds[index]
+						lhs.SetInt(lhs.Int() / int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 2:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int)(unsafe.Pointer(&env.
-					Outer.Outer.
-					IntBinds[index])) /= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int)(unsafe.Pointer(&env.
+						Outer.Outer.IntBinds[index])) /= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.Outer.
+							Binds[index]
+						lhs.SetInt(lhs.Int() / int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		default:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				o := env.Outer.Outer.Outer
-				for i := 3; i < upn; i++ {
-					o = o.Outer
-				}
-				*(*int)(unsafe.Pointer(&o.IntBinds[index])) /= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					*(*int)(unsafe.Pointer(&o.IntBinds[index])) /= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					{
+						lhs :=
+
+							o.Binds[index]
+						lhs.SetInt(lhs.Int() / int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case c.Depth - 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-					IntBinds[index])) /= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) /= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.ThreadGlobals.FileEnv.
+							Binds[index]
+						lhs.SetInt(lhs.Int() / int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		}
 	case func(*Env) int8:
 		switch upn {
 		case 0:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int8)(unsafe.Pointer(&env.
-					IntBinds[index])) /= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int8)(unsafe.Pointer(&env.IntBinds[index])) /= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Binds[index]
+						lhs.SetInt(lhs.Int() / int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int8)(unsafe.Pointer(&env.
-					Outer.
-					IntBinds[index])) /= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int8)(unsafe.Pointer(&env.
+						Outer.IntBinds[index])) /= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.
+							Binds[index]
+						lhs.SetInt(lhs.Int() / int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 2:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int8)(unsafe.Pointer(&env.
-					Outer.Outer.
-					IntBinds[index])) /= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int8)(unsafe.Pointer(&env.
+						Outer.Outer.IntBinds[index])) /= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.Outer.
+							Binds[index]
+						lhs.SetInt(lhs.Int() / int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		default:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				o := env.Outer.Outer.Outer
-				for i := 3; i < upn; i++ {
-					o = o.Outer
-				}
-				*(*int8)(unsafe.Pointer(&o.IntBinds[index])) /= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					*(*int8)(unsafe.Pointer(&o.IntBinds[index])) /= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					{
+						lhs :=
+
+							o.Binds[index]
+						lhs.SetInt(lhs.Int() / int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case c.Depth - 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int8)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-					IntBinds[index])) /= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int8)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) /= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.ThreadGlobals.FileEnv.
+							Binds[index]
+						lhs.SetInt(lhs.Int() / int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		}
 	case func(*Env) int16:
 		switch upn {
 		case 0:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int16)(unsafe.Pointer(&env.
-					IntBinds[index])) /= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int16)(unsafe.Pointer(&env.IntBinds[index])) /= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Binds[index]
+						lhs.SetInt(lhs.Int() / int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int16)(unsafe.Pointer(&env.
-					Outer.
-					IntBinds[index])) /= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int16)(unsafe.Pointer(&env.
+						Outer.IntBinds[index])) /= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.
+							Binds[index]
+						lhs.SetInt(lhs.Int() / int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 2:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int16)(unsafe.Pointer(&env.
-					Outer.Outer.
-					IntBinds[index])) /= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int16)(unsafe.Pointer(&env.
+						Outer.Outer.IntBinds[index])) /= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.Outer.
+							Binds[index]
+						lhs.SetInt(lhs.Int() / int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		default:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				o := env.Outer.Outer.Outer
-				for i := 3; i < upn; i++ {
-					o = o.Outer
-				}
-				*(*int16)(unsafe.Pointer(&o.IntBinds[index])) /= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					*(*int16)(unsafe.Pointer(&o.IntBinds[index])) /= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					{
+						lhs :=
+
+							o.Binds[index]
+						lhs.SetInt(lhs.Int() / int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case c.Depth - 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int16)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-					IntBinds[index])) /= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int16)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) /= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.ThreadGlobals.FileEnv.
+							Binds[index]
+						lhs.SetInt(lhs.Int() / int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		}
 	case func(*Env) int32:
 		switch upn {
 		case 0:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int32)(unsafe.Pointer(&env.
-					IntBinds[index])) /= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int32)(unsafe.Pointer(&env.IntBinds[index])) /= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Binds[index]
+						lhs.SetInt(lhs.Int() / int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int32)(unsafe.Pointer(&env.
-					Outer.
-					IntBinds[index])) /= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int32)(unsafe.Pointer(&env.
+						Outer.IntBinds[index])) /= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.
+							Binds[index]
+						lhs.SetInt(lhs.Int() / int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 2:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int32)(unsafe.Pointer(&env.
-					Outer.Outer.
-					IntBinds[index])) /= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int32)(unsafe.Pointer(&env.
+						Outer.Outer.IntBinds[index])) /= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.Outer.
+							Binds[index]
+						lhs.SetInt(lhs.Int() / int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		default:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				o := env.Outer.Outer.Outer
-				for i := 3; i < upn; i++ {
-					o = o.Outer
-				}
-				*(*int32)(unsafe.Pointer(&o.IntBinds[index])) /= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					*(*int32)(unsafe.Pointer(&o.IntBinds[index])) /= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					{
+						lhs :=
+
+							o.Binds[index]
+						lhs.SetInt(lhs.Int() / int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case c.Depth - 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int32)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-					IntBinds[index])) /= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int32)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) /= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.ThreadGlobals.FileEnv.
+							Binds[index]
+						lhs.SetInt(lhs.Int() / int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		}
 	case func(*Env) int64:
 		switch upn {
 		case 0:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int64)(unsafe.Pointer(&env.
-					IntBinds[index])) /= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int64)(unsafe.Pointer(&env.IntBinds[index])) /= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Binds[index]
+						lhs.SetInt(lhs.Int() / int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int64)(unsafe.Pointer(&env.
-					Outer.
-					IntBinds[index])) /= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int64)(unsafe.Pointer(&env.
+						Outer.IntBinds[index])) /= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.
+							Binds[index]
+						lhs.SetInt(lhs.Int() / int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 2:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int64)(unsafe.Pointer(&env.
-					Outer.Outer.
-					IntBinds[index])) /= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int64)(unsafe.Pointer(&env.
+						Outer.Outer.IntBinds[index])) /= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.Outer.
+							Binds[index]
+						lhs.SetInt(lhs.Int() / int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		default:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				o := env.Outer.Outer.Outer
-				for i := 3; i < upn; i++ {
-					o = o.Outer
-				}
-				*(*int64)(unsafe.Pointer(&o.IntBinds[index])) /= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					*(*int64)(unsafe.Pointer(&o.IntBinds[index])) /= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					{
+						lhs :=
+
+							o.Binds[index]
+						lhs.SetInt(lhs.Int() / int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case c.Depth - 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int64)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-					IntBinds[index])) /= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int64)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) /= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.ThreadGlobals.FileEnv.
+							Binds[index]
+						lhs.SetInt(lhs.Int() / int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		}
 	case func(*Env) uint:
 		switch upn {
 		case 0:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint)(unsafe.Pointer(&env.
-					IntBinds[index])) /= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint)(unsafe.Pointer(&env.IntBinds[index])) /= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() / uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint)(unsafe.Pointer(&env.
-					Outer.
-					IntBinds[index])) /= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint)(unsafe.Pointer(&env.
+						Outer.IntBinds[index])) /= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() / uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 2:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint)(unsafe.Pointer(&env.
-					Outer.Outer.
-					IntBinds[index])) /= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint)(unsafe.Pointer(&env.
+						Outer.Outer.IntBinds[index])) /= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.Outer.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() / uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		default:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				o := env.Outer.Outer.Outer
-				for i := 3; i < upn; i++ {
-					o = o.Outer
-				}
-				*(*uint)(unsafe.Pointer(&o.IntBinds[index])) /= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					*(*uint)(unsafe.Pointer(&o.IntBinds[index])) /= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+
+					{
+						lhs := o.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() / uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case c.Depth - 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-					IntBinds[index])) /= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) /= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.ThreadGlobals.FileEnv.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() / uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		}
 	case func(*Env) uint8:
 		switch upn {
 		case 0:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint8)(unsafe.Pointer(&env.
-					IntBinds[index])) /= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint8)(unsafe.Pointer(&env.IntBinds[index])) /= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() / uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint8)(unsafe.Pointer(&env.
-					Outer.
-					IntBinds[index])) /= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint8)(unsafe.Pointer(&env.
+						Outer.IntBinds[index])) /= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() / uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 2:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint8)(unsafe.Pointer(&env.
-					Outer.Outer.
-					IntBinds[index])) /= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint8)(unsafe.Pointer(&env.
+						Outer.Outer.IntBinds[index])) /= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.Outer.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() / uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		default:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				o := env.Outer.Outer.Outer
-				for i := 3; i < upn; i++ {
-					o = o.Outer
-				}
-				*(*uint8)(unsafe.Pointer(&o.IntBinds[index])) /= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					*(*uint8)(unsafe.Pointer(&o.IntBinds[index])) /= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+
+					{
+						lhs := o.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() / uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case c.Depth - 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint8)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-					IntBinds[index])) /= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint8)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) /= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.ThreadGlobals.FileEnv.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() / uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		}
 	case func(*Env) uint16:
 		switch upn {
 		case 0:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint16)(unsafe.Pointer(&env.
-					IntBinds[index])) /= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint16)(unsafe.Pointer(&env.IntBinds[index])) /= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() / uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint16)(unsafe.Pointer(&env.
-					Outer.
-					IntBinds[index])) /= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint16)(unsafe.Pointer(&env.
+						Outer.IntBinds[index])) /= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() / uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 2:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint16)(unsafe.Pointer(&env.
-					Outer.Outer.
-					IntBinds[index])) /= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint16)(unsafe.Pointer(&env.
+						Outer.Outer.IntBinds[index])) /= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.Outer.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() / uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		default:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				o := env.Outer.Outer.Outer
-				for i := 3; i < upn; i++ {
-					o = o.Outer
-				}
-				*(*uint16)(unsafe.Pointer(&o.IntBinds[index])) /= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					*(*uint16)(unsafe.Pointer(&o.IntBinds[index])) /= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+
+					{
+						lhs := o.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() / uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case c.Depth - 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint16)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-					IntBinds[index])) /= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint16)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) /= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.ThreadGlobals.FileEnv.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() / uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		}
 	case func(*Env) uint32:
 		switch upn {
 		case 0:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint32)(unsafe.Pointer(&env.
-					IntBinds[index])) /= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint32)(unsafe.Pointer(&env.IntBinds[index])) /= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() / uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint32)(unsafe.Pointer(&env.
-					Outer.
-					IntBinds[index])) /= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint32)(unsafe.Pointer(&env.
+						Outer.IntBinds[index])) /= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() / uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 2:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint32)(unsafe.Pointer(&env.
-					Outer.Outer.
-					IntBinds[index])) /= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint32)(unsafe.Pointer(&env.
+						Outer.Outer.IntBinds[index])) /= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.Outer.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() / uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		default:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				o := env.Outer.Outer.Outer
-				for i := 3; i < upn; i++ {
-					o = o.Outer
-				}
-				*(*uint32)(unsafe.Pointer(&o.IntBinds[index])) /= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					*(*uint32)(unsafe.Pointer(&o.IntBinds[index])) /= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+
+					{
+						lhs := o.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() / uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case c.Depth - 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint32)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-					IntBinds[index])) /= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint32)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) /= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.ThreadGlobals.FileEnv.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() / uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		}
 	case func(*Env) uint64:
 		switch upn {
 		case 0:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				env.
-					IntBinds[index] /= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					env.
+						IntBinds[index] /= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() / uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				env.
-					Outer.
-					IntBinds[index] /= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					env.
+						Outer.
+						IntBinds[index] /= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() / uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 2:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				env.
-					Outer.Outer.
-					IntBinds[index] /= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					env.
+						Outer.Outer.
+						IntBinds[index] /= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.Outer.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() / uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		default:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				o := env.Outer.Outer.Outer
-				for i := 3; i < upn; i++ {
-					o = o.Outer
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+
+					o.
+						IntBinds[index] /= fun(env)
+
+					env.IP++
+					return env.Code[env.IP], env
 				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
 
-				o.IntBinds[index] /= fun(env)
+					{
+						lhs := o.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() / uint64(fun(env),
+						),
+						)
+					}
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case c.Depth - 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				env.ThreadGlobals.FileEnv.
-					IntBinds[index] /= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					env.ThreadGlobals.FileEnv.
+						IntBinds[index] /= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.ThreadGlobals.FileEnv.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() / uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		}
 	case func(*Env) uintptr:
 		switch upn {
 		case 0:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uintptr)(unsafe.Pointer(&env.
-					IntBinds[index])) /= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uintptr)(unsafe.Pointer(&env.IntBinds[index])) /= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() / uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uintptr)(unsafe.Pointer(&env.
-					Outer.
-					IntBinds[index])) /= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uintptr)(unsafe.Pointer(&env.
+						Outer.IntBinds[index])) /= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() / uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 2:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uintptr)(unsafe.Pointer(&env.
-					Outer.Outer.
-					IntBinds[index])) /= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uintptr)(unsafe.Pointer(&env.
+						Outer.Outer.IntBinds[index])) /= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.Outer.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() / uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		default:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				o := env.Outer.Outer.Outer
-				for i := 3; i < upn; i++ {
-					o = o.Outer
-				}
-				*(*uintptr)(unsafe.Pointer(&o.IntBinds[index])) /= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					*(*uintptr)(unsafe.Pointer(&o.IntBinds[index])) /= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+
+					{
+						lhs := o.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() / uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case c.Depth - 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uintptr)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-					IntBinds[index])) /= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uintptr)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) /= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.ThreadGlobals.FileEnv.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() / uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		}
 	case func(*Env) float32:
 		switch upn {
 		case 0:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*float32)(unsafe.Pointer(&env.
-					IntBinds[index])) /= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*float32)(unsafe.Pointer(&env.IntBinds[index])) /= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Binds[index]
+						lhs.SetFloat(lhs.Float() / float64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*float32)(unsafe.Pointer(&env.
-					Outer.
-					IntBinds[index])) /= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*float32)(unsafe.Pointer(&env.
+						Outer.IntBinds[index])) /= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.
+							Binds[index]
+						lhs.SetFloat(lhs.Float() / float64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 2:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*float32)(unsafe.Pointer(&env.
-					Outer.Outer.
-					IntBinds[index])) /= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*float32)(unsafe.Pointer(&env.
+						Outer.Outer.IntBinds[index])) /= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.Outer.
+							Binds[index]
+						lhs.SetFloat(lhs.Float() / float64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		default:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				o := env.Outer.Outer.Outer
-				for i := 3; i < upn; i++ {
-					o = o.Outer
-				}
-				*(*float32)(unsafe.Pointer(&o.IntBinds[index])) /= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					*(*float32)(unsafe.Pointer(&o.IntBinds[index])) /= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+
+					{
+						lhs := o.
+							Binds[index]
+						lhs.SetFloat(lhs.Float() / float64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case c.Depth - 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*float32)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-					IntBinds[index])) /= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*float32)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) /= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.ThreadGlobals.FileEnv.
+							Binds[index]
+						lhs.SetFloat(lhs.Float() / float64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		}
 	case func(*Env) float64:
 		switch upn {
 		case 0:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*float64)(unsafe.Pointer(&env.
-					IntBinds[index])) /= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*float64)(unsafe.Pointer(&env.IntBinds[index])) /= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Binds[index]
+						lhs.SetFloat(lhs.Float() / float64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*float64)(unsafe.Pointer(&env.
-					Outer.
-					IntBinds[index])) /= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*float64)(unsafe.Pointer(&env.
+						Outer.IntBinds[index])) /= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.
+							Binds[index]
+						lhs.SetFloat(lhs.Float() / float64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 2:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*float64)(unsafe.Pointer(&env.
-					Outer.Outer.
-					IntBinds[index])) /= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*float64)(unsafe.Pointer(&env.
+						Outer.Outer.IntBinds[index])) /= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.Outer.
+							Binds[index]
+						lhs.SetFloat(lhs.Float() / float64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		default:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				o := env.Outer.Outer.Outer
-				for i := 3; i < upn; i++ {
-					o = o.Outer
-				}
-				*(*float64)(unsafe.Pointer(&o.IntBinds[index])) /= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					*(*float64)(unsafe.Pointer(&o.IntBinds[index])) /= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+
+					{
+						lhs := o.
+							Binds[index]
+						lhs.SetFloat(lhs.Float() / float64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case c.Depth - 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*float64)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-					IntBinds[index])) /= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*float64)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) /= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.ThreadGlobals.FileEnv.
+							Binds[index]
+						lhs.SetFloat(lhs.Float() / float64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		}
 	case func(*Env) complex64:
 		switch upn {
 		case 0:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*complex64)(unsafe.Pointer(&env.
-					IntBinds[index])) /= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*complex64)(unsafe.Pointer(&env.IntBinds[index])) /= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Binds[index]
+						lhs.SetComplex(lhs.Complex() / complex128(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*complex64)(unsafe.Pointer(&env.
-					Outer.
-					IntBinds[index])) /= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*complex64)(unsafe.Pointer(&env.
+						Outer.IntBinds[index])) /= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.
+							Binds[index]
+						lhs.SetComplex(lhs.Complex() / complex128(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 2:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*complex64)(unsafe.Pointer(&env.
-					Outer.Outer.
-					IntBinds[index])) /= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*complex64)(unsafe.Pointer(&env.
+						Outer.Outer.IntBinds[index])) /= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.Outer.
+							Binds[index]
+						lhs.SetComplex(lhs.Complex() / complex128(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		default:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				o := env.Outer.Outer.Outer
-				for i := 3; i < upn; i++ {
-					o = o.Outer
-				}
-				*(*complex64)(unsafe.Pointer(&o.IntBinds[index])) /= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					*(*complex64)(unsafe.Pointer(&o.IntBinds[index])) /= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+
+					{
+						lhs := o.
+							Binds[index]
+						lhs.SetComplex(lhs.Complex() / complex128(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case c.Depth - 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*complex64)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-					IntBinds[index])) /= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*complex64)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) /= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.ThreadGlobals.FileEnv.
+							Binds[index]
+						lhs.SetComplex(lhs.Complex() / complex128(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		}
 	case func(*Env) complex128:
@@ -8244,10 +17047,10 @@ func (c *Comp) varQuoExpr(upn int, index int, t xr.Type, fun I) {
 				for i := 3; i < upn; i++ {
 					o = o.Outer
 				}
-				{
-					lhs :=
 
-						o.Binds[index]
+				{
+					lhs := o.
+						Binds[index]
 					lhs.SetComplex(lhs.Complex() /
 						fun(env),
 					)
@@ -8260,9 +17063,8 @@ func (c *Comp) varQuoExpr(upn int, index int, t xr.Type, fun I) {
 
 			ret = func(env *Env) (Stmt, *Env) {
 				{
-					lhs :=
-
-						env.ThreadGlobals.FileEnv.Binds[index]
+					lhs := env.ThreadGlobals.FileEnv.
+						Binds[index]
 					lhs.SetComplex(lhs.Complex() /
 						fun(env),
 					)
@@ -8278,19 +17080,24 @@ func (c *Comp) varQuoExpr(upn int, index int, t xr.Type, fun I) {
 	}
 	c.append(ret)
 }
-func (c *Comp) varRemConst(upn int, index int, t xr.Type, val I) {
+func (c *Comp) varRemConst(va *Var, val I) {
+	t := va.Type
 	if IsCategory(t.Kind(), r.Int, r.Uint) {
 		if isLiteralNumber(val, 0) {
 			c.Errorf("division by %v <%v>", val, t)
 			return
 		} else if isLiteralNumber(val, 1) {
 
-			c.varSetZero(upn, index, t)
+			c.varSetZero(va)
 			return
 		}
 	}
 
 	{
+		t := va.Type
+		upn := va.Upn
+		index := va.Desc.Index()
+		intbinds := va.Desc.Class() == IntBind
 		var ret Stmt
 		switch t.Kind() {
 		case r.Int:
@@ -8298,53 +17105,131 @@ func (c *Comp) varRemConst(upn int, index int, t xr.Type, val I) {
 			switch upn {
 			case 0:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int)(unsafe.Pointer(&env.
-						IntBinds[index])) %= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int)(unsafe.Pointer(&env.IntBinds[index])) %= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Binds[index]
+							lhs.SetInt(lhs.Int() % int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int)(unsafe.Pointer(&env.
-						Outer.
-						IntBinds[index])) %= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int)(unsafe.Pointer(&env.
+							Outer.IntBinds[index])) %= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.
+								Binds[index]
+							lhs.SetInt(lhs.Int() % int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 2:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int)(unsafe.Pointer(&env.
-						Outer.Outer.
-						IntBinds[index])) %= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int)(unsafe.Pointer(&env.
+							Outer.Outer.IntBinds[index])) %= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.Outer.
+								Binds[index]
+							lhs.SetInt(lhs.Int() % int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			default:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					o := env.Outer.Outer.Outer
-					for i := 3; i < upn; i++ {
-						o = o.Outer
-					}
-					*(*int)(unsafe.Pointer(&o.IntBinds[index])) %= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						*(*int)(unsafe.Pointer(&o.IntBinds[index])) %= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						{
+							lhs :=
+
+								o.Binds[index]
+							lhs.SetInt(lhs.Int() % int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case c.Depth - 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-						IntBinds[index])) %= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) %= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.ThreadGlobals.FileEnv.
+								Binds[index]
+							lhs.SetInt(lhs.Int() % int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			}
 		case r.Int8:
@@ -8352,53 +17237,131 @@ func (c *Comp) varRemConst(upn int, index int, t xr.Type, val I) {
 			switch upn {
 			case 0:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int8)(unsafe.Pointer(&env.
-						IntBinds[index])) %= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int8)(unsafe.Pointer(&env.IntBinds[index])) %= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Binds[index]
+							lhs.SetInt(lhs.Int() % int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int8)(unsafe.Pointer(&env.
-						Outer.
-						IntBinds[index])) %= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int8)(unsafe.Pointer(&env.
+							Outer.IntBinds[index])) %= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.
+								Binds[index]
+							lhs.SetInt(lhs.Int() % int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 2:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int8)(unsafe.Pointer(&env.
-						Outer.Outer.
-						IntBinds[index])) %= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int8)(unsafe.Pointer(&env.
+							Outer.Outer.IntBinds[index])) %= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.Outer.
+								Binds[index]
+							lhs.SetInt(lhs.Int() % int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			default:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					o := env.Outer.Outer.Outer
-					for i := 3; i < upn; i++ {
-						o = o.Outer
-					}
-					*(*int8)(unsafe.Pointer(&o.IntBinds[index])) %= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						*(*int8)(unsafe.Pointer(&o.IntBinds[index])) %= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						{
+							lhs :=
+
+								o.Binds[index]
+							lhs.SetInt(lhs.Int() % int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case c.Depth - 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int8)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-						IntBinds[index])) %= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int8)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) %= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.ThreadGlobals.FileEnv.
+								Binds[index]
+							lhs.SetInt(lhs.Int() % int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			}
 		case r.Int16:
@@ -8406,53 +17369,131 @@ func (c *Comp) varRemConst(upn int, index int, t xr.Type, val I) {
 			switch upn {
 			case 0:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int16)(unsafe.Pointer(&env.
-						IntBinds[index])) %= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int16)(unsafe.Pointer(&env.IntBinds[index])) %= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Binds[index]
+							lhs.SetInt(lhs.Int() % int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int16)(unsafe.Pointer(&env.
-						Outer.
-						IntBinds[index])) %= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int16)(unsafe.Pointer(&env.
+							Outer.IntBinds[index])) %= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.
+								Binds[index]
+							lhs.SetInt(lhs.Int() % int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 2:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int16)(unsafe.Pointer(&env.
-						Outer.Outer.
-						IntBinds[index])) %= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int16)(unsafe.Pointer(&env.
+							Outer.Outer.IntBinds[index])) %= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.Outer.
+								Binds[index]
+							lhs.SetInt(lhs.Int() % int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			default:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					o := env.Outer.Outer.Outer
-					for i := 3; i < upn; i++ {
-						o = o.Outer
-					}
-					*(*int16)(unsafe.Pointer(&o.IntBinds[index])) %= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						*(*int16)(unsafe.Pointer(&o.IntBinds[index])) %= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						{
+							lhs :=
+
+								o.Binds[index]
+							lhs.SetInt(lhs.Int() % int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case c.Depth - 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int16)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-						IntBinds[index])) %= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int16)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) %= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.ThreadGlobals.FileEnv.
+								Binds[index]
+							lhs.SetInt(lhs.Int() % int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			}
 		case r.Int32:
@@ -8460,53 +17501,131 @@ func (c *Comp) varRemConst(upn int, index int, t xr.Type, val I) {
 			switch upn {
 			case 0:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int32)(unsafe.Pointer(&env.
-						IntBinds[index])) %= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int32)(unsafe.Pointer(&env.IntBinds[index])) %= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Binds[index]
+							lhs.SetInt(lhs.Int() % int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int32)(unsafe.Pointer(&env.
-						Outer.
-						IntBinds[index])) %= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int32)(unsafe.Pointer(&env.
+							Outer.IntBinds[index])) %= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.
+								Binds[index]
+							lhs.SetInt(lhs.Int() % int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 2:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int32)(unsafe.Pointer(&env.
-						Outer.Outer.
-						IntBinds[index])) %= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int32)(unsafe.Pointer(&env.
+							Outer.Outer.IntBinds[index])) %= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.Outer.
+								Binds[index]
+							lhs.SetInt(lhs.Int() % int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			default:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					o := env.Outer.Outer.Outer
-					for i := 3; i < upn; i++ {
-						o = o.Outer
-					}
-					*(*int32)(unsafe.Pointer(&o.IntBinds[index])) %= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						*(*int32)(unsafe.Pointer(&o.IntBinds[index])) %= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						{
+							lhs :=
+
+								o.Binds[index]
+							lhs.SetInt(lhs.Int() % int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case c.Depth - 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int32)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-						IntBinds[index])) %= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int32)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) %= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.ThreadGlobals.FileEnv.
+								Binds[index]
+							lhs.SetInt(lhs.Int() % int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			}
 		case r.Int64:
@@ -8514,53 +17633,131 @@ func (c *Comp) varRemConst(upn int, index int, t xr.Type, val I) {
 			switch upn {
 			case 0:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int64)(unsafe.Pointer(&env.
-						IntBinds[index])) %= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int64)(unsafe.Pointer(&env.IntBinds[index])) %= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Binds[index]
+							lhs.SetInt(lhs.Int() % int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int64)(unsafe.Pointer(&env.
-						Outer.
-						IntBinds[index])) %= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int64)(unsafe.Pointer(&env.
+							Outer.IntBinds[index])) %= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.
+								Binds[index]
+							lhs.SetInt(lhs.Int() % int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 2:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int64)(unsafe.Pointer(&env.
-						Outer.Outer.
-						IntBinds[index])) %= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int64)(unsafe.Pointer(&env.
+							Outer.Outer.IntBinds[index])) %= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.Outer.
+								Binds[index]
+							lhs.SetInt(lhs.Int() % int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			default:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					o := env.Outer.Outer.Outer
-					for i := 3; i < upn; i++ {
-						o = o.Outer
-					}
-					*(*int64)(unsafe.Pointer(&o.IntBinds[index])) %= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						*(*int64)(unsafe.Pointer(&o.IntBinds[index])) %= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						{
+							lhs :=
+
+								o.Binds[index]
+							lhs.SetInt(lhs.Int() % int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case c.Depth - 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int64)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-						IntBinds[index])) %= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int64)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) %= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.ThreadGlobals.FileEnv.
+								Binds[index]
+							lhs.SetInt(lhs.Int() % int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			}
 		case r.Uint:
@@ -8568,53 +17765,131 @@ func (c *Comp) varRemConst(upn int, index int, t xr.Type, val I) {
 			switch upn {
 			case 0:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint)(unsafe.Pointer(&env.
-						IntBinds[index])) %= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint)(unsafe.Pointer(&env.IntBinds[index])) %= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() % uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint)(unsafe.Pointer(&env.
-						Outer.
-						IntBinds[index])) %= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint)(unsafe.Pointer(&env.
+							Outer.IntBinds[index])) %= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() % uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 2:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint)(unsafe.Pointer(&env.
-						Outer.Outer.
-						IntBinds[index])) %= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint)(unsafe.Pointer(&env.
+							Outer.Outer.IntBinds[index])) %= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.Outer.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() % uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			default:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					o := env.Outer.Outer.Outer
-					for i := 3; i < upn; i++ {
-						o = o.Outer
-					}
-					*(*uint)(unsafe.Pointer(&o.IntBinds[index])) %= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						*(*uint)(unsafe.Pointer(&o.IntBinds[index])) %= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+
+						{
+							lhs := o.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() % uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case c.Depth - 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-						IntBinds[index])) %= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) %= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.ThreadGlobals.FileEnv.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() % uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			}
 		case r.Uint8:
@@ -8622,53 +17897,131 @@ func (c *Comp) varRemConst(upn int, index int, t xr.Type, val I) {
 			switch upn {
 			case 0:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint8)(unsafe.Pointer(&env.
-						IntBinds[index])) %= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint8)(unsafe.Pointer(&env.IntBinds[index])) %= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() % uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint8)(unsafe.Pointer(&env.
-						Outer.
-						IntBinds[index])) %= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint8)(unsafe.Pointer(&env.
+							Outer.IntBinds[index])) %= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() % uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 2:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint8)(unsafe.Pointer(&env.
-						Outer.Outer.
-						IntBinds[index])) %= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint8)(unsafe.Pointer(&env.
+							Outer.Outer.IntBinds[index])) %= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.Outer.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() % uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			default:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					o := env.Outer.Outer.Outer
-					for i := 3; i < upn; i++ {
-						o = o.Outer
-					}
-					*(*uint8)(unsafe.Pointer(&o.IntBinds[index])) %= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						*(*uint8)(unsafe.Pointer(&o.IntBinds[index])) %= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+
+						{
+							lhs := o.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() % uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case c.Depth - 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint8)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-						IntBinds[index])) %= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint8)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) %= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.ThreadGlobals.FileEnv.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() % uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			}
 		case r.Uint16:
@@ -8676,53 +18029,131 @@ func (c *Comp) varRemConst(upn int, index int, t xr.Type, val I) {
 			switch upn {
 			case 0:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint16)(unsafe.Pointer(&env.
-						IntBinds[index])) %= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint16)(unsafe.Pointer(&env.IntBinds[index])) %= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() % uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint16)(unsafe.Pointer(&env.
-						Outer.
-						IntBinds[index])) %= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint16)(unsafe.Pointer(&env.
+							Outer.IntBinds[index])) %= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() % uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 2:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint16)(unsafe.Pointer(&env.
-						Outer.Outer.
-						IntBinds[index])) %= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint16)(unsafe.Pointer(&env.
+							Outer.Outer.IntBinds[index])) %= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.Outer.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() % uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			default:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					o := env.Outer.Outer.Outer
-					for i := 3; i < upn; i++ {
-						o = o.Outer
-					}
-					*(*uint16)(unsafe.Pointer(&o.IntBinds[index])) %= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						*(*uint16)(unsafe.Pointer(&o.IntBinds[index])) %= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+
+						{
+							lhs := o.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() % uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case c.Depth - 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint16)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-						IntBinds[index])) %= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint16)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) %= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.ThreadGlobals.FileEnv.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() % uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			}
 		case r.Uint32:
@@ -8730,53 +18161,131 @@ func (c *Comp) varRemConst(upn int, index int, t xr.Type, val I) {
 			switch upn {
 			case 0:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint32)(unsafe.Pointer(&env.
-						IntBinds[index])) %= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint32)(unsafe.Pointer(&env.IntBinds[index])) %= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() % uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint32)(unsafe.Pointer(&env.
-						Outer.
-						IntBinds[index])) %= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint32)(unsafe.Pointer(&env.
+							Outer.IntBinds[index])) %= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() % uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 2:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint32)(unsafe.Pointer(&env.
-						Outer.Outer.
-						IntBinds[index])) %= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint32)(unsafe.Pointer(&env.
+							Outer.Outer.IntBinds[index])) %= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.Outer.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() % uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			default:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					o := env.Outer.Outer.Outer
-					for i := 3; i < upn; i++ {
-						o = o.Outer
-					}
-					*(*uint32)(unsafe.Pointer(&o.IntBinds[index])) %= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						*(*uint32)(unsafe.Pointer(&o.IntBinds[index])) %= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+
+						{
+							lhs := o.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() % uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case c.Depth - 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint32)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-						IntBinds[index])) %= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint32)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) %= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.ThreadGlobals.FileEnv.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() % uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			}
 		case r.Uint64:
@@ -8784,54 +18293,137 @@ func (c *Comp) varRemConst(upn int, index int, t xr.Type, val I) {
 			switch upn {
 			case 0:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					env.
-						IntBinds[index] %= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						env.
+							IntBinds[index] %= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() % uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					env.
-						Outer.
-						IntBinds[index] %= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						env.
+							Outer.
+							IntBinds[index] %= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() % uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 2:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					env.
-						Outer.Outer.
-						IntBinds[index] %= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						env.
+							Outer.Outer.
+							IntBinds[index] %= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.Outer.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() % uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			default:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					o := env.Outer.Outer.Outer
-					for i := 3; i < upn; i++ {
-						o = o.Outer
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+
+						o.
+							IntBinds[index] %= val
+
+						env.IP++
+						return env.Code[env.IP], env
 					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
 
-					o.IntBinds[index] %= val
+						{
+							lhs := o.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() % uint64(val,
+							),
+							)
+						}
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case c.Depth - 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					env.ThreadGlobals.FileEnv.
-						IntBinds[index] %= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						env.ThreadGlobals.FileEnv.
+							IntBinds[index] %= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.ThreadGlobals.FileEnv.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() % uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			}
 		case r.Uintptr:
@@ -8839,53 +18431,131 @@ func (c *Comp) varRemConst(upn int, index int, t xr.Type, val I) {
 			switch upn {
 			case 0:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uintptr)(unsafe.Pointer(&env.
-						IntBinds[index])) %= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uintptr)(unsafe.Pointer(&env.IntBinds[index])) %= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() % uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uintptr)(unsafe.Pointer(&env.
-						Outer.
-						IntBinds[index])) %= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uintptr)(unsafe.Pointer(&env.
+							Outer.IntBinds[index])) %= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() % uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 2:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uintptr)(unsafe.Pointer(&env.
-						Outer.Outer.
-						IntBinds[index])) %= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uintptr)(unsafe.Pointer(&env.
+							Outer.Outer.IntBinds[index])) %= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.Outer.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() % uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			default:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					o := env.Outer.Outer.Outer
-					for i := 3; i < upn; i++ {
-						o = o.Outer
-					}
-					*(*uintptr)(unsafe.Pointer(&o.IntBinds[index])) %= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						*(*uintptr)(unsafe.Pointer(&o.IntBinds[index])) %= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+
+						{
+							lhs := o.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() % uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case c.Depth - 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uintptr)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-						IntBinds[index])) %= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uintptr)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) %= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.ThreadGlobals.FileEnv.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() % uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			}
 		default:
@@ -8895,591 +18565,1458 @@ func (c *Comp) varRemConst(upn int, index int, t xr.Type, val I) {
 		c.append(ret)
 	}
 }
-func (c *Comp) varRemExpr(upn int, index int, t xr.Type, fun I) {
+func (c *Comp) varRemExpr(va *Var, fun I) {
+	t := va.Type
+	upn := va.Upn
+	index := va.Desc.Index()
+	intbinds := va.Desc.Class() == IntBind
 	var ret Stmt
 	switch fun := fun.(type) {
 	case func(*Env) int:
 		switch upn {
 		case 0:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int)(unsafe.Pointer(&env.
-					IntBinds[index])) %= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int)(unsafe.Pointer(&env.IntBinds[index])) %= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Binds[index]
+						lhs.SetInt(lhs.Int() % int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int)(unsafe.Pointer(&env.
-					Outer.
-					IntBinds[index])) %= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int)(unsafe.Pointer(&env.
+						Outer.IntBinds[index])) %= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.
+							Binds[index]
+						lhs.SetInt(lhs.Int() % int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 2:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int)(unsafe.Pointer(&env.
-					Outer.Outer.
-					IntBinds[index])) %= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int)(unsafe.Pointer(&env.
+						Outer.Outer.IntBinds[index])) %= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.Outer.
+							Binds[index]
+						lhs.SetInt(lhs.Int() % int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		default:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				o := env.Outer.Outer.Outer
-				for i := 3; i < upn; i++ {
-					o = o.Outer
-				}
-				*(*int)(unsafe.Pointer(&o.IntBinds[index])) %= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					*(*int)(unsafe.Pointer(&o.IntBinds[index])) %= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					{
+						lhs :=
+
+							o.Binds[index]
+						lhs.SetInt(lhs.Int() % int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case c.Depth - 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-					IntBinds[index])) %= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) %= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.ThreadGlobals.FileEnv.
+							Binds[index]
+						lhs.SetInt(lhs.Int() % int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		}
 	case func(*Env) int8:
 		switch upn {
 		case 0:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int8)(unsafe.Pointer(&env.
-					IntBinds[index])) %= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int8)(unsafe.Pointer(&env.IntBinds[index])) %= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Binds[index]
+						lhs.SetInt(lhs.Int() % int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int8)(unsafe.Pointer(&env.
-					Outer.
-					IntBinds[index])) %= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int8)(unsafe.Pointer(&env.
+						Outer.IntBinds[index])) %= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.
+							Binds[index]
+						lhs.SetInt(lhs.Int() % int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 2:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int8)(unsafe.Pointer(&env.
-					Outer.Outer.
-					IntBinds[index])) %= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int8)(unsafe.Pointer(&env.
+						Outer.Outer.IntBinds[index])) %= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.Outer.
+							Binds[index]
+						lhs.SetInt(lhs.Int() % int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		default:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				o := env.Outer.Outer.Outer
-				for i := 3; i < upn; i++ {
-					o = o.Outer
-				}
-				*(*int8)(unsafe.Pointer(&o.IntBinds[index])) %= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					*(*int8)(unsafe.Pointer(&o.IntBinds[index])) %= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					{
+						lhs :=
+
+							o.Binds[index]
+						lhs.SetInt(lhs.Int() % int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case c.Depth - 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int8)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-					IntBinds[index])) %= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int8)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) %= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.ThreadGlobals.FileEnv.
+							Binds[index]
+						lhs.SetInt(lhs.Int() % int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		}
 	case func(*Env) int16:
 		switch upn {
 		case 0:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int16)(unsafe.Pointer(&env.
-					IntBinds[index])) %= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int16)(unsafe.Pointer(&env.IntBinds[index])) %= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Binds[index]
+						lhs.SetInt(lhs.Int() % int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int16)(unsafe.Pointer(&env.
-					Outer.
-					IntBinds[index])) %= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int16)(unsafe.Pointer(&env.
+						Outer.IntBinds[index])) %= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.
+							Binds[index]
+						lhs.SetInt(lhs.Int() % int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 2:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int16)(unsafe.Pointer(&env.
-					Outer.Outer.
-					IntBinds[index])) %= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int16)(unsafe.Pointer(&env.
+						Outer.Outer.IntBinds[index])) %= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.Outer.
+							Binds[index]
+						lhs.SetInt(lhs.Int() % int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		default:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				o := env.Outer.Outer.Outer
-				for i := 3; i < upn; i++ {
-					o = o.Outer
-				}
-				*(*int16)(unsafe.Pointer(&o.IntBinds[index])) %= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					*(*int16)(unsafe.Pointer(&o.IntBinds[index])) %= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					{
+						lhs :=
+
+							o.Binds[index]
+						lhs.SetInt(lhs.Int() % int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case c.Depth - 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int16)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-					IntBinds[index])) %= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int16)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) %= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.ThreadGlobals.FileEnv.
+							Binds[index]
+						lhs.SetInt(lhs.Int() % int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		}
 	case func(*Env) int32:
 		switch upn {
 		case 0:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int32)(unsafe.Pointer(&env.
-					IntBinds[index])) %= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int32)(unsafe.Pointer(&env.IntBinds[index])) %= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Binds[index]
+						lhs.SetInt(lhs.Int() % int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int32)(unsafe.Pointer(&env.
-					Outer.
-					IntBinds[index])) %= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int32)(unsafe.Pointer(&env.
+						Outer.IntBinds[index])) %= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.
+							Binds[index]
+						lhs.SetInt(lhs.Int() % int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 2:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int32)(unsafe.Pointer(&env.
-					Outer.Outer.
-					IntBinds[index])) %= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int32)(unsafe.Pointer(&env.
+						Outer.Outer.IntBinds[index])) %= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.Outer.
+							Binds[index]
+						lhs.SetInt(lhs.Int() % int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		default:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				o := env.Outer.Outer.Outer
-				for i := 3; i < upn; i++ {
-					o = o.Outer
-				}
-				*(*int32)(unsafe.Pointer(&o.IntBinds[index])) %= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					*(*int32)(unsafe.Pointer(&o.IntBinds[index])) %= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					{
+						lhs :=
+
+							o.Binds[index]
+						lhs.SetInt(lhs.Int() % int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case c.Depth - 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int32)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-					IntBinds[index])) %= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int32)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) %= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.ThreadGlobals.FileEnv.
+							Binds[index]
+						lhs.SetInt(lhs.Int() % int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		}
 	case func(*Env) int64:
 		switch upn {
 		case 0:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int64)(unsafe.Pointer(&env.
-					IntBinds[index])) %= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int64)(unsafe.Pointer(&env.IntBinds[index])) %= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Binds[index]
+						lhs.SetInt(lhs.Int() % int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int64)(unsafe.Pointer(&env.
-					Outer.
-					IntBinds[index])) %= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int64)(unsafe.Pointer(&env.
+						Outer.IntBinds[index])) %= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.
+							Binds[index]
+						lhs.SetInt(lhs.Int() % int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 2:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int64)(unsafe.Pointer(&env.
-					Outer.Outer.
-					IntBinds[index])) %= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int64)(unsafe.Pointer(&env.
+						Outer.Outer.IntBinds[index])) %= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.Outer.
+							Binds[index]
+						lhs.SetInt(lhs.Int() % int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		default:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				o := env.Outer.Outer.Outer
-				for i := 3; i < upn; i++ {
-					o = o.Outer
-				}
-				*(*int64)(unsafe.Pointer(&o.IntBinds[index])) %= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					*(*int64)(unsafe.Pointer(&o.IntBinds[index])) %= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					{
+						lhs :=
+
+							o.Binds[index]
+						lhs.SetInt(lhs.Int() % int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case c.Depth - 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int64)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-					IntBinds[index])) %= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int64)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) %= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.ThreadGlobals.FileEnv.
+							Binds[index]
+						lhs.SetInt(lhs.Int() % int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		}
 	case func(*Env) uint:
 		switch upn {
 		case 0:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint)(unsafe.Pointer(&env.
-					IntBinds[index])) %= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint)(unsafe.Pointer(&env.IntBinds[index])) %= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() % uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint)(unsafe.Pointer(&env.
-					Outer.
-					IntBinds[index])) %= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint)(unsafe.Pointer(&env.
+						Outer.IntBinds[index])) %= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() % uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 2:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint)(unsafe.Pointer(&env.
-					Outer.Outer.
-					IntBinds[index])) %= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint)(unsafe.Pointer(&env.
+						Outer.Outer.IntBinds[index])) %= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.Outer.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() % uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		default:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				o := env.Outer.Outer.Outer
-				for i := 3; i < upn; i++ {
-					o = o.Outer
-				}
-				*(*uint)(unsafe.Pointer(&o.IntBinds[index])) %= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					*(*uint)(unsafe.Pointer(&o.IntBinds[index])) %= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+
+					{
+						lhs := o.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() % uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case c.Depth - 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-					IntBinds[index])) %= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) %= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.ThreadGlobals.FileEnv.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() % uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		}
 	case func(*Env) uint8:
 		switch upn {
 		case 0:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint8)(unsafe.Pointer(&env.
-					IntBinds[index])) %= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint8)(unsafe.Pointer(&env.IntBinds[index])) %= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() % uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint8)(unsafe.Pointer(&env.
-					Outer.
-					IntBinds[index])) %= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint8)(unsafe.Pointer(&env.
+						Outer.IntBinds[index])) %= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() % uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 2:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint8)(unsafe.Pointer(&env.
-					Outer.Outer.
-					IntBinds[index])) %= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint8)(unsafe.Pointer(&env.
+						Outer.Outer.IntBinds[index])) %= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.Outer.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() % uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		default:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				o := env.Outer.Outer.Outer
-				for i := 3; i < upn; i++ {
-					o = o.Outer
-				}
-				*(*uint8)(unsafe.Pointer(&o.IntBinds[index])) %= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					*(*uint8)(unsafe.Pointer(&o.IntBinds[index])) %= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+
+					{
+						lhs := o.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() % uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case c.Depth - 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint8)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-					IntBinds[index])) %= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint8)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) %= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.ThreadGlobals.FileEnv.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() % uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		}
 	case func(*Env) uint16:
 		switch upn {
 		case 0:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint16)(unsafe.Pointer(&env.
-					IntBinds[index])) %= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint16)(unsafe.Pointer(&env.IntBinds[index])) %= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() % uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint16)(unsafe.Pointer(&env.
-					Outer.
-					IntBinds[index])) %= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint16)(unsafe.Pointer(&env.
+						Outer.IntBinds[index])) %= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() % uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 2:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint16)(unsafe.Pointer(&env.
-					Outer.Outer.
-					IntBinds[index])) %= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint16)(unsafe.Pointer(&env.
+						Outer.Outer.IntBinds[index])) %= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.Outer.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() % uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		default:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				o := env.Outer.Outer.Outer
-				for i := 3; i < upn; i++ {
-					o = o.Outer
-				}
-				*(*uint16)(unsafe.Pointer(&o.IntBinds[index])) %= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					*(*uint16)(unsafe.Pointer(&o.IntBinds[index])) %= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+
+					{
+						lhs := o.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() % uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case c.Depth - 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint16)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-					IntBinds[index])) %= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint16)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) %= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.ThreadGlobals.FileEnv.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() % uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		}
 	case func(*Env) uint32:
 		switch upn {
 		case 0:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint32)(unsafe.Pointer(&env.
-					IntBinds[index])) %= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint32)(unsafe.Pointer(&env.IntBinds[index])) %= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() % uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint32)(unsafe.Pointer(&env.
-					Outer.
-					IntBinds[index])) %= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint32)(unsafe.Pointer(&env.
+						Outer.IntBinds[index])) %= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() % uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 2:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint32)(unsafe.Pointer(&env.
-					Outer.Outer.
-					IntBinds[index])) %= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint32)(unsafe.Pointer(&env.
+						Outer.Outer.IntBinds[index])) %= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.Outer.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() % uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		default:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				o := env.Outer.Outer.Outer
-				for i := 3; i < upn; i++ {
-					o = o.Outer
-				}
-				*(*uint32)(unsafe.Pointer(&o.IntBinds[index])) %= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					*(*uint32)(unsafe.Pointer(&o.IntBinds[index])) %= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+
+					{
+						lhs := o.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() % uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case c.Depth - 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint32)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-					IntBinds[index])) %= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint32)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) %= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.ThreadGlobals.FileEnv.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() % uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		}
 	case func(*Env) uint64:
 		switch upn {
 		case 0:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				env.
-					IntBinds[index] %= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					env.
+						IntBinds[index] %= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() % uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				env.
-					Outer.
-					IntBinds[index] %= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					env.
+						Outer.
+						IntBinds[index] %= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() % uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 2:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				env.
-					Outer.Outer.
-					IntBinds[index] %= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					env.
+						Outer.Outer.
+						IntBinds[index] %= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.Outer.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() % uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		default:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				o := env.Outer.Outer.Outer
-				for i := 3; i < upn; i++ {
-					o = o.Outer
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+
+					o.
+						IntBinds[index] %= fun(env)
+
+					env.IP++
+					return env.Code[env.IP], env
 				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
 
-				o.IntBinds[index] %= fun(env)
+					{
+						lhs := o.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() % uint64(fun(env),
+						),
+						)
+					}
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case c.Depth - 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				env.ThreadGlobals.FileEnv.
-					IntBinds[index] %= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					env.ThreadGlobals.FileEnv.
+						IntBinds[index] %= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.ThreadGlobals.FileEnv.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() % uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		}
 	case func(*Env) uintptr:
 		switch upn {
 		case 0:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uintptr)(unsafe.Pointer(&env.
-					IntBinds[index])) %= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uintptr)(unsafe.Pointer(&env.IntBinds[index])) %= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() % uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uintptr)(unsafe.Pointer(&env.
-					Outer.
-					IntBinds[index])) %= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uintptr)(unsafe.Pointer(&env.
+						Outer.IntBinds[index])) %= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() % uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 2:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uintptr)(unsafe.Pointer(&env.
-					Outer.Outer.
-					IntBinds[index])) %= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uintptr)(unsafe.Pointer(&env.
+						Outer.Outer.IntBinds[index])) %= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.Outer.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() % uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		default:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				o := env.Outer.Outer.Outer
-				for i := 3; i < upn; i++ {
-					o = o.Outer
-				}
-				*(*uintptr)(unsafe.Pointer(&o.IntBinds[index])) %= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					*(*uintptr)(unsafe.Pointer(&o.IntBinds[index])) %= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+
+					{
+						lhs := o.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() % uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case c.Depth - 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uintptr)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-					IntBinds[index])) %= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uintptr)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) %= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.ThreadGlobals.FileEnv.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() % uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		}
 	default:
@@ -9488,18 +20025,23 @@ func (c *Comp) varRemExpr(upn int, index int, t xr.Type, fun I) {
 	}
 	c.append(ret)
 }
-func (c *Comp) varAndConst(upn int, index int, t xr.Type, val I) {
+func (c *Comp) varAndConst(va *Var, val I) {
+	t := va.Type
 	if IsCategory(t.Kind(), r.Int, r.Uint) {
 		if isLiteralNumber(val, -1) {
 			return
 		} else if isLiteralNumber(val, 0) {
 
-			c.varSetZero(upn, index, t)
+			c.varSetZero(va)
 			return
 		}
 	}
 
 	{
+		t := va.Type
+		upn := va.Upn
+		index := va.Desc.Index()
+		intbinds := va.Desc.Class() == IntBind
 		var ret Stmt
 		switch t.Kind() {
 		case r.Int:
@@ -9507,53 +20049,131 @@ func (c *Comp) varAndConst(upn int, index int, t xr.Type, val I) {
 			switch upn {
 			case 0:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int)(unsafe.Pointer(&env.
-						IntBinds[index])) &= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int)(unsafe.Pointer(&env.IntBinds[index])) &= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Binds[index]
+							lhs.SetInt(lhs.Int() & int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int)(unsafe.Pointer(&env.
-						Outer.
-						IntBinds[index])) &= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int)(unsafe.Pointer(&env.
+							Outer.IntBinds[index])) &= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.
+								Binds[index]
+							lhs.SetInt(lhs.Int() & int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 2:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int)(unsafe.Pointer(&env.
-						Outer.Outer.
-						IntBinds[index])) &= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int)(unsafe.Pointer(&env.
+							Outer.Outer.IntBinds[index])) &= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.Outer.
+								Binds[index]
+							lhs.SetInt(lhs.Int() & int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			default:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					o := env.Outer.Outer.Outer
-					for i := 3; i < upn; i++ {
-						o = o.Outer
-					}
-					*(*int)(unsafe.Pointer(&o.IntBinds[index])) &= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						*(*int)(unsafe.Pointer(&o.IntBinds[index])) &= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						{
+							lhs :=
+
+								o.Binds[index]
+							lhs.SetInt(lhs.Int() & int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case c.Depth - 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-						IntBinds[index])) &= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) &= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.ThreadGlobals.FileEnv.
+								Binds[index]
+							lhs.SetInt(lhs.Int() & int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			}
 		case r.Int8:
@@ -9561,53 +20181,131 @@ func (c *Comp) varAndConst(upn int, index int, t xr.Type, val I) {
 			switch upn {
 			case 0:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int8)(unsafe.Pointer(&env.
-						IntBinds[index])) &= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int8)(unsafe.Pointer(&env.IntBinds[index])) &= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Binds[index]
+							lhs.SetInt(lhs.Int() & int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int8)(unsafe.Pointer(&env.
-						Outer.
-						IntBinds[index])) &= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int8)(unsafe.Pointer(&env.
+							Outer.IntBinds[index])) &= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.
+								Binds[index]
+							lhs.SetInt(lhs.Int() & int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 2:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int8)(unsafe.Pointer(&env.
-						Outer.Outer.
-						IntBinds[index])) &= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int8)(unsafe.Pointer(&env.
+							Outer.Outer.IntBinds[index])) &= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.Outer.
+								Binds[index]
+							lhs.SetInt(lhs.Int() & int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			default:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					o := env.Outer.Outer.Outer
-					for i := 3; i < upn; i++ {
-						o = o.Outer
-					}
-					*(*int8)(unsafe.Pointer(&o.IntBinds[index])) &= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						*(*int8)(unsafe.Pointer(&o.IntBinds[index])) &= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						{
+							lhs :=
+
+								o.Binds[index]
+							lhs.SetInt(lhs.Int() & int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case c.Depth - 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int8)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-						IntBinds[index])) &= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int8)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) &= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.ThreadGlobals.FileEnv.
+								Binds[index]
+							lhs.SetInt(lhs.Int() & int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			}
 		case r.Int16:
@@ -9615,53 +20313,131 @@ func (c *Comp) varAndConst(upn int, index int, t xr.Type, val I) {
 			switch upn {
 			case 0:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int16)(unsafe.Pointer(&env.
-						IntBinds[index])) &= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int16)(unsafe.Pointer(&env.IntBinds[index])) &= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Binds[index]
+							lhs.SetInt(lhs.Int() & int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int16)(unsafe.Pointer(&env.
-						Outer.
-						IntBinds[index])) &= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int16)(unsafe.Pointer(&env.
+							Outer.IntBinds[index])) &= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.
+								Binds[index]
+							lhs.SetInt(lhs.Int() & int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 2:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int16)(unsafe.Pointer(&env.
-						Outer.Outer.
-						IntBinds[index])) &= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int16)(unsafe.Pointer(&env.
+							Outer.Outer.IntBinds[index])) &= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.Outer.
+								Binds[index]
+							lhs.SetInt(lhs.Int() & int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			default:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					o := env.Outer.Outer.Outer
-					for i := 3; i < upn; i++ {
-						o = o.Outer
-					}
-					*(*int16)(unsafe.Pointer(&o.IntBinds[index])) &= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						*(*int16)(unsafe.Pointer(&o.IntBinds[index])) &= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						{
+							lhs :=
+
+								o.Binds[index]
+							lhs.SetInt(lhs.Int() & int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case c.Depth - 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int16)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-						IntBinds[index])) &= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int16)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) &= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.ThreadGlobals.FileEnv.
+								Binds[index]
+							lhs.SetInt(lhs.Int() & int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			}
 		case r.Int32:
@@ -9669,53 +20445,131 @@ func (c *Comp) varAndConst(upn int, index int, t xr.Type, val I) {
 			switch upn {
 			case 0:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int32)(unsafe.Pointer(&env.
-						IntBinds[index])) &= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int32)(unsafe.Pointer(&env.IntBinds[index])) &= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Binds[index]
+							lhs.SetInt(lhs.Int() & int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int32)(unsafe.Pointer(&env.
-						Outer.
-						IntBinds[index])) &= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int32)(unsafe.Pointer(&env.
+							Outer.IntBinds[index])) &= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.
+								Binds[index]
+							lhs.SetInt(lhs.Int() & int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 2:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int32)(unsafe.Pointer(&env.
-						Outer.Outer.
-						IntBinds[index])) &= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int32)(unsafe.Pointer(&env.
+							Outer.Outer.IntBinds[index])) &= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.Outer.
+								Binds[index]
+							lhs.SetInt(lhs.Int() & int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			default:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					o := env.Outer.Outer.Outer
-					for i := 3; i < upn; i++ {
-						o = o.Outer
-					}
-					*(*int32)(unsafe.Pointer(&o.IntBinds[index])) &= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						*(*int32)(unsafe.Pointer(&o.IntBinds[index])) &= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						{
+							lhs :=
+
+								o.Binds[index]
+							lhs.SetInt(lhs.Int() & int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case c.Depth - 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int32)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-						IntBinds[index])) &= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int32)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) &= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.ThreadGlobals.FileEnv.
+								Binds[index]
+							lhs.SetInt(lhs.Int() & int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			}
 		case r.Int64:
@@ -9723,53 +20577,131 @@ func (c *Comp) varAndConst(upn int, index int, t xr.Type, val I) {
 			switch upn {
 			case 0:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int64)(unsafe.Pointer(&env.
-						IntBinds[index])) &= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int64)(unsafe.Pointer(&env.IntBinds[index])) &= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Binds[index]
+							lhs.SetInt(lhs.Int() & int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int64)(unsafe.Pointer(&env.
-						Outer.
-						IntBinds[index])) &= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int64)(unsafe.Pointer(&env.
+							Outer.IntBinds[index])) &= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.
+								Binds[index]
+							lhs.SetInt(lhs.Int() & int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 2:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int64)(unsafe.Pointer(&env.
-						Outer.Outer.
-						IntBinds[index])) &= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int64)(unsafe.Pointer(&env.
+							Outer.Outer.IntBinds[index])) &= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.Outer.
+								Binds[index]
+							lhs.SetInt(lhs.Int() & int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			default:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					o := env.Outer.Outer.Outer
-					for i := 3; i < upn; i++ {
-						o = o.Outer
-					}
-					*(*int64)(unsafe.Pointer(&o.IntBinds[index])) &= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						*(*int64)(unsafe.Pointer(&o.IntBinds[index])) &= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						{
+							lhs :=
+
+								o.Binds[index]
+							lhs.SetInt(lhs.Int() & int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case c.Depth - 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int64)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-						IntBinds[index])) &= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int64)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) &= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.ThreadGlobals.FileEnv.
+								Binds[index]
+							lhs.SetInt(lhs.Int() & int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			}
 		case r.Uint:
@@ -9777,53 +20709,131 @@ func (c *Comp) varAndConst(upn int, index int, t xr.Type, val I) {
 			switch upn {
 			case 0:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint)(unsafe.Pointer(&env.
-						IntBinds[index])) &= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint)(unsafe.Pointer(&env.IntBinds[index])) &= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() & uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint)(unsafe.Pointer(&env.
-						Outer.
-						IntBinds[index])) &= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint)(unsafe.Pointer(&env.
+							Outer.IntBinds[index])) &= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() & uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 2:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint)(unsafe.Pointer(&env.
-						Outer.Outer.
-						IntBinds[index])) &= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint)(unsafe.Pointer(&env.
+							Outer.Outer.IntBinds[index])) &= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.Outer.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() & uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			default:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					o := env.Outer.Outer.Outer
-					for i := 3; i < upn; i++ {
-						o = o.Outer
-					}
-					*(*uint)(unsafe.Pointer(&o.IntBinds[index])) &= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						*(*uint)(unsafe.Pointer(&o.IntBinds[index])) &= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+
+						{
+							lhs := o.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() & uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case c.Depth - 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-						IntBinds[index])) &= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) &= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.ThreadGlobals.FileEnv.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() & uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			}
 		case r.Uint8:
@@ -9831,53 +20841,131 @@ func (c *Comp) varAndConst(upn int, index int, t xr.Type, val I) {
 			switch upn {
 			case 0:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint8)(unsafe.Pointer(&env.
-						IntBinds[index])) &= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint8)(unsafe.Pointer(&env.IntBinds[index])) &= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() & uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint8)(unsafe.Pointer(&env.
-						Outer.
-						IntBinds[index])) &= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint8)(unsafe.Pointer(&env.
+							Outer.IntBinds[index])) &= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() & uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 2:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint8)(unsafe.Pointer(&env.
-						Outer.Outer.
-						IntBinds[index])) &= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint8)(unsafe.Pointer(&env.
+							Outer.Outer.IntBinds[index])) &= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.Outer.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() & uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			default:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					o := env.Outer.Outer.Outer
-					for i := 3; i < upn; i++ {
-						o = o.Outer
-					}
-					*(*uint8)(unsafe.Pointer(&o.IntBinds[index])) &= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						*(*uint8)(unsafe.Pointer(&o.IntBinds[index])) &= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+
+						{
+							lhs := o.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() & uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case c.Depth - 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint8)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-						IntBinds[index])) &= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint8)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) &= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.ThreadGlobals.FileEnv.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() & uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			}
 		case r.Uint16:
@@ -9885,53 +20973,131 @@ func (c *Comp) varAndConst(upn int, index int, t xr.Type, val I) {
 			switch upn {
 			case 0:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint16)(unsafe.Pointer(&env.
-						IntBinds[index])) &= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint16)(unsafe.Pointer(&env.IntBinds[index])) &= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() & uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint16)(unsafe.Pointer(&env.
-						Outer.
-						IntBinds[index])) &= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint16)(unsafe.Pointer(&env.
+							Outer.IntBinds[index])) &= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() & uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 2:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint16)(unsafe.Pointer(&env.
-						Outer.Outer.
-						IntBinds[index])) &= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint16)(unsafe.Pointer(&env.
+							Outer.Outer.IntBinds[index])) &= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.Outer.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() & uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			default:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					o := env.Outer.Outer.Outer
-					for i := 3; i < upn; i++ {
-						o = o.Outer
-					}
-					*(*uint16)(unsafe.Pointer(&o.IntBinds[index])) &= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						*(*uint16)(unsafe.Pointer(&o.IntBinds[index])) &= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+
+						{
+							lhs := o.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() & uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case c.Depth - 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint16)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-						IntBinds[index])) &= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint16)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) &= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.ThreadGlobals.FileEnv.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() & uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			}
 		case r.Uint32:
@@ -9939,53 +21105,131 @@ func (c *Comp) varAndConst(upn int, index int, t xr.Type, val I) {
 			switch upn {
 			case 0:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint32)(unsafe.Pointer(&env.
-						IntBinds[index])) &= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint32)(unsafe.Pointer(&env.IntBinds[index])) &= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() & uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint32)(unsafe.Pointer(&env.
-						Outer.
-						IntBinds[index])) &= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint32)(unsafe.Pointer(&env.
+							Outer.IntBinds[index])) &= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() & uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 2:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint32)(unsafe.Pointer(&env.
-						Outer.Outer.
-						IntBinds[index])) &= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint32)(unsafe.Pointer(&env.
+							Outer.Outer.IntBinds[index])) &= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.Outer.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() & uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			default:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					o := env.Outer.Outer.Outer
-					for i := 3; i < upn; i++ {
-						o = o.Outer
-					}
-					*(*uint32)(unsafe.Pointer(&o.IntBinds[index])) &= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						*(*uint32)(unsafe.Pointer(&o.IntBinds[index])) &= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+
+						{
+							lhs := o.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() & uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case c.Depth - 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint32)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-						IntBinds[index])) &= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint32)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) &= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.ThreadGlobals.FileEnv.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() & uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			}
 		case r.Uint64:
@@ -9993,54 +21237,137 @@ func (c *Comp) varAndConst(upn int, index int, t xr.Type, val I) {
 			switch upn {
 			case 0:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					env.
-						IntBinds[index] &= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						env.
+							IntBinds[index] &= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() & uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					env.
-						Outer.
-						IntBinds[index] &= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						env.
+							Outer.
+							IntBinds[index] &= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() & uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 2:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					env.
-						Outer.Outer.
-						IntBinds[index] &= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						env.
+							Outer.Outer.
+							IntBinds[index] &= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.Outer.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() & uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			default:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					o := env.Outer.Outer.Outer
-					for i := 3; i < upn; i++ {
-						o = o.Outer
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+
+						o.
+							IntBinds[index] &= val
+
+						env.IP++
+						return env.Code[env.IP], env
 					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
 
-					o.IntBinds[index] &= val
+						{
+							lhs := o.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() & uint64(val,
+							),
+							)
+						}
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case c.Depth - 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					env.ThreadGlobals.FileEnv.
-						IntBinds[index] &= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						env.ThreadGlobals.FileEnv.
+							IntBinds[index] &= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.ThreadGlobals.FileEnv.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() & uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			}
 		case r.Uintptr:
@@ -10048,53 +21375,131 @@ func (c *Comp) varAndConst(upn int, index int, t xr.Type, val I) {
 			switch upn {
 			case 0:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uintptr)(unsafe.Pointer(&env.
-						IntBinds[index])) &= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uintptr)(unsafe.Pointer(&env.IntBinds[index])) &= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() & uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uintptr)(unsafe.Pointer(&env.
-						Outer.
-						IntBinds[index])) &= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uintptr)(unsafe.Pointer(&env.
+							Outer.IntBinds[index])) &= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() & uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 2:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uintptr)(unsafe.Pointer(&env.
-						Outer.Outer.
-						IntBinds[index])) &= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uintptr)(unsafe.Pointer(&env.
+							Outer.Outer.IntBinds[index])) &= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.Outer.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() & uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			default:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					o := env.Outer.Outer.Outer
-					for i := 3; i < upn; i++ {
-						o = o.Outer
-					}
-					*(*uintptr)(unsafe.Pointer(&o.IntBinds[index])) &= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						*(*uintptr)(unsafe.Pointer(&o.IntBinds[index])) &= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+
+						{
+							lhs := o.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() & uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case c.Depth - 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uintptr)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-						IntBinds[index])) &= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uintptr)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) &= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.ThreadGlobals.FileEnv.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() & uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			}
 		default:
@@ -10104,591 +21509,1458 @@ func (c *Comp) varAndConst(upn int, index int, t xr.Type, val I) {
 		c.append(ret)
 	}
 }
-func (c *Comp) varAndExpr(upn int, index int, t xr.Type, fun I) {
+func (c *Comp) varAndExpr(va *Var, fun I) {
+	t := va.Type
+	upn := va.Upn
+	index := va.Desc.Index()
+	intbinds := va.Desc.Class() == IntBind
 	var ret Stmt
 	switch fun := fun.(type) {
 	case func(*Env) int:
 		switch upn {
 		case 0:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int)(unsafe.Pointer(&env.
-					IntBinds[index])) &= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int)(unsafe.Pointer(&env.IntBinds[index])) &= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Binds[index]
+						lhs.SetInt(lhs.Int() & int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int)(unsafe.Pointer(&env.
-					Outer.
-					IntBinds[index])) &= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int)(unsafe.Pointer(&env.
+						Outer.IntBinds[index])) &= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.
+							Binds[index]
+						lhs.SetInt(lhs.Int() & int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 2:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int)(unsafe.Pointer(&env.
-					Outer.Outer.
-					IntBinds[index])) &= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int)(unsafe.Pointer(&env.
+						Outer.Outer.IntBinds[index])) &= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.Outer.
+							Binds[index]
+						lhs.SetInt(lhs.Int() & int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		default:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				o := env.Outer.Outer.Outer
-				for i := 3; i < upn; i++ {
-					o = o.Outer
-				}
-				*(*int)(unsafe.Pointer(&o.IntBinds[index])) &= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					*(*int)(unsafe.Pointer(&o.IntBinds[index])) &= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					{
+						lhs :=
+
+							o.Binds[index]
+						lhs.SetInt(lhs.Int() & int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case c.Depth - 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-					IntBinds[index])) &= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) &= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.ThreadGlobals.FileEnv.
+							Binds[index]
+						lhs.SetInt(lhs.Int() & int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		}
 	case func(*Env) int8:
 		switch upn {
 		case 0:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int8)(unsafe.Pointer(&env.
-					IntBinds[index])) &= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int8)(unsafe.Pointer(&env.IntBinds[index])) &= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Binds[index]
+						lhs.SetInt(lhs.Int() & int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int8)(unsafe.Pointer(&env.
-					Outer.
-					IntBinds[index])) &= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int8)(unsafe.Pointer(&env.
+						Outer.IntBinds[index])) &= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.
+							Binds[index]
+						lhs.SetInt(lhs.Int() & int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 2:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int8)(unsafe.Pointer(&env.
-					Outer.Outer.
-					IntBinds[index])) &= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int8)(unsafe.Pointer(&env.
+						Outer.Outer.IntBinds[index])) &= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.Outer.
+							Binds[index]
+						lhs.SetInt(lhs.Int() & int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		default:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				o := env.Outer.Outer.Outer
-				for i := 3; i < upn; i++ {
-					o = o.Outer
-				}
-				*(*int8)(unsafe.Pointer(&o.IntBinds[index])) &= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					*(*int8)(unsafe.Pointer(&o.IntBinds[index])) &= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					{
+						lhs :=
+
+							o.Binds[index]
+						lhs.SetInt(lhs.Int() & int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case c.Depth - 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int8)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-					IntBinds[index])) &= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int8)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) &= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.ThreadGlobals.FileEnv.
+							Binds[index]
+						lhs.SetInt(lhs.Int() & int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		}
 	case func(*Env) int16:
 		switch upn {
 		case 0:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int16)(unsafe.Pointer(&env.
-					IntBinds[index])) &= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int16)(unsafe.Pointer(&env.IntBinds[index])) &= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Binds[index]
+						lhs.SetInt(lhs.Int() & int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int16)(unsafe.Pointer(&env.
-					Outer.
-					IntBinds[index])) &= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int16)(unsafe.Pointer(&env.
+						Outer.IntBinds[index])) &= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.
+							Binds[index]
+						lhs.SetInt(lhs.Int() & int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 2:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int16)(unsafe.Pointer(&env.
-					Outer.Outer.
-					IntBinds[index])) &= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int16)(unsafe.Pointer(&env.
+						Outer.Outer.IntBinds[index])) &= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.Outer.
+							Binds[index]
+						lhs.SetInt(lhs.Int() & int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		default:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				o := env.Outer.Outer.Outer
-				for i := 3; i < upn; i++ {
-					o = o.Outer
-				}
-				*(*int16)(unsafe.Pointer(&o.IntBinds[index])) &= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					*(*int16)(unsafe.Pointer(&o.IntBinds[index])) &= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					{
+						lhs :=
+
+							o.Binds[index]
+						lhs.SetInt(lhs.Int() & int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case c.Depth - 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int16)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-					IntBinds[index])) &= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int16)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) &= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.ThreadGlobals.FileEnv.
+							Binds[index]
+						lhs.SetInt(lhs.Int() & int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		}
 	case func(*Env) int32:
 		switch upn {
 		case 0:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int32)(unsafe.Pointer(&env.
-					IntBinds[index])) &= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int32)(unsafe.Pointer(&env.IntBinds[index])) &= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Binds[index]
+						lhs.SetInt(lhs.Int() & int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int32)(unsafe.Pointer(&env.
-					Outer.
-					IntBinds[index])) &= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int32)(unsafe.Pointer(&env.
+						Outer.IntBinds[index])) &= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.
+							Binds[index]
+						lhs.SetInt(lhs.Int() & int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 2:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int32)(unsafe.Pointer(&env.
-					Outer.Outer.
-					IntBinds[index])) &= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int32)(unsafe.Pointer(&env.
+						Outer.Outer.IntBinds[index])) &= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.Outer.
+							Binds[index]
+						lhs.SetInt(lhs.Int() & int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		default:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				o := env.Outer.Outer.Outer
-				for i := 3; i < upn; i++ {
-					o = o.Outer
-				}
-				*(*int32)(unsafe.Pointer(&o.IntBinds[index])) &= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					*(*int32)(unsafe.Pointer(&o.IntBinds[index])) &= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					{
+						lhs :=
+
+							o.Binds[index]
+						lhs.SetInt(lhs.Int() & int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case c.Depth - 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int32)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-					IntBinds[index])) &= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int32)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) &= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.ThreadGlobals.FileEnv.
+							Binds[index]
+						lhs.SetInt(lhs.Int() & int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		}
 	case func(*Env) int64:
 		switch upn {
 		case 0:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int64)(unsafe.Pointer(&env.
-					IntBinds[index])) &= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int64)(unsafe.Pointer(&env.IntBinds[index])) &= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Binds[index]
+						lhs.SetInt(lhs.Int() & int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int64)(unsafe.Pointer(&env.
-					Outer.
-					IntBinds[index])) &= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int64)(unsafe.Pointer(&env.
+						Outer.IntBinds[index])) &= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.
+							Binds[index]
+						lhs.SetInt(lhs.Int() & int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 2:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int64)(unsafe.Pointer(&env.
-					Outer.Outer.
-					IntBinds[index])) &= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int64)(unsafe.Pointer(&env.
+						Outer.Outer.IntBinds[index])) &= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.Outer.
+							Binds[index]
+						lhs.SetInt(lhs.Int() & int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		default:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				o := env.Outer.Outer.Outer
-				for i := 3; i < upn; i++ {
-					o = o.Outer
-				}
-				*(*int64)(unsafe.Pointer(&o.IntBinds[index])) &= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					*(*int64)(unsafe.Pointer(&o.IntBinds[index])) &= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					{
+						lhs :=
+
+							o.Binds[index]
+						lhs.SetInt(lhs.Int() & int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case c.Depth - 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int64)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-					IntBinds[index])) &= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int64)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) &= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.ThreadGlobals.FileEnv.
+							Binds[index]
+						lhs.SetInt(lhs.Int() & int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		}
 	case func(*Env) uint:
 		switch upn {
 		case 0:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint)(unsafe.Pointer(&env.
-					IntBinds[index])) &= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint)(unsafe.Pointer(&env.IntBinds[index])) &= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() & uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint)(unsafe.Pointer(&env.
-					Outer.
-					IntBinds[index])) &= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint)(unsafe.Pointer(&env.
+						Outer.IntBinds[index])) &= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() & uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 2:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint)(unsafe.Pointer(&env.
-					Outer.Outer.
-					IntBinds[index])) &= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint)(unsafe.Pointer(&env.
+						Outer.Outer.IntBinds[index])) &= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.Outer.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() & uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		default:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				o := env.Outer.Outer.Outer
-				for i := 3; i < upn; i++ {
-					o = o.Outer
-				}
-				*(*uint)(unsafe.Pointer(&o.IntBinds[index])) &= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					*(*uint)(unsafe.Pointer(&o.IntBinds[index])) &= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+
+					{
+						lhs := o.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() & uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case c.Depth - 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-					IntBinds[index])) &= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) &= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.ThreadGlobals.FileEnv.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() & uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		}
 	case func(*Env) uint8:
 		switch upn {
 		case 0:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint8)(unsafe.Pointer(&env.
-					IntBinds[index])) &= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint8)(unsafe.Pointer(&env.IntBinds[index])) &= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() & uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint8)(unsafe.Pointer(&env.
-					Outer.
-					IntBinds[index])) &= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint8)(unsafe.Pointer(&env.
+						Outer.IntBinds[index])) &= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() & uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 2:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint8)(unsafe.Pointer(&env.
-					Outer.Outer.
-					IntBinds[index])) &= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint8)(unsafe.Pointer(&env.
+						Outer.Outer.IntBinds[index])) &= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.Outer.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() & uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		default:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				o := env.Outer.Outer.Outer
-				for i := 3; i < upn; i++ {
-					o = o.Outer
-				}
-				*(*uint8)(unsafe.Pointer(&o.IntBinds[index])) &= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					*(*uint8)(unsafe.Pointer(&o.IntBinds[index])) &= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+
+					{
+						lhs := o.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() & uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case c.Depth - 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint8)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-					IntBinds[index])) &= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint8)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) &= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.ThreadGlobals.FileEnv.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() & uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		}
 	case func(*Env) uint16:
 		switch upn {
 		case 0:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint16)(unsafe.Pointer(&env.
-					IntBinds[index])) &= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint16)(unsafe.Pointer(&env.IntBinds[index])) &= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() & uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint16)(unsafe.Pointer(&env.
-					Outer.
-					IntBinds[index])) &= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint16)(unsafe.Pointer(&env.
+						Outer.IntBinds[index])) &= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() & uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 2:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint16)(unsafe.Pointer(&env.
-					Outer.Outer.
-					IntBinds[index])) &= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint16)(unsafe.Pointer(&env.
+						Outer.Outer.IntBinds[index])) &= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.Outer.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() & uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		default:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				o := env.Outer.Outer.Outer
-				for i := 3; i < upn; i++ {
-					o = o.Outer
-				}
-				*(*uint16)(unsafe.Pointer(&o.IntBinds[index])) &= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					*(*uint16)(unsafe.Pointer(&o.IntBinds[index])) &= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+
+					{
+						lhs := o.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() & uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case c.Depth - 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint16)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-					IntBinds[index])) &= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint16)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) &= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.ThreadGlobals.FileEnv.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() & uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		}
 	case func(*Env) uint32:
 		switch upn {
 		case 0:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint32)(unsafe.Pointer(&env.
-					IntBinds[index])) &= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint32)(unsafe.Pointer(&env.IntBinds[index])) &= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() & uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint32)(unsafe.Pointer(&env.
-					Outer.
-					IntBinds[index])) &= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint32)(unsafe.Pointer(&env.
+						Outer.IntBinds[index])) &= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() & uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 2:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint32)(unsafe.Pointer(&env.
-					Outer.Outer.
-					IntBinds[index])) &= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint32)(unsafe.Pointer(&env.
+						Outer.Outer.IntBinds[index])) &= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.Outer.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() & uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		default:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				o := env.Outer.Outer.Outer
-				for i := 3; i < upn; i++ {
-					o = o.Outer
-				}
-				*(*uint32)(unsafe.Pointer(&o.IntBinds[index])) &= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					*(*uint32)(unsafe.Pointer(&o.IntBinds[index])) &= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+
+					{
+						lhs := o.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() & uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case c.Depth - 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint32)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-					IntBinds[index])) &= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint32)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) &= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.ThreadGlobals.FileEnv.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() & uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		}
 	case func(*Env) uint64:
 		switch upn {
 		case 0:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				env.
-					IntBinds[index] &= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					env.
+						IntBinds[index] &= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() & uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				env.
-					Outer.
-					IntBinds[index] &= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					env.
+						Outer.
+						IntBinds[index] &= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() & uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 2:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				env.
-					Outer.Outer.
-					IntBinds[index] &= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					env.
+						Outer.Outer.
+						IntBinds[index] &= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.Outer.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() & uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		default:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				o := env.Outer.Outer.Outer
-				for i := 3; i < upn; i++ {
-					o = o.Outer
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+
+					o.
+						IntBinds[index] &= fun(env)
+
+					env.IP++
+					return env.Code[env.IP], env
 				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
 
-				o.IntBinds[index] &= fun(env)
+					{
+						lhs := o.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() & uint64(fun(env),
+						),
+						)
+					}
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case c.Depth - 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				env.ThreadGlobals.FileEnv.
-					IntBinds[index] &= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					env.ThreadGlobals.FileEnv.
+						IntBinds[index] &= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.ThreadGlobals.FileEnv.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() & uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		}
 	case func(*Env) uintptr:
 		switch upn {
 		case 0:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uintptr)(unsafe.Pointer(&env.
-					IntBinds[index])) &= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uintptr)(unsafe.Pointer(&env.IntBinds[index])) &= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() & uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uintptr)(unsafe.Pointer(&env.
-					Outer.
-					IntBinds[index])) &= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uintptr)(unsafe.Pointer(&env.
+						Outer.IntBinds[index])) &= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() & uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 2:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uintptr)(unsafe.Pointer(&env.
-					Outer.Outer.
-					IntBinds[index])) &= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uintptr)(unsafe.Pointer(&env.
+						Outer.Outer.IntBinds[index])) &= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.Outer.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() & uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		default:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				o := env.Outer.Outer.Outer
-				for i := 3; i < upn; i++ {
-					o = o.Outer
-				}
-				*(*uintptr)(unsafe.Pointer(&o.IntBinds[index])) &= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					*(*uintptr)(unsafe.Pointer(&o.IntBinds[index])) &= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+
+					{
+						lhs := o.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() & uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case c.Depth - 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uintptr)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-					IntBinds[index])) &= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uintptr)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) &= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.ThreadGlobals.FileEnv.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() & uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		}
 	default:
@@ -10697,12 +22969,17 @@ func (c *Comp) varAndExpr(upn int, index int, t xr.Type, fun I) {
 	}
 	c.append(ret)
 }
-func (c *Comp) varOrConst(upn int, index int, t xr.Type, val I) {
+func (c *Comp) varOrConst(va *Var, val I) {
+	t := va.Type
 	if IsCategory(t.Kind(), r.Int, r.Uint) && isLiteralNumber(val, 0) {
 		return
 	}
 
 	{
+		t := va.Type
+		upn := va.Upn
+		index := va.Desc.Index()
+		intbinds := va.Desc.Class() == IntBind
 		var ret Stmt
 		switch t.Kind() {
 		case r.Int:
@@ -10710,53 +22987,131 @@ func (c *Comp) varOrConst(upn int, index int, t xr.Type, val I) {
 			switch upn {
 			case 0:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int)(unsafe.Pointer(&env.
-						IntBinds[index])) |= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int)(unsafe.Pointer(&env.IntBinds[index])) |= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Binds[index]
+							lhs.SetInt(lhs.Int() | int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int)(unsafe.Pointer(&env.
-						Outer.
-						IntBinds[index])) |= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int)(unsafe.Pointer(&env.
+							Outer.IntBinds[index])) |= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.
+								Binds[index]
+							lhs.SetInt(lhs.Int() | int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 2:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int)(unsafe.Pointer(&env.
-						Outer.Outer.
-						IntBinds[index])) |= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int)(unsafe.Pointer(&env.
+							Outer.Outer.IntBinds[index])) |= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.Outer.
+								Binds[index]
+							lhs.SetInt(lhs.Int() | int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			default:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					o := env.Outer.Outer.Outer
-					for i := 3; i < upn; i++ {
-						o = o.Outer
-					}
-					*(*int)(unsafe.Pointer(&o.IntBinds[index])) |= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						*(*int)(unsafe.Pointer(&o.IntBinds[index])) |= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						{
+							lhs :=
+
+								o.Binds[index]
+							lhs.SetInt(lhs.Int() | int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case c.Depth - 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-						IntBinds[index])) |= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) |= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.ThreadGlobals.FileEnv.
+								Binds[index]
+							lhs.SetInt(lhs.Int() | int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			}
 		case r.Int8:
@@ -10764,53 +23119,131 @@ func (c *Comp) varOrConst(upn int, index int, t xr.Type, val I) {
 			switch upn {
 			case 0:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int8)(unsafe.Pointer(&env.
-						IntBinds[index])) |= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int8)(unsafe.Pointer(&env.IntBinds[index])) |= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Binds[index]
+							lhs.SetInt(lhs.Int() | int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int8)(unsafe.Pointer(&env.
-						Outer.
-						IntBinds[index])) |= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int8)(unsafe.Pointer(&env.
+							Outer.IntBinds[index])) |= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.
+								Binds[index]
+							lhs.SetInt(lhs.Int() | int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 2:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int8)(unsafe.Pointer(&env.
-						Outer.Outer.
-						IntBinds[index])) |= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int8)(unsafe.Pointer(&env.
+							Outer.Outer.IntBinds[index])) |= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.Outer.
+								Binds[index]
+							lhs.SetInt(lhs.Int() | int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			default:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					o := env.Outer.Outer.Outer
-					for i := 3; i < upn; i++ {
-						o = o.Outer
-					}
-					*(*int8)(unsafe.Pointer(&o.IntBinds[index])) |= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						*(*int8)(unsafe.Pointer(&o.IntBinds[index])) |= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						{
+							lhs :=
+
+								o.Binds[index]
+							lhs.SetInt(lhs.Int() | int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case c.Depth - 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int8)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-						IntBinds[index])) |= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int8)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) |= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.ThreadGlobals.FileEnv.
+								Binds[index]
+							lhs.SetInt(lhs.Int() | int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			}
 		case r.Int16:
@@ -10818,53 +23251,131 @@ func (c *Comp) varOrConst(upn int, index int, t xr.Type, val I) {
 			switch upn {
 			case 0:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int16)(unsafe.Pointer(&env.
-						IntBinds[index])) |= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int16)(unsafe.Pointer(&env.IntBinds[index])) |= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Binds[index]
+							lhs.SetInt(lhs.Int() | int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int16)(unsafe.Pointer(&env.
-						Outer.
-						IntBinds[index])) |= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int16)(unsafe.Pointer(&env.
+							Outer.IntBinds[index])) |= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.
+								Binds[index]
+							lhs.SetInt(lhs.Int() | int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 2:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int16)(unsafe.Pointer(&env.
-						Outer.Outer.
-						IntBinds[index])) |= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int16)(unsafe.Pointer(&env.
+							Outer.Outer.IntBinds[index])) |= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.Outer.
+								Binds[index]
+							lhs.SetInt(lhs.Int() | int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			default:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					o := env.Outer.Outer.Outer
-					for i := 3; i < upn; i++ {
-						o = o.Outer
-					}
-					*(*int16)(unsafe.Pointer(&o.IntBinds[index])) |= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						*(*int16)(unsafe.Pointer(&o.IntBinds[index])) |= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						{
+							lhs :=
+
+								o.Binds[index]
+							lhs.SetInt(lhs.Int() | int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case c.Depth - 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int16)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-						IntBinds[index])) |= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int16)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) |= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.ThreadGlobals.FileEnv.
+								Binds[index]
+							lhs.SetInt(lhs.Int() | int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			}
 		case r.Int32:
@@ -10872,53 +23383,131 @@ func (c *Comp) varOrConst(upn int, index int, t xr.Type, val I) {
 			switch upn {
 			case 0:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int32)(unsafe.Pointer(&env.
-						IntBinds[index])) |= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int32)(unsafe.Pointer(&env.IntBinds[index])) |= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Binds[index]
+							lhs.SetInt(lhs.Int() | int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int32)(unsafe.Pointer(&env.
-						Outer.
-						IntBinds[index])) |= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int32)(unsafe.Pointer(&env.
+							Outer.IntBinds[index])) |= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.
+								Binds[index]
+							lhs.SetInt(lhs.Int() | int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 2:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int32)(unsafe.Pointer(&env.
-						Outer.Outer.
-						IntBinds[index])) |= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int32)(unsafe.Pointer(&env.
+							Outer.Outer.IntBinds[index])) |= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.Outer.
+								Binds[index]
+							lhs.SetInt(lhs.Int() | int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			default:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					o := env.Outer.Outer.Outer
-					for i := 3; i < upn; i++ {
-						o = o.Outer
-					}
-					*(*int32)(unsafe.Pointer(&o.IntBinds[index])) |= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						*(*int32)(unsafe.Pointer(&o.IntBinds[index])) |= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						{
+							lhs :=
+
+								o.Binds[index]
+							lhs.SetInt(lhs.Int() | int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case c.Depth - 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int32)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-						IntBinds[index])) |= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int32)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) |= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.ThreadGlobals.FileEnv.
+								Binds[index]
+							lhs.SetInt(lhs.Int() | int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			}
 		case r.Int64:
@@ -10926,53 +23515,131 @@ func (c *Comp) varOrConst(upn int, index int, t xr.Type, val I) {
 			switch upn {
 			case 0:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int64)(unsafe.Pointer(&env.
-						IntBinds[index])) |= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int64)(unsafe.Pointer(&env.IntBinds[index])) |= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Binds[index]
+							lhs.SetInt(lhs.Int() | int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int64)(unsafe.Pointer(&env.
-						Outer.
-						IntBinds[index])) |= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int64)(unsafe.Pointer(&env.
+							Outer.IntBinds[index])) |= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.
+								Binds[index]
+							lhs.SetInt(lhs.Int() | int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 2:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int64)(unsafe.Pointer(&env.
-						Outer.Outer.
-						IntBinds[index])) |= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int64)(unsafe.Pointer(&env.
+							Outer.Outer.IntBinds[index])) |= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.Outer.
+								Binds[index]
+							lhs.SetInt(lhs.Int() | int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			default:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					o := env.Outer.Outer.Outer
-					for i := 3; i < upn; i++ {
-						o = o.Outer
-					}
-					*(*int64)(unsafe.Pointer(&o.IntBinds[index])) |= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						*(*int64)(unsafe.Pointer(&o.IntBinds[index])) |= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						{
+							lhs :=
+
+								o.Binds[index]
+							lhs.SetInt(lhs.Int() | int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case c.Depth - 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int64)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-						IntBinds[index])) |= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int64)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) |= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.ThreadGlobals.FileEnv.
+								Binds[index]
+							lhs.SetInt(lhs.Int() | int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			}
 		case r.Uint:
@@ -10980,53 +23647,131 @@ func (c *Comp) varOrConst(upn int, index int, t xr.Type, val I) {
 			switch upn {
 			case 0:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint)(unsafe.Pointer(&env.
-						IntBinds[index])) |= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint)(unsafe.Pointer(&env.IntBinds[index])) |= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() | uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint)(unsafe.Pointer(&env.
-						Outer.
-						IntBinds[index])) |= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint)(unsafe.Pointer(&env.
+							Outer.IntBinds[index])) |= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() | uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 2:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint)(unsafe.Pointer(&env.
-						Outer.Outer.
-						IntBinds[index])) |= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint)(unsafe.Pointer(&env.
+							Outer.Outer.IntBinds[index])) |= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.Outer.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() | uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			default:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					o := env.Outer.Outer.Outer
-					for i := 3; i < upn; i++ {
-						o = o.Outer
-					}
-					*(*uint)(unsafe.Pointer(&o.IntBinds[index])) |= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						*(*uint)(unsafe.Pointer(&o.IntBinds[index])) |= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+
+						{
+							lhs := o.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() | uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case c.Depth - 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-						IntBinds[index])) |= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) |= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.ThreadGlobals.FileEnv.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() | uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			}
 		case r.Uint8:
@@ -11034,53 +23779,131 @@ func (c *Comp) varOrConst(upn int, index int, t xr.Type, val I) {
 			switch upn {
 			case 0:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint8)(unsafe.Pointer(&env.
-						IntBinds[index])) |= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint8)(unsafe.Pointer(&env.IntBinds[index])) |= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() | uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint8)(unsafe.Pointer(&env.
-						Outer.
-						IntBinds[index])) |= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint8)(unsafe.Pointer(&env.
+							Outer.IntBinds[index])) |= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() | uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 2:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint8)(unsafe.Pointer(&env.
-						Outer.Outer.
-						IntBinds[index])) |= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint8)(unsafe.Pointer(&env.
+							Outer.Outer.IntBinds[index])) |= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.Outer.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() | uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			default:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					o := env.Outer.Outer.Outer
-					for i := 3; i < upn; i++ {
-						o = o.Outer
-					}
-					*(*uint8)(unsafe.Pointer(&o.IntBinds[index])) |= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						*(*uint8)(unsafe.Pointer(&o.IntBinds[index])) |= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+
+						{
+							lhs := o.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() | uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case c.Depth - 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint8)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-						IntBinds[index])) |= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint8)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) |= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.ThreadGlobals.FileEnv.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() | uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			}
 		case r.Uint16:
@@ -11088,53 +23911,131 @@ func (c *Comp) varOrConst(upn int, index int, t xr.Type, val I) {
 			switch upn {
 			case 0:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint16)(unsafe.Pointer(&env.
-						IntBinds[index])) |= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint16)(unsafe.Pointer(&env.IntBinds[index])) |= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() | uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint16)(unsafe.Pointer(&env.
-						Outer.
-						IntBinds[index])) |= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint16)(unsafe.Pointer(&env.
+							Outer.IntBinds[index])) |= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() | uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 2:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint16)(unsafe.Pointer(&env.
-						Outer.Outer.
-						IntBinds[index])) |= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint16)(unsafe.Pointer(&env.
+							Outer.Outer.IntBinds[index])) |= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.Outer.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() | uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			default:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					o := env.Outer.Outer.Outer
-					for i := 3; i < upn; i++ {
-						o = o.Outer
-					}
-					*(*uint16)(unsafe.Pointer(&o.IntBinds[index])) |= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						*(*uint16)(unsafe.Pointer(&o.IntBinds[index])) |= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+
+						{
+							lhs := o.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() | uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case c.Depth - 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint16)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-						IntBinds[index])) |= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint16)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) |= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.ThreadGlobals.FileEnv.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() | uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			}
 		case r.Uint32:
@@ -11142,53 +24043,131 @@ func (c *Comp) varOrConst(upn int, index int, t xr.Type, val I) {
 			switch upn {
 			case 0:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint32)(unsafe.Pointer(&env.
-						IntBinds[index])) |= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint32)(unsafe.Pointer(&env.IntBinds[index])) |= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() | uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint32)(unsafe.Pointer(&env.
-						Outer.
-						IntBinds[index])) |= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint32)(unsafe.Pointer(&env.
+							Outer.IntBinds[index])) |= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() | uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 2:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint32)(unsafe.Pointer(&env.
-						Outer.Outer.
-						IntBinds[index])) |= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint32)(unsafe.Pointer(&env.
+							Outer.Outer.IntBinds[index])) |= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.Outer.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() | uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			default:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					o := env.Outer.Outer.Outer
-					for i := 3; i < upn; i++ {
-						o = o.Outer
-					}
-					*(*uint32)(unsafe.Pointer(&o.IntBinds[index])) |= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						*(*uint32)(unsafe.Pointer(&o.IntBinds[index])) |= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+
+						{
+							lhs := o.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() | uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case c.Depth - 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint32)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-						IntBinds[index])) |= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint32)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) |= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.ThreadGlobals.FileEnv.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() | uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			}
 		case r.Uint64:
@@ -11196,54 +24175,137 @@ func (c *Comp) varOrConst(upn int, index int, t xr.Type, val I) {
 			switch upn {
 			case 0:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					env.
-						IntBinds[index] |= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						env.
+							IntBinds[index] |= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() | uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					env.
-						Outer.
-						IntBinds[index] |= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						env.
+							Outer.
+							IntBinds[index] |= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() | uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 2:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					env.
-						Outer.Outer.
-						IntBinds[index] |= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						env.
+							Outer.Outer.
+							IntBinds[index] |= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.Outer.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() | uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			default:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					o := env.Outer.Outer.Outer
-					for i := 3; i < upn; i++ {
-						o = o.Outer
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+
+						o.
+							IntBinds[index] |= val
+
+						env.IP++
+						return env.Code[env.IP], env
 					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
 
-					o.IntBinds[index] |= val
+						{
+							lhs := o.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() | uint64(val,
+							),
+							)
+						}
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case c.Depth - 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					env.ThreadGlobals.FileEnv.
-						IntBinds[index] |= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						env.ThreadGlobals.FileEnv.
+							IntBinds[index] |= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.ThreadGlobals.FileEnv.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() | uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			}
 		case r.Uintptr:
@@ -11251,53 +24313,131 @@ func (c *Comp) varOrConst(upn int, index int, t xr.Type, val I) {
 			switch upn {
 			case 0:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uintptr)(unsafe.Pointer(&env.
-						IntBinds[index])) |= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uintptr)(unsafe.Pointer(&env.IntBinds[index])) |= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() | uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uintptr)(unsafe.Pointer(&env.
-						Outer.
-						IntBinds[index])) |= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uintptr)(unsafe.Pointer(&env.
+							Outer.IntBinds[index])) |= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() | uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 2:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uintptr)(unsafe.Pointer(&env.
-						Outer.Outer.
-						IntBinds[index])) |= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uintptr)(unsafe.Pointer(&env.
+							Outer.Outer.IntBinds[index])) |= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.Outer.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() | uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			default:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					o := env.Outer.Outer.Outer
-					for i := 3; i < upn; i++ {
-						o = o.Outer
-					}
-					*(*uintptr)(unsafe.Pointer(&o.IntBinds[index])) |= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						*(*uintptr)(unsafe.Pointer(&o.IntBinds[index])) |= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+
+						{
+							lhs := o.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() | uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case c.Depth - 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uintptr)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-						IntBinds[index])) |= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uintptr)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) |= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.ThreadGlobals.FileEnv.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() | uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			}
 		default:
@@ -11307,591 +24447,1458 @@ func (c *Comp) varOrConst(upn int, index int, t xr.Type, val I) {
 		c.append(ret)
 	}
 }
-func (c *Comp) varOrExpr(upn int, index int, t xr.Type, fun I) {
+func (c *Comp) varOrExpr(va *Var, fun I) {
+	t := va.Type
+	upn := va.Upn
+	index := va.Desc.Index()
+	intbinds := va.Desc.Class() == IntBind
 	var ret Stmt
 	switch fun := fun.(type) {
 	case func(*Env) int:
 		switch upn {
 		case 0:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int)(unsafe.Pointer(&env.
-					IntBinds[index])) |= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int)(unsafe.Pointer(&env.IntBinds[index])) |= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Binds[index]
+						lhs.SetInt(lhs.Int() | int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int)(unsafe.Pointer(&env.
-					Outer.
-					IntBinds[index])) |= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int)(unsafe.Pointer(&env.
+						Outer.IntBinds[index])) |= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.
+							Binds[index]
+						lhs.SetInt(lhs.Int() | int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 2:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int)(unsafe.Pointer(&env.
-					Outer.Outer.
-					IntBinds[index])) |= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int)(unsafe.Pointer(&env.
+						Outer.Outer.IntBinds[index])) |= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.Outer.
+							Binds[index]
+						lhs.SetInt(lhs.Int() | int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		default:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				o := env.Outer.Outer.Outer
-				for i := 3; i < upn; i++ {
-					o = o.Outer
-				}
-				*(*int)(unsafe.Pointer(&o.IntBinds[index])) |= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					*(*int)(unsafe.Pointer(&o.IntBinds[index])) |= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					{
+						lhs :=
+
+							o.Binds[index]
+						lhs.SetInt(lhs.Int() | int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case c.Depth - 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-					IntBinds[index])) |= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) |= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.ThreadGlobals.FileEnv.
+							Binds[index]
+						lhs.SetInt(lhs.Int() | int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		}
 	case func(*Env) int8:
 		switch upn {
 		case 0:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int8)(unsafe.Pointer(&env.
-					IntBinds[index])) |= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int8)(unsafe.Pointer(&env.IntBinds[index])) |= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Binds[index]
+						lhs.SetInt(lhs.Int() | int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int8)(unsafe.Pointer(&env.
-					Outer.
-					IntBinds[index])) |= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int8)(unsafe.Pointer(&env.
+						Outer.IntBinds[index])) |= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.
+							Binds[index]
+						lhs.SetInt(lhs.Int() | int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 2:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int8)(unsafe.Pointer(&env.
-					Outer.Outer.
-					IntBinds[index])) |= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int8)(unsafe.Pointer(&env.
+						Outer.Outer.IntBinds[index])) |= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.Outer.
+							Binds[index]
+						lhs.SetInt(lhs.Int() | int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		default:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				o := env.Outer.Outer.Outer
-				for i := 3; i < upn; i++ {
-					o = o.Outer
-				}
-				*(*int8)(unsafe.Pointer(&o.IntBinds[index])) |= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					*(*int8)(unsafe.Pointer(&o.IntBinds[index])) |= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					{
+						lhs :=
+
+							o.Binds[index]
+						lhs.SetInt(lhs.Int() | int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case c.Depth - 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int8)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-					IntBinds[index])) |= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int8)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) |= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.ThreadGlobals.FileEnv.
+							Binds[index]
+						lhs.SetInt(lhs.Int() | int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		}
 	case func(*Env) int16:
 		switch upn {
 		case 0:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int16)(unsafe.Pointer(&env.
-					IntBinds[index])) |= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int16)(unsafe.Pointer(&env.IntBinds[index])) |= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Binds[index]
+						lhs.SetInt(lhs.Int() | int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int16)(unsafe.Pointer(&env.
-					Outer.
-					IntBinds[index])) |= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int16)(unsafe.Pointer(&env.
+						Outer.IntBinds[index])) |= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.
+							Binds[index]
+						lhs.SetInt(lhs.Int() | int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 2:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int16)(unsafe.Pointer(&env.
-					Outer.Outer.
-					IntBinds[index])) |= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int16)(unsafe.Pointer(&env.
+						Outer.Outer.IntBinds[index])) |= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.Outer.
+							Binds[index]
+						lhs.SetInt(lhs.Int() | int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		default:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				o := env.Outer.Outer.Outer
-				for i := 3; i < upn; i++ {
-					o = o.Outer
-				}
-				*(*int16)(unsafe.Pointer(&o.IntBinds[index])) |= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					*(*int16)(unsafe.Pointer(&o.IntBinds[index])) |= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					{
+						lhs :=
+
+							o.Binds[index]
+						lhs.SetInt(lhs.Int() | int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case c.Depth - 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int16)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-					IntBinds[index])) |= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int16)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) |= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.ThreadGlobals.FileEnv.
+							Binds[index]
+						lhs.SetInt(lhs.Int() | int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		}
 	case func(*Env) int32:
 		switch upn {
 		case 0:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int32)(unsafe.Pointer(&env.
-					IntBinds[index])) |= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int32)(unsafe.Pointer(&env.IntBinds[index])) |= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Binds[index]
+						lhs.SetInt(lhs.Int() | int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int32)(unsafe.Pointer(&env.
-					Outer.
-					IntBinds[index])) |= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int32)(unsafe.Pointer(&env.
+						Outer.IntBinds[index])) |= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.
+							Binds[index]
+						lhs.SetInt(lhs.Int() | int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 2:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int32)(unsafe.Pointer(&env.
-					Outer.Outer.
-					IntBinds[index])) |= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int32)(unsafe.Pointer(&env.
+						Outer.Outer.IntBinds[index])) |= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.Outer.
+							Binds[index]
+						lhs.SetInt(lhs.Int() | int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		default:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				o := env.Outer.Outer.Outer
-				for i := 3; i < upn; i++ {
-					o = o.Outer
-				}
-				*(*int32)(unsafe.Pointer(&o.IntBinds[index])) |= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					*(*int32)(unsafe.Pointer(&o.IntBinds[index])) |= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					{
+						lhs :=
+
+							o.Binds[index]
+						lhs.SetInt(lhs.Int() | int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case c.Depth - 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int32)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-					IntBinds[index])) |= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int32)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) |= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.ThreadGlobals.FileEnv.
+							Binds[index]
+						lhs.SetInt(lhs.Int() | int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		}
 	case func(*Env) int64:
 		switch upn {
 		case 0:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int64)(unsafe.Pointer(&env.
-					IntBinds[index])) |= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int64)(unsafe.Pointer(&env.IntBinds[index])) |= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Binds[index]
+						lhs.SetInt(lhs.Int() | int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int64)(unsafe.Pointer(&env.
-					Outer.
-					IntBinds[index])) |= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int64)(unsafe.Pointer(&env.
+						Outer.IntBinds[index])) |= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.
+							Binds[index]
+						lhs.SetInt(lhs.Int() | int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 2:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int64)(unsafe.Pointer(&env.
-					Outer.Outer.
-					IntBinds[index])) |= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int64)(unsafe.Pointer(&env.
+						Outer.Outer.IntBinds[index])) |= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.Outer.
+							Binds[index]
+						lhs.SetInt(lhs.Int() | int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		default:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				o := env.Outer.Outer.Outer
-				for i := 3; i < upn; i++ {
-					o = o.Outer
-				}
-				*(*int64)(unsafe.Pointer(&o.IntBinds[index])) |= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					*(*int64)(unsafe.Pointer(&o.IntBinds[index])) |= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					{
+						lhs :=
+
+							o.Binds[index]
+						lhs.SetInt(lhs.Int() | int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case c.Depth - 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int64)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-					IntBinds[index])) |= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int64)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) |= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.ThreadGlobals.FileEnv.
+							Binds[index]
+						lhs.SetInt(lhs.Int() | int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		}
 	case func(*Env) uint:
 		switch upn {
 		case 0:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint)(unsafe.Pointer(&env.
-					IntBinds[index])) |= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint)(unsafe.Pointer(&env.IntBinds[index])) |= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() | uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint)(unsafe.Pointer(&env.
-					Outer.
-					IntBinds[index])) |= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint)(unsafe.Pointer(&env.
+						Outer.IntBinds[index])) |= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() | uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 2:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint)(unsafe.Pointer(&env.
-					Outer.Outer.
-					IntBinds[index])) |= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint)(unsafe.Pointer(&env.
+						Outer.Outer.IntBinds[index])) |= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.Outer.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() | uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		default:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				o := env.Outer.Outer.Outer
-				for i := 3; i < upn; i++ {
-					o = o.Outer
-				}
-				*(*uint)(unsafe.Pointer(&o.IntBinds[index])) |= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					*(*uint)(unsafe.Pointer(&o.IntBinds[index])) |= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+
+					{
+						lhs := o.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() | uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case c.Depth - 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-					IntBinds[index])) |= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) |= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.ThreadGlobals.FileEnv.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() | uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		}
 	case func(*Env) uint8:
 		switch upn {
 		case 0:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint8)(unsafe.Pointer(&env.
-					IntBinds[index])) |= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint8)(unsafe.Pointer(&env.IntBinds[index])) |= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() | uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint8)(unsafe.Pointer(&env.
-					Outer.
-					IntBinds[index])) |= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint8)(unsafe.Pointer(&env.
+						Outer.IntBinds[index])) |= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() | uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 2:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint8)(unsafe.Pointer(&env.
-					Outer.Outer.
-					IntBinds[index])) |= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint8)(unsafe.Pointer(&env.
+						Outer.Outer.IntBinds[index])) |= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.Outer.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() | uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		default:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				o := env.Outer.Outer.Outer
-				for i := 3; i < upn; i++ {
-					o = o.Outer
-				}
-				*(*uint8)(unsafe.Pointer(&o.IntBinds[index])) |= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					*(*uint8)(unsafe.Pointer(&o.IntBinds[index])) |= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+
+					{
+						lhs := o.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() | uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case c.Depth - 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint8)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-					IntBinds[index])) |= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint8)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) |= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.ThreadGlobals.FileEnv.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() | uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		}
 	case func(*Env) uint16:
 		switch upn {
 		case 0:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint16)(unsafe.Pointer(&env.
-					IntBinds[index])) |= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint16)(unsafe.Pointer(&env.IntBinds[index])) |= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() | uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint16)(unsafe.Pointer(&env.
-					Outer.
-					IntBinds[index])) |= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint16)(unsafe.Pointer(&env.
+						Outer.IntBinds[index])) |= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() | uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 2:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint16)(unsafe.Pointer(&env.
-					Outer.Outer.
-					IntBinds[index])) |= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint16)(unsafe.Pointer(&env.
+						Outer.Outer.IntBinds[index])) |= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.Outer.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() | uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		default:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				o := env.Outer.Outer.Outer
-				for i := 3; i < upn; i++ {
-					o = o.Outer
-				}
-				*(*uint16)(unsafe.Pointer(&o.IntBinds[index])) |= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					*(*uint16)(unsafe.Pointer(&o.IntBinds[index])) |= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+
+					{
+						lhs := o.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() | uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case c.Depth - 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint16)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-					IntBinds[index])) |= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint16)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) |= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.ThreadGlobals.FileEnv.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() | uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		}
 	case func(*Env) uint32:
 		switch upn {
 		case 0:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint32)(unsafe.Pointer(&env.
-					IntBinds[index])) |= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint32)(unsafe.Pointer(&env.IntBinds[index])) |= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() | uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint32)(unsafe.Pointer(&env.
-					Outer.
-					IntBinds[index])) |= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint32)(unsafe.Pointer(&env.
+						Outer.IntBinds[index])) |= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() | uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 2:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint32)(unsafe.Pointer(&env.
-					Outer.Outer.
-					IntBinds[index])) |= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint32)(unsafe.Pointer(&env.
+						Outer.Outer.IntBinds[index])) |= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.Outer.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() | uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		default:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				o := env.Outer.Outer.Outer
-				for i := 3; i < upn; i++ {
-					o = o.Outer
-				}
-				*(*uint32)(unsafe.Pointer(&o.IntBinds[index])) |= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					*(*uint32)(unsafe.Pointer(&o.IntBinds[index])) |= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+
+					{
+						lhs := o.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() | uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case c.Depth - 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint32)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-					IntBinds[index])) |= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint32)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) |= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.ThreadGlobals.FileEnv.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() | uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		}
 	case func(*Env) uint64:
 		switch upn {
 		case 0:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				env.
-					IntBinds[index] |= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					env.
+						IntBinds[index] |= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() | uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				env.
-					Outer.
-					IntBinds[index] |= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					env.
+						Outer.
+						IntBinds[index] |= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() | uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 2:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				env.
-					Outer.Outer.
-					IntBinds[index] |= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					env.
+						Outer.Outer.
+						IntBinds[index] |= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.Outer.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() | uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		default:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				o := env.Outer.Outer.Outer
-				for i := 3; i < upn; i++ {
-					o = o.Outer
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+
+					o.
+						IntBinds[index] |= fun(env)
+
+					env.IP++
+					return env.Code[env.IP], env
 				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
 
-				o.IntBinds[index] |= fun(env)
+					{
+						lhs := o.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() | uint64(fun(env),
+						),
+						)
+					}
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case c.Depth - 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				env.ThreadGlobals.FileEnv.
-					IntBinds[index] |= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					env.ThreadGlobals.FileEnv.
+						IntBinds[index] |= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.ThreadGlobals.FileEnv.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() | uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		}
 	case func(*Env) uintptr:
 		switch upn {
 		case 0:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uintptr)(unsafe.Pointer(&env.
-					IntBinds[index])) |= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uintptr)(unsafe.Pointer(&env.IntBinds[index])) |= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() | uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uintptr)(unsafe.Pointer(&env.
-					Outer.
-					IntBinds[index])) |= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uintptr)(unsafe.Pointer(&env.
+						Outer.IntBinds[index])) |= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() | uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 2:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uintptr)(unsafe.Pointer(&env.
-					Outer.Outer.
-					IntBinds[index])) |= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uintptr)(unsafe.Pointer(&env.
+						Outer.Outer.IntBinds[index])) |= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.Outer.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() | uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		default:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				o := env.Outer.Outer.Outer
-				for i := 3; i < upn; i++ {
-					o = o.Outer
-				}
-				*(*uintptr)(unsafe.Pointer(&o.IntBinds[index])) |= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					*(*uintptr)(unsafe.Pointer(&o.IntBinds[index])) |= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+
+					{
+						lhs := o.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() | uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case c.Depth - 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uintptr)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-					IntBinds[index])) |= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uintptr)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) |= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.ThreadGlobals.FileEnv.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() | uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		}
 	default:
@@ -11900,12 +25907,17 @@ func (c *Comp) varOrExpr(upn int, index int, t xr.Type, fun I) {
 	}
 	c.append(ret)
 }
-func (c *Comp) varXorConst(upn int, index int, t xr.Type, val I) {
+func (c *Comp) varXorConst(va *Var, val I) {
+	t := va.Type
 	if IsCategory(t.Kind(), r.Int, r.Uint) && isLiteralNumber(val, 0) {
 		return
 	}
 
 	{
+		t := va.Type
+		upn := va.Upn
+		index := va.Desc.Index()
+		intbinds := va.Desc.Class() == IntBind
 		var ret Stmt
 		switch t.Kind() {
 		case r.Int:
@@ -11913,53 +25925,131 @@ func (c *Comp) varXorConst(upn int, index int, t xr.Type, val I) {
 			switch upn {
 			case 0:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int)(unsafe.Pointer(&env.
-						IntBinds[index])) ^= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int)(unsafe.Pointer(&env.IntBinds[index])) ^= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Binds[index]
+							lhs.SetInt(lhs.Int() ^ int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int)(unsafe.Pointer(&env.
-						Outer.
-						IntBinds[index])) ^= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int)(unsafe.Pointer(&env.
+							Outer.IntBinds[index])) ^= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.
+								Binds[index]
+							lhs.SetInt(lhs.Int() ^ int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 2:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int)(unsafe.Pointer(&env.
-						Outer.Outer.
-						IntBinds[index])) ^= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int)(unsafe.Pointer(&env.
+							Outer.Outer.IntBinds[index])) ^= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.Outer.
+								Binds[index]
+							lhs.SetInt(lhs.Int() ^ int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			default:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					o := env.Outer.Outer.Outer
-					for i := 3; i < upn; i++ {
-						o = o.Outer
-					}
-					*(*int)(unsafe.Pointer(&o.IntBinds[index])) ^= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						*(*int)(unsafe.Pointer(&o.IntBinds[index])) ^= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						{
+							lhs :=
+
+								o.Binds[index]
+							lhs.SetInt(lhs.Int() ^ int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case c.Depth - 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-						IntBinds[index])) ^= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) ^= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.ThreadGlobals.FileEnv.
+								Binds[index]
+							lhs.SetInt(lhs.Int() ^ int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			}
 		case r.Int8:
@@ -11967,53 +26057,131 @@ func (c *Comp) varXorConst(upn int, index int, t xr.Type, val I) {
 			switch upn {
 			case 0:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int8)(unsafe.Pointer(&env.
-						IntBinds[index])) ^= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int8)(unsafe.Pointer(&env.IntBinds[index])) ^= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Binds[index]
+							lhs.SetInt(lhs.Int() ^ int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int8)(unsafe.Pointer(&env.
-						Outer.
-						IntBinds[index])) ^= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int8)(unsafe.Pointer(&env.
+							Outer.IntBinds[index])) ^= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.
+								Binds[index]
+							lhs.SetInt(lhs.Int() ^ int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 2:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int8)(unsafe.Pointer(&env.
-						Outer.Outer.
-						IntBinds[index])) ^= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int8)(unsafe.Pointer(&env.
+							Outer.Outer.IntBinds[index])) ^= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.Outer.
+								Binds[index]
+							lhs.SetInt(lhs.Int() ^ int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			default:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					o := env.Outer.Outer.Outer
-					for i := 3; i < upn; i++ {
-						o = o.Outer
-					}
-					*(*int8)(unsafe.Pointer(&o.IntBinds[index])) ^= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						*(*int8)(unsafe.Pointer(&o.IntBinds[index])) ^= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						{
+							lhs :=
+
+								o.Binds[index]
+							lhs.SetInt(lhs.Int() ^ int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case c.Depth - 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int8)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-						IntBinds[index])) ^= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int8)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) ^= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.ThreadGlobals.FileEnv.
+								Binds[index]
+							lhs.SetInt(lhs.Int() ^ int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			}
 		case r.Int16:
@@ -12021,53 +26189,131 @@ func (c *Comp) varXorConst(upn int, index int, t xr.Type, val I) {
 			switch upn {
 			case 0:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int16)(unsafe.Pointer(&env.
-						IntBinds[index])) ^= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int16)(unsafe.Pointer(&env.IntBinds[index])) ^= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Binds[index]
+							lhs.SetInt(lhs.Int() ^ int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int16)(unsafe.Pointer(&env.
-						Outer.
-						IntBinds[index])) ^= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int16)(unsafe.Pointer(&env.
+							Outer.IntBinds[index])) ^= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.
+								Binds[index]
+							lhs.SetInt(lhs.Int() ^ int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 2:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int16)(unsafe.Pointer(&env.
-						Outer.Outer.
-						IntBinds[index])) ^= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int16)(unsafe.Pointer(&env.
+							Outer.Outer.IntBinds[index])) ^= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.Outer.
+								Binds[index]
+							lhs.SetInt(lhs.Int() ^ int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			default:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					o := env.Outer.Outer.Outer
-					for i := 3; i < upn; i++ {
-						o = o.Outer
-					}
-					*(*int16)(unsafe.Pointer(&o.IntBinds[index])) ^= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						*(*int16)(unsafe.Pointer(&o.IntBinds[index])) ^= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						{
+							lhs :=
+
+								o.Binds[index]
+							lhs.SetInt(lhs.Int() ^ int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case c.Depth - 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int16)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-						IntBinds[index])) ^= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int16)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) ^= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.ThreadGlobals.FileEnv.
+								Binds[index]
+							lhs.SetInt(lhs.Int() ^ int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			}
 		case r.Int32:
@@ -12075,53 +26321,131 @@ func (c *Comp) varXorConst(upn int, index int, t xr.Type, val I) {
 			switch upn {
 			case 0:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int32)(unsafe.Pointer(&env.
-						IntBinds[index])) ^= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int32)(unsafe.Pointer(&env.IntBinds[index])) ^= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Binds[index]
+							lhs.SetInt(lhs.Int() ^ int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int32)(unsafe.Pointer(&env.
-						Outer.
-						IntBinds[index])) ^= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int32)(unsafe.Pointer(&env.
+							Outer.IntBinds[index])) ^= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.
+								Binds[index]
+							lhs.SetInt(lhs.Int() ^ int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 2:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int32)(unsafe.Pointer(&env.
-						Outer.Outer.
-						IntBinds[index])) ^= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int32)(unsafe.Pointer(&env.
+							Outer.Outer.IntBinds[index])) ^= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.Outer.
+								Binds[index]
+							lhs.SetInt(lhs.Int() ^ int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			default:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					o := env.Outer.Outer.Outer
-					for i := 3; i < upn; i++ {
-						o = o.Outer
-					}
-					*(*int32)(unsafe.Pointer(&o.IntBinds[index])) ^= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						*(*int32)(unsafe.Pointer(&o.IntBinds[index])) ^= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						{
+							lhs :=
+
+								o.Binds[index]
+							lhs.SetInt(lhs.Int() ^ int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case c.Depth - 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int32)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-						IntBinds[index])) ^= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int32)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) ^= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.ThreadGlobals.FileEnv.
+								Binds[index]
+							lhs.SetInt(lhs.Int() ^ int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			}
 		case r.Int64:
@@ -12129,53 +26453,131 @@ func (c *Comp) varXorConst(upn int, index int, t xr.Type, val I) {
 			switch upn {
 			case 0:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int64)(unsafe.Pointer(&env.
-						IntBinds[index])) ^= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int64)(unsafe.Pointer(&env.IntBinds[index])) ^= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Binds[index]
+							lhs.SetInt(lhs.Int() ^ int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int64)(unsafe.Pointer(&env.
-						Outer.
-						IntBinds[index])) ^= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int64)(unsafe.Pointer(&env.
+							Outer.IntBinds[index])) ^= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.
+								Binds[index]
+							lhs.SetInt(lhs.Int() ^ int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 2:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int64)(unsafe.Pointer(&env.
-						Outer.Outer.
-						IntBinds[index])) ^= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int64)(unsafe.Pointer(&env.
+							Outer.Outer.IntBinds[index])) ^= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.Outer.
+								Binds[index]
+							lhs.SetInt(lhs.Int() ^ int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			default:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					o := env.Outer.Outer.Outer
-					for i := 3; i < upn; i++ {
-						o = o.Outer
-					}
-					*(*int64)(unsafe.Pointer(&o.IntBinds[index])) ^= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						*(*int64)(unsafe.Pointer(&o.IntBinds[index])) ^= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						{
+							lhs :=
+
+								o.Binds[index]
+							lhs.SetInt(lhs.Int() ^ int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case c.Depth - 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int64)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-						IntBinds[index])) ^= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int64)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) ^= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.ThreadGlobals.FileEnv.
+								Binds[index]
+							lhs.SetInt(lhs.Int() ^ int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			}
 		case r.Uint:
@@ -12183,53 +26585,131 @@ func (c *Comp) varXorConst(upn int, index int, t xr.Type, val I) {
 			switch upn {
 			case 0:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint)(unsafe.Pointer(&env.
-						IntBinds[index])) ^= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint)(unsafe.Pointer(&env.IntBinds[index])) ^= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() ^ uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint)(unsafe.Pointer(&env.
-						Outer.
-						IntBinds[index])) ^= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint)(unsafe.Pointer(&env.
+							Outer.IntBinds[index])) ^= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() ^ uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 2:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint)(unsafe.Pointer(&env.
-						Outer.Outer.
-						IntBinds[index])) ^= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint)(unsafe.Pointer(&env.
+							Outer.Outer.IntBinds[index])) ^= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.Outer.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() ^ uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			default:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					o := env.Outer.Outer.Outer
-					for i := 3; i < upn; i++ {
-						o = o.Outer
-					}
-					*(*uint)(unsafe.Pointer(&o.IntBinds[index])) ^= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						*(*uint)(unsafe.Pointer(&o.IntBinds[index])) ^= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+
+						{
+							lhs := o.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() ^ uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case c.Depth - 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-						IntBinds[index])) ^= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) ^= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.ThreadGlobals.FileEnv.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() ^ uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			}
 		case r.Uint8:
@@ -12237,53 +26717,131 @@ func (c *Comp) varXorConst(upn int, index int, t xr.Type, val I) {
 			switch upn {
 			case 0:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint8)(unsafe.Pointer(&env.
-						IntBinds[index])) ^= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint8)(unsafe.Pointer(&env.IntBinds[index])) ^= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() ^ uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint8)(unsafe.Pointer(&env.
-						Outer.
-						IntBinds[index])) ^= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint8)(unsafe.Pointer(&env.
+							Outer.IntBinds[index])) ^= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() ^ uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 2:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint8)(unsafe.Pointer(&env.
-						Outer.Outer.
-						IntBinds[index])) ^= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint8)(unsafe.Pointer(&env.
+							Outer.Outer.IntBinds[index])) ^= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.Outer.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() ^ uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			default:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					o := env.Outer.Outer.Outer
-					for i := 3; i < upn; i++ {
-						o = o.Outer
-					}
-					*(*uint8)(unsafe.Pointer(&o.IntBinds[index])) ^= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						*(*uint8)(unsafe.Pointer(&o.IntBinds[index])) ^= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+
+						{
+							lhs := o.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() ^ uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case c.Depth - 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint8)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-						IntBinds[index])) ^= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint8)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) ^= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.ThreadGlobals.FileEnv.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() ^ uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			}
 		case r.Uint16:
@@ -12291,53 +26849,131 @@ func (c *Comp) varXorConst(upn int, index int, t xr.Type, val I) {
 			switch upn {
 			case 0:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint16)(unsafe.Pointer(&env.
-						IntBinds[index])) ^= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint16)(unsafe.Pointer(&env.IntBinds[index])) ^= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() ^ uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint16)(unsafe.Pointer(&env.
-						Outer.
-						IntBinds[index])) ^= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint16)(unsafe.Pointer(&env.
+							Outer.IntBinds[index])) ^= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() ^ uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 2:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint16)(unsafe.Pointer(&env.
-						Outer.Outer.
-						IntBinds[index])) ^= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint16)(unsafe.Pointer(&env.
+							Outer.Outer.IntBinds[index])) ^= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.Outer.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() ^ uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			default:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					o := env.Outer.Outer.Outer
-					for i := 3; i < upn; i++ {
-						o = o.Outer
-					}
-					*(*uint16)(unsafe.Pointer(&o.IntBinds[index])) ^= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						*(*uint16)(unsafe.Pointer(&o.IntBinds[index])) ^= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+
+						{
+							lhs := o.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() ^ uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case c.Depth - 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint16)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-						IntBinds[index])) ^= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint16)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) ^= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.ThreadGlobals.FileEnv.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() ^ uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			}
 		case r.Uint32:
@@ -12345,53 +26981,131 @@ func (c *Comp) varXorConst(upn int, index int, t xr.Type, val I) {
 			switch upn {
 			case 0:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint32)(unsafe.Pointer(&env.
-						IntBinds[index])) ^= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint32)(unsafe.Pointer(&env.IntBinds[index])) ^= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() ^ uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint32)(unsafe.Pointer(&env.
-						Outer.
-						IntBinds[index])) ^= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint32)(unsafe.Pointer(&env.
+							Outer.IntBinds[index])) ^= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() ^ uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 2:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint32)(unsafe.Pointer(&env.
-						Outer.Outer.
-						IntBinds[index])) ^= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint32)(unsafe.Pointer(&env.
+							Outer.Outer.IntBinds[index])) ^= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.Outer.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() ^ uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			default:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					o := env.Outer.Outer.Outer
-					for i := 3; i < upn; i++ {
-						o = o.Outer
-					}
-					*(*uint32)(unsafe.Pointer(&o.IntBinds[index])) ^= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						*(*uint32)(unsafe.Pointer(&o.IntBinds[index])) ^= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+
+						{
+							lhs := o.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() ^ uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case c.Depth - 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint32)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-						IntBinds[index])) ^= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint32)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) ^= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.ThreadGlobals.FileEnv.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() ^ uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			}
 		case r.Uint64:
@@ -12399,54 +27113,137 @@ func (c *Comp) varXorConst(upn int, index int, t xr.Type, val I) {
 			switch upn {
 			case 0:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					env.
-						IntBinds[index] ^= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						env.
+							IntBinds[index] ^= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() ^ uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					env.
-						Outer.
-						IntBinds[index] ^= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						env.
+							Outer.
+							IntBinds[index] ^= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() ^ uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 2:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					env.
-						Outer.Outer.
-						IntBinds[index] ^= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						env.
+							Outer.Outer.
+							IntBinds[index] ^= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.Outer.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() ^ uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			default:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					o := env.Outer.Outer.Outer
-					for i := 3; i < upn; i++ {
-						o = o.Outer
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+
+						o.
+							IntBinds[index] ^= val
+
+						env.IP++
+						return env.Code[env.IP], env
 					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
 
-					o.IntBinds[index] ^= val
+						{
+							lhs := o.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() ^ uint64(val,
+							),
+							)
+						}
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case c.Depth - 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					env.ThreadGlobals.FileEnv.
-						IntBinds[index] ^= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						env.ThreadGlobals.FileEnv.
+							IntBinds[index] ^= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.ThreadGlobals.FileEnv.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() ^ uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			}
 		case r.Uintptr:
@@ -12454,53 +27251,131 @@ func (c *Comp) varXorConst(upn int, index int, t xr.Type, val I) {
 			switch upn {
 			case 0:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uintptr)(unsafe.Pointer(&env.
-						IntBinds[index])) ^= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uintptr)(unsafe.Pointer(&env.IntBinds[index])) ^= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() ^ uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uintptr)(unsafe.Pointer(&env.
-						Outer.
-						IntBinds[index])) ^= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uintptr)(unsafe.Pointer(&env.
+							Outer.IntBinds[index])) ^= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() ^ uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 2:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uintptr)(unsafe.Pointer(&env.
-						Outer.Outer.
-						IntBinds[index])) ^= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uintptr)(unsafe.Pointer(&env.
+							Outer.Outer.IntBinds[index])) ^= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.Outer.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() ^ uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			default:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					o := env.Outer.Outer.Outer
-					for i := 3; i < upn; i++ {
-						o = o.Outer
-					}
-					*(*uintptr)(unsafe.Pointer(&o.IntBinds[index])) ^= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						*(*uintptr)(unsafe.Pointer(&o.IntBinds[index])) ^= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+
+						{
+							lhs := o.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() ^ uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case c.Depth - 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uintptr)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-						IntBinds[index])) ^= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uintptr)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) ^= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.ThreadGlobals.FileEnv.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() ^ uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			}
 		default:
@@ -12510,591 +27385,1458 @@ func (c *Comp) varXorConst(upn int, index int, t xr.Type, val I) {
 		c.append(ret)
 	}
 }
-func (c *Comp) varXorExpr(upn int, index int, t xr.Type, fun I) {
+func (c *Comp) varXorExpr(va *Var, fun I) {
+	t := va.Type
+	upn := va.Upn
+	index := va.Desc.Index()
+	intbinds := va.Desc.Class() == IntBind
 	var ret Stmt
 	switch fun := fun.(type) {
 	case func(*Env) int:
 		switch upn {
 		case 0:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int)(unsafe.Pointer(&env.
-					IntBinds[index])) ^= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int)(unsafe.Pointer(&env.IntBinds[index])) ^= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Binds[index]
+						lhs.SetInt(lhs.Int() ^ int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int)(unsafe.Pointer(&env.
-					Outer.
-					IntBinds[index])) ^= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int)(unsafe.Pointer(&env.
+						Outer.IntBinds[index])) ^= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.
+							Binds[index]
+						lhs.SetInt(lhs.Int() ^ int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 2:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int)(unsafe.Pointer(&env.
-					Outer.Outer.
-					IntBinds[index])) ^= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int)(unsafe.Pointer(&env.
+						Outer.Outer.IntBinds[index])) ^= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.Outer.
+							Binds[index]
+						lhs.SetInt(lhs.Int() ^ int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		default:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				o := env.Outer.Outer.Outer
-				for i := 3; i < upn; i++ {
-					o = o.Outer
-				}
-				*(*int)(unsafe.Pointer(&o.IntBinds[index])) ^= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					*(*int)(unsafe.Pointer(&o.IntBinds[index])) ^= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					{
+						lhs :=
+
+							o.Binds[index]
+						lhs.SetInt(lhs.Int() ^ int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case c.Depth - 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-					IntBinds[index])) ^= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) ^= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.ThreadGlobals.FileEnv.
+							Binds[index]
+						lhs.SetInt(lhs.Int() ^ int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		}
 	case func(*Env) int8:
 		switch upn {
 		case 0:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int8)(unsafe.Pointer(&env.
-					IntBinds[index])) ^= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int8)(unsafe.Pointer(&env.IntBinds[index])) ^= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Binds[index]
+						lhs.SetInt(lhs.Int() ^ int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int8)(unsafe.Pointer(&env.
-					Outer.
-					IntBinds[index])) ^= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int8)(unsafe.Pointer(&env.
+						Outer.IntBinds[index])) ^= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.
+							Binds[index]
+						lhs.SetInt(lhs.Int() ^ int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 2:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int8)(unsafe.Pointer(&env.
-					Outer.Outer.
-					IntBinds[index])) ^= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int8)(unsafe.Pointer(&env.
+						Outer.Outer.IntBinds[index])) ^= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.Outer.
+							Binds[index]
+						lhs.SetInt(lhs.Int() ^ int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		default:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				o := env.Outer.Outer.Outer
-				for i := 3; i < upn; i++ {
-					o = o.Outer
-				}
-				*(*int8)(unsafe.Pointer(&o.IntBinds[index])) ^= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					*(*int8)(unsafe.Pointer(&o.IntBinds[index])) ^= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					{
+						lhs :=
+
+							o.Binds[index]
+						lhs.SetInt(lhs.Int() ^ int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case c.Depth - 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int8)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-					IntBinds[index])) ^= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int8)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) ^= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.ThreadGlobals.FileEnv.
+							Binds[index]
+						lhs.SetInt(lhs.Int() ^ int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		}
 	case func(*Env) int16:
 		switch upn {
 		case 0:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int16)(unsafe.Pointer(&env.
-					IntBinds[index])) ^= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int16)(unsafe.Pointer(&env.IntBinds[index])) ^= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Binds[index]
+						lhs.SetInt(lhs.Int() ^ int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int16)(unsafe.Pointer(&env.
-					Outer.
-					IntBinds[index])) ^= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int16)(unsafe.Pointer(&env.
+						Outer.IntBinds[index])) ^= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.
+							Binds[index]
+						lhs.SetInt(lhs.Int() ^ int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 2:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int16)(unsafe.Pointer(&env.
-					Outer.Outer.
-					IntBinds[index])) ^= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int16)(unsafe.Pointer(&env.
+						Outer.Outer.IntBinds[index])) ^= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.Outer.
+							Binds[index]
+						lhs.SetInt(lhs.Int() ^ int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		default:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				o := env.Outer.Outer.Outer
-				for i := 3; i < upn; i++ {
-					o = o.Outer
-				}
-				*(*int16)(unsafe.Pointer(&o.IntBinds[index])) ^= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					*(*int16)(unsafe.Pointer(&o.IntBinds[index])) ^= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					{
+						lhs :=
+
+							o.Binds[index]
+						lhs.SetInt(lhs.Int() ^ int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case c.Depth - 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int16)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-					IntBinds[index])) ^= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int16)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) ^= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.ThreadGlobals.FileEnv.
+							Binds[index]
+						lhs.SetInt(lhs.Int() ^ int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		}
 	case func(*Env) int32:
 		switch upn {
 		case 0:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int32)(unsafe.Pointer(&env.
-					IntBinds[index])) ^= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int32)(unsafe.Pointer(&env.IntBinds[index])) ^= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Binds[index]
+						lhs.SetInt(lhs.Int() ^ int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int32)(unsafe.Pointer(&env.
-					Outer.
-					IntBinds[index])) ^= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int32)(unsafe.Pointer(&env.
+						Outer.IntBinds[index])) ^= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.
+							Binds[index]
+						lhs.SetInt(lhs.Int() ^ int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 2:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int32)(unsafe.Pointer(&env.
-					Outer.Outer.
-					IntBinds[index])) ^= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int32)(unsafe.Pointer(&env.
+						Outer.Outer.IntBinds[index])) ^= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.Outer.
+							Binds[index]
+						lhs.SetInt(lhs.Int() ^ int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		default:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				o := env.Outer.Outer.Outer
-				for i := 3; i < upn; i++ {
-					o = o.Outer
-				}
-				*(*int32)(unsafe.Pointer(&o.IntBinds[index])) ^= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					*(*int32)(unsafe.Pointer(&o.IntBinds[index])) ^= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					{
+						lhs :=
+
+							o.Binds[index]
+						lhs.SetInt(lhs.Int() ^ int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case c.Depth - 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int32)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-					IntBinds[index])) ^= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int32)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) ^= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.ThreadGlobals.FileEnv.
+							Binds[index]
+						lhs.SetInt(lhs.Int() ^ int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		}
 	case func(*Env) int64:
 		switch upn {
 		case 0:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int64)(unsafe.Pointer(&env.
-					IntBinds[index])) ^= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int64)(unsafe.Pointer(&env.IntBinds[index])) ^= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Binds[index]
+						lhs.SetInt(lhs.Int() ^ int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int64)(unsafe.Pointer(&env.
-					Outer.
-					IntBinds[index])) ^= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int64)(unsafe.Pointer(&env.
+						Outer.IntBinds[index])) ^= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.
+							Binds[index]
+						lhs.SetInt(lhs.Int() ^ int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 2:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int64)(unsafe.Pointer(&env.
-					Outer.Outer.
-					IntBinds[index])) ^= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int64)(unsafe.Pointer(&env.
+						Outer.Outer.IntBinds[index])) ^= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.Outer.
+							Binds[index]
+						lhs.SetInt(lhs.Int() ^ int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		default:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				o := env.Outer.Outer.Outer
-				for i := 3; i < upn; i++ {
-					o = o.Outer
-				}
-				*(*int64)(unsafe.Pointer(&o.IntBinds[index])) ^= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					*(*int64)(unsafe.Pointer(&o.IntBinds[index])) ^= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					{
+						lhs :=
+
+							o.Binds[index]
+						lhs.SetInt(lhs.Int() ^ int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case c.Depth - 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int64)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-					IntBinds[index])) ^= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int64)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) ^= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.ThreadGlobals.FileEnv.
+							Binds[index]
+						lhs.SetInt(lhs.Int() ^ int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		}
 	case func(*Env) uint:
 		switch upn {
 		case 0:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint)(unsafe.Pointer(&env.
-					IntBinds[index])) ^= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint)(unsafe.Pointer(&env.IntBinds[index])) ^= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() ^ uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint)(unsafe.Pointer(&env.
-					Outer.
-					IntBinds[index])) ^= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint)(unsafe.Pointer(&env.
+						Outer.IntBinds[index])) ^= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() ^ uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 2:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint)(unsafe.Pointer(&env.
-					Outer.Outer.
-					IntBinds[index])) ^= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint)(unsafe.Pointer(&env.
+						Outer.Outer.IntBinds[index])) ^= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.Outer.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() ^ uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		default:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				o := env.Outer.Outer.Outer
-				for i := 3; i < upn; i++ {
-					o = o.Outer
-				}
-				*(*uint)(unsafe.Pointer(&o.IntBinds[index])) ^= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					*(*uint)(unsafe.Pointer(&o.IntBinds[index])) ^= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+
+					{
+						lhs := o.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() ^ uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case c.Depth - 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-					IntBinds[index])) ^= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) ^= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.ThreadGlobals.FileEnv.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() ^ uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		}
 	case func(*Env) uint8:
 		switch upn {
 		case 0:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint8)(unsafe.Pointer(&env.
-					IntBinds[index])) ^= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint8)(unsafe.Pointer(&env.IntBinds[index])) ^= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() ^ uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint8)(unsafe.Pointer(&env.
-					Outer.
-					IntBinds[index])) ^= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint8)(unsafe.Pointer(&env.
+						Outer.IntBinds[index])) ^= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() ^ uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 2:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint8)(unsafe.Pointer(&env.
-					Outer.Outer.
-					IntBinds[index])) ^= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint8)(unsafe.Pointer(&env.
+						Outer.Outer.IntBinds[index])) ^= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.Outer.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() ^ uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		default:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				o := env.Outer.Outer.Outer
-				for i := 3; i < upn; i++ {
-					o = o.Outer
-				}
-				*(*uint8)(unsafe.Pointer(&o.IntBinds[index])) ^= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					*(*uint8)(unsafe.Pointer(&o.IntBinds[index])) ^= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+
+					{
+						lhs := o.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() ^ uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case c.Depth - 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint8)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-					IntBinds[index])) ^= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint8)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) ^= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.ThreadGlobals.FileEnv.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() ^ uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		}
 	case func(*Env) uint16:
 		switch upn {
 		case 0:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint16)(unsafe.Pointer(&env.
-					IntBinds[index])) ^= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint16)(unsafe.Pointer(&env.IntBinds[index])) ^= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() ^ uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint16)(unsafe.Pointer(&env.
-					Outer.
-					IntBinds[index])) ^= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint16)(unsafe.Pointer(&env.
+						Outer.IntBinds[index])) ^= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() ^ uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 2:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint16)(unsafe.Pointer(&env.
-					Outer.Outer.
-					IntBinds[index])) ^= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint16)(unsafe.Pointer(&env.
+						Outer.Outer.IntBinds[index])) ^= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.Outer.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() ^ uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		default:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				o := env.Outer.Outer.Outer
-				for i := 3; i < upn; i++ {
-					o = o.Outer
-				}
-				*(*uint16)(unsafe.Pointer(&o.IntBinds[index])) ^= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					*(*uint16)(unsafe.Pointer(&o.IntBinds[index])) ^= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+
+					{
+						lhs := o.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() ^ uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case c.Depth - 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint16)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-					IntBinds[index])) ^= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint16)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) ^= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.ThreadGlobals.FileEnv.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() ^ uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		}
 	case func(*Env) uint32:
 		switch upn {
 		case 0:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint32)(unsafe.Pointer(&env.
-					IntBinds[index])) ^= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint32)(unsafe.Pointer(&env.IntBinds[index])) ^= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() ^ uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint32)(unsafe.Pointer(&env.
-					Outer.
-					IntBinds[index])) ^= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint32)(unsafe.Pointer(&env.
+						Outer.IntBinds[index])) ^= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() ^ uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 2:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint32)(unsafe.Pointer(&env.
-					Outer.Outer.
-					IntBinds[index])) ^= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint32)(unsafe.Pointer(&env.
+						Outer.Outer.IntBinds[index])) ^= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.Outer.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() ^ uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		default:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				o := env.Outer.Outer.Outer
-				for i := 3; i < upn; i++ {
-					o = o.Outer
-				}
-				*(*uint32)(unsafe.Pointer(&o.IntBinds[index])) ^= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					*(*uint32)(unsafe.Pointer(&o.IntBinds[index])) ^= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+
+					{
+						lhs := o.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() ^ uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case c.Depth - 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint32)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-					IntBinds[index])) ^= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint32)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) ^= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.ThreadGlobals.FileEnv.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() ^ uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		}
 	case func(*Env) uint64:
 		switch upn {
 		case 0:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				env.
-					IntBinds[index] ^= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					env.
+						IntBinds[index] ^= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() ^ uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				env.
-					Outer.
-					IntBinds[index] ^= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					env.
+						Outer.
+						IntBinds[index] ^= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() ^ uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 2:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				env.
-					Outer.Outer.
-					IntBinds[index] ^= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					env.
+						Outer.Outer.
+						IntBinds[index] ^= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.Outer.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() ^ uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		default:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				o := env.Outer.Outer.Outer
-				for i := 3; i < upn; i++ {
-					o = o.Outer
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+
+					o.
+						IntBinds[index] ^= fun(env)
+
+					env.IP++
+					return env.Code[env.IP], env
 				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
 
-				o.IntBinds[index] ^= fun(env)
+					{
+						lhs := o.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() ^ uint64(fun(env),
+						),
+						)
+					}
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case c.Depth - 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				env.ThreadGlobals.FileEnv.
-					IntBinds[index] ^= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					env.ThreadGlobals.FileEnv.
+						IntBinds[index] ^= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.ThreadGlobals.FileEnv.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() ^ uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		}
 	case func(*Env) uintptr:
 		switch upn {
 		case 0:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uintptr)(unsafe.Pointer(&env.
-					IntBinds[index])) ^= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uintptr)(unsafe.Pointer(&env.IntBinds[index])) ^= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() ^ uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uintptr)(unsafe.Pointer(&env.
-					Outer.
-					IntBinds[index])) ^= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uintptr)(unsafe.Pointer(&env.
+						Outer.IntBinds[index])) ^= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() ^ uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 2:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uintptr)(unsafe.Pointer(&env.
-					Outer.Outer.
-					IntBinds[index])) ^= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uintptr)(unsafe.Pointer(&env.
+						Outer.Outer.IntBinds[index])) ^= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.Outer.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() ^ uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		default:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				o := env.Outer.Outer.Outer
-				for i := 3; i < upn; i++ {
-					o = o.Outer
-				}
-				*(*uintptr)(unsafe.Pointer(&o.IntBinds[index])) ^= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					*(*uintptr)(unsafe.Pointer(&o.IntBinds[index])) ^= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+
+					{
+						lhs := o.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() ^ uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case c.Depth - 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uintptr)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-					IntBinds[index])) ^= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uintptr)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) ^= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.ThreadGlobals.FileEnv.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() ^ uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		}
 	default:
@@ -13103,11 +28845,12 @@ func (c *Comp) varXorExpr(upn int, index int, t xr.Type, fun I) {
 	}
 	c.append(ret)
 }
-func (c *Comp) varAndnotConst(upn int, index int, t xr.Type, val I) {
+func (c *Comp) varAndnotConst(va *Var, val I) {
+	t := va.Type
 	if IsCategory(t.Kind(), r.Int, r.Uint) {
 		if isLiteralNumber(val, -1) {
 
-			c.varSetZero(upn, index, t)
+			c.varSetZero(va)
 			return
 		} else if isLiteralNumber(val, 0) {
 			return
@@ -13115,6 +28858,10 @@ func (c *Comp) varAndnotConst(upn int, index int, t xr.Type, val I) {
 	}
 
 	{
+		t := va.Type
+		upn := va.Upn
+		index := va.Desc.Index()
+		intbinds := va.Desc.Class() == IntBind
 		var ret Stmt
 		switch t.Kind() {
 		case r.Int:
@@ -13122,53 +28869,131 @@ func (c *Comp) varAndnotConst(upn int, index int, t xr.Type, val I) {
 			switch upn {
 			case 0:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int)(unsafe.Pointer(&env.
-						IntBinds[index])) &^= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int)(unsafe.Pointer(&env.IntBinds[index])) &^= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Binds[index]
+							lhs.SetInt(lhs.Int() &^ int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int)(unsafe.Pointer(&env.
-						Outer.
-						IntBinds[index])) &^= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int)(unsafe.Pointer(&env.
+							Outer.IntBinds[index])) &^= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.
+								Binds[index]
+							lhs.SetInt(lhs.Int() &^ int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 2:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int)(unsafe.Pointer(&env.
-						Outer.Outer.
-						IntBinds[index])) &^= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int)(unsafe.Pointer(&env.
+							Outer.Outer.IntBinds[index])) &^= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.Outer.
+								Binds[index]
+							lhs.SetInt(lhs.Int() &^ int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			default:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					o := env.Outer.Outer.Outer
-					for i := 3; i < upn; i++ {
-						o = o.Outer
-					}
-					*(*int)(unsafe.Pointer(&o.IntBinds[index])) &^= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						*(*int)(unsafe.Pointer(&o.IntBinds[index])) &^= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						{
+							lhs :=
+
+								o.Binds[index]
+							lhs.SetInt(lhs.Int() &^ int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case c.Depth - 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-						IntBinds[index])) &^= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) &^= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.ThreadGlobals.FileEnv.
+								Binds[index]
+							lhs.SetInt(lhs.Int() &^ int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			}
 		case r.Int8:
@@ -13176,53 +29001,131 @@ func (c *Comp) varAndnotConst(upn int, index int, t xr.Type, val I) {
 			switch upn {
 			case 0:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int8)(unsafe.Pointer(&env.
-						IntBinds[index])) &^= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int8)(unsafe.Pointer(&env.IntBinds[index])) &^= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Binds[index]
+							lhs.SetInt(lhs.Int() &^ int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int8)(unsafe.Pointer(&env.
-						Outer.
-						IntBinds[index])) &^= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int8)(unsafe.Pointer(&env.
+							Outer.IntBinds[index])) &^= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.
+								Binds[index]
+							lhs.SetInt(lhs.Int() &^ int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 2:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int8)(unsafe.Pointer(&env.
-						Outer.Outer.
-						IntBinds[index])) &^= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int8)(unsafe.Pointer(&env.
+							Outer.Outer.IntBinds[index])) &^= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.Outer.
+								Binds[index]
+							lhs.SetInt(lhs.Int() &^ int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			default:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					o := env.Outer.Outer.Outer
-					for i := 3; i < upn; i++ {
-						o = o.Outer
-					}
-					*(*int8)(unsafe.Pointer(&o.IntBinds[index])) &^= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						*(*int8)(unsafe.Pointer(&o.IntBinds[index])) &^= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						{
+							lhs :=
+
+								o.Binds[index]
+							lhs.SetInt(lhs.Int() &^ int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case c.Depth - 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int8)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-						IntBinds[index])) &^= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int8)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) &^= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.ThreadGlobals.FileEnv.
+								Binds[index]
+							lhs.SetInt(lhs.Int() &^ int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			}
 		case r.Int16:
@@ -13230,53 +29133,131 @@ func (c *Comp) varAndnotConst(upn int, index int, t xr.Type, val I) {
 			switch upn {
 			case 0:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int16)(unsafe.Pointer(&env.
-						IntBinds[index])) &^= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int16)(unsafe.Pointer(&env.IntBinds[index])) &^= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Binds[index]
+							lhs.SetInt(lhs.Int() &^ int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int16)(unsafe.Pointer(&env.
-						Outer.
-						IntBinds[index])) &^= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int16)(unsafe.Pointer(&env.
+							Outer.IntBinds[index])) &^= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.
+								Binds[index]
+							lhs.SetInt(lhs.Int() &^ int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 2:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int16)(unsafe.Pointer(&env.
-						Outer.Outer.
-						IntBinds[index])) &^= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int16)(unsafe.Pointer(&env.
+							Outer.Outer.IntBinds[index])) &^= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.Outer.
+								Binds[index]
+							lhs.SetInt(lhs.Int() &^ int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			default:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					o := env.Outer.Outer.Outer
-					for i := 3; i < upn; i++ {
-						o = o.Outer
-					}
-					*(*int16)(unsafe.Pointer(&o.IntBinds[index])) &^= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						*(*int16)(unsafe.Pointer(&o.IntBinds[index])) &^= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						{
+							lhs :=
+
+								o.Binds[index]
+							lhs.SetInt(lhs.Int() &^ int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case c.Depth - 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int16)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-						IntBinds[index])) &^= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int16)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) &^= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.ThreadGlobals.FileEnv.
+								Binds[index]
+							lhs.SetInt(lhs.Int() &^ int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			}
 		case r.Int32:
@@ -13284,53 +29265,131 @@ func (c *Comp) varAndnotConst(upn int, index int, t xr.Type, val I) {
 			switch upn {
 			case 0:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int32)(unsafe.Pointer(&env.
-						IntBinds[index])) &^= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int32)(unsafe.Pointer(&env.IntBinds[index])) &^= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Binds[index]
+							lhs.SetInt(lhs.Int() &^ int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int32)(unsafe.Pointer(&env.
-						Outer.
-						IntBinds[index])) &^= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int32)(unsafe.Pointer(&env.
+							Outer.IntBinds[index])) &^= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.
+								Binds[index]
+							lhs.SetInt(lhs.Int() &^ int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 2:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int32)(unsafe.Pointer(&env.
-						Outer.Outer.
-						IntBinds[index])) &^= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int32)(unsafe.Pointer(&env.
+							Outer.Outer.IntBinds[index])) &^= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.Outer.
+								Binds[index]
+							lhs.SetInt(lhs.Int() &^ int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			default:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					o := env.Outer.Outer.Outer
-					for i := 3; i < upn; i++ {
-						o = o.Outer
-					}
-					*(*int32)(unsafe.Pointer(&o.IntBinds[index])) &^= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						*(*int32)(unsafe.Pointer(&o.IntBinds[index])) &^= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						{
+							lhs :=
+
+								o.Binds[index]
+							lhs.SetInt(lhs.Int() &^ int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case c.Depth - 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int32)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-						IntBinds[index])) &^= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int32)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) &^= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.ThreadGlobals.FileEnv.
+								Binds[index]
+							lhs.SetInt(lhs.Int() &^ int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			}
 		case r.Int64:
@@ -13338,53 +29397,131 @@ func (c *Comp) varAndnotConst(upn int, index int, t xr.Type, val I) {
 			switch upn {
 			case 0:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int64)(unsafe.Pointer(&env.
-						IntBinds[index])) &^= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int64)(unsafe.Pointer(&env.IntBinds[index])) &^= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Binds[index]
+							lhs.SetInt(lhs.Int() &^ int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int64)(unsafe.Pointer(&env.
-						Outer.
-						IntBinds[index])) &^= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int64)(unsafe.Pointer(&env.
+							Outer.IntBinds[index])) &^= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.
+								Binds[index]
+							lhs.SetInt(lhs.Int() &^ int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 2:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int64)(unsafe.Pointer(&env.
-						Outer.Outer.
-						IntBinds[index])) &^= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int64)(unsafe.Pointer(&env.
+							Outer.Outer.IntBinds[index])) &^= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.Outer.
+								Binds[index]
+							lhs.SetInt(lhs.Int() &^ int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			default:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					o := env.Outer.Outer.Outer
-					for i := 3; i < upn; i++ {
-						o = o.Outer
-					}
-					*(*int64)(unsafe.Pointer(&o.IntBinds[index])) &^= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						*(*int64)(unsafe.Pointer(&o.IntBinds[index])) &^= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						{
+							lhs :=
+
+								o.Binds[index]
+							lhs.SetInt(lhs.Int() &^ int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case c.Depth - 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*int64)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-						IntBinds[index])) &^= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int64)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) &^= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.ThreadGlobals.FileEnv.
+								Binds[index]
+							lhs.SetInt(lhs.Int() &^ int64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			}
 		case r.Uint:
@@ -13392,53 +29529,131 @@ func (c *Comp) varAndnotConst(upn int, index int, t xr.Type, val I) {
 			switch upn {
 			case 0:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint)(unsafe.Pointer(&env.
-						IntBinds[index])) &^= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint)(unsafe.Pointer(&env.IntBinds[index])) &^= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() &^ uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint)(unsafe.Pointer(&env.
-						Outer.
-						IntBinds[index])) &^= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint)(unsafe.Pointer(&env.
+							Outer.IntBinds[index])) &^= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() &^ uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 2:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint)(unsafe.Pointer(&env.
-						Outer.Outer.
-						IntBinds[index])) &^= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint)(unsafe.Pointer(&env.
+							Outer.Outer.IntBinds[index])) &^= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.Outer.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() &^ uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			default:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					o := env.Outer.Outer.Outer
-					for i := 3; i < upn; i++ {
-						o = o.Outer
-					}
-					*(*uint)(unsafe.Pointer(&o.IntBinds[index])) &^= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						*(*uint)(unsafe.Pointer(&o.IntBinds[index])) &^= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+
+						{
+							lhs := o.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() &^ uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case c.Depth - 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-						IntBinds[index])) &^= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) &^= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.ThreadGlobals.FileEnv.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() &^ uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			}
 		case r.Uint8:
@@ -13446,53 +29661,131 @@ func (c *Comp) varAndnotConst(upn int, index int, t xr.Type, val I) {
 			switch upn {
 			case 0:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint8)(unsafe.Pointer(&env.
-						IntBinds[index])) &^= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint8)(unsafe.Pointer(&env.IntBinds[index])) &^= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() &^ uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint8)(unsafe.Pointer(&env.
-						Outer.
-						IntBinds[index])) &^= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint8)(unsafe.Pointer(&env.
+							Outer.IntBinds[index])) &^= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() &^ uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 2:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint8)(unsafe.Pointer(&env.
-						Outer.Outer.
-						IntBinds[index])) &^= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint8)(unsafe.Pointer(&env.
+							Outer.Outer.IntBinds[index])) &^= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.Outer.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() &^ uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			default:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					o := env.Outer.Outer.Outer
-					for i := 3; i < upn; i++ {
-						o = o.Outer
-					}
-					*(*uint8)(unsafe.Pointer(&o.IntBinds[index])) &^= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						*(*uint8)(unsafe.Pointer(&o.IntBinds[index])) &^= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+
+						{
+							lhs := o.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() &^ uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case c.Depth - 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint8)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-						IntBinds[index])) &^= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint8)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) &^= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.ThreadGlobals.FileEnv.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() &^ uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			}
 		case r.Uint16:
@@ -13500,53 +29793,131 @@ func (c *Comp) varAndnotConst(upn int, index int, t xr.Type, val I) {
 			switch upn {
 			case 0:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint16)(unsafe.Pointer(&env.
-						IntBinds[index])) &^= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint16)(unsafe.Pointer(&env.IntBinds[index])) &^= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() &^ uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint16)(unsafe.Pointer(&env.
-						Outer.
-						IntBinds[index])) &^= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint16)(unsafe.Pointer(&env.
+							Outer.IntBinds[index])) &^= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() &^ uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 2:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint16)(unsafe.Pointer(&env.
-						Outer.Outer.
-						IntBinds[index])) &^= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint16)(unsafe.Pointer(&env.
+							Outer.Outer.IntBinds[index])) &^= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.Outer.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() &^ uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			default:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					o := env.Outer.Outer.Outer
-					for i := 3; i < upn; i++ {
-						o = o.Outer
-					}
-					*(*uint16)(unsafe.Pointer(&o.IntBinds[index])) &^= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						*(*uint16)(unsafe.Pointer(&o.IntBinds[index])) &^= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+
+						{
+							lhs := o.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() &^ uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case c.Depth - 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint16)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-						IntBinds[index])) &^= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint16)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) &^= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.ThreadGlobals.FileEnv.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() &^ uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			}
 		case r.Uint32:
@@ -13554,53 +29925,131 @@ func (c *Comp) varAndnotConst(upn int, index int, t xr.Type, val I) {
 			switch upn {
 			case 0:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint32)(unsafe.Pointer(&env.
-						IntBinds[index])) &^= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint32)(unsafe.Pointer(&env.IntBinds[index])) &^= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() &^ uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint32)(unsafe.Pointer(&env.
-						Outer.
-						IntBinds[index])) &^= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint32)(unsafe.Pointer(&env.
+							Outer.IntBinds[index])) &^= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() &^ uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 2:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint32)(unsafe.Pointer(&env.
-						Outer.Outer.
-						IntBinds[index])) &^= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint32)(unsafe.Pointer(&env.
+							Outer.Outer.IntBinds[index])) &^= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.Outer.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() &^ uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			default:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					o := env.Outer.Outer.Outer
-					for i := 3; i < upn; i++ {
-						o = o.Outer
-					}
-					*(*uint32)(unsafe.Pointer(&o.IntBinds[index])) &^= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						*(*uint32)(unsafe.Pointer(&o.IntBinds[index])) &^= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+
+						{
+							lhs := o.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() &^ uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case c.Depth - 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uint32)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-						IntBinds[index])) &^= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint32)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) &^= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.ThreadGlobals.FileEnv.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() &^ uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			}
 		case r.Uint64:
@@ -13608,54 +30057,137 @@ func (c *Comp) varAndnotConst(upn int, index int, t xr.Type, val I) {
 			switch upn {
 			case 0:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					env.
-						IntBinds[index] &^= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						env.
+							IntBinds[index] &^= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() &^ uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					env.
-						Outer.
-						IntBinds[index] &^= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						env.
+							Outer.
+							IntBinds[index] &^= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() &^ uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 2:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					env.
-						Outer.Outer.
-						IntBinds[index] &^= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						env.
+							Outer.Outer.
+							IntBinds[index] &^= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.Outer.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() &^ uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			default:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					o := env.Outer.Outer.Outer
-					for i := 3; i < upn; i++ {
-						o = o.Outer
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+
+						o.
+							IntBinds[index] &^= val
+
+						env.IP++
+						return env.Code[env.IP], env
 					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
 
-					o.IntBinds[index] &^= val
+						{
+							lhs := o.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() &^ uint64(val,
+							),
+							)
+						}
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case c.Depth - 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					env.ThreadGlobals.FileEnv.
-						IntBinds[index] &^= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						env.ThreadGlobals.FileEnv.
+							IntBinds[index] &^= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.ThreadGlobals.FileEnv.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() &^ uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			}
 		case r.Uintptr:
@@ -13663,53 +30195,131 @@ func (c *Comp) varAndnotConst(upn int, index int, t xr.Type, val I) {
 			switch upn {
 			case 0:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uintptr)(unsafe.Pointer(&env.
-						IntBinds[index])) &^= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uintptr)(unsafe.Pointer(&env.IntBinds[index])) &^= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() &^ uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uintptr)(unsafe.Pointer(&env.
-						Outer.
-						IntBinds[index])) &^= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uintptr)(unsafe.Pointer(&env.
+							Outer.IntBinds[index])) &^= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() &^ uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case 2:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uintptr)(unsafe.Pointer(&env.
-						Outer.Outer.
-						IntBinds[index])) &^= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uintptr)(unsafe.Pointer(&env.
+							Outer.Outer.IntBinds[index])) &^= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.
+								Outer.Outer.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() &^ uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			default:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					o := env.Outer.Outer.Outer
-					for i := 3; i < upn; i++ {
-						o = o.Outer
-					}
-					*(*uintptr)(unsafe.Pointer(&o.IntBinds[index])) &^= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+						*(*uintptr)(unsafe.Pointer(&o.IntBinds[index])) &^= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						o := env.Outer.Outer.Outer
+						for i := 3; i < upn; i++ {
+							o = o.Outer
+						}
+
+						{
+							lhs := o.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() &^ uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			case c.Depth - 1:
 
-				ret = func(env *Env) (Stmt, *Env) {
-					*(*uintptr)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-						IntBinds[index])) &^= val
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uintptr)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) &^= val
 
-					env.IP++
-					return env.Code[env.IP], env
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.ThreadGlobals.FileEnv.
+								Binds[index]
+							lhs.SetUint(lhs.Uint() &^ uint64(val,
+							),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
 				}
 			}
 		default:
@@ -13719,591 +30329,1458 @@ func (c *Comp) varAndnotConst(upn int, index int, t xr.Type, val I) {
 		c.append(ret)
 	}
 }
-func (c *Comp) varAndnotExpr(upn int, index int, t xr.Type, fun I) {
+func (c *Comp) varAndnotExpr(va *Var, fun I) {
+	t := va.Type
+	upn := va.Upn
+	index := va.Desc.Index()
+	intbinds := va.Desc.Class() == IntBind
 	var ret Stmt
 	switch fun := fun.(type) {
 	case func(*Env) int:
 		switch upn {
 		case 0:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int)(unsafe.Pointer(&env.
-					IntBinds[index])) &^= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int)(unsafe.Pointer(&env.IntBinds[index])) &^= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Binds[index]
+						lhs.SetInt(lhs.Int() &^ int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int)(unsafe.Pointer(&env.
-					Outer.
-					IntBinds[index])) &^= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int)(unsafe.Pointer(&env.
+						Outer.IntBinds[index])) &^= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.
+							Binds[index]
+						lhs.SetInt(lhs.Int() &^ int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 2:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int)(unsafe.Pointer(&env.
-					Outer.Outer.
-					IntBinds[index])) &^= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int)(unsafe.Pointer(&env.
+						Outer.Outer.IntBinds[index])) &^= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.Outer.
+							Binds[index]
+						lhs.SetInt(lhs.Int() &^ int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		default:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				o := env.Outer.Outer.Outer
-				for i := 3; i < upn; i++ {
-					o = o.Outer
-				}
-				*(*int)(unsafe.Pointer(&o.IntBinds[index])) &^= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					*(*int)(unsafe.Pointer(&o.IntBinds[index])) &^= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					{
+						lhs :=
+
+							o.Binds[index]
+						lhs.SetInt(lhs.Int() &^ int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case c.Depth - 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-					IntBinds[index])) &^= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) &^= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.ThreadGlobals.FileEnv.
+							Binds[index]
+						lhs.SetInt(lhs.Int() &^ int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		}
 	case func(*Env) int8:
 		switch upn {
 		case 0:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int8)(unsafe.Pointer(&env.
-					IntBinds[index])) &^= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int8)(unsafe.Pointer(&env.IntBinds[index])) &^= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Binds[index]
+						lhs.SetInt(lhs.Int() &^ int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int8)(unsafe.Pointer(&env.
-					Outer.
-					IntBinds[index])) &^= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int8)(unsafe.Pointer(&env.
+						Outer.IntBinds[index])) &^= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.
+							Binds[index]
+						lhs.SetInt(lhs.Int() &^ int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 2:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int8)(unsafe.Pointer(&env.
-					Outer.Outer.
-					IntBinds[index])) &^= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int8)(unsafe.Pointer(&env.
+						Outer.Outer.IntBinds[index])) &^= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.Outer.
+							Binds[index]
+						lhs.SetInt(lhs.Int() &^ int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		default:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				o := env.Outer.Outer.Outer
-				for i := 3; i < upn; i++ {
-					o = o.Outer
-				}
-				*(*int8)(unsafe.Pointer(&o.IntBinds[index])) &^= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					*(*int8)(unsafe.Pointer(&o.IntBinds[index])) &^= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					{
+						lhs :=
+
+							o.Binds[index]
+						lhs.SetInt(lhs.Int() &^ int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case c.Depth - 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int8)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-					IntBinds[index])) &^= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int8)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) &^= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.ThreadGlobals.FileEnv.
+							Binds[index]
+						lhs.SetInt(lhs.Int() &^ int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		}
 	case func(*Env) int16:
 		switch upn {
 		case 0:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int16)(unsafe.Pointer(&env.
-					IntBinds[index])) &^= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int16)(unsafe.Pointer(&env.IntBinds[index])) &^= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Binds[index]
+						lhs.SetInt(lhs.Int() &^ int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int16)(unsafe.Pointer(&env.
-					Outer.
-					IntBinds[index])) &^= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int16)(unsafe.Pointer(&env.
+						Outer.IntBinds[index])) &^= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.
+							Binds[index]
+						lhs.SetInt(lhs.Int() &^ int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 2:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int16)(unsafe.Pointer(&env.
-					Outer.Outer.
-					IntBinds[index])) &^= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int16)(unsafe.Pointer(&env.
+						Outer.Outer.IntBinds[index])) &^= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.Outer.
+							Binds[index]
+						lhs.SetInt(lhs.Int() &^ int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		default:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				o := env.Outer.Outer.Outer
-				for i := 3; i < upn; i++ {
-					o = o.Outer
-				}
-				*(*int16)(unsafe.Pointer(&o.IntBinds[index])) &^= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					*(*int16)(unsafe.Pointer(&o.IntBinds[index])) &^= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					{
+						lhs :=
+
+							o.Binds[index]
+						lhs.SetInt(lhs.Int() &^ int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case c.Depth - 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int16)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-					IntBinds[index])) &^= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int16)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) &^= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.ThreadGlobals.FileEnv.
+							Binds[index]
+						lhs.SetInt(lhs.Int() &^ int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		}
 	case func(*Env) int32:
 		switch upn {
 		case 0:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int32)(unsafe.Pointer(&env.
-					IntBinds[index])) &^= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int32)(unsafe.Pointer(&env.IntBinds[index])) &^= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Binds[index]
+						lhs.SetInt(lhs.Int() &^ int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int32)(unsafe.Pointer(&env.
-					Outer.
-					IntBinds[index])) &^= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int32)(unsafe.Pointer(&env.
+						Outer.IntBinds[index])) &^= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.
+							Binds[index]
+						lhs.SetInt(lhs.Int() &^ int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 2:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int32)(unsafe.Pointer(&env.
-					Outer.Outer.
-					IntBinds[index])) &^= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int32)(unsafe.Pointer(&env.
+						Outer.Outer.IntBinds[index])) &^= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.Outer.
+							Binds[index]
+						lhs.SetInt(lhs.Int() &^ int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		default:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				o := env.Outer.Outer.Outer
-				for i := 3; i < upn; i++ {
-					o = o.Outer
-				}
-				*(*int32)(unsafe.Pointer(&o.IntBinds[index])) &^= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					*(*int32)(unsafe.Pointer(&o.IntBinds[index])) &^= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					{
+						lhs :=
+
+							o.Binds[index]
+						lhs.SetInt(lhs.Int() &^ int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case c.Depth - 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int32)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-					IntBinds[index])) &^= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int32)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) &^= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.ThreadGlobals.FileEnv.
+							Binds[index]
+						lhs.SetInt(lhs.Int() &^ int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		}
 	case func(*Env) int64:
 		switch upn {
 		case 0:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int64)(unsafe.Pointer(&env.
-					IntBinds[index])) &^= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int64)(unsafe.Pointer(&env.IntBinds[index])) &^= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Binds[index]
+						lhs.SetInt(lhs.Int() &^ int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int64)(unsafe.Pointer(&env.
-					Outer.
-					IntBinds[index])) &^= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int64)(unsafe.Pointer(&env.
+						Outer.IntBinds[index])) &^= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.
+							Binds[index]
+						lhs.SetInt(lhs.Int() &^ int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 2:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int64)(unsafe.Pointer(&env.
-					Outer.Outer.
-					IntBinds[index])) &^= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int64)(unsafe.Pointer(&env.
+						Outer.Outer.IntBinds[index])) &^= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.Outer.
+							Binds[index]
+						lhs.SetInt(lhs.Int() &^ int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		default:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				o := env.Outer.Outer.Outer
-				for i := 3; i < upn; i++ {
-					o = o.Outer
-				}
-				*(*int64)(unsafe.Pointer(&o.IntBinds[index])) &^= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					*(*int64)(unsafe.Pointer(&o.IntBinds[index])) &^= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					{
+						lhs :=
+
+							o.Binds[index]
+						lhs.SetInt(lhs.Int() &^ int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case c.Depth - 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*int64)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-					IntBinds[index])) &^= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*int64)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) &^= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.ThreadGlobals.FileEnv.
+							Binds[index]
+						lhs.SetInt(lhs.Int() &^ int64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		}
 	case func(*Env) uint:
 		switch upn {
 		case 0:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint)(unsafe.Pointer(&env.
-					IntBinds[index])) &^= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint)(unsafe.Pointer(&env.IntBinds[index])) &^= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() &^ uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint)(unsafe.Pointer(&env.
-					Outer.
-					IntBinds[index])) &^= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint)(unsafe.Pointer(&env.
+						Outer.IntBinds[index])) &^= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() &^ uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 2:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint)(unsafe.Pointer(&env.
-					Outer.Outer.
-					IntBinds[index])) &^= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint)(unsafe.Pointer(&env.
+						Outer.Outer.IntBinds[index])) &^= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.Outer.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() &^ uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		default:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				o := env.Outer.Outer.Outer
-				for i := 3; i < upn; i++ {
-					o = o.Outer
-				}
-				*(*uint)(unsafe.Pointer(&o.IntBinds[index])) &^= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					*(*uint)(unsafe.Pointer(&o.IntBinds[index])) &^= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+
+					{
+						lhs := o.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() &^ uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case c.Depth - 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-					IntBinds[index])) &^= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) &^= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.ThreadGlobals.FileEnv.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() &^ uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		}
 	case func(*Env) uint8:
 		switch upn {
 		case 0:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint8)(unsafe.Pointer(&env.
-					IntBinds[index])) &^= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint8)(unsafe.Pointer(&env.IntBinds[index])) &^= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() &^ uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint8)(unsafe.Pointer(&env.
-					Outer.
-					IntBinds[index])) &^= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint8)(unsafe.Pointer(&env.
+						Outer.IntBinds[index])) &^= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() &^ uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 2:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint8)(unsafe.Pointer(&env.
-					Outer.Outer.
-					IntBinds[index])) &^= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint8)(unsafe.Pointer(&env.
+						Outer.Outer.IntBinds[index])) &^= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.Outer.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() &^ uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		default:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				o := env.Outer.Outer.Outer
-				for i := 3; i < upn; i++ {
-					o = o.Outer
-				}
-				*(*uint8)(unsafe.Pointer(&o.IntBinds[index])) &^= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					*(*uint8)(unsafe.Pointer(&o.IntBinds[index])) &^= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+
+					{
+						lhs := o.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() &^ uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case c.Depth - 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint8)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-					IntBinds[index])) &^= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint8)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) &^= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.ThreadGlobals.FileEnv.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() &^ uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		}
 	case func(*Env) uint16:
 		switch upn {
 		case 0:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint16)(unsafe.Pointer(&env.
-					IntBinds[index])) &^= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint16)(unsafe.Pointer(&env.IntBinds[index])) &^= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() &^ uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint16)(unsafe.Pointer(&env.
-					Outer.
-					IntBinds[index])) &^= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint16)(unsafe.Pointer(&env.
+						Outer.IntBinds[index])) &^= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() &^ uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 2:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint16)(unsafe.Pointer(&env.
-					Outer.Outer.
-					IntBinds[index])) &^= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint16)(unsafe.Pointer(&env.
+						Outer.Outer.IntBinds[index])) &^= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.Outer.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() &^ uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		default:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				o := env.Outer.Outer.Outer
-				for i := 3; i < upn; i++ {
-					o = o.Outer
-				}
-				*(*uint16)(unsafe.Pointer(&o.IntBinds[index])) &^= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					*(*uint16)(unsafe.Pointer(&o.IntBinds[index])) &^= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+
+					{
+						lhs := o.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() &^ uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case c.Depth - 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint16)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-					IntBinds[index])) &^= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint16)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) &^= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.ThreadGlobals.FileEnv.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() &^ uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		}
 	case func(*Env) uint32:
 		switch upn {
 		case 0:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint32)(unsafe.Pointer(&env.
-					IntBinds[index])) &^= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint32)(unsafe.Pointer(&env.IntBinds[index])) &^= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() &^ uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint32)(unsafe.Pointer(&env.
-					Outer.
-					IntBinds[index])) &^= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint32)(unsafe.Pointer(&env.
+						Outer.IntBinds[index])) &^= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() &^ uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 2:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint32)(unsafe.Pointer(&env.
-					Outer.Outer.
-					IntBinds[index])) &^= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint32)(unsafe.Pointer(&env.
+						Outer.Outer.IntBinds[index])) &^= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.Outer.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() &^ uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		default:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				o := env.Outer.Outer.Outer
-				for i := 3; i < upn; i++ {
-					o = o.Outer
-				}
-				*(*uint32)(unsafe.Pointer(&o.IntBinds[index])) &^= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					*(*uint32)(unsafe.Pointer(&o.IntBinds[index])) &^= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+
+					{
+						lhs := o.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() &^ uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case c.Depth - 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uint32)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-					IntBinds[index])) &^= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uint32)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) &^= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.ThreadGlobals.FileEnv.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() &^ uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		}
 	case func(*Env) uint64:
 		switch upn {
 		case 0:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				env.
-					IntBinds[index] &^= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					env.
+						IntBinds[index] &^= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() &^ uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				env.
-					Outer.
-					IntBinds[index] &^= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					env.
+						Outer.
+						IntBinds[index] &^= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() &^ uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 2:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				env.
-					Outer.Outer.
-					IntBinds[index] &^= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					env.
+						Outer.Outer.
+						IntBinds[index] &^= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.Outer.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() &^ uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		default:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				o := env.Outer.Outer.Outer
-				for i := 3; i < upn; i++ {
-					o = o.Outer
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+
+					o.
+						IntBinds[index] &^= fun(env)
+
+					env.IP++
+					return env.Code[env.IP], env
 				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
 
-				o.IntBinds[index] &^= fun(env)
+					{
+						lhs := o.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() &^ uint64(fun(env),
+						),
+						)
+					}
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case c.Depth - 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				env.ThreadGlobals.FileEnv.
-					IntBinds[index] &^= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					env.ThreadGlobals.FileEnv.
+						IntBinds[index] &^= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.ThreadGlobals.FileEnv.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() &^ uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		}
 	case func(*Env) uintptr:
 		switch upn {
 		case 0:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uintptr)(unsafe.Pointer(&env.
-					IntBinds[index])) &^= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uintptr)(unsafe.Pointer(&env.IntBinds[index])) &^= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() &^ uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uintptr)(unsafe.Pointer(&env.
-					Outer.
-					IntBinds[index])) &^= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uintptr)(unsafe.Pointer(&env.
+						Outer.IntBinds[index])) &^= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() &^ uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case 2:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uintptr)(unsafe.Pointer(&env.
-					Outer.Outer.
-					IntBinds[index])) &^= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uintptr)(unsafe.Pointer(&env.
+						Outer.Outer.IntBinds[index])) &^= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.
+							Outer.Outer.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() &^ uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		default:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				o := env.Outer.Outer.Outer
-				for i := 3; i < upn; i++ {
-					o = o.Outer
-				}
-				*(*uintptr)(unsafe.Pointer(&o.IntBinds[index])) &^= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					*(*uintptr)(unsafe.Pointer(&o.IntBinds[index])) &^= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+
+					{
+						lhs := o.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() &^ uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		case c.Depth - 1:
 
-			ret = func(env *Env) (Stmt, *Env) {
-				*(*uintptr)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.
-					IntBinds[index])) &^= fun(env)
+			if intbinds {
+				ret = func(env *Env) (Stmt, *Env) {
+					*(*uintptr)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) &^= fun(env)
 
-				env.IP++
-				return env.Code[env.IP], env
+					env.IP++
+					return env.Code[env.IP], env
+				}
+			} else {
+				ret = func(env *Env) (Stmt, *Env) {
+					{
+						lhs := env.ThreadGlobals.FileEnv.
+							Binds[index]
+						lhs.SetUint(lhs.Uint() &^ uint64(fun(env),
+						),
+						)
+					}
+
+					env.IP++
+					return env.Code[env.IP], env
+				}
 			}
 		}
 	default:
@@ -14345,7 +31822,6 @@ func (c *Comp) SetVar(va *Var, op token.Token, init *Expr) {
 		c.Errorf("invalid operator %s on %v", op, class)
 		return
 	}
-	upn := va.Upn
 	index := va.Desc.Index()
 	if index == NoIndex {
 		if op != token.ASSIGN {
@@ -14371,29 +31847,29 @@ func (c *Comp) SetVar(va *Var, op token.Token, init *Expr) {
 		}
 		switch op {
 		case token.ASSIGN:
-			c.varSetConst(upn, index, t, val)
+			c.varSetConst(va, val)
 		case token.ADD, token.ADD_ASSIGN:
-			c.varAddConst(upn, index, t, val)
+			c.varAddConst(va, val)
 		case token.SUB, token.SUB_ASSIGN:
-			c.varSubConst(upn, index, t, val)
+			c.varSubConst(va, val)
 		case token.MUL, token.MUL_ASSIGN:
-			c.varMulConst(upn, index, t, val)
+			c.varMulConst(va, val)
 		case token.QUO, token.QUO_ASSIGN:
-			c.varQuoConst(upn, index, t, val)
+			c.varQuoConst(va, val)
 		case token.REM, token.REM_ASSIGN:
-			c.varRemConst(upn, index, t, val)
+			c.varRemConst(va, val)
 		case token.AND, token.AND_ASSIGN:
-			c.varAndConst(upn, index, t, val)
+			c.varAndConst(va, val)
 		case token.OR, token.OR_ASSIGN:
-			c.varOrConst(upn, index, t, val)
+			c.varOrConst(va, val)
 		case token.XOR, token.XOR_ASSIGN:
-			c.varXorConst(upn, index, t, val)
+			c.varXorConst(va, val)
 		case token.SHL, token.SHL_ASSIGN:
-			c.varShlConst(upn, index, t, val)
+			c.varShlConst(va, val)
 		case token.SHR, token.SHR_ASSIGN:
-			c.varShrConst(upn, index, t, val)
+			c.varShrConst(va, val)
 		case token.AND_NOT, token.AND_NOT_ASSIGN:
-			c.varAndnotConst(upn, index, t, val)
+			c.varAndnotConst(va, val)
 		default:
 			c.Errorf("invalid operator %s", op)
 		}
@@ -14401,29 +31877,29 @@ func (c *Comp) SetVar(va *Var, op token.Token, init *Expr) {
 		fun := init.Fun
 		switch op {
 		case token.ASSIGN:
-			c.varSetExpr(upn, index, t, init)
+			c.varSetExpr(va, init)
 		case token.ADD, token.ADD_ASSIGN:
-			c.varAddExpr(upn, index, t, fun)
+			c.varAddExpr(va, fun)
 		case token.SUB, token.SUB_ASSIGN:
-			c.varSubExpr(upn, index, t, fun)
+			c.varSubExpr(va, fun)
 		case token.MUL, token.MUL_ASSIGN:
-			c.varMulExpr(upn, index, t, fun)
+			c.varMulExpr(va, fun)
 		case token.QUO, token.QUO_ASSIGN:
-			c.varQuoExpr(upn, index, t, fun)
+			c.varQuoExpr(va, fun)
 		case token.REM, token.REM_ASSIGN:
-			c.varRemExpr(upn, index, t, fun)
+			c.varRemExpr(va, fun)
 		case token.AND, token.AND_ASSIGN:
-			c.varAndExpr(upn, index, t, fun)
+			c.varAndExpr(va, fun)
 		case token.OR, token.OR_ASSIGN:
-			c.varOrExpr(upn, index, t, fun)
+			c.varOrExpr(va, fun)
 		case token.XOR, token.XOR_ASSIGN:
-			c.varXorExpr(upn, index, t, fun)
+			c.varXorExpr(va, fun)
 		case token.SHL, token.SHL_ASSIGN:
-			c.varShlExpr(upn, index, t, fun)
+			c.varShlExpr(va, fun)
 		case token.SHR, token.SHR_ASSIGN:
-			c.varShrExpr(upn, index, t, fun)
+			c.varShrExpr(va, fun)
 		case token.AND_NOT, token.AND_NOT_ASSIGN:
-			c.varAndnotExpr(upn, index, t, fun)
+			c.varAndnotExpr(va, fun)
 		default:
 			c.Errorf("invalid operator %s", op)
 		}

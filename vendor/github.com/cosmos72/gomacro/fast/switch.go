@@ -183,7 +183,7 @@ func (c *Comp) switchCase(node *ast.CaseClause, tagnode ast.Expr, tag *Expr, can
 			seen.add(c, e.Value, caseEntry{Pos: enode.Pos(), IP: ibody})
 			if tag.Const() {
 				// constant propagation
-				flag := cmp.EvalConst(CompileDefaults)
+				flag := cmp.EvalConst(OptDefaults)
 				if r.ValueOf(flag).Bool() {
 					sometrue = true
 					break // always matches, no need to check further expressions

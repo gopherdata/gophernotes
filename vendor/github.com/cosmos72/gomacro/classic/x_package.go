@@ -14,11 +14,11 @@ func init() {
 	imports.Packages["github.com/cosmos72/gomacro/classic"] = imports.Package{
 		Binds: map[string]r.Value{
 			"MultiThread":      r.ValueOf(MultiThread),
+			"New":              r.ValueOf(New),
 			"NewEnv":           r.ValueOf(NewEnv),
 			"NewThreadGlobals": r.ValueOf(NewThreadGlobals),
 			"NilEnv":           r.ValueOf(&NilEnv).Elem(),
-		},
-		Types: map[string]r.Type{
+		}, Types: map[string]r.Type{
 			"BindMap":       r.TypeOf((*BindMap)(nil)).Elem(),
 			"CallFrame":     r.TypeOf((*CallFrame)(nil)).Elem(),
 			"CallStack":     r.TypeOf((*CallStack)(nil)).Elem(),
@@ -28,11 +28,18 @@ func init() {
 			"Function":      r.TypeOf((*Function)(nil)).Elem(),
 			"Inspector":     r.TypeOf((*Inspector)(nil)).Elem(),
 			"Interface":     r.TypeOf((*Interface)(nil)).Elem(),
+			"Interp":        r.TypeOf((*Interp)(nil)).Elem(),
 			"Macro":         r.TypeOf((*Macro)(nil)).Elem(),
 			"Methods":       r.TypeOf((*Methods)(nil)).Elem(),
 			"ThreadGlobals": r.TypeOf((*ThreadGlobals)(nil)).Elem(),
 			"TypeMap":       r.TypeOf((*TypeMap)(nil)).Elem(),
 			"TypedValue":    r.TypeOf((*TypedValue)(nil)).Elem(),
+		}, Untypeds: map[string]string{
+			"MultiThread": "bool:true",
+		}, Wrappers: map[string][]string{
+			"Env":           []string{"CollectAst", "CollectNode", "CollectPackageImports", "Copy", "Debugf", "Error", "Errorf", "Fprintf", "Gensym", "GensymEmbedded", "GensymPrivate", "ImportPackage", "IncLine", "IncLineBytes", "Init", "LookupPackage", "ObjMethodByName", "ParseBytes", "Position", "ShowHelp", "Sprintf", "ToString", "WarnExtraValues", "Warnf", "WriteDeclsToFile", "WriteDeclsToStream"},
+			"Interp":        []string{"AsPackage", "CallerFrame", "ChangePackage", "ClassicEval", "CollectAst", "CollectNode", "CollectPackageImports", "Copy", "CurrentFrame", "Debugf", "DefineConst", "DefineFunc", "DefineVar", "Error", "Errorf", "Eval", "Eval1", "EvalAst", "EvalAst1", "EvalNode", "EvalNode1", "FastEval", "FileEnv", "Fprintf", "Gensym", "GensymEmbedded", "GensymPrivate", "ImportPackage", "IncLine", "IncLineBytes", "Init", "Inspect", "LookupPackage", "MacroExpand", "MacroExpand1", "MacroExpandAstCodewalk", "MacroExpandCodewalk", "MergePackage", "ObjMethodByName", "Parse", "ParseBytes", "ParseOnly", "Position", "ReadMultiline", "ShowHelp", "ShowPackage", "Sprintf", "ToString", "TopEnv", "ValueOf", "WarnExtraValues", "Warnf", "WriteDeclsToFile", "WriteDeclsToStream"},
+			"ThreadGlobals": []string{"CollectAst", "CollectNode", "CollectPackageImports", "Copy", "Debugf", "Error", "Errorf", "Fprintf", "Gensym", "GensymEmbedded", "GensymPrivate", "ImportPackage", "IncLine", "IncLineBytes", "Init", "LookupPackage", "ParseBytes", "Position", "Sprintf", "ToString", "WarnExtraValues", "Warnf", "WriteDeclsToFile", "WriteDeclsToStream"},
 		},
-		Proxies: map[string]r.Type{}}
+	}
 }

@@ -332,6 +332,8 @@ func (c *Comp) Send(node *ast.SendStmt) {
 	} else if expr.Type == nil || !expr.Type.AssignableTo(telem) {
 		c.Errorf("cannot use %v <%v> as type %v in send", node.Value, expr.Type, telem)
 		return
+	} else {
+		expr.To(c, telem)
 	}
 	channelfun := channel.AsX1()
 	sendonly := t.ChanDir() == r.SendDir
@@ -394,9 +396,6 @@ func (c *Comp) Send(node *ast.SendStmt) {
 			stmt = func(env *Env) (Stmt, *Env) {
 				channel := channelfun(env)
 				value := exprfun(env)
-				if value.Type() != rtelem {
-					value = value.Convert(rtelem)
-				}
 				channel.Send(value)
 				env.IP++
 				return env.Code[env.IP], env

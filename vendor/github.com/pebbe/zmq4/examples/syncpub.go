@@ -1,9 +1,6 @@
 //
 //  Synchronized publisher.
 //
-//  This diverts from the C example by introducing time delays.
-//  Without these delays, the subscribers won't catch the END message.
-//
 
 package main
 
@@ -11,7 +8,6 @@ import (
 	zmq "github.com/pebbe/zmq4"
 
 	"fmt"
-	"time"
 )
 
 const (
@@ -21,13 +17,17 @@ const (
 
 func main() {
 
+	ctx, _ := zmq.NewContext()
+	defer ctx.Term()
+
 	//  Socket to talk to clients
-	publisher, _ := zmq.NewSocket(zmq.PUB)
+	publisher, _ := ctx.NewSocket(zmq.PUB)
 	defer publisher.Close()
+	publisher.SetSndhwm(1100000)
 	publisher.Bind("tcp://*:5561")
 
 	//  Socket to receive signals
-	syncservice, _ := zmq.NewSocket(zmq.REP)
+	syncservice, _ := ctx.NewSocket(zmq.REP)
 	defer syncservice.Close()
 	syncservice.Bind("tcp://*:5562")
 
@@ -43,15 +43,8 @@ func main() {
 	fmt.Println("Broadcasting messages")
 	for update_nbr := 0; update_nbr < 1000000; update_nbr++ {
 		publisher.Send("Rhubarb", 0)
-		// subscribers don't get all messages if publisher is too fast
-		// a one microsecond pause may still be too short
-		time.Sleep(time.Microsecond)
 	}
 
-	// a longer pause ensures subscribers are ready to receive this
-	time.Sleep(time.Second)
 	publisher.Send("END", 0)
 
-	// what's another second?
-	time.Sleep(time.Second)
 }

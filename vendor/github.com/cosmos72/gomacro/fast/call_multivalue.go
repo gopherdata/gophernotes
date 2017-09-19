@@ -34,7 +34,7 @@ func call_multivalue(call *Call, maxdepth int) I {
 	// no need to special case variadic functions here
 	expr := call.Fun
 	exprfun := expr.AsX1()
-	argfun := call.Args[0].AsXV(CompileDefaults)
+	argfun := call.Args[0].AsXV(OptDefaults)
 	nout := len(call.OutTypes)
 	var ret I
 	switch nout {
@@ -82,7 +82,7 @@ func call_multivalue(call *Call, maxdepth int) I {
 // returning bool, int, uint, float, complex, string do NOT wrap them in reflect.Value
 func call_multivalue_ret1(call *Call, maxdepth int) I {
 	exprfun := call.Fun.AsX1()
-	argfun := call.Args[0].AsXV(CompileDefaults)
+	argfun := call.Args[0].AsXV(OptDefaults)
 	kout := call.OutTypes[0].Kind()
 	var ret I
 	switch kout {
@@ -219,7 +219,7 @@ func call_multivalue_ret1(call *Call, maxdepth int) I {
 // returning bool, int, uint, float, complex, string do NOT wrap them in reflect.Value
 func call_multivalue_ellipsis_ret1(call *Call, maxdepth int) I {
 	exprfun := call.Fun.AsX1()
-	argfun := call.Args[0].AsXV(CompileDefaults)
+	argfun := call.Args[0].AsXV(OptDefaults)
 	kout := call.OutTypes[0].Kind()
 	var ret I
 	switch kout {

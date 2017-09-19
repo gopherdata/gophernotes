@@ -31,7 +31,6 @@ import (
 	"unsafe"
 
 	. "github.com/cosmos72/gomacro/base"
-	xr "github.com/cosmos72/gomacro/xreflect"
 )
 
 :import (
@@ -125,22 +124,22 @@ import (
 	return op
 }
 
-:func fgetplace(depth, typ ast.Node) (/*loop*/ *ast.BlockStmt, /*bind*/ ast.Node) {
+:func fgetplace(depth, typ ast.Node) (/*loop*/ *ast.BlockStmt, /*env*/ ast.Node) {
 	// the return type of Eval() and EvalType() varies. better check early.
 	upn := Eval(depth).(int)
 	var t r.Type = EvalType(typ)
-	var bind ast.Node
+	var env ast.Node
 	var loop *ast.BlockStmt
 
 	if upn >= 0 {
-		bind = ~'{env}
+		env = ~'{env}
 		for i := 0; i < upn; i++ {
-			bind = ~"{~,bind . Outer}
+			env = ~"{~,env . Outer}
 		}
 	} else if upn == -2 {
-		bind = ~'{env.ThreadGlobals.FileEnv}
+		env = ~'{env.ThreadGlobals.FileEnv}
 	} else if upn == -3 {
-		bind = ~'{env.ThreadGlobals.TopEnv}
+		env = ~'{env.ThreadGlobals.TopEnv}
 	} else {
 		loop = ~'{
 			o := env.Outer.Outer.Outer
@@ -148,43 +147,85 @@ import (
 				o = o.Outer
 			}
 		}
-		bind = ~'o
+		env = ~'o
 	}
-	return loop, bind
+	return loop, env
 }
 
 :func fsetplace(opnode, depth, typ, expr, exprv ast.Node) ast.Node {
-	loop, bind := fgetplace(depth, typ)
+	loop, env := fgetplace(depth, typ)
 	// the return type of Eval() and EvalType() varies. better check early.
 	var t r.Type = EvalType(typ)
 	op := Eval(opnode).(token.Token)
 	opset := op_to_assign(op)
+	var bind, cbind ast.Node
+
+	var assign *ast.AssignStmt = ~"{*(*~,typ)(unsafe.Pointer(& ~,env .IntBinds[index])) += ~,expr}
+	assign.Tok = opset
+	bind = assign
 
 	switch t.Kind() {
+		case r.Bool:
+			var result *ast.BinaryExpr = ~"{lhs.Bool() + ~,expr}
+			result.Op = op
+			cbind = ~"{lhs := ~,env . Binds[index]; lhs.SetBool(~,result)}
+		case r.Int, r.Int8, r.Int16, r.Int32, r.Int64:
+			var result *ast.BinaryExpr = ~"{lhs.Int() + int64(~,expr)}
+			result.Op = op
+			cbind = ~"{lhs := ~,env . Binds[index]; lhs.SetInt(~,result)}
+		case r.Uint, r.Uint8, r.Uint16, r.Uint32, r.Uint64, r.Uintptr:
+			var result *ast.BinaryExpr = ~"{lhs.Uint() + uint64(~,expr)}
+			result.Op = op
+			cbind = ~"{lhs := ~,env . Binds[index]; lhs.SetUint(~,result)}
+			if t.Kind() == r.Uint64 {
+				var assign *ast.AssignStmt = ~"{~,env . IntBinds[index] += ~,expr}
+				assign.Tok = opset
+				bind = assign
+			}
+		case r.Float32, r.Float64:
+			var result *ast.BinaryExpr = ~"{lhs.Float() + float64(~,expr)}
+			result.Op = op
+			cbind = ~"{lhs := ~,env . Binds[index]; lhs.SetFloat(~,result)}
+		case r.Complex64:
+			var result *ast.BinaryExpr = ~"{lhs.Complex() + complex128(~,expr)}
+			result.Op = op
+			cbind = ~"{lhs := ~,env . Binds[index]; lhs.SetComplex(~,result)}
 		case r.Complex128:
 			var result *ast.BinaryExpr = ~"{lhs.Complex() + ~,expr}
 			result.Op = op
-			bind = ~"{lhs := ~,bind . Binds[index]; lhs.SetComplex(~,result)}
+			bind = ~"{lhs := ~,env . Binds[index]; lhs.SetComplex(~,result)}
 		case r.String:
 			var result *ast.BinaryExpr = ~"{lhs.String() + ~,expr}
 			result.Op = op
-			bind = ~"{lhs := ~,bind . Binds[index]; lhs.SetString(~,result)}
-		case r.Uint64:
-			var assign *ast.AssignStmt = ~"{~,bind . IntBinds[index] += ~,expr}
-			assign.Tok = opset
-			bind = assign
-		default:
-			var assign *ast.AssignStmt = ~"{*(*~,typ)(unsafe.Pointer(& ~,bind .IntBinds[index])) += ~,expr}
-			assign.Tok = opset
-			bind = assign
+			bind = ~"{lhs := ~,env . Binds[index]; lhs.SetString(~,result)}
+	}
+
+	if cbind == nil {
+		return ~"{
+			ret = func(env *Env) (Stmt, *Env) {
+				~,@loop
+				~,bind
+				env.IP++
+				return env.Code[env.IP], env
+			}
+		}
 	}
 
 	return ~"{
-		ret = func(env *Env) (Stmt, *Env) {
-			~,@loop
-			~,bind
-			env.IP++
-			return env.Code[env.IP], env
+		if intbinds {
+			ret = func(env *Env) (Stmt, *Env) {
+				~,@loop
+				~,bind
+				env.IP++
+				return env.Code[env.IP], env
+			}
+		} else {
+			ret = func(env *Env) (Stmt, *Env) {
+				~,@loop
+				~,cbind
+				env.IP++
+				return env.Code[env.IP], env
+			}
 		}
 	}
 }
@@ -255,6 +296,10 @@ import (
 		}
 	}
 	return ~"{
+		t := va.Type
+		upn := va.Upn
+		index := va.Desc.Index()
+		intbinds := va.Desc.Class() == IntBind
 		var ret Stmt
 		switch t.Kind() {
 			~,@caselist
@@ -274,6 +319,10 @@ import (
 		}
 	}
 	return ~"{
+		t := va.Type
+		upn := va.Upn
+		index := va.Desc.Index()
+		intbinds := va.Desc.Class() == IntBind
 		var ret Stmt
 		switch fun := fun.(type) {
 			~,@caselist
@@ -283,7 +332,7 @@ import (
 }
 
 // varAddConst compiles 'variable += constant'
-func (c *Comp) varAddConst(upn int, index int, t xr.Type, val I) {
+func (c *Comp) varAddConst(va *Var, val I) {
 	if isLiteralNumber(val, 0) || val == "" {
 		return
 	}
@@ -291,12 +340,12 @@ func (c *Comp) varAddConst(upn int, index int, t xr.Type, val I) {
 }
 
 // varAddExpr compiles 'variable += expression'
-func (c *Comp) varAddExpr(upn int, index int, t xr.Type, fun I) {
+func (c *Comp) varAddExpr(va *Var, fun I) {
 	setplaces_depth_expr; token.ADD; {int; uint; float64; complex128; string; nil}
 }
 
 // varSubConst compiles 'variable -= constant'
-func (c *Comp) varSubConst(upn int, index int, t xr.Type, val I) {
+func (c *Comp) varSubConst(va *Var, val I) {
 	if isLiteralNumber(val, 0) {
 		return
 	}
@@ -304,15 +353,15 @@ func (c *Comp) varSubConst(upn int, index int, t xr.Type, val I) {
 }
 
 // varSubExpr compiles 'variable -= expression'
-func (c *Comp) varSubExpr(upn int, index int, t xr.Type, fun I) {
+func (c *Comp) varSubExpr(va *Var, fun I) {
 	setplaces_depth_expr; token.SUB; {int; uint; float64; complex128; nil}
 }
 
 // varMulConst compiles 'variable *= constant'
-func (c *Comp) varMulConst(upn int, index int, t xr.Type, val I) {
+func (c *Comp) varMulConst(va *Var, val I) {
 	if isLiteralNumber(val, 0) {
 		// variable *= 0 is equivalent to variable = 0
-		c.varSetZero(upn, index, t)
+		c.varSetZero(va)
 		return
 	} else if isLiteralNumber(val, 1) {
 		return
@@ -321,7 +370,7 @@ func (c *Comp) varMulConst(upn int, index int, t xr.Type, val I) {
 }
 
 // varMulExpr compiles 'variable *= expression'
-func (c *Comp) varMulExpr(upn int, index int, t xr.Type, fun I) {
+func (c *Comp) varMulExpr(va *Var, fun I) {
 	setplaces_depth_expr; token.MUL; {int; uint; float64; complex128; nil}
 }
 
@@ -405,7 +454,8 @@ func (c *Comp) varMulExpr(upn int, index int, t xr.Type, fun I) {
 }
 
 // varQuoPow2 compiles 'variable /= constant-power-of-two'
-func (c *Comp) varQuoPow2(upn int, index int, t xr.Type, val I) bool {
+func (c *Comp) varQuoPow2(va *Var, val I) bool {
+	t := va.Type
 	if isLiteralNumber(val, 0) {
 		c.Errorf("division by %v <%v>", val, t)
 		return false
@@ -439,6 +489,8 @@ func (c *Comp) varQuoPow2(upn int, index int, t xr.Type, val I) bool {
 	//    right shift >> truncates toward negative infinity
 	// see quoPow2() in binary_ops.go for more details
 	shift := integerLen(y) - 1
+	upn := va.Upn
+	index := va.Desc.Index()
 	var ret Stmt
 
 	switch t.Kind() {
@@ -462,27 +514,28 @@ func (c *Comp) varQuoPow2(upn int, index int, t xr.Type, val I) bool {
 }
 
 // varQuoConst compiles 'variable /= constant'
-func (c *Comp) varQuoConst(upn int, index int, t xr.Type, val I) {
-	if c.varQuoPow2(upn, index, t, val) {
+func (c *Comp) varQuoConst(va *Var, val I) {
+	if c.varQuoPow2(va, val) {
 		return
 	}
 	setplaces_depth_const; token.QUO; {int; uint; float64; complex128; nil}
 }
 
 // varQuoExpr compiles 'variable /= expression'
-func (c *Comp) varQuoExpr(upn int, index int, t xr.Type, fun I) {
+func (c *Comp) varQuoExpr(va *Var, fun I) {
 	setplaces_depth_expr; token.QUO; {int; uint; float64; complex128; nil}
 }
 
 // varRemConst compiles 'variable %= constant'
-func (c *Comp) varRemConst(upn int, index int, t xr.Type, val I) {
+func (c *Comp) varRemConst(va *Var, val I) {
+	t := va.Type
 	if IsCategory(t.Kind(), r.Int, r.Uint) {
 		if isLiteralNumber(val, 0) {
 			c.Errorf("division by %v <%v>", val, t)
 			return
 		} else if isLiteralNumber(val, 1) {
 			// variable %= 1 is equivalent to variable = 0
-			c.varSetZero(upn, index, t)
+			c.varSetZero(va)
 			return
 		}
 	}
@@ -490,18 +543,19 @@ func (c *Comp) varRemConst(upn int, index int, t xr.Type, val I) {
 }
 
 // varRemExpr compiles 'variable %= expression'
-func (c *Comp) varRemExpr(upn int, index int, t xr.Type, fun I) {
+func (c *Comp) varRemExpr(va *Var, fun I) {
 	setplaces_depth_expr; token.REM; {int; uint; nil}
 }
 
 // varAndConst compiles 'variable &= constant'
-func (c *Comp) varAndConst(upn int, index int, t xr.Type, val I) {
+func (c *Comp) varAndConst(va *Var, val I) {
+	t := va.Type
 	if IsCategory(t.Kind(), r.Int, r.Uint) {
 		if isLiteralNumber(val, -1) {
 			return
 		} else if isLiteralNumber(val, 0) {
 			// variable &= 0 is equivalent to variable = 0
-			c.varSetZero(upn, index, t)
+			c.varSetZero(va)
 			return
 		}
 	}
@@ -509,12 +563,13 @@ func (c *Comp) varAndConst(upn int, index int, t xr.Type, val I) {
 }
 
 // varAndExpr compiles 'variable &= expression'
-func (c *Comp) varAndExpr(upn int, index int, t xr.Type, fun I) {
+func (c *Comp) varAndExpr(va *Var, fun I) {
 	setplaces_depth_expr; token.AND; {int; uint; nil}
 }
 
 // varOrConst compiles 'variable |= constant'
-func (c *Comp) varOrConst(upn int, index int, t xr.Type, val I) {
+func (c *Comp) varOrConst(va *Var, val I) {
+	t := va.Type
 	if IsCategory(t.Kind(), r.Int, r.Uint) && isLiteralNumber(val, 0) {
 		return
 	}
@@ -522,12 +577,13 @@ func (c *Comp) varOrConst(upn int, index int, t xr.Type, val I) {
 }
 
 // varOrExpr compiles 'variable |= expression'
-func (c *Comp) varOrExpr(upn int, index int, t xr.Type, fun I) {
+func (c *Comp) varOrExpr(va *Var, fun I) {
 	setplaces_depth_expr; token.OR; {int; uint; nil}
 }
 
 // varXorConst compiles 'variable ^= constant'
-func (c *Comp) varXorConst(upn int, index int, t xr.Type, val I) {
+func (c *Comp) varXorConst(va *Var, val I) {
+	t := va.Type
 	if IsCategory(t.Kind(), r.Int, r.Uint) && isLiteralNumber(val, 0) {
 		return
 	}
@@ -535,16 +591,17 @@ func (c *Comp) varXorConst(upn int, index int, t xr.Type, val I) {
 }
 
 // varXorExpr compiles 'variable ^= expression'
-func (c *Comp) varXorExpr(upn int, index int, t xr.Type, fun I) {
+func (c *Comp) varXorExpr(va *Var, fun I) {
 	setplaces_depth_expr; token.XOR; {int; uint; nil}
 }
 
 // varAndnotConst compiles 'variable &^= constant'
-func (c *Comp) varAndnotConst(upn int, index int, t xr.Type, val I) {
+func (c *Comp) varAndnotConst(va *Var, val I) {
+	t := va.Type
 	if IsCategory(t.Kind(), r.Int, r.Uint) {
 		if isLiteralNumber(val, -1) {
 			// variable &^= -1 is equivalent to variable = 0
-			c.varSetZero(upn, index, t)
+			c.varSetZero(va)
 			return
 		} else if isLiteralNumber(val, 0) {
 			return
@@ -554,7 +611,7 @@ func (c *Comp) varAndnotConst(upn int, index int, t xr.Type, val I) {
 }
 
 // varAndnotExpr compiles 'variable &^= expression'
-func (c *Comp) varAndnotExpr(upn int, index int, t xr.Type, fun I) {
+func (c *Comp) varAndnotExpr(va *Var, fun I) {
 	setplaces_depth_expr; token.AND_NOT; {int; uint; nil}
 }
 
@@ -592,7 +649,6 @@ func (c *Comp) SetVar(va *Var, op token.Token, init *Expr) {
 		c.Errorf("invalid operator %s on %v", op, class)
 		return
 	}
-	upn := va.Upn
 	index := va.Desc.Index()
 	if index == NoIndex {
 		if op != token.ASSIGN {
@@ -618,29 +674,29 @@ func (c *Comp) SetVar(va *Var, op token.Token, init *Expr) {
 		}
 		switch op {
 		case token.ASSIGN:
-			c.varSetConst(upn, index, t, val)
+			c.varSetConst(va, val)
 		case token.ADD, token.ADD_ASSIGN:
-			c.varAddConst(upn, index, t, val)
+			c.varAddConst(va, val)
 		case token.SUB, token.SUB_ASSIGN:
-			c.varSubConst(upn, index, t, val)
+			c.varSubConst(va, val)
 		case token.MUL, token.MUL_ASSIGN:
-			c.varMulConst(upn, index, t, val)
+			c.varMulConst(va, val)
 		case token.QUO, token.QUO_ASSIGN:
-			c.varQuoConst(upn, index, t, val)
+			c.varQuoConst(va, val)
 		case token.REM, token.REM_ASSIGN:
-			c.varRemConst(upn, index, t, val)
+			c.varRemConst(va, val)
 		case token.AND, token.AND_ASSIGN:
-			c.varAndConst(upn, index, t, val)
+			c.varAndConst(va, val)
 		case token.OR, token.OR_ASSIGN:
-			c.varOrConst(upn, index, t, val)
+			c.varOrConst(va, val)
 		case token.XOR, token.XOR_ASSIGN:
-			c.varXorConst(upn, index, t, val)
+			c.varXorConst(va, val)
 		case token.SHL, token.SHL_ASSIGN:
-			c.varShlConst(upn, index, t, val)
+			c.varShlConst(va, val)
 		case token.SHR, token.SHR_ASSIGN:
-			c.varShrConst(upn, index, t, val)
+			c.varShrConst(va, val)
 		case token.AND_NOT, token.AND_NOT_ASSIGN:
-			c.varAndnotConst(upn, index, t, val)
+			c.varAndnotConst(va, val)
 		default:
 			c.Errorf("invalid operator %s", op)
 		}
@@ -648,29 +704,29 @@ func (c *Comp) SetVar(va *Var, op token.Token, init *Expr) {
 		fun := init.Fun
 		switch op {
 		case token.ASSIGN:
-			c.varSetExpr(upn, index, t, init)
+			c.varSetExpr(va, init)
 		case token.ADD, token.ADD_ASSIGN:
-			c.varAddExpr(upn, index, t, fun)
+			c.varAddExpr(va, fun)
 		case token.SUB, token.SUB_ASSIGN:
-			c.varSubExpr(upn, index, t, fun)
+			c.varSubExpr(va, fun)
 		case token.MUL, token.MUL_ASSIGN:
-			c.varMulExpr(upn, index, t, fun)
+			c.varMulExpr(va, fun)
 		case token.QUO, token.QUO_ASSIGN:
-			c.varQuoExpr(upn, index, t, fun)
+			c.varQuoExpr(va, fun)
 		case token.REM, token.REM_ASSIGN:
-			c.varRemExpr(upn, index, t, fun)
+			c.varRemExpr(va, fun)
 		case token.AND, token.AND_ASSIGN:
-			c.varAndExpr(upn, index, t, fun)
+			c.varAndExpr(va, fun)
 		case token.OR, token.OR_ASSIGN:
-			c.varOrExpr(upn, index, t, fun)
+			c.varOrExpr(va, fun)
 		case token.XOR, token.XOR_ASSIGN:
-			c.varXorExpr(upn, index, t, fun)
+			c.varXorExpr(va, fun)
 		case token.SHL, token.SHL_ASSIGN:
-			c.varShlExpr(upn, index, t, fun)
+			c.varShlExpr(va, fun)
 		case token.SHR, token.SHR_ASSIGN:
-			c.varShrExpr(upn, index, t, fun)
+			c.varShrExpr(va, fun)
 		case token.AND_NOT, token.AND_NOT_ASSIGN:
-			c.varAndnotExpr(upn, index, t, fun)
+			c.varAndnotExpr(va, fun)
 		default:
 			c.Errorf("invalid operator %s", op)
 		}

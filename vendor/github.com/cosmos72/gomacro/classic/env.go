@@ -113,17 +113,17 @@ func (env *Env) MergePackage(pkg imports.Package) {
 	env.Proxies.Ensure().Merge(pkg.Proxies)
 }
 
-func (env *Env) ChangePackage(name string) *Env {
+func (env *Env) ChangePackage(path string) *Env {
 	fenv := env.FileEnv()
-	currname := fenv.ThreadGlobals.PackagePath
-	if name == currname {
+	currpath := fenv.ThreadGlobals.PackagePath
+	if path == currpath {
 		return env
 	}
-	fenv.AsPackage().SaveToPackages(currname)
+	fenv.AsPackage().SaveToPackages(currpath)
 
-	nenv := NewEnv(fenv.TopEnv(), name)
-	nenv.MergePackage(imports.Packages[name])
-	nenv.ThreadGlobals.PackagePath = name
+	nenv := NewEnv(fenv.TopEnv(), path)
+	nenv.MergePackage(imports.Packages[path])
+	nenv.ThreadGlobals.PackagePath = path
 
 	return nenv
 }
@@ -173,7 +173,7 @@ func (env *Env) ReadMultiline(in *bufio.Reader, opts ReadOptions) (str string, f
 }
 
 // macroexpand + collect + eval
-func (env *Env) ClassicEval(form Ast) (r.Value, []r.Value) {
+func (env *Env) classicEval(form Ast) (r.Value, []r.Value) {
 	// macroexpansion phase.
 	form, _ = env.MacroExpandAstCodewalk(form)
 

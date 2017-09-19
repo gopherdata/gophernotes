@@ -51,7 +51,7 @@ func (env *Env) Inspect(in *bufio.Reader, str string, fastInterpreter bool) {
 	var v r.Value
 	var xt xr.Type
 	if fastInterpreter {
-		v, _, xt, _ = env.FastEval(form)
+		v, _, xt, _ = env.fastEval(form)
 	} else {
 		v = env.EvalAst1(form)
 	}

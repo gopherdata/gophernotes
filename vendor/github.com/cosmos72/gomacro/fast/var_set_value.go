@@ -48,6 +48,8 @@ func (c *Comp) varSetValue(va *Var) func(*Env, r.Value) {
 		c.Errorf("cannot assign to %v %s", desc.Class(), va.Name)
 		return nil
 	case VarBind:
+		// if current package is compiled, also variables with kind = Bool, Int*, Uint*, Float*, Complex64 will have class == VarBind
+
 		index := desc.Index()
 		if index == NoIndex {
 			// assigning a value to _ has no effect at all
@@ -57,7 +59,23 @@ func (c *Comp) varSetValue(va *Var) func(*Env, r.Value) {
 		switch upn {
 		case 0:
 			switch t.Kind() {
-			case r.Complex128:
+			case r.Bool:
+				ret = func(env *Env, v r.Value) {
+					env.Binds[index].SetBool(v.Bool())
+				}
+			case r.Int, r.Int8, r.Int32, r.Int64:
+				ret = func(env *Env, v r.Value) {
+					env.Binds[index].SetInt(v.Int())
+				}
+			case r.Uint, r.Uint8, r.Uint32, r.Uint64, r.Uintptr:
+				ret = func(env *Env, v r.Value) {
+					env.Binds[index].SetUint(v.Uint())
+				}
+			case r.Float32, r.Float64:
+				ret = func(env *Env, v r.Value) {
+					env.Binds[index].SetFloat(v.Float())
+				}
+			case r.Complex64, r.Complex128:
 				ret = func(env *Env, v r.Value) {
 					env.Binds[index].SetComplex(v.Complex())
 				}
@@ -87,7 +105,23 @@ func (c *Comp) varSetValue(va *Var) func(*Env, r.Value) {
 			}
 		case 1:
 			switch t.Kind() {
-			case r.Complex128:
+			case r.Bool:
+				ret = func(env *Env, v r.Value) {
+					env.Outer.Binds[index].SetBool(v.Bool())
+				}
+			case r.Int, r.Int8, r.Int32, r.Int64:
+				ret = func(env *Env, v r.Value) {
+					env.Outer.Binds[index].SetInt(v.Int())
+				}
+			case r.Uint, r.Uint8, r.Uint32, r.Uint64, r.Uintptr:
+				ret = func(env *Env, v r.Value) {
+					env.Outer.Binds[index].SetUint(v.Uint())
+				}
+			case r.Float32, r.Float64:
+				ret = func(env *Env, v r.Value) {
+					env.Outer.Binds[index].SetFloat(v.Float())
+				}
+			case r.Complex64, r.Complex128:
 				ret = func(env *Env, v r.Value) {
 					env.Outer.Binds[index].SetComplex(v.Complex())
 				}
@@ -117,7 +151,23 @@ func (c *Comp) varSetValue(va *Var) func(*Env, r.Value) {
 			}
 		case 2:
 			switch t.Kind() {
-			case r.Complex128:
+			case r.Bool:
+				ret = func(env *Env, v r.Value) {
+					env.Outer.Outer.Binds[index].SetBool(v.Bool())
+				}
+			case r.Int, r.Int8, r.Int32, r.Int64:
+				ret = func(env *Env, v r.Value) {
+					env.Outer.Outer.Binds[index].SetInt(v.Int())
+				}
+			case r.Uint, r.Uint8, r.Uint32, r.Uint64, r.Uintptr:
+				ret = func(env *Env, v r.Value) {
+					env.Outer.Outer.Binds[index].SetUint(v.Uint())
+				}
+			case r.Float32, r.Float64:
+				ret = func(env *Env, v r.Value) {
+					env.Outer.Outer.Binds[index].SetFloat(v.Float())
+				}
+			case r.Complex64, r.Complex128:
 				ret = func(env *Env, v r.Value) {
 					env.Outer.Outer.Binds[index].SetComplex(v.Complex())
 				}
@@ -147,7 +197,39 @@ func (c *Comp) varSetValue(va *Var) func(*Env, r.Value) {
 			}
 		default:
 			switch t.Kind() {
-			case r.Complex128:
+			case r.Bool:
+				ret = func(env *Env, v r.Value) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					o.Binds[index].SetBool(v.Bool())
+				}
+			case r.Int, r.Int8, r.Int32, r.Int64:
+				ret = func(env *Env, v r.Value) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					o.Binds[index].SetInt(v.Int())
+				}
+			case r.Uint, r.Uint8, r.Uint32, r.Uint64, r.Uintptr:
+				ret = func(env *Env, v r.Value) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					o.Binds[index].SetUint(v.Uint())
+				}
+			case r.Float32, r.Float64:
+				ret = func(env *Env, v r.Value) {
+					o := env.Outer.Outer.Outer
+					for i := 3; i < upn; i++ {
+						o = o.Outer
+					}
+					o.Binds[index].SetFloat(v.Float())
+				}
+			case r.Complex64, r.Complex128:
 				ret = func(env *Env, v r.Value) {
 					o := env.Outer.Outer.Outer
 					for i := 3; i < upn; i++ {

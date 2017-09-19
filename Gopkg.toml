@@ -22,8 +22,8 @@
 
 
 [[constraint]]
+  branch = "master"
   name = "github.com/cosmos72/gomacro"
-  version = "2.0.0"
 
 [[constraint]]
   branch = "master"

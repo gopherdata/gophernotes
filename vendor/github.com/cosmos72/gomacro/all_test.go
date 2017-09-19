@@ -304,8 +304,7 @@ var testcases = []TestCase{
 	TestCase{A, "address_1", "var pvf = &vf; *pvf", 1.25, nil},
 	TestCase{A, "address_2", "&*pvf == *&pvf", true, nil},
 	TestCase{A, "address_3", "var pvs = &vs; v1 = (*pvs == nil); v1", true, nil},
-	TestCase{A, "defer_1", "v = 0; func testdefer(x uint32) { if x != 0 { defer func() { v = x }() } }; testdefer(29); v", uint32(29), nil},
-	TestCase{A, "defer_2", "v = 12; testdefer(0); v", uint32(12), nil},
+
 	TestCase{A, "make_chan", "cx := make(chan interface{}, 2); cx", make(chan interface{}, 2), nil},
 	TestCase{A, "make_map", "m := make(map[int]string); m", make(map[int]string), nil},
 	TestCase{A, "make_slice", "y := make([]uint8, 7); y[0] = 100; y[3] = 103; y", []uint8{100, 0, 0, 103, 0, 0, 0}, nil},
@@ -506,14 +505,20 @@ var testcases = []TestCase{
 		B string
 	}{A: 1, B: "2"}, nil},
 
-	TestCase{A, "method_decls", "func (p *Pair) SetA(a rune) { p.A = a }; func (p Pair) SetAV(a rune) { p.A = a }; nil", nil, nil},
-	TestCase{A, "method_on_ptr", "pair.SetA(8); pair.A", rune(8), nil},
-	TestCase{A, "method_on_val", "pair.SetAV(11); pair.A", rune(8), nil}, // method on value gets a copy of the receiver - changes to not propagate
-	TestCase{F, "method_embedded_on_ptr", "triple.SetA('+'); triple.A", '+', nil},
-	TestCase{F, "method_embedded_on_val", "triple.SetAV('*'); triple.A", '+', nil},
+	TestCase{A, "method_decl_1", `func (p *Pair) SetA(a rune) { p.A = a }; func (p Pair) SetAV(a rune) { p.A = a }; nil`, nil, nil},
+	TestCase{A, "method_decl_2", `func (p Pair) SetAV(a rune) { p.A = a }; nil`, nil, nil},
+	TestCase{A, "method_decl_3", `func (p Pair) String() string { return fmt.Sprintf("%c %s", p.A, p.B) }; nil`, nil, nil},
+
+	TestCase{A, "method_on_ptr", `pair.SetA(33); pair.A`, rune(33), nil},
+	TestCase{A, "method_on_val_1", `pair.SetAV(11); pair.A`, rune(33), nil}, // method on value gets a copy of the receiver - changes to not propagate
+	TestCase{A, "method_on_val_2", `pair.String()`, "! y", nil},
+	TestCase{F, "method_embedded_on_ptr", `triple.SetA('+'); triple.A`, '+', nil},
+	TestCase{F, "method_embedded_on_val", `triple.SetAV('*'); triple.A`, '+', nil},
 
 	TestCase{A, "interface_1", "var st fmt.Stringer = time.Second; st", time.Second, nil},
-	TestCase{A, "interface_method", "bind := st.String; bind()", "1s", nil},
+	TestCase{A, "interface_method_1", "bind := st.String; bind()", "1s", nil},
+	TestCase{F, "interface_2", "st = pair; nil", nil, nil},
+	TestCase{F, "interface_method_2", "bind = st.String; bind()", "! y", nil},
 
 	TestCase{F, "concrete_method_to_func", "f1 := time.Duration.Seconds; f1(time.Hour)", 3600.0, nil},
 	TestCase{F, "interface_method_to_func", "f2 := fmt.Stringer.String; f2(time.Hour)", "1h0m0s", nil},
@@ -547,6 +552,8 @@ var testcases = []TestCase{
 			}()
 		}
 		test_defer_2()`, 2, nil},
+	TestCase{A, "defer_3", "v = 0; func testdefer(x uint32) { if x != 0 { defer func() { v = x }() } }; testdefer(29); v", uint32(29), nil},
+	TestCase{A, "defer_4", "v = 12; testdefer(0); v", uint32(12), nil},
 	TestCase{A, "recover_1", `var vpanic interface{}
 		func test_recover(rec bool, panick interface{}) {
 			defer func() {

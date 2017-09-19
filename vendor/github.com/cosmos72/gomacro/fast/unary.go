@@ -83,7 +83,7 @@ func (c *Comp) UnaryExpr(node *ast.UnaryExpr) *Expr {
 	}
 	if isConst {
 		// constant propagation
-		z.EvalConst(CompileKeepUntyped)
+		z.EvalConst(OptKeepUntyped)
 	}
 	return z
 }

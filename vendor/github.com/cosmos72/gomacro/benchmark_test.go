@@ -441,6 +441,28 @@ func BenchmarkArithFast2(b *testing.B) {
 
 func BenchmarkArithFastConst(b *testing.B) {
 	ir := fast.New()
+	// "cheat" a bit and declare n as a constant. checks if constant propagation works :)
+	ir.DeclConst("n", nil, b.N)
+
+	// interpreted code performs only arithmetic - iteration performed here
+	expr := ir.Compile("((n*2+3)&4 | 5 ^ 6) / (n|1)")
+	fun := expr.WithFun().(func(*fast.Env) int)
+	env := ir.PrepareEnv()
+	fun(env)
+
+	b.ResetTimer()
+	total := 0
+	for i := 0; i < b.N; i++ {
+		total += fun(env)
+	}
+	if verbose {
+		println(total)
+	}
+}
+
+
+func BenchmarkArithFastConst2(b *testing.B) {
+	ir := fast.New()
 	ir.Eval("var i, total int")
 	// "cheat" a bit and declare n as a constant. checks if constant propagation works :)
 	ir.DeclConst("n", nil, int(b.N))

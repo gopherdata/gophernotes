@@ -441,9 +441,14 @@ type Import struct {
 type CompileOptions int
 
 const (
-	CompileKeepUntyped CompileOptions = 1 << iota // if set, Compile() on expressions will keep all untyped constants as such (in expressions where Go compiler would compute an untyped constant too)
-	CompileDefaults    CompileOptions = 0
+	OptKeepUntyped CompileOptions = 1 << iota // if set, Compile() on expressions will keep all untyped constants as such (in expressions where Go compiler would compute an untyped constant too)
+	OptIsCompiled                             // if set, packages is at least partially compiled. Effect: variables may be pre-existing, so Comp.intBinds cannot be used
+	OptDefaults    CompileOptions = 0
 )
+
+func (opts CompileOptions) IsCompiled() bool {
+	return opts&OptIsCompiled != 0
+}
 
 type Code struct {
 	List       []Stmt

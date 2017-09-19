@@ -147,6 +147,8 @@ func (c *Comp) rangeChan(node *ast.RangeStmt, erange *Expr, jump *rangeJump) {
 }
 
 func (c *Comp) rangeMap(node *ast.RangeStmt, erange *Expr, jump *rangeJump) {
+	c.ErrorIfCompiled(node)
+
 	t := erange.Type
 	tkey, tval := t.Key(), t.Elem()
 	tkeyslice := xr.SliceOf(tkey)

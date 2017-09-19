@@ -179,7 +179,7 @@ func compileAppend(c *Comp, sym Symbol, node *ast.CallExpr) *Call {
 		argi := c.Expr1(node.Args[i])
 		if argi.Const() {
 			argi.ConstTo(telem)
-		} else if ti := argi.Type; !xr.SameType(ti, telem) && (ti == nil || !ti.AssignableTo(telem)) {
+		} else if ti := argi.Type; ti == nil || !ti.AssignableTo(telem) {
 			return c.badBuiltinCallArgType(sym.Name, node.Args[i], ti, telem)
 		}
 		args[i] = argi
@@ -606,7 +606,7 @@ func callPanic(arg interface{}) {
 
 func compilePanic(c *Comp, sym Symbol, node *ast.CallExpr) *Call {
 	arg := c.Expr1(node.Args[0])
-	arg.To(c.TypeOfInterface())
+	arg.To(c, c.TypeOfInterface())
 	t := c.TypeOf(callPanic)
 	sym.Type = t
 	fun := exprLit(Lit{Type: t, Value: callPanic}, &sym)
@@ -630,7 +630,7 @@ func getStdout(env *Env) r.Value {
 func compilePrint(c *Comp, sym Symbol, node *ast.CallExpr) *Call {
 	args := c.Exprs(node.Args)
 	for _, arg := range args {
-		arg.To(c.TypeOfInterface())
+		arg.To(c, c.TypeOfInterface())
 	}
 	arg0 := exprFun(c.TypeOfInterface(), getStdout) // no need to build TypeOfIoWriter
 	args = append([]*Expr{arg0}, args...)

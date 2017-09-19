@@ -21,10 +21,11 @@ func init() {
 			"ParseComments":     r.ValueOf(ParseComments),
 			"SpuriousErrors":    r.ValueOf(SpuriousErrors),
 			"Trace":             r.ValueOf(Trace),
-		},
-		Types: map[string]r.Type{
+		}, Types: map[string]r.Type{
 			"Mode":   r.TypeOf((*Mode)(nil)).Elem(),
 			"Parser": r.TypeOf((*Parser)(nil)).Elem(),
+		}, Wrappers: map[string][]string{
+			"Parser": []string{"Configure", "Init", "Parse"},
 		},
-		Proxies: map[string]r.Type{}}
+	}
 }

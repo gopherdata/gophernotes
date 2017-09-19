@@ -49,7 +49,7 @@ import (
 :func faddress(upn int, typ ast.Node) ast.Node {
 	// the return type of Eval() and EvalType() varies. better check early.
 	var t r.Type = EvalType(typ)
-	var decls, bind, rettype ast.Node
+	var decls, addresstaken, bind, rettype ast.Node
 
 	if upn == 0 {
 		decls = ~'{{ }}
@@ -78,20 +78,34 @@ import (
 		// because env.Binds[index] actually contains a pointer to the variable
 		bind = ~'{env .Binds[index].Addr()}
 		rettype = ~'{r.Value}
-	} else {
-		decls = ~"{~,@decls; env.AddressTaken = true}
-		rettype = ~"{* ~,typ}
-		if t.Kind() == r.Uint64 {
-			bind = ~'{&env.IntBinds[index]}
-		} else {
-			bind = ~"{(*~,typ)(unsafe.Pointer(&env.IntBinds[index]))}
+		return ~"{
+			ret = func(env *Env) (~,rettype) {
+				~,@decls
+				return ~,bind
+			}
 		}
 	}
 
+	addresstaken = ~"{{env.AddressTaken = true}}
+	rettype = ~"{* ~,typ}
+	if t.Kind() == r.Uint64 {
+		bind = ~'{&env.IntBinds[index]}
+	} else {
+		bind = ~"{(*~,typ)(unsafe.Pointer(&env.IntBinds[index]))}
+	}
+
 	return ~"{
-		ret = func(env *Env) (~,rettype) {
-			~,@decls
-			return ~,bind
+		if intbinds {
+			ret = func(env *Env) (~,rettype) {
+				~,@decls
+				~,addresstaken
+				return ~,bind
+			}
+		} else {
+			ret = func(env *Env) (~,rettype) {
+				~,@decls
+				return env.Binds[index].Addr().Interface().(~,rettype)
+			}
 		}
 	}
 }
@@ -175,13 +189,14 @@ func (va *Var) Address(maxdepth int) *Expr {
 		return nil
 	}
 	var ret I
+	intbinds := va.Desc.Class() == IntBind
 	switch upn {
-	case 0:  {addresses; 0}
-	case 1:  {addresses; 1}
-	case 2:  {addresses; 2}
-	default: {addresses; -1}
-	case maxdepth-1: {addresses; -2}
-	case maxdepth:   {addresses; -3}
+	case 0:          addresses;  0
+	case 1:          addresses;  1
+	case 2:          addresses;  2
+	default:         addresses; -1
+	case maxdepth-1: addresses; -2
+	case maxdepth:   addresses; -3
 	}
 	return &Expr{Lit: Lit{Type: xr.PtrTo(va.Type)}, Fun: ret}
 }

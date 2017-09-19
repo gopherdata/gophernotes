@@ -154,7 +154,7 @@ func (c *Comp) call_any(call *Call) *Expr {
 	}
 	// constant propagation - only if function returns a single value
 	if call.Const && len(call.OutTypes) == 1 {
-		expr.EvalConst(CompileDefaults)
+		expr.EvalConst(OptDefaults)
 		// c.Debugf("pre-computed result of constant call %v: %v <%v>", call, expr.Value, TypeOf(expr.Value))
 	}
 	return expr
@@ -187,17 +187,30 @@ func (c *Comp) checkCallArgs(node *ast.CallExpr, t xr.Type, args []*Expr, ellips
 	if variadic {
 		tlast = t.In(n - 1).Elem()
 	}
+	var convs []func(r.Value, r.Type) r.Value
+	var rtypes []r.Type
+	needconvs := false
+	multivalue := len(args) != narg
+	if multivalue {
+		convs = make([]func(r.Value, r.Type) r.Value, narg)
+		rtypes = make([]r.Type, narg)
+	}
 	for i := 0; i < narg; i++ {
 		if variadic && i >= n-1 {
 			ti = tlast
 		} else {
 			ti = t.In(i)
 		}
-		if len(args) != narg {
+		if multivalue {
 			// support foo(bar()) where bar() returns multiple values
 			targ := args[0].Out(i)
 			if targ == nil || !targ.AssignableTo(ti) {
 				c.Errorf("cannot use <%v> as <%v> in argument to %v", targ, ti, node.Fun)
+			} else if conv := c.Converter(targ, ti); conv != nil {
+				convs[i] = conv
+				rtypes[i] = ti.ReflectType()
+				args[0].Types[i] = ti
+				needconvs = true
 			}
 			continue
 		}
@@ -207,7 +220,22 @@ func (c *Comp) checkCallArgs(node *ast.CallExpr, t xr.Type, args []*Expr, ellips
 			arg.ConstTo(ti)
 		} else if arg.Type == nil || !arg.Type.AssignableTo(ti) {
 			c.Errorf("cannot use <%v> as <%v> in argument to %v", arg.Type, ti, node.Fun)
+		} else {
+			arg.To(c, ti)
 		}
+	}
+	if !multivalue || !needconvs {
+		return
+	}
+	f := args[0].AsXV(OptDefaults)
+	args[0].Fun = func(env *Env) (r.Value, []r.Value) {
+		_, vs := f(env)
+		for i, conv := range convs {
+			if conv != nil {
+				vs[i] = conv(vs[i], rtypes[i])
+			}
+		}
+		return vs[0], vs
 	}
 }
 

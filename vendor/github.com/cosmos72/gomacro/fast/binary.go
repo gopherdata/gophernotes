@@ -97,7 +97,7 @@ func (c *Comp) BinaryExpr1(node *ast.BinaryExpr, x *Expr, y *Expr) *Expr {
 	}
 	if bothConst {
 		// constant propagation
-		z.EvalConst(CompileKeepUntyped)
+		z.EvalConst(OptKeepUntyped)
 	}
 	return z
 }
