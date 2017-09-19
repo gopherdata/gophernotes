@@ -6,11 +6,11 @@
 
 This project utilizes a Go interpreter called [gomacro](https://github.com/cosmos72/gomacro) under the hood to evaluate Go code interactively.
 
-## Screenshots/Examples
+## Examples
 
-### Simple interactive use:
-
-![alt tag](https://raw.githubusercontent.com/gopherds/gophernotes/master/files/screencast.gif)
+Jupyter Notebook           |  nteract
+:-------------------------:|:-------------------------:
+![](files/jupyter.gif)     |  ![](files/nteract.gif)
 
 ### Example Notebooks (dowload and run them locally, follow the links to view in Github, or use the [Jupyter Notebook Viewer](http://nbviewer.jupyter.org/)):
 - [Simple Printing and Channels](https://github.com/gopherds/gophernotes/blob/master/examples/Simple-Example.ipynb)
