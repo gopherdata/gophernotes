@@ -56,8 +56,8 @@ $ jupyter --data-dir
 
 Make sure you have the MinGW toolchain:
 
-    - [MinGW-w64](https://sourceforge.net/projects/mingw-w64/), for 32 and 64 bit Windows
-    - [MinGW Distro](https://nuwen.net/mingw.html), for 64 bit Windows only
+- [MinGW-w64](https://sourceforge.net/projects/mingw-w64/), for 32 and 64 bit Windows
+- [MinGW Distro](https://nuwen.net/mingw.html), for 64 bit Windows only
 
 Then:
 
@@ -81,30 +81,30 @@ Then:
 
 3. Copy the kernel config:
 
-  ```
-  mkdir %APPDATA%\jupyter\kernels\gophernotes
-  xcopy %GOPATH%\src\github.com\gopherdata\gophernotes\kernel %APPDATA%\jupyter\kernels\gophernotes /s
-  ```
+    ```
+    mkdir %APPDATA%\jupyter\kernels\gophernotes
+    xcopy %GOPATH%\src\github.com\gopherdata\gophernotes\kernel %APPDATA%\jupyter\kernels\gophernotes /s
+    ```
   
   Note, if you have the `JUPYTER_PATH` environmental variable set or if you are using an older version of Jupyter, you may need to copy this kernel config to another directory.  You can check which directories will be searched by executing:
   
-  ```
-  jupyter --data-dir
-  ```
+    ```
+    jupyter --data-dir
+    ```
 
 4. Update `%APPDATA%\jupyter\kernels\gophernotes\kernel.json` with the FULL PATH to your gophernotes.exe (in %GOPATH%\bin), unless it's already on the PATH.  For example:
 
-  ```
-  {
-      "argv": [
-        "C:\\gopath\\bin\\gophernotes.exe",
-        "{connection_file}"
-        ],
-      "display_name": "Go",
-      "language": "go",
-      "name": "go"
-  }
-  ```
+    ```
+    {
+        "argv": [
+          "C:\\gopath\\bin\\gophernotes.exe",
+          "{connection_file}"
+          ],
+        "display_name": "Go",
+        "language": "go",
+        "name": "go"
+    }
+    ```
 
 ### Docker
 
