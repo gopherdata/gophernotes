@@ -13,9 +13,9 @@ RUN mkdir -p "$GOPATH/src" "$GOPATH/bin" && chmod -R 777 "$GOPATH"
 
 # install gophernotes
 RUN go get golang.org/x/tools/cmd/goimports
-RUN go get -tags zmq_3_x github.com/gopherds/gophernotes
+RUN go get -tags zmq_3_x github.com/gopherdata/gophernotes
 RUN mkdir -p ~/.ipython/kernels/gophernotes
-RUN cp -r $GOPATH/src/github.com/gopherds/gophernotes/kernel/* ~/.ipython/kernels/gophernotes
+RUN cp -r $GOPATH/src/github.com/gopherdata/gophernotes/kernel/* ~/.ipython/kernels/gophernotes
 
 # install jupyter
 RUN pip3 install jupyter

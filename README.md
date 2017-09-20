@@ -1,4 +1,4 @@
-![alt tag](https://raw.githubusercontent.com/gopherds/gophernotes/master/files/gophernotes2.jpg)
+![alt tag](https://raw.githubusercontent.com/gopherdata/gophernotes/master/files/gophernotes2.jpg)
 
 # gophernotes - Go in Notebooks
 
@@ -10,15 +10,15 @@ This project came out of the [Gopher Gala](http://gophergala.com/) 2016.  It is 
 
 ### Simple interactive use:
 
-![alt tag](https://raw.githubusercontent.com/gopherds/gophernotes/master/files/screencast.gif)
+![alt tag](https://raw.githubusercontent.com/gopherdata/gophernotes/master/files/screencast.gif)
 
 ### Example Notebooks (dowload and run them locally, follow the links to view in Github, or use the [Jupyter Notebook Viewer](http://nbviewer.jupyter.org/)):
-- [Simple Printing and Channels](https://github.com/gopherds/gophernotes/blob/master/examples/Simple-Example.ipynb)
-- [Pattern Recognition with Golearn](https://github.com/gopherds/gophernotes/blob/master/examples/Pattern-Recognition.ipynb)
-- [Feed Forward, Recurrent Neural Nets](https://github.com/gopherds/gophernotes/blob/master/examples/Feed-Forward-Recurrent-NN.ipynb)
-- [Time Parsing, Formatting](https://github.com/gopherds/gophernotes/blob/master/examples/Time-Formatting-Parsing.ipynb)
-- [Stateful Goroutines](https://github.com/gopherds/gophernotes/blob/master/examples/Stateful-Goroutines.ipynb)
-- [Worker Pools](https://github.com/gopherds/gophernotes/blob/master/examples/Worker-Pools.ipynb)
+- [Simple Printing and Channels](https://github.com/gopherdata/gophernotes/blob/master/examples/Simple-Example.ipynb)
+- [Pattern Recognition with Golearn](https://github.com/gopherdata/gophernotes/blob/master/examples/Pattern-Recognition.ipynb)
+- [Feed Forward, Recurrent Neural Nets](https://github.com/gopherdata/gophernotes/blob/master/examples/Feed-Forward-Recurrent-NN.ipynb)
+- [Time Parsing, Formatting](https://github.com/gopherdata/gophernotes/blob/master/examples/Time-Formatting-Parsing.ipynb)
+- [Stateful Goroutines](https://github.com/gopherdata/gophernotes/blob/master/examples/Stateful-Goroutines.ipynb)
+- [Worker Pools](https://github.com/gopherdata/gophernotes/blob/master/examples/Worker-Pools.ipynb)
 
 ## Installation
 
@@ -61,13 +61,13 @@ Then:
   - with ZeroMQ 2.2.x:
 
     ```
-    go get github.com/gopherds/gophernotes
+    go get github.com/gopherdata/gophernotes
     ```
   
   - with ZeroMQ 4.x:
 
     ```
-    go get -tags zmq_4_x github.com/gopherds/gophernotes
+    go get -tags zmq_4_x github.com/gopherdata/gophernotes
     ```
 
 4. Create a directory for the new kernel config:
@@ -80,12 +80,12 @@ Then:
   
   ```
   mkdir ~/.ipython/kernels/gophernotes
-  cp -r $GOPATH/src/github.com/gopherds/gophernotes/kernel/* ~/.ipython/kernels/gophernotes/
+  cp -r $GOPATH/src/github.com/gopherdata/gophernotes/kernel/* ~/.ipython/kernels/gophernotes/
   ```
 5. Copy the kernel config into the `~/.local/jupyter` directory:
 
   ```
-  cp -r $GOPATH/src/github.com/gopherds/gophernotes/kernel/* ~/.local/share/jupyter/kernels/gophernotes
+  cp -r $GOPATH/src/github.com/gopherdata/gophernotes/kernel/* ~/.local/share/jupyter/kernels/gophernotes
   ```
   
   Note, if you have the `JUPYTER_PATH` environmental variable set or if you are using an older version of Jupyter, you may need to copy this kernel config to another directory.  You can check which directories will be searched by executing:
@@ -114,13 +114,13 @@ Then:
   - with ZeroMQ 2.2.x:
 
     ```
-    go get github.com/gopherds/gophernotes
+    go get github.com/gopherdata/gophernotes
     ```
   
   - with ZeroMQ 4.x:
 
     ```
-    go get -tags zmq_4_x github.com/gopherds/gophernotes
+    go get -tags zmq_4_x github.com/gopherdata/gophernotes
     ```
   
   - if you get this error:
@@ -143,7 +143,7 @@ Then:
 
   ```
   mkdir -p ~/Library/Jupyter/kernels/gophernotes
-  cp -r $GOPATH/src/github.com/gopherds/gophernotes/kernel/* ~/Library/Jupyter/kernels/gophernotes
+  cp -r $GOPATH/src/github.com/gopherdata/gophernotes/kernel/* ~/Library/Jupyter/kernels/gophernotes
   ```
   
   Note, if you have the `JUPYTER_PATH` environmental variable set or if you are using an older version of Jupyter, you may need to copy this kernel config to another directory.  You can check which directories will be searched by executing:
@@ -189,8 +189,8 @@ Then:
 
     ```
     REM Download w/o building.
-    go get -d github.com/gopherds/gophernotes
-    cd %GOPATH%\src\github.com\gopherds\gophernotes\zmq-win
+    go get -d github.com/gopherdata/gophernotes
+    cd %GOPATH%\src\github.com\gopherdata\gophernotes\zmq-win
     
     REM Build x64 version.
     build.bat amd64
@@ -207,7 +207,7 @@ Then:
 
   ```
   mkdir %APPDATA%\jupyter\kernels\gophernotes
-  xcopy %GOPATH%\src\github.com\gopherds\gophernotes\kernel %APPDATA%\jupyter\kernels\gophernotes /s
+  xcopy %GOPATH%\src\github.com\gopherdata\gophernotes\kernel %APPDATA%\jupyter\kernels\gophernotes /s
   ```
   
   Note, if you have the `JUPYTER_PATH` environmental variable set or if you are using an older version of Jupyter, you may need to copy this kernel config to another directory.  You can check which directories will be searched by executing:

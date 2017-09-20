@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"go/token"
 
-	repl "github.com/gopherds/gophernotes/internal/repl"
+	repl "github.com/gopherdata/gophernotes/internal/repl"
 )
 
 var (
