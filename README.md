@@ -63,6 +63,8 @@ $ jupyter --data-dir
 
 ### Mac
 
+**Important Note** - gomacro relies on the `plugin` package when importing third party libraries.  This package is only supported on Linux currently.  Thus, if you need to utilize third party packages in your Go notebooks and you are running on Mac, you should use the [Docker](#docker) install and run gophernotes/Jupyter in Docker.
+
 ```sh
 $ go install github.com/gopherdata/gophernotes
 $ mkdir -p ~/Library/Jupyter/kernels/gophernotes
@@ -83,6 +85,8 @@ $ jupyter --data-dir
 ```
 
 ### Windows
+
+**Important Note** - gomacro relies on the `plugin` package when importing third party libraries.  This package is only supported on Linux currently.  Thus, if you need to utilize third party packages in your Go notebooks and you are running on Windows, you should use the [Docker](#docker) install and run gophernotes/Jupyter in Docker.
 
 Make sure you have the MinGW toolchain:
 
@@ -150,7 +154,11 @@ Or to run a Go notebook with access to common Go data science packages (gonum, g
 $ docker run -it -p 8888:8888 gopherdata/gophernotes-ds
 ```
 
-In either case, running this command should output a link that you can follow to access Jupyter in a browser.
+In either case, running this command should output a link that you can follow to access Jupyter in a browser. Also, to save notebooks to and/or load notebooks from a location outside of the Docker image, you should utilize a volume mount.  For example:
+
+```
+$ docker run -it -p 8888:8888 -v /path/to/local/notebooks:/path/to/notebooks/in/docker gopherdata/gophernotes
+```  
 
 ## Getting Started
 
