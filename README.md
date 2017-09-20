@@ -52,6 +52,25 @@ $ jupyter --data-dir
 
 ### OS X/macOS
 
+```sh
+$ go install github.com/gopherdata/gophernotes
+$ mkdir -p ~/Library/Jupyter/kernels/gophernotes
+$ cp $GOPATH/src/github.com/gopherdata/gophernotes/kernel/* ~/Library/Jupyter/kernels/gophernotes
+```
+
+To confirm that the `gophernotes` binary is installed and in your PATH, you should see the following when running `gophernotes` directly:
+
+```sh
+$ gophernotes
+2017/09/20 10:33:12 Need a command line argument specifying the connection file.
+```
+
+**Note** - if you have the `JUPYTER_PATH` environmental variable set or if you are using an older version of Jupyter, you may need to copy this kernel config to another directory.  You can check which directories will be searched by executing:
+  
+```sh
+$ jupyter --data-dir
+```
+
 ### Windows
 
 Make sure you have the MinGW toolchain:
