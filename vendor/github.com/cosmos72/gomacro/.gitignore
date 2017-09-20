@@ -1,0 +1,4 @@
+gomacro
+*.exe
+*.test
+examples/examples

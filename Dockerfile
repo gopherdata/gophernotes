@@ -1,24 +1,44 @@
-FROM golang
+FROM alpine:3.5
+MAINTAINER dwhitena
 
-# dependencies
-RUN apt-get update && \
-  apt-get install -y pkg-config libzmq3-dev build-essential python3-pip && \
-  pip3 install --upgrade pip
+# Add gophernotes
+ADD . /go/src/github.com/gopherdata/gophernotes/
 
-# set up golang
-ENV PATH /usr/local/go/bin:$PATH
-ENV GOPATH /go
-ENV PATH $GOPATH/bin:$PATH
-RUN mkdir -p "$GOPATH/src" "$GOPATH/bin" && chmod -R 777 "$GOPATH"
-
-# install gophernotes
-RUN go get golang.org/x/tools/cmd/goimports
-RUN go get -tags zmq_3_x github.com/gopherds/gophernotes
-RUN mkdir -p ~/.ipython/kernels/gophernotes
-RUN cp -r $GOPATH/src/github.com/gopherds/gophernotes/kernel/* ~/.ipython/kernels/gophernotes
-
-# install jupyter
-RUN pip3 install jupyter
+# Install Jupyter and gophernotes.
+RUN set -x \
+    # install python and dependencies
+    && apk update \
+    && apk --no-cache add \
+        ca-certificates \
+        python3 \
+        su-exec \
+        gcc \
+        git \
+        py3-zmq \
+        pkgconfig \ 
+        zeromq-dev \
+        musl-dev \
+    && pip3 install --upgrade pip \
+    && ln -s /usr/bin/python3.5 /usr/bin/python \
+    ## install Go
+    && apk --update-cache --allow-untrusted \
+        --repository http://dl-4.alpinelinux.org/alpine/edge/community \
+        --arch=x86_64 add \
+        go \
+    ## jupyter notebook 
+    && ln -s /usr/include/locale.h /usr/include/xlocale.h \
+    && pip3 install jupyter notebook \
+    ## install gophernotes
+    && GOPATH=/go go install github.com/gopherdata/gophernotes \
+    && cp /go/bin/gophernotes /usr/local/bin/ \
+    && mkdir -p ~/.local/share/jupyter/kernels/gophernotes \
+    && cp -r /go/src/github.com/gopherdata/gophernotes/kernel/* ~/.local/share/jupyter/kernels/gophernotes \
+    ## clean
+    && find /usr/lib/python3.5 -name __pycache__ | xargs rm -r \
+    && rm -rf \
+        /root/.[acpw]* \
+        ipaexg00301* \
+    && rm -rf /var/cache/apk/*
 
 EXPOSE 8888
-CMD ["jupyter", "notebook"]
+CMD [ "jupyter", "notebook", "--no-browser", "--allow-root", "--ip=0.0.0.0" ]

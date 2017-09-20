@@ -1,0 +1,8 @@
+package main
+
+func channelTest() {
+	j := 0; cx := make(chan int, 2)
+	cs := (chan<- int)(cx); cr := (<-chan int)(cx)
+
+	for i := 0; i < 1000000; i++ { cs <- i; j = <-cr }
+}

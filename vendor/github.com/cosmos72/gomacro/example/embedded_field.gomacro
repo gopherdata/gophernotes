@@ -1,0 +1,8 @@
+#!/usr/bin/env gomacro
+
+type Pair struct{ a, b int }
+type Triple struct {Pair; c int}
+
+var t Triple
+
+println(t)

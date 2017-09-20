@@ -1,0 +1,21 @@
+
+// run "gomacro -m -w make_fibonacci.gomacro"
+// to preprocess this file and generate make_fibonacci.go
+
+package main
+
+:import "go/ast"
+
+:macro makefib(typ ast.Node) ast.Node {
+	return ~"{
+		~func fibonacci(n ~,typ) ~,typ {
+			if n <= 2 {
+				return 1
+			}
+			return fibonacci(n-1) + fibonacci(n-2)
+                }
+        }
+}
+
+makefib; int64
+

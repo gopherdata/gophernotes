@@ -2,25 +2,26 @@ package main
 
 import (
 	"flag"
-	"io"
-	"io/ioutil"
 	"log"
-	"os"
+)
+
+const (
+
+	// Version defines the gophernotes version.
+	Version string = "1.0.0"
+
+	// ProtocolVersion defines the Jupyter protocol version.
+	ProtocolVersion string = "5.0"
 )
 
 func main() {
 
-	debug := flag.Bool("debug", false, "Log extra info to stderr")
-
+	// Parse the connection file.
 	flag.Parse()
 	if flag.NArg() < 1 {
-		log.Fatalln("Need a command line argument for the connection file.")
+		log.Fatalln("Need a command line argument specifying the connection file.")
 	}
 
-	var logwriter io.Writer = os.Stderr
-	if !*debug {
-		logwriter = ioutil.Discard
-	}
-
-	RunKernel(flag.Arg(0), logwriter)
+	// Run the kernel.
+	runKernel(flag.Arg(0))
 }

@@ -14,7 +14,7 @@ set mydir=%mydir:\=/%
 set CGO_CFLAGS=-I %mydir%include
 set CGO_LDFLAGS=-L %mydir%lib-%target% -l zmq
 
-go build -tags zmq_4_x github.com/gopherds/gophernotes
+go build -tags zmq_4_x github.com/gopherdata/gophernotes
 
 :QUIT
 endlocal

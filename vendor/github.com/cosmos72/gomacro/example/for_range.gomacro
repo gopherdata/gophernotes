@@ -1,0 +1,29 @@
+#!/usr/bin/env gomacro
+
+import "fmt"
+
+type Entry struct {
+	Key int
+	Value string
+}
+
+func mapEntries(m map[int]string) []Entry {
+	entries := make([]Entry, len(m))
+	i := 0
+	for k, v := range m {
+		entries[i] = Entry{k, v}
+		i++
+	}
+	return entries
+}
+
+func printEntries(entries []Entry) {
+	for i, e := range entries {
+		fmt.Println(i, ":", e)
+	}
+}
+
+m := map[int]string{1: "foo", 2: "bar", 3: "baz"}
+entries := mapEntries(m)
+printEntries(entries)
+
