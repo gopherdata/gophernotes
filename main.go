@@ -5,8 +5,14 @@ import (
 	"log"
 )
 
-const Version string = "1.0.0"
-const ProtocolVersion string = "5.0"
+const (
+
+	// Version defines the gophernotes version.
+	Version string = "1.0.0"
+
+	// ProtocolVersion defines the Jupyter protocol version.
+	ProtocolVersion string = "5.0"
+)
 
 func main() {
 
