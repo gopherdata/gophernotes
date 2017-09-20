@@ -6,6 +6,17 @@
 
 **Acknowledgements** - This project utilizes a Go interpreter called [gomacro](https://github.com/cosmos72/gomacro) under the hood to evaluate Go code interactively. The gophernotes logo was designed by the brilliant [Marcus Olsson](https://github.com/marcusolsson) and was inspired by Renee French's original Go Gopher design. 
 
+- [Examples](#examples)
+- Install gophernotes:
+  - [Prerequisites](#prerequisites)
+  - [Linux](#linux)
+  - [Mac](#mac)
+  - [Windows](#windows)
+  - [Docker](#docker)
+- [Getting Started](#getting-started)
+- [Limitations](#limitations)
+- [Troubleshooting](#troubleshooting)
+
 ## Examples
 
 ### Jupyter Notebook:  
@@ -50,7 +61,7 @@ $ gophernotes
 $ jupyter --data-dir
 ```
 
-### OS X/macOS
+### Mac
 
 ```sh
 $ go install github.com/gopherdata/gophernotes
