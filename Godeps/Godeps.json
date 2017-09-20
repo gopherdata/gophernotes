@@ -1,5 +1,5 @@
 {
-	"ImportPath": "github.com/gopherds/gophernotes",
+	"ImportPath": "github.com/gopherdata/gophernotes",
 	"GoVersion": "go1.6",
 	"GodepVersion": "v74",
 	"Packages": [
