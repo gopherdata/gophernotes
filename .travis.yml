@@ -1,0 +1,20 @@
+language: go
+
+go:
+  - 1.9.x
+  - 1.10.x
+  - master
+
+matrix:
+ fast_finish: true
+ allow_failures:
+   - go: master
+
+sudo: true
+
+before_install:
+  - sudo apt-get install pkg-config libzmq3-dev build-essential python3-pip
+
+script:
+  - go test -v ./...
+  - go test -race -v ./...
