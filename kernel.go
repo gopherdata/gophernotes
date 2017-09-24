@@ -15,6 +15,8 @@ import (
 	"github.com/cosmos72/gomacro/base"
 	"github.com/cosmos72/gomacro/classic"
 	zmq "github.com/pebbe/zmq4"
+	"time"
+	"sync"
 )
 
 // ExecCounter is incremented each time we run user code in the notebook.
@@ -41,6 +43,7 @@ type SocketGroup struct {
 	ControlSocket *zmq.Socket
 	StdinSocket   *zmq.Socket
 	IOPubSocket   *zmq.Socket
+	HBSocket      *zmq.Socket
 	Key           []byte
 }
 
@@ -106,6 +109,10 @@ func runKernel(connectionFile string) {
 		log.Fatal(err)
 	}
 
+	var wg sync.WaitGroup
+
+	shutdownHeartbeat := runHeartbeat(sockets.HBSocket, &wg)
+
 	poller := zmq.NewPoller()
 	poller.Add(sockets.ShellSocket, zmq.POLLIN)
 	poller.Add(sockets.StdinSocket, zmq.POLLIN)
@@ -164,6 +171,10 @@ func runKernel(connectionFile string) {
 			}
 		}
 	}
+	
+	shutdownHeartbeat()
+
+	wg.Wait()
 }
 
 // prepareSockets sets up the ZMQ sockets through which the kernel
@@ -199,12 +210,18 @@ func prepareSockets(connInfo ConnectionInfo) (SocketGroup, error) {
 		return sg, err
 	}
 
+	sg.HBSocket, err = context.NewSocket(zmq.REP)
+	if err != nil {
+		return sg, err
+	}
+
 	// Bind the sockets.
 	address := fmt.Sprintf("%v://%v:%%v", connInfo.Transport, connInfo.IP)
 	sg.ShellSocket.Bind(fmt.Sprintf(address, connInfo.ShellPort))
 	sg.ControlSocket.Bind(fmt.Sprintf(address, connInfo.ControlPort))
 	sg.StdinSocket.Bind(fmt.Sprintf(address, connInfo.StdinPort))
 	sg.IOPubSocket.Bind(fmt.Sprintf(address, connInfo.IOPubPort))
+	sg.HBSocket.Bind(fmt.Sprintf(address, connInfo.HBPort))
 
 	// Set the message signing key.
 	sg.Key = []byte(connInfo.Key)
@@ -388,4 +405,42 @@ func handleShutdownRequest(receipt msgReceipt) {
 
 	log.Println("Shutting down in response to shutdown_request")
 	os.Exit(0)
+}
+
+func runHeartbeat(hbSocket *zmq.Socket, wg *sync.WaitGroup) func() {
+	quit := make(chan bool)
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		poller := zmq.NewPoller()
+		poller.Add(hbSocket, zmq.POLLIN)
+		for {
+			select {
+			case <- quit:
+				return
+			default:
+				pingEvents, err := poller.Poll(500 * time.Millisecond)
+				if err != nil {
+					log.Fatalf("Error polling heartbeat channel: %v\n", err)
+				}
+
+				if len(pingEvents) > 0 {
+					pingMsg, err := hbSocket.RecvBytes(0)
+					if err != nil {
+						log.Fatalf("Error reading heartbeat ping bytes: %v\n", err)
+					}
+
+					_, err = hbSocket.SendBytes(pingMsg, 0)
+					if err != nil {
+						log.Printf("Error sending heartbeat pong bytes: %b\n", err)
+					}
+				}
+			}
+		}
+	}()
+
+	return func() {
+		quit <- true
+	}
 }
