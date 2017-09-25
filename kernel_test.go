@@ -74,7 +74,7 @@ func TestEvaluate(t *testing.T) {
 		Output string
 	}{
 		{[]string{
-			"import \"fmt\"",
+			`import "fmt"`,
 			"a := 1",
 			"fmt.Println(a)",
 		}, "1\n"},
@@ -86,7 +86,7 @@ func TestEvaluate(t *testing.T) {
 			"func myFunc(x int) int {",
 			"    return x+1",
 			"}",
-			"fmt.Println(\"func defined\")",
+			`fmt.Println("func defined")`,
 		}, "func defined\n"},
 		{[]string{
 			"b := myFunc(1)",
@@ -146,7 +146,7 @@ func TestPanicGeneratesError(t *testing.T) {
 	client, closeClient := newTestJupyterClient(t)
 	defer closeClient()
 
-	content, pub := client.executeCode(t, `panic("error"`)
+	content, pub := client.executeCode(t, `panic("error")`)
 
 	status := getString(t, "content", content, "status")
 
@@ -164,6 +164,111 @@ func TestPanicGeneratesError(t *testing.T) {
 
 	if !foundPublishedError {
 		t.Fatalf("\t%s Execution did not publish an expected \"error\" message", failure)
+	}
+}
+
+// TestPrintStdout tests that data written to stdout publishes the same data in a "stdout" "stream" message.
+func TestPrintStdout(t *testing.T) {
+	cases := []struct {
+		Input  []string
+		Output []string
+	}{
+		{[]string{
+			`import "fmt"`,
+			"a := 1",
+			"fmt.Println(a)",
+		}, []string{"1\n"}},
+		{[]string{
+			"a = 2",
+			"fmt.Print(a)",
+		}, []string{"2"}},
+		{[]string{
+			`import "os"`,
+			`os.Stdout.WriteString("3")`,
+		}, []string{"3"}},
+		{[]string{
+			`fmt.Fprintf(os.Stdout, "%d\n", 4)`,
+		}, []string{"4\n"}},
+		{[]string{
+			`import "time"`,
+			"for i := 0; i < 3; i++ {",
+			"    fmt.Println(i)",
+			"    time.Sleep(500 * time.Millisecond)", // Stall to prevent prints from buffering into single message.
+			"}",
+		}, []string{"0\n", "1\n", "2\n"}},
+	}
+
+	t.Logf("Should produce stdout stream messages when writing to stdout")
+
+cases:
+	for k, tc := range cases {
+		// Give a progress report.
+		t.Logf("  Evaluating code snippet %d/%d.", k+1, len(cases))
+
+		// Get the result.
+		stdout, _ := testOutputStream(t, strings.Join(tc.Input, "\n"))
+
+		// Compare the result.
+		if len(stdout) != len(tc.Output) {
+			t.Errorf("\t%s Test case expected %d message(s) on stdout but got %d.", failure, len(tc.Output), len(stdout))
+			continue
+		}
+		for i, expected := range tc.Output {
+			if stdout[i] != expected {
+				t.Errorf("\t%s Test case returned unexpected messages on stdout.", failure)
+				continue cases
+			}
+		}
+		t.Logf("\t%s Returned the expected messages on stdout.", success)
+	}
+}
+
+// TestPrintStderr tests that data written to stderr publishes the same data in a "stderr" "stream" message.
+func TestPrintStderr(t *testing.T) {
+	cases := []struct {
+		Input  []string
+		Output []string
+	}{
+		{[]string{
+			`import "fmt"`,
+			`import "os"`,
+			"a := 1",
+			"fmt.Fprintln(os.Stderr, a)",
+		}, []string{"1\n"}},
+		{[]string{
+			`os.Stderr.WriteString("2")`,
+		}, []string{"2"}},
+		{[]string{
+			`import "time"`,
+			"for i := 0; i < 3; i++ {",
+			"    fmt.Fprintln(os.Stderr, i)",
+			"    time.Sleep(500 * time.Millisecond)", // Stall to prevent prints from buffering into single message.
+			"}",
+		}, []string{"0\n", "1\n", "2\n"}},
+	}
+
+	t.Logf("Should produce stderr stream messages when writing to stderr")
+
+cases:
+	for k, tc := range cases {
+		// Give a progress report.
+		t.Logf("  Evaluating code snippet %d/%d.", k+1, len(cases))
+
+		// Get the result.
+		_, stderr := testOutputStream(t, strings.Join(tc.Input, "\n"))
+
+		// Compare the result.
+		if len(stderr) != len(tc.Output) {
+			t.Errorf("\t%s Test case expected %d message(s) on stderr but got %d.", failure, len(tc.Output), len(stderr))
+			continue
+		}
+		for i, expected := range tc.Output {
+			if stderr[i] != expected {
+				t.Errorf("\t%s Test case returned unexpected messages on stderr.", failure)
+				continue cases
+			}
+		}
+		t.Logf("\t%s Returned the expected messages on stderr.", success)
 	}
 }
 
@@ -436,4 +541,32 @@ func getJSONObject(t *testing.T, jsonObjectName string, content map[string]inter
 	}
 
 	return value
+}
+
+// testOutputStream is a test helper that collects "stream" messages upon executing the codeIn.
+func testOutputStream(t *testing.T, codeIn string) (stdout []string, stderr []string) {
+	t.Helper()
+
+	client, closeClient := newTestJupyterClient(t)
+	defer closeClient()
+
+	_, pub := client.executeCode(t, codeIn)
+
+	for _, pubMsg := range pub {
+		if pubMsg.Header.MsgType == "stream" {
+			content := getMsgContentAsJSONObject(t, pubMsg)
+			streamType := getString(t, "content", content, "name")
+			streamData := getString(t, "content", content, "text")
+
+			if streamType == "stdout" {
+				stdout = append(stdout, streamData)
+			} else if streamType == "stderr" {
+				stderr = append(stderr, streamData)
+			} else {
+				t.Fatalf("Unknown stream type '%s'", streamType)
+			}
+		}
+	}
+
+	return
 }
