@@ -118,30 +118,8 @@ func testEvaluate(t *testing.T, codeIn string) string {
 	client, closeClient := newTestJupyterClient(t)
 	defer closeClient()
 
-	// Create a message.
-	request, err := NewMsg("execute_request", ComposedMsg{})
-	if err != nil {
-		t.Fatalf("\t%s NewMsg: %s", failure, err)
-	}
+	content, pub := client.executeCode(t, codeIn)
 
-	// Fill in remaining header information.
-	request.Header.Session = sessionID
-	request.Header.Username = "KernelTester"
-
-	// Fill in Metadata.
-	request.Metadata = make(map[string]interface{})
-
-	// Fill in content.
-	content := make(map[string]interface{})
-	content["code"] = codeIn
-	content["silent"] = false
-	request.Content = content
-
-	reply, pub := client.performJupyterRequest(t, request, 10*time.Second)
-
-	assertMsgTypeEquals(t, reply, "execute_reply")
-
-	content = getMsgContentAsJSONObject(t, reply)
 	status := getString(t, "content", content, "status")
 
 	if status != "ok" {
@@ -153,7 +131,7 @@ func testEvaluate(t *testing.T, codeIn string) string {
 			content = getMsgContentAsJSONObject(t, pubMsg)
 
 			bundledMIMEData := getJSONObject(t, "content", content, "data")
-			textRep := getString(t, "content[\"data\"]", bundledMIMEData, "text/plain")
+			textRep := getString(t, `content["data"]`, bundledMIMEData, "text/plain")
 
 			return textRep
 		}
@@ -168,30 +146,8 @@ func TestPanicGeneratesError(t *testing.T) {
 	client, closeClient := newTestJupyterClient(t)
 	defer closeClient()
 
-	// Create a message.
-	request, err := NewMsg("execute_request", ComposedMsg{})
-	if err != nil {
-		t.Fatalf("\t%s NewMsg: %s", failure, err)
-	}
+	content, pub := client.executeCode(t, `panic("error"`)
 
-	// Fill in remaining header information.
-	request.Header.Session = sessionID
-	request.Header.Username = "KernelTester"
-
-	// Fill in Metadata.
-	request.Metadata = make(map[string]interface{})
-
-	// Fill in content.
-	content := make(map[string]interface{})
-	content["code"] = "panic(\"Error\")"
-	content["silent"] = false
-	request.Content = content
-
-	reply, pub := client.performJupyterRequest(t, request, 10*time.Second)
-
-	assertMsgTypeEquals(t, reply, "execute_reply")
-
-	content = getMsgContentAsJSONObject(t, reply)
 	status := getString(t, "content", content, "status")
 
 	if status != "error" {
@@ -385,6 +341,40 @@ func (client *testJupyterClient) performJupyterRequest(t *testing.T, request Com
 	}
 
 	return
+}
+
+// executeCode creates an execute request for the given code and preforms the request. It returns the content of the
+// reply as well as all of the messages captured from the IOPub channel during the execution.
+func (client *testJupyterClient) executeCode(t *testing.T, code string) (map[string]interface{}, []ComposedMsg) {
+	t.Helper()
+
+	// Create a message.
+	request, err := NewMsg("execute_request", ComposedMsg{})
+	if err != nil {
+		t.Fatalf("\t%s NewMsg: %s", failure, err)
+	}
+
+	// Fill in remaining header information.
+	request.Header.Session = sessionID
+	request.Header.Username = "KernelTester"
+
+	// Fill in Metadata.
+	request.Metadata = make(map[string]interface{})
+
+	// Fill in content.
+	content := make(map[string]interface{})
+	content["code"] = code
+	content["silent"] = false
+	request.Content = content
+
+	// Make the request.
+	reply, pub := client.performJupyterRequest(t, request, 10*time.Second)
+
+	// Ensure the reply is an execute_reply and extract the content from the reply.
+	assertMsgTypeEquals(t, reply, "execute_reply")
+	content = getMsgContentAsJSONObject(t, reply)
+
+	return content, pub
 }
 
 // assertMsgTypeEquals is a test helper that fails the test if the message header's MsgType is not the
