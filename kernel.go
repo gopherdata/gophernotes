@@ -1,19 +1,19 @@
 package main
 
 import (
-	"bufio"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"go/ast"
 	"io"
 	"io/ioutil"
 	"log"
 	"os"
 	"runtime"
-	"strings"
 	"sync"
 	"time"
 
+	"github.com/cosmos72/gomacro/ast2"
 	"github.com/cosmos72/gomacro/base"
 	"github.com/cosmos72/gomacro/classic"
 	zmq "github.com/pebbe/zmq4"
@@ -382,30 +382,44 @@ func doEval(ir *classic.Interp, code string) (val interface{}, err error) {
 		}
 	}()
 
-	in := bufio.NewReader(strings.NewReader(code))
-
 	// Prepare and perform the multiline evaluation.
 	env := ir.Env
 	env.Options &^= base.OptShowPrompt
 	env.Options &^= base.OptTrapPanic
 	env.Line = 0
 
-	// Perform the first iteration manually, to collect comments.
-	var comments string
-	str, firstToken := env.ReadMultiline(in, base.ReadOptCollectAllComments)
-	if firstToken >= 0 {
-		comments = str[0:firstToken]
-		if firstToken > 0 {
-			str = str[firstToken:]
-			env.IncLine(comments)
+	// Parse the input code (and don't preform gomacro's macroexpansion).
+	src := ir.ParseOnly(code)
+
+	// Check if the last node is an expression.
+	var srcEndsWithExpr bool
+	if src != nil {
+		if srcAstWithNode, ok := src.(ast2.AstWithNode); ok {
+			_, srcEndsWithExpr = srcAstWithNode.Node().(ast.Expr)
+		} else if srcNodeSlice, ok := src.(ast2.NodeSlice); ok {
+			nodes := srcNodeSlice.X
+			_, srcEndsWithExpr = nodes[len(nodes)-1].(ast.Expr)
 		}
 	}
 
-	// TODO capture the value of the last expression and return it as val
+	// Evaluate the code.
+	result, results := ir.Eval(src)
 
-	// Run the code.
-	if ir.ParseEvalPrint(str, in) {
-		ir.Repl(in)
+	if srcEndsWithExpr {
+		//TODO if value is a certain type like image then display it instead
+
+		// `len(results) == 0` implies a single result stored in `result`.
+		if len(results) == 0 {
+			val = base.ValueInterface(result)
+		} else {
+			// Set `val` to be the first non-nil result.
+			for _, result := range results {
+				val = base.ValueInterface(result)
+				if val != nil {
+					break
+				}
+			}
+		}
 	}
 
 	return
