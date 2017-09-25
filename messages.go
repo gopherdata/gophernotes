@@ -268,3 +268,47 @@ func (receipt *msgReceipt) PublishExecutionError(err string, trace []string) err
 		},
 	)
 }
+
+const (
+	// StreamStdout defines the stream name for standard out on the front-end. It
+	// is used in `PublishWriteStream` to specify the stream to write to.
+	StreamStdout = "stdout"
+
+	// StreamStderr defines the stream name for standard error on the front-end. It
+	// is used in `PublishWriteStream` to specify the stream to write to.
+	StreamStderr = "stderr"
+)
+
+// PublishWriteStream prints the data string to a stream on the front-end. This is
+// either `StreamStdout` or `StreamStderr`.
+func (receipt *msgReceipt) PublishWriteStream(stream string, data string) error {
+	return receipt.Publish("stream",
+		struct {
+			Stream string `json:"name"`
+			Data   string `json:"text"`
+		}{
+			Stream: stream,
+			Data:   data,
+		},
+	)
+}
+
+// JupyterStreamWriter is an `io.Writer` implementation that writes the data to the notebook
+// front-end.
+type JupyterStreamWriter struct {
+	stream  string
+	receipt *msgReceipt
+}
+
+// Write implements `io.Writer.Write` by publishing the data via `PublishWriteStream`
+func (writer *JupyterStreamWriter) Write(p []byte) (n int, err error) {
+	data := string(p)
+	n = len(p)
+
+	err = writer.receipt.PublishWriteStream(writer.stream, data)
+	if err != nil {
+		n = 0
+	}
+
+	return
+}

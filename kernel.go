@@ -2,8 +2,8 @@ package main
 
 import (
 	"bufio"
-	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -11,12 +11,12 @@ import (
 	"os"
 	"runtime"
 	"strings"
+	"sync"
+	"time"
 
 	"github.com/cosmos72/gomacro/base"
 	"github.com/cosmos72/gomacro/classic"
 	zmq "github.com/pebbe/zmq4"
-	"time"
-	"sync"
 )
 
 // ExecCounter is incremented each time we run user code in the notebook.
@@ -171,7 +171,7 @@ func runKernel(connectionFile string) {
 			}
 		}
 	}
-	
+
 	shutdownHeartbeat()
 
 	wg.Wait()
@@ -271,10 +271,9 @@ func sendKernelInfo(receipt msgReceipt) error {
 // handleExecuteRequest runs code from an execute_request method,
 // and sends the various reply messages.
 func handleExecuteRequest(ir *classic.Interp, receipt msgReceipt) error {
-	// Extract the data from the request
+	// Extract the data from the request.
 	reqcontent := receipt.Msg.Content.(map[string]interface{})
 	code := reqcontent["code"].(string)
-	in := bufio.NewReader(strings.NewReader(code))
 	silent := reqcontent["silent"].(bool)
 
 	if !silent {
@@ -310,15 +309,85 @@ func handleExecuteRequest(ir *classic.Interp, receipt msgReceipt) error {
 	os.Stdout = wOut
 
 	// Redirect the standard error from the REPL.
+	oldStderr := os.Stderr
 	rErr, wErr, err := os.Pipe()
 	if err != nil {
 		return err
 	}
-	ir.Stderr = wErr
+	os.Stderr = wErr
+
+	var writersWG sync.WaitGroup
+	writersWG.Add(2)
+
+	// Forward all data written to stdout/stderr to the front-end.
+	go func() {
+		defer writersWG.Done()
+		jupyterStdOut := JupyterStreamWriter{StreamStdout, &receipt}
+		io.Copy(&jupyterStdOut, rOut)
+	}()
+
+	go func() {
+		defer writersWG.Done()
+		jupyterStdErr := JupyterStreamWriter{StreamStderr, &receipt}
+		io.Copy(&jupyterStdErr, rErr)
+	}()
+
+	val, executionErr := doEval(ir, code)
+
+	// Close and restore the streams.
+	wOut.Close()
+	os.Stdout = oldStdout
+
+	wErr.Close()
+	os.Stderr = oldStderr
+
+	// Wait for the writers to finish forwarding the data.
+	writersWG.Wait()
+
+	if executionErr == nil {
+		content["status"] = "ok"
+		content["user_expressions"] = make(map[string]string)
+
+		if !silent && val != nil {
+			// Publish the result of the execution.
+			if err := receipt.PublishExecutionResult(ExecCounter, fmt.Sprint(val)); err != nil {
+				log.Printf("Error publishing execution result: %v\n", err)
+			}
+		}
+	} else {
+		content["status"] = "error"
+		content["ename"] = "ERROR"
+		content["evalue"] = executionErr.Error()
+		content["traceback"] = nil
+
+		if err := receipt.PublishExecutionError(executionErr.Error(), []string{executionErr.Error()}); err != nil {
+			log.Printf("Error publishing execution error: %v\n", err)
+		}
+	}
+
+	// Send the output back to the notebook.
+	return receipt.Reply("execute_reply", content)
+}
+
+// doEval evaluates the code in the interpreter. This function captures an uncaught panic
+// as well as the value of the last statement/expression.
+func doEval(ir *classic.Interp, code string) (val interface{}, err error) {
+	// Capture a panic from the evaluation if one occurs
+	defer func() {
+		if r := recover(); r != nil {
+			var ok bool
+			if err, ok = r.(error); !ok {
+				err = errors.New(fmt.Sprint(r))
+			}
+		}
+	}()
+
+	in := bufio.NewReader(strings.NewReader(code))
 
 	// Prepare and perform the multiline evaluation.
 	env := ir.Env
 	env.Options &^= base.OptShowPrompt
+	env.Options &^= base.OptTrapPanic
 	env.Line = 0
 
 	// Perform the first iteration manually, to collect comments.
@@ -331,63 +400,15 @@ func handleExecuteRequest(ir *classic.Interp, receipt msgReceipt) error {
 			env.IncLine(comments)
 		}
 	}
+
+	// TODO capture the value of the last expression and return it as val
+
+	// Run the code.
 	if ir.ParseEvalPrint(str, in) {
 		ir.Repl(in)
 	}
 
-	// Copy the stdout in a separate goroutine to prevent
-	// blocking on printing.
-	outStdout := make(chan string)
-	go func() {
-		var buf bytes.Buffer
-		io.Copy(&buf, rOut)
-		outStdout <- buf.String()
-	}()
-
-	// Return stdout back to normal state.
-	wOut.Close()
-	os.Stdout = oldStdout
-	val := <-outStdout
-
-	// Copy the stderr in a separate goroutine to prevent
-	// blocking on printing.
-	outStderr := make(chan string)
-	go func() {
-		var buf bytes.Buffer
-		io.Copy(&buf, rErr)
-		outStderr <- buf.String()
-	}()
-
-	wErr.Close()
-	stdErr := <-outStderr
-
-	// TODO write stdout and stderr to streams rather than publishing as results
-
-	if len(val) > 0 {
-		content["status"] = "ok"
-		content["user_expressions"] = make(map[string]string)
-
-		if !silent {
-			// Publish the result of the execution.
-			if err := receipt.PublishExecutionResult(ExecCounter, val); err != nil {
-				log.Printf("Error publishing execution result: %v\n", err)
-			}
-		}
-	}
-
-	if len(stdErr) > 0 {
-		content["status"] = "error"
-		content["ename"] = "ERROR"
-		content["evalue"] = stdErr
-		content["traceback"] = nil
-
-		if err := receipt.PublishExecutionError(stdErr, []string{stdErr}); err != nil {
-			log.Printf("Error publishing execution error: %v\n", err)
-		}
-	}
-
-	// Send the output back to the notebook.
-	return receipt.Reply("execute_reply", content)
+	return
 }
 
 // handleShutdownRequest sends a "shutdown" message.
@@ -417,7 +438,7 @@ func runHeartbeat(hbSocket *zmq.Socket, wg *sync.WaitGroup) func() {
 		poller.Add(hbSocket, zmq.POLLIN)
 		for {
 			select {
-			case <- quit:
+			case <-quit:
 				return
 			default:
 				pingEvents, err := poller.Poll(500 * time.Millisecond)
