@@ -74,24 +74,74 @@ func TestEvaluate(t *testing.T) {
 		Output string
 	}{
 		{[]string{
-			`import "fmt"`,
 			"a := 1",
-			"fmt.Println(a)",
-		}, "1\n"},
+			"a",
+		}, "1"},
 		{[]string{
 			"a = 2",
-			"fmt.Println(a)",
-		}, "2\n"},
+			"a + 3",
+		}, "5"},
 		{[]string{
 			"func myFunc(x int) int {",
 			"    return x+1",
 			"}",
-			`fmt.Println("func defined")`,
-		}, "func defined\n"},
+			"myFunc(1)",
+		}, "2"},
 		{[]string{
 			"b := myFunc(1)",
-			"fmt.Println(b)",
-		}, "2\n"},
+		}, ""},
+		{[]string{
+			"type Rect struct {",
+			"    Width, Height int",
+			"}",
+			"Rect{10, 30}",
+		}, "{10 30}"},
+		{[]string{
+			"type Rect struct {",
+			"    Width, Height int",
+			"}",
+			"&Rect{10, 30}",
+		}, "&{10 30}"},
+		{[]string{
+			"func a(b int) (int, int) {",
+			"    return 2 + b, b",
+			"}",
+			"a(10)",
+		}, "12"},
+		{[]string{
+			`import "errors"`,
+			"func a() (interface{}, error) {",
+			`    return nil, errors.New("To err is human")`,
+			"}",
+			"a()",
+		}, "To err is human"},
+		{[]string{
+			`c := []string{"gophernotes", "is", "super", "bad"}`,
+			"c[:3]",
+		}, "[gophernotes is super]"},
+		{[]string{
+			"m := map[string]int{",
+			`    "a": 10,`,
+			`    "c": 30,`,
+			"}",
+			`m["c"]`,
+		}, "30"},
+		{[]string{
+			"if 1 < 2 {",
+			"    3",
+			"}",
+		}, ""},
+		{[]string{
+			"d := 10",
+			"d++",
+		}, ""},
+		{[]string{
+			"out := make(chan int)",
+			"go func() {",
+			"    out <- 123",
+			"}()",
+			"<-out",
+		}, "123"},
 	}
 
 	t.Logf("Should be able to evaluate valid code in notebook cells.")
