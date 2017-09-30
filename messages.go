@@ -301,14 +301,13 @@ type JupyterStreamWriter struct {
 }
 
 // Write implements `io.Writer.Write` by publishing the data via `PublishWriteStream`
-func (writer *JupyterStreamWriter) Write(p []byte) (n int, err error) {
+func (writer *JupyterStreamWriter) Write(p []byte) (int, error) {
 	data := string(p)
-	n = len(p)
+	n := len(p)
 
-	err = writer.receipt.PublishWriteStream(writer.stream, data)
-	if err != nil {
-		n = 0
+	if err := writer.receipt.PublishWriteStream(writer.stream, data); err != nil {
+		return 0, err
 	}
 
-	return
+	return n, nil
 }

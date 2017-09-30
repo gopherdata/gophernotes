@@ -396,7 +396,7 @@ func (client *testJupyterClient) sendShellRequest(t *testing.T, request Composed
 
 // recvShellReply tries to read a reply message from the shell channel. It will timeout after the given
 // timeout delay. Upon error or timeout, recvShellReply will Fail the test.
-func (client *testJupyterClient) recvShellReply(t *testing.T, timeout time.Duration) (reply ComposedMsg) {
+func (client *testJupyterClient) recvShellReply(t *testing.T, timeout time.Duration) ComposedMsg {
 	t.Helper()
 
 	ch := make(chan ComposedMsg)
@@ -415,18 +415,21 @@ func (client *testJupyterClient) recvShellReply(t *testing.T, timeout time.Durat
 		ch <- msgParsed
 	}()
 
+	var reply ComposedMsg
+
 	select {
 	case reply = <-ch:
+		return reply
 	case <-time.After(timeout):
 		t.Fatalf("\t%s recvShellReply timed out", failure)
 	}
 
-	return
+	return reply
 }
 
 // recvIOSub tries to read a published message from the IOPub channel. It will timeout after the given
 // timeout delay. Upon error or timeout, recvIOSub will Fail the test.
-func (client *testJupyterClient) recvIOSub(t *testing.T, timeout time.Duration) (sub ComposedMsg) {
+func (client *testJupyterClient) recvIOSub(t *testing.T, timeout time.Duration) ComposedMsg {
 	t.Helper()
 
 	ch := make(chan ComposedMsg)
@@ -445,23 +448,24 @@ func (client *testJupyterClient) recvIOSub(t *testing.T, timeout time.Duration) 
 		ch <- msgParsed
 	}()
 
+	var sub ComposedMsg
 	select {
 	case sub = <-ch:
 	case <-time.After(timeout):
 		t.Fatalf("\t%s recvIOSub timed out", failure)
 	}
 
-	return
+	return sub
 }
 
 // performJupyterRequest preforms a request and awaits a reply on the shell channel. Additionally all messages on the
 // IOPub channel between the opening 'busy' messages and closing 'idle' message are captured and returned. The request
 // will timeout after the given timeout delay. Upon error or timeout, request will Fail the test.
-func (client *testJupyterClient) performJupyterRequest(t *testing.T, request ComposedMsg, timeout time.Duration) (reply ComposedMsg, pub []ComposedMsg) {
+func (client *testJupyterClient) performJupyterRequest(t *testing.T, request ComposedMsg, timeout time.Duration) (ComposedMsg, []ComposedMsg) {
 	t.Helper()
 
 	client.sendShellRequest(t, request)
-	reply = client.recvShellReply(t, timeout)
+	reply := client.recvShellReply(t, timeout)
 
 	// Read the expected 'busy' message and ensure it is in fact, a 'busy' message.
 	subMsg := client.recvIOSub(t, 1*time.Second)
@@ -473,6 +477,8 @@ func (client *testJupyterClient) performJupyterRequest(t *testing.T, request Com
 	if execState != kernelBusy {
 		t.Fatalf("\t%s Expected a 'busy' status message but got '%s'", failure, execState)
 	}
+
+	var pub []ComposedMsg
 
 	// Read messages from the IOPub channel until an 'idle' message is received.
 	for {
@@ -495,7 +501,7 @@ func (client *testJupyterClient) performJupyterRequest(t *testing.T, request Com
 		pub = append(pub, subMsg)
 	}
 
-	return
+	return reply, pub
 }
 
 // executeCode creates an execute request for the given code and preforms the request. It returns the content of the
@@ -594,7 +600,7 @@ func getJSONObject(t *testing.T, jsonObjectName string, content map[string]inter
 }
 
 // testOutputStream is a test helper that collects "stream" messages upon executing the codeIn.
-func testOutputStream(t *testing.T, codeIn string) (stdout []string, stderr []string) {
+func testOutputStream(t *testing.T, codeIn string) ([]string, []string) {
 	t.Helper()
 
 	client, closeClient := newTestJupyterClient(t)
@@ -602,21 +608,23 @@ func testOutputStream(t *testing.T, codeIn string) (stdout []string, stderr []st
 
 	_, pub := client.executeCode(t, codeIn)
 
+	var stdout, stderr []string
 	for _, pubMsg := range pub {
 		if pubMsg.Header.MsgType == "stream" {
 			content := getMsgContentAsJSONObject(t, pubMsg)
 			streamType := getString(t, "content", content, "name")
 			streamData := getString(t, "content", content, "text")
 
-			if streamType == "stdout" {
+			switch streamType {
+			case StreamStdout:
 				stdout = append(stdout, streamData)
-			} else if streamType == "stderr" {
+			case StreamStderr:
 				stderr = append(stderr, streamData)
-			} else {
+			default:
 				t.Fatalf("Unknown stream type '%s'", streamType)
 			}
 		}
 	}
 
-	return
+	return stdout, stderr
 }

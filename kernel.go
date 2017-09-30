@@ -109,9 +109,11 @@ func runKernel(connectionFile string) {
 		log.Fatal(err)
 	}
 
-	var wg sync.WaitGroup
+	// channelsWG waits for all channel handlers to shutdown.
+	var channelsWG sync.WaitGroup
 
-	shutdownHeartbeat := runHeartbeat(sockets.HBSocket, &wg)
+	// Start up the heartbeat handler.
+	shutdownHeartbeat := runHeartbeat(sockets.HBSocket, &channelsWG)
 
 	poller := zmq.NewPoller()
 	poller.Add(sockets.ShellSocket, zmq.POLLIN)
@@ -172,9 +174,11 @@ func runKernel(connectionFile string) {
 		}
 	}
 
+	// Request that the heartbeat channel handler be shutdown.
 	shutdownHeartbeat()
 
-	wg.Wait()
+	// Wait for the channel handlers to finish shutting down.
+	channelsWG.Wait()
 }
 
 // prepareSockets sets up the ZMQ sockets through which the kernel
@@ -334,6 +338,8 @@ func handleExecuteRequest(ir *classic.Interp, receipt msgReceipt) error {
 
 	val, executionErr := doEval(ir, code)
 
+	//TODO if value is a certain type like image then display it instead
+
 	// Close and restore the streams.
 	wOut.Close()
 	os.Stdout = oldStdout
@@ -371,8 +377,8 @@ func handleExecuteRequest(ir *classic.Interp, receipt msgReceipt) error {
 
 // doEval evaluates the code in the interpreter. This function captures an uncaught panic
 // as well as the value of the last statement/expression.
-func doEval(ir *classic.Interp, code string) (val interface{}, err error) {
-	// Capture a panic from the evaluation if one occurs
+func doEval(ir *classic.Interp, code string) (_ interface{}, err error) {
+	// Capture a panic from the evaluation if one occurs and store it in the `err` return parameter.
 	defer func() {
 		if r := recover(); r != nil {
 			var ok bool
@@ -391,38 +397,43 @@ func doEval(ir *classic.Interp, code string) (val interface{}, err error) {
 	// Parse the input code (and don't preform gomacro's macroexpansion).
 	src := ir.ParseOnly(code)
 
+	if src == nil {
+		return nil, nil
+	}
+
 	// Check if the last node is an expression.
 	var srcEndsWithExpr bool
-	if src != nil {
-		if srcAstWithNode, ok := src.(ast2.AstWithNode); ok {
-			_, srcEndsWithExpr = srcAstWithNode.Node().(ast.Expr)
-		} else if srcNodeSlice, ok := src.(ast2.NodeSlice); ok {
-			nodes := srcNodeSlice.X
-			_, srcEndsWithExpr = nodes[len(nodes)-1].(ast.Expr)
-		}
+
+	// If the parsed ast is a single node, check if the node implements `ast.Expr`. Otherwise if the is multiple
+	// nodes then just check if the last one is an expression.
+	if srcAstWithNode, ok := src.(ast2.AstWithNode); ok {
+		_, srcEndsWithExpr = srcAstWithNode.Node().(ast.Expr)
+	} else if srcNodeSlice, ok := src.(ast2.NodeSlice); ok {
+		nodes := srcNodeSlice.X
+		_, srcEndsWithExpr = nodes[len(nodes)-1].(ast.Expr)
 	}
 
 	// Evaluate the code.
-	result, results := ir.Eval(src)
+	result, results := ir.EvalAst(src)
 
+	// If the source ends with an expression, then the result of the execution is the value of the expression. In the
+	// case of multiple return values (from a function call for example), the first non-nil value is the result.
 	if srcEndsWithExpr {
-		//TODO if value is a certain type like image then display it instead
-
 		// `len(results) == 0` implies a single result stored in `result`.
 		if len(results) == 0 {
-			val = base.ValueInterface(result)
-		} else {
-			// Set `val` to be the first non-nil result.
-			for _, result := range results {
-				val = base.ValueInterface(result)
-				if val != nil {
-					break
-				}
+			return base.ValueInterface(result), nil
+		}
+
+		// Set `val` to be the first non-nil result.
+		for _, result := range results {
+			val := base.ValueInterface(result)
+			if val != nil {
+				return val, nil
 			}
 		}
 	}
 
-	return
+	return nil, nil
 }
 
 // handleShutdownRequest sends a "shutdown" message.
@@ -442,30 +453,41 @@ func handleShutdownRequest(receipt msgReceipt) {
 	os.Exit(0)
 }
 
+// runHeartbeat starts a go-routine for handling heartbeat ping messages sent over the given `hbSocket`. The `wg`'s
+// `Done` method is invoked after the thread is completely shutdown. To request a shutdown the returned `func()` can
+// be called.
 func runHeartbeat(hbSocket *zmq.Socket, wg *sync.WaitGroup) func() {
 	quit := make(chan bool)
 
+	// Start the handler that will echo any received messages back to the sender.
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
+
+		// Create a `Poller` to check for incoming messages.
 		poller := zmq.NewPoller()
 		poller.Add(hbSocket, zmq.POLLIN)
+
 		for {
 			select {
 			case <-quit:
 				return
 			default:
+				// Check for received messages waiting at most 500ms for once to arrive.
 				pingEvents, err := poller.Poll(500 * time.Millisecond)
 				if err != nil {
 					log.Fatalf("Error polling heartbeat channel: %v\n", err)
 				}
 
+				// If there is at least 1 message waiting then echo it.
 				if len(pingEvents) > 0 {
+					// Read a message from the heartbeat channel as a simple byte string.
 					pingMsg, err := hbSocket.RecvBytes(0)
 					if err != nil {
 						log.Fatalf("Error reading heartbeat ping bytes: %v\n", err)
 					}
 
+					// Send the received byte string back to let the front-end know that the kernel is alive.
 					_, err = hbSocket.SendBytes(pingMsg, 0)
 					if err != nil {
 						log.Printf("Error sending heartbeat pong bytes: %b\n", err)
@@ -475,6 +497,7 @@ func runHeartbeat(hbSocket *zmq.Socket, wg *sync.WaitGroup) func() {
 		}
 	}()
 
+	// Wrap the quit channel in a function that writes `true` to the channel to shutdown the handler.
 	return func() {
 		quit <- true
 	}
