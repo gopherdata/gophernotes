@@ -40,5 +40,8 @@ RUN set -x \
         ipaexg00301* \
     && rm -rf /var/cache/apk/*
 
+# Set GOPATH.
+ENV GOPATH /go
+
 EXPOSE 8888
 CMD [ "jupyter", "notebook", "--no-browser", "--allow-root", "--ip=0.0.0.0" ]
