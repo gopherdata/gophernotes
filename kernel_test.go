@@ -107,14 +107,14 @@ func TestEvaluate(t *testing.T) {
 			"    return 2 + b, b",
 			"}",
 			"a(10)",
-		}, "12"},
+		}, "12 10"},
 		{[]string{
 			`import "errors"`,
 			"func a() (interface{}, error) {",
 			`    return nil, errors.New("To err is human")`,
 			"}",
 			"a()",
-		}, "To err is human"},
+		}, "<nil> To err is human"},
 		{[]string{
 			`c := []string{"gophernotes", "is", "super", "bad"}`,
 			"c[:3]",
@@ -125,7 +125,7 @@ func TestEvaluate(t *testing.T) {
 			`    "c": 30,`,
 			"}",
 			`m["c"]`,
-		}, "30"},
+		}, "30 true"},
 		{[]string{
 			"if 1 < 2 {",
 			"    3",
@@ -141,7 +141,7 @@ func TestEvaluate(t *testing.T) {
 			"    out <- 123",
 			"}()",
 			"<-out",
-		}, "123"},
+		}, "123 true"},
 	}
 
 	t.Logf("Should be able to evaluate valid code in notebook cells.")
