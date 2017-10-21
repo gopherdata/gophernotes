@@ -91,6 +91,10 @@ func runKernel(connectionFile string) {
 	// Set up the "Session" with the replpkg.
 	ir := classic.New()
 
+	// Throw out the error/warning messages that gomacro outputs writes to these streams.
+	ir.Stdout = ioutil.Discard
+	ir.Stderr = ioutil.Discard
+
 	// Parse the connection info.
 	var connInfo ConnectionInfo
 
