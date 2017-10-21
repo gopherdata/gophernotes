@@ -336,7 +336,7 @@ func handleExecuteRequest(ir *classic.Interp, receipt msgReceipt) error {
 		io.Copy(&jupyterStdErr, rErr)
 	}()
 
-	val, executionErr := doEval(ir, code)
+	vals, executionErr := doEval(ir, code)
 
 	//TODO if value is a certain type like image then display it instead
 
@@ -354,9 +354,9 @@ func handleExecuteRequest(ir *classic.Interp, receipt msgReceipt) error {
 		content["status"] = "ok"
 		content["user_expressions"] = make(map[string]string)
 
-		if !silent && val != nil {
+		if !silent && vals != nil {
 			// Publish the result of the execution.
-			if err := receipt.PublishExecutionResult(ExecCounter, fmt.Sprint(val)); err != nil {
+			if err := receipt.PublishExecutionResult(ExecCounter, fmt.Sprint(vals...)); err != nil {
 				log.Printf("Error publishing execution result: %v\n", err)
 			}
 		}
@@ -376,8 +376,8 @@ func handleExecuteRequest(ir *classic.Interp, receipt msgReceipt) error {
 }
 
 // doEval evaluates the code in the interpreter. This function captures an uncaught panic
-// as well as the value of the last statement/expression.
-func doEval(ir *classic.Interp, code string) (_ interface{}, err error) {
+// as well as the values of the last statement/expression.
+func doEval(ir *classic.Interp, code string) (_ []interface{}, err error) {
 	// Capture a panic from the evaluation if one occurs and store it in the `err` return parameter.
 	defer func() {
 		if r := recover(); r != nil {
@@ -390,8 +390,11 @@ func doEval(ir *classic.Interp, code string) (_ interface{}, err error) {
 
 	// Prepare and perform the multiline evaluation.
 	env := ir.Env
+	// Don't show the gomacro prompt.
 	env.Options &^= base.OptShowPrompt
+	// Don't swallow panics as they are recovered above and handled with a Jupyter `error` message instead.
 	env.Options &^= base.OptTrapPanic
+	// Reset the error line so that error messages correspond to the lines from the cell
 	env.Line = 0
 
 	// Parse the input code (and don't preform gomacro's macroexpansion).
@@ -405,7 +408,8 @@ func doEval(ir *classic.Interp, code string) (_ interface{}, err error) {
 	var srcEndsWithExpr bool
 
 	// If the parsed ast is a single node, check if the node implements `ast.Expr`. Otherwise if the is multiple
-	// nodes then just check if the last one is an expression.
+	// nodes then just check if the last one is an expression. These are currently the 2 cases to consider from
+	// gomacro's `ParseOnly`.
 	if srcAstWithNode, ok := src.(ast2.AstWithNode); ok {
 		_, srcEndsWithExpr = srcAstWithNode.Node().(ast.Expr)
 	} else if srcNodeSlice, ok := src.(ast2.NodeSlice); ok {
@@ -417,20 +421,31 @@ func doEval(ir *classic.Interp, code string) (_ interface{}, err error) {
 	result, results := ir.EvalAst(src)
 
 	// If the source ends with an expression, then the result of the execution is the value of the expression. In the
-	// case of multiple return values (from a function call for example), the first non-nil value is the result.
+	// event that all return values are nil, then the
 	if srcEndsWithExpr {
 		// `len(results) == 0` implies a single result stored in `result`.
 		if len(results) == 0 {
-			return base.ValueInterface(result), nil
+			if val := base.ValueInterface(result); val != nil {
+				return []interface{}{val}, nil
+			}
+			return nil, nil
 		}
 
-		// Set `val` to be the first non-nil result.
+		// Count the number of non-nil values in the output. If they are all nil then the output is skipped.
+		nonNilCount := 0
+		var values []interface{}
 		for _, result := range results {
 			val := base.ValueInterface(result)
 			if val != nil {
-				return val, nil
+				nonNilCount++
 			}
+			values = append(values, val)
 		}
+
+		if nonNilCount > 0 {
+			return values, nil
+		}
+		return nil, nil
 	}
 
 	return nil, nil
