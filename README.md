@@ -44,7 +44,7 @@
 ### Linux
 
 ```sh
-$ go install github.com/gopherdata/gophernotes
+$ go get -u github.com/gopherdata/gophernotes
 $ mkdir -p ~/.local/share/jupyter/kernels/gophernotes
 $ cp $GOPATH/src/github.com/gopherdata/gophernotes/kernel/* ~/.local/share/jupyter/kernels/gophernotes  
 ```
@@ -67,7 +67,7 @@ $ jupyter --data-dir
 **Important Note** - gomacro relies on the `plugin` package when importing third party libraries.  This package is only supported on Linux currently.  Thus, if you need to utilize third party packages in your Go notebooks and you are running on Mac, you should use the [Docker](#docker) install and run gophernotes/Jupyter in Docker.
 
 ```sh
-$ go install github.com/gopherdata/gophernotes
+$ go get github.com/gopherdata/gophernotes
 $ mkdir -p ~/Library/Jupyter/kernels/gophernotes
 $ cp $GOPATH/src/github.com/gopherdata/gophernotes/kernel/* ~/Library/Jupyter/kernels/gophernotes
 ```
