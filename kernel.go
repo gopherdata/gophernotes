@@ -1,17 +1,19 @@
 package main
 
 import (
-	"bufio"
-	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"go/ast"
 	"io"
 	"io/ioutil"
 	"log"
 	"os"
 	"runtime"
-	"strings"
+	"sync"
+	"time"
 
+	"github.com/cosmos72/gomacro/ast2"
 	"github.com/cosmos72/gomacro/base"
 	"github.com/cosmos72/gomacro/classic"
 	zmq "github.com/pebbe/zmq4"
@@ -41,6 +43,7 @@ type SocketGroup struct {
 	ControlSocket *zmq.Socket
 	StdinSocket   *zmq.Socket
 	IOPubSocket   *zmq.Socket
+	HBSocket      *zmq.Socket
 	Key           []byte
 }
 
@@ -71,7 +74,7 @@ type kernelInfo struct {
 	HelpLinks             []helpLink         `json:"help_links"`
 }
 
-// shutdownReply encodes a boolean indication of stutdown/restart.
+// shutdownReply encodes a boolean indication of shutdown/restart.
 type shutdownReply struct {
 	Restart bool `json:"restart"`
 }
@@ -87,6 +90,10 @@ func runKernel(connectionFile string) {
 
 	// Set up the "Session" with the replpkg.
 	ir := classic.New()
+
+	// Throw out the error/warning messages that gomacro outputs writes to these streams.
+	ir.Stdout = ioutil.Discard
+	ir.Stderr = ioutil.Discard
 
 	// Parse the connection info.
 	var connInfo ConnectionInfo
@@ -106,6 +113,13 @@ func runKernel(connectionFile string) {
 		log.Fatal(err)
 	}
 
+	// TODO connect all channel handlers to a WaitGroup to ensure shutdown before returning from runKernel.
+
+	// Start up the heartbeat handler.
+	startHeartbeat(sockets.HBSocket, &sync.WaitGroup{})
+
+	// TODO gracefully shutdown the heartbeat handler on kernel shutdown by closing the chan returned by startHeartbeat.
+
 	poller := zmq.NewPoller()
 	poller.Add(sockets.ShellSocket, zmq.POLLIN)
 	poller.Add(sockets.StdinSocket, zmq.POLLIN)
@@ -116,7 +130,6 @@ func runKernel(connectionFile string) {
 
 	// Start a message receiving loop.
 	for {
-
 		polled, err := poller.Poll(-1)
 		if err != nil {
 			log.Fatal(err)
@@ -179,22 +192,37 @@ func prepareSockets(connInfo ConnectionInfo) (SocketGroup, error) {
 	// Initialize the socket group.
 	var sg SocketGroup
 
+	// Create the shell socket, a request-reply socket that may receive messages from multiple frontend for
+	// code execution, introspection, auto-completion, etc.
 	sg.ShellSocket, err = context.NewSocket(zmq.ROUTER)
 	if err != nil {
 		return sg, err
 	}
 
+	// Create the control socket. This socket is a duplicate of the shell socket where messages on this channel
+	// should jump ahead of queued messages on the shell socket.
 	sg.ControlSocket, err = context.NewSocket(zmq.ROUTER)
 	if err != nil {
 		return sg, err
 	}
 
+	// Create the stdin socket, a request-reply socket used to request user input from a front-end. This is analogous
+	// to a standard input stream.
 	sg.StdinSocket, err = context.NewSocket(zmq.ROUTER)
 	if err != nil {
 		return sg, err
 	}
 
+	// Create the iopub socket, a publisher for broadcasting data like stdout/stderr output, displaying execution
+	// results or errors, kernel status, etc. to connected subscribers.
 	sg.IOPubSocket, err = context.NewSocket(zmq.PUB)
+	if err != nil {
+		return sg, err
+	}
+
+	// Create the heartbeat socket, a request-reply socket that only allows alternating recv-send (request-reply)
+	// calls. It should echo the byte strings it receives to let the requester know the kernel is still alive.
+	sg.HBSocket, err = context.NewSocket(zmq.REP)
 	if err != nil {
 		return sg, err
 	}
@@ -205,6 +233,7 @@ func prepareSockets(connInfo ConnectionInfo) (SocketGroup, error) {
 	sg.ControlSocket.Bind(fmt.Sprintf(address, connInfo.ControlPort))
 	sg.StdinSocket.Bind(fmt.Sprintf(address, connInfo.StdinPort))
 	sg.IOPubSocket.Bind(fmt.Sprintf(address, connInfo.IOPubPort))
+	sg.HBSocket.Bind(fmt.Sprintf(address, connInfo.HBPort))
 
 	// Set the message signing key.
 	sg.Key = []byte(connInfo.Key)
@@ -254,10 +283,10 @@ func sendKernelInfo(receipt msgReceipt) error {
 // handleExecuteRequest runs code from an execute_request method,
 // and sends the various reply messages.
 func handleExecuteRequest(ir *classic.Interp, receipt msgReceipt) error {
-	// Extract the data from the request
+
+	// Extract the data from the request.
 	reqcontent := receipt.Msg.Content.(map[string]interface{})
 	code := reqcontent["code"].(string)
-	in := bufio.NewReader(strings.NewReader(code))
 	silent := reqcontent["silent"].(bool)
 
 	if !silent {
@@ -293,84 +322,146 @@ func handleExecuteRequest(ir *classic.Interp, receipt msgReceipt) error {
 	os.Stdout = wOut
 
 	// Redirect the standard error from the REPL.
+	oldStderr := os.Stderr
 	rErr, wErr, err := os.Pipe()
 	if err != nil {
 		return err
 	}
-	ir.Stderr = wErr
+	os.Stderr = wErr
 
-	// Prepare and perform the multiline evaluation.
-	env := ir.Env
-	env.Options &^= base.OptShowPrompt
-	env.Line = 0
+	var writersWG sync.WaitGroup
+	writersWG.Add(2)
 
-	// Perform the first iteration manually, to collect comments.
-	var comments string
-	str, firstToken := env.ReadMultiline(in, base.ReadOptCollectAllComments)
-	if firstToken >= 0 {
-		comments = str[0:firstToken]
-		if firstToken > 0 {
-			str = str[firstToken:]
-			env.IncLine(comments)
-		}
-	}
-	if ir.ParseEvalPrint(str, in) {
-		ir.Repl(in)
-	}
-
-	// Copy the stdout in a separate goroutine to prevent
-	// blocking on printing.
-	outStdout := make(chan string)
+	// Forward all data written to stdout/stderr to the front-end.
 	go func() {
-		var buf bytes.Buffer
-		io.Copy(&buf, rOut)
-		outStdout <- buf.String()
+		defer writersWG.Done()
+		jupyterStdOut := JupyterStreamWriter{StreamStdout, &receipt}
+		io.Copy(&jupyterStdOut, rOut)
 	}()
 
-	// Return stdout back to normal state.
+	go func() {
+		defer writersWG.Done()
+		jupyterStdErr := JupyterStreamWriter{StreamStderr, &receipt}
+		io.Copy(&jupyterStdErr, rErr)
+	}()
+
+	vals, executionErr := doEval(ir, code)
+
+	//TODO if value is a certain type like image then display it instead
+
+	// Close and restore the streams.
 	wOut.Close()
 	os.Stdout = oldStdout
-	val := <-outStdout
-
-	// Copy the stderr in a separate goroutine to prevent
-	// blocking on printing.
-	outStderr := make(chan string)
-	go func() {
-		var buf bytes.Buffer
-		io.Copy(&buf, rErr)
-		outStderr <- buf.String()
-	}()
 
 	wErr.Close()
-	stdErr := <-outStderr
+	os.Stderr = oldStderr
 
-	// TODO write stdout and stderr to streams rather than publishing as results
+	// Wait for the writers to finish forwarding the data.
+	writersWG.Wait()
 
-	if len(val) > 0 {
+	if executionErr == nil {
 		content["status"] = "ok"
 		content["user_expressions"] = make(map[string]string)
 
-		if !silent {
+		if !silent && vals != nil {
 			// Publish the result of the execution.
-			if err := receipt.PublishExecutionResult(ExecCounter, val); err != nil {
+			if err := receipt.PublishExecutionResult(ExecCounter, fmt.Sprint(vals...)); err != nil {
 				log.Printf("Error publishing execution result: %v\n", err)
 			}
 		}
-	}
-
-	if len(stdErr) > 0 {
+	} else {
 		content["status"] = "error"
 		content["ename"] = "ERROR"
-		content["evalue"] = stdErr
+		content["evalue"] = executionErr.Error()
 		content["traceback"] = nil
 
-		if err := receipt.PublishExecutionError(stdErr, []string{stdErr}); err != nil {
+		if err := receipt.PublishExecutionError(executionErr.Error(), []string{executionErr.Error()}); err != nil {
 			log.Printf("Error publishing execution error: %v\n", err)
 		}
 	}
 
 	// Send the output back to the notebook.
 	return receipt.Reply("execute_reply", content)
+}
+
+// doEval evaluates the code in the interpreter. This function captures an uncaught panic
+// as well as the values of the last statement/expression.
+func doEval(ir *classic.Interp, code string) (_ []interface{}, err error) {
+
+	// Capture a panic from the evaluation if one occurs and store it in the `err` return parameter.
+	defer func() {
+		if r := recover(); r != nil {
+			var ok bool
+			if err, ok = r.(error); !ok {
+				err = errors.New(fmt.Sprint(r))
+			}
+		}
+	}()
+
+	// Prepare and perform the multiline evaluation.
+	env := ir.Env
+
+	// Don't show the gomacro prompt.
+	env.Options &^= base.OptShowPrompt
+
+	// Don't swallow panics as they are recovered above and handled with a Jupyter `error` message instead.
+	env.Options &^= base.OptTrapPanic
+
+	// Reset the error line so that error messages correspond to the lines from the cell.
+	env.Line = 0
+
+	// Parse the input code (and don't preform gomacro's macroexpansion).
+	src := ir.ParseOnly(code)
+
+	if src == nil {
+		return nil, nil
+	}
+
+	// Check if the last node is an expression.
+	var srcEndsWithExpr bool
+
+	// If the parsed ast is a single node, check if the node implements `ast.Expr`. Otherwise if the is multiple
+	// nodes then just check if the last one is an expression. These are currently the 2 cases to consider from
+	// gomacro's `ParseOnly`.
+	if srcAstWithNode, ok := src.(ast2.AstWithNode); ok {
+		_, srcEndsWithExpr = srcAstWithNode.Node().(ast.Expr)
+	} else if srcNodeSlice, ok := src.(ast2.NodeSlice); ok {
+		nodes := srcNodeSlice.X
+		_, srcEndsWithExpr = nodes[len(nodes)-1].(ast.Expr)
+	}
+
+	// Evaluate the code.
+	result, results := ir.EvalAst(src)
+
+	// If the source ends with an expression, then the result of the execution is the value of the expression. In the
+	// event that all return values are nil, the result is also nil.
+	if srcEndsWithExpr {
+		// `len(results) == 0` implies a single result stored in `result`.
+		if len(results) == 0 {
+			if val := base.ValueInterface(result); val != nil {
+				return []interface{}{val}, nil
+			}
+			return nil, nil
+		}
+
+		// Count the number of non-nil values in the output. If they are all nil then the output is skipped.
+		nonNilCount := 0
+		var values []interface{}
+		for _, result := range results {
+			val := base.ValueInterface(result)
+			if val != nil {
+				nonNilCount++
+			}
+			values = append(values, val)
+		}
+
+		if nonNilCount > 0 {
+			return values, nil
+		}
+		return nil, nil
+	}
+
+	return nil, nil
 }
 
 // handleShutdownRequest sends a "shutdown" message.
@@ -388,4 +479,50 @@ func handleShutdownRequest(receipt msgReceipt) {
 
 	log.Println("Shutting down in response to shutdown_request")
 	os.Exit(0)
+}
+
+// startHeartbeat starts a go-routine for handling heartbeat ping messages sent over the given `hbSocket`. The `wg`'s
+// `Done` method is invoked after the thread is completely shutdown. To request a shutdown the returned `shutdown` channel
+// can be closed.
+func startHeartbeat(hbSocket *zmq.Socket, wg *sync.WaitGroup) (shutdown chan struct{}) {
+	quit := make(chan struct{})
+
+	// Start the handler that will echo any received messages back to the sender.
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+
+		// Create a `Poller` to check for incoming messages.
+		poller := zmq.NewPoller()
+		poller.Add(hbSocket, zmq.POLLIN)
+
+		for {
+			select {
+			case <-quit:
+				return
+			default:
+				// Check for received messages waiting at most 500ms for once to arrive.
+				pingEvents, err := poller.Poll(500 * time.Millisecond)
+				if err != nil {
+					log.Fatalf("Error polling heartbeat channel: %v\n", err)
+				}
+
+				// If there is at least 1 message waiting then echo it.
+				if len(pingEvents) > 0 {
+					// Read a message from the heartbeat channel as a simple byte string.
+					pingMsg, err := hbSocket.RecvBytes(0)
+					if err != nil {
+						log.Fatalf("Error reading heartbeat ping bytes: %v\n", err)
+					}
+
+					// Send the received byte string back to let the front-end know that the kernel is alive.
+					if _, err = hbSocket.SendBytes(pingMsg, 0); err != nil {
+						log.Printf("Error sending heartbeat pong bytes: %b\n", err)
+					}
+				}
+			}
+		}
+	}()
+
+	return quit
 }

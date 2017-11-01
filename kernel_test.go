@@ -74,24 +74,74 @@ func TestEvaluate(t *testing.T) {
 		Output string
 	}{
 		{[]string{
-			"import \"fmt\"",
 			"a := 1",
-			"fmt.Println(a)",
-		}, "1\n"},
+			"a",
+		}, "1"},
 		{[]string{
 			"a = 2",
-			"fmt.Println(a)",
-		}, "2\n"},
+			"a + 3",
+		}, "5"},
 		{[]string{
 			"func myFunc(x int) int {",
 			"    return x+1",
 			"}",
-			"fmt.Println(\"func defined\")",
-		}, "func defined\n"},
+			"myFunc(1)",
+		}, "2"},
 		{[]string{
 			"b := myFunc(1)",
-			"fmt.Println(b)",
-		}, "2\n"},
+		}, ""},
+		{[]string{
+			"type Rect struct {",
+			"    Width, Height int",
+			"}",
+			"Rect{10, 30}",
+		}, "{10 30}"},
+		{[]string{
+			"type Rect struct {",
+			"    Width, Height int",
+			"}",
+			"&Rect{10, 30}",
+		}, "&{10 30}"},
+		{[]string{
+			"func a(b int) (int, int) {",
+			"    return 2 + b, b",
+			"}",
+			"a(10)",
+		}, "12 10"},
+		{[]string{
+			`import "errors"`,
+			"func a() (interface{}, error) {",
+			`    return nil, errors.New("To err is human")`,
+			"}",
+			"a()",
+		}, "<nil> To err is human"},
+		{[]string{
+			`c := []string{"gophernotes", "is", "super", "bad"}`,
+			"c[:3]",
+		}, "[gophernotes is super]"},
+		{[]string{
+			"m := map[string]int{",
+			`    "a": 10,`,
+			`    "c": 30,`,
+			"}",
+			`m["c"]`,
+		}, "30 true"},
+		{[]string{
+			"if 1 < 2 {",
+			"    3",
+			"}",
+		}, ""},
+		{[]string{
+			"d := 10",
+			"d++",
+		}, ""},
+		{[]string{
+			"out := make(chan int)",
+			"go func() {",
+			"    out <- 123",
+			"}()",
+			"<-out",
+		}, "123 true"},
 	}
 
 	t.Logf("Should be able to evaluate valid code in notebook cells.")
@@ -118,30 +168,8 @@ func testEvaluate(t *testing.T, codeIn string) string {
 	client, closeClient := newTestJupyterClient(t)
 	defer closeClient()
 
-	// Create a message.
-	request, err := NewMsg("execute_request", ComposedMsg{})
-	if err != nil {
-		t.Fatalf("\t%s NewMsg: %s", failure, err)
-	}
+	content, pub := client.executeCode(t, codeIn)
 
-	// Fill in remaining header information.
-	request.Header.Session = sessionID
-	request.Header.Username = "KernelTester"
-
-	// Fill in Metadata.
-	request.Metadata = make(map[string]interface{})
-
-	// Fill in content.
-	content := make(map[string]interface{})
-	content["code"] = codeIn
-	content["silent"] = false
-	request.Content = content
-
-	reply, pub := client.performJupyterRequest(t, request, 10*time.Second)
-
-	assertMsgTypeEquals(t, reply, "execute_reply")
-
-	content = getMsgContentAsJSONObject(t, reply)
 	status := getString(t, "content", content, "status")
 
 	if status != "ok" {
@@ -153,7 +181,7 @@ func testEvaluate(t *testing.T, codeIn string) string {
 			content = getMsgContentAsJSONObject(t, pubMsg)
 
 			bundledMIMEData := getJSONObject(t, "content", content, "data")
-			textRep := getString(t, "content[\"data\"]", bundledMIMEData, "text/plain")
+			textRep := getString(t, `content["data"]`, bundledMIMEData, "text/plain")
 
 			return textRep
 		}
@@ -168,30 +196,8 @@ func TestPanicGeneratesError(t *testing.T) {
 	client, closeClient := newTestJupyterClient(t)
 	defer closeClient()
 
-	// Create a message.
-	request, err := NewMsg("execute_request", ComposedMsg{})
-	if err != nil {
-		t.Fatalf("\t%s NewMsg: %s", failure, err)
-	}
+	content, pub := client.executeCode(t, `panic("error")`)
 
-	// Fill in remaining header information.
-	request.Header.Session = sessionID
-	request.Header.Username = "KernelTester"
-
-	// Fill in Metadata.
-	request.Metadata = make(map[string]interface{})
-
-	// Fill in content.
-	content := make(map[string]interface{})
-	content["code"] = "panic(\"Error\")"
-	content["silent"] = false
-	request.Content = content
-
-	reply, pub := client.performJupyterRequest(t, request, 10*time.Second)
-
-	assertMsgTypeEquals(t, reply, "execute_reply")
-
-	content = getMsgContentAsJSONObject(t, reply)
 	status := getString(t, "content", content, "status")
 
 	if status != "error" {
@@ -208,6 +214,111 @@ func TestPanicGeneratesError(t *testing.T) {
 
 	if !foundPublishedError {
 		t.Fatalf("\t%s Execution did not publish an expected \"error\" message", failure)
+	}
+}
+
+// TestPrintStdout tests that data written to stdout publishes the same data in a "stdout" "stream" message.
+func TestPrintStdout(t *testing.T) {
+	cases := []struct {
+		Input  []string
+		Output []string
+	}{
+		{[]string{
+			`import "fmt"`,
+			"a := 1",
+			"fmt.Println(a)",
+		}, []string{"1\n"}},
+		{[]string{
+			"a = 2",
+			"fmt.Print(a)",
+		}, []string{"2"}},
+		{[]string{
+			`import "os"`,
+			`os.Stdout.WriteString("3")`,
+		}, []string{"3"}},
+		{[]string{
+			`fmt.Fprintf(os.Stdout, "%d\n", 4)`,
+		}, []string{"4\n"}},
+		{[]string{
+			`import "time"`,
+			"for i := 0; i < 3; i++ {",
+			"    fmt.Println(i)",
+			"    time.Sleep(500 * time.Millisecond)", // Stall to prevent prints from buffering into single message.
+			"}",
+		}, []string{"0\n", "1\n", "2\n"}},
+	}
+
+	t.Logf("Should produce stdout stream messages when writing to stdout")
+
+cases:
+	for k, tc := range cases {
+		// Give a progress report.
+		t.Logf("  Evaluating code snippet %d/%d.", k+1, len(cases))
+
+		// Get the result.
+		stdout, _ := testOutputStream(t, strings.Join(tc.Input, "\n"))
+
+		// Compare the result.
+		if len(stdout) != len(tc.Output) {
+			t.Errorf("\t%s Test case expected %d message(s) on stdout but got %d.", failure, len(tc.Output), len(stdout))
+			continue
+		}
+		for i, expected := range tc.Output {
+			if stdout[i] != expected {
+				t.Errorf("\t%s Test case returned unexpected messages on stdout.", failure)
+				continue cases
+			}
+		}
+		t.Logf("\t%s Returned the expected messages on stdout.", success)
+	}
+}
+
+// TestPrintStderr tests that data written to stderr publishes the same data in a "stderr" "stream" message.
+func TestPrintStderr(t *testing.T) {
+	cases := []struct {
+		Input  []string
+		Output []string
+	}{
+		{[]string{
+			`import "fmt"`,
+			`import "os"`,
+			"a := 1",
+			"fmt.Fprintln(os.Stderr, a)",
+		}, []string{"1\n"}},
+		{[]string{
+			`os.Stderr.WriteString("2")`,
+		}, []string{"2"}},
+		{[]string{
+			`import "time"`,
+			"for i := 0; i < 3; i++ {",
+			"    fmt.Fprintln(os.Stderr, i)",
+			"    time.Sleep(500 * time.Millisecond)", // Stall to prevent prints from buffering into single message.
+			"}",
+		}, []string{"0\n", "1\n", "2\n"}},
+	}
+
+	t.Logf("Should produce stderr stream messages when writing to stderr")
+
+cases:
+	for k, tc := range cases {
+		// Give a progress report.
+		t.Logf("  Evaluating code snippet %d/%d.", k+1, len(cases))
+
+		// Get the result.
+		_, stderr := testOutputStream(t, strings.Join(tc.Input, "\n"))
+
+		// Compare the result.
+		if len(stderr) != len(tc.Output) {
+			t.Errorf("\t%s Test case expected %d message(s) on stderr but got %d.", failure, len(tc.Output), len(stderr))
+			continue
+		}
+		for i, expected := range tc.Output {
+			if stderr[i] != expected {
+				t.Errorf("\t%s Test case returned unexpected messages on stderr.", failure)
+				continue cases
+			}
+		}
+		t.Logf("\t%s Returned the expected messages on stderr.", success)
 	}
 }
 
@@ -285,7 +396,7 @@ func (client *testJupyterClient) sendShellRequest(t *testing.T, request Composed
 
 // recvShellReply tries to read a reply message from the shell channel. It will timeout after the given
 // timeout delay. Upon error or timeout, recvShellReply will Fail the test.
-func (client *testJupyterClient) recvShellReply(t *testing.T, timeout time.Duration) (reply ComposedMsg) {
+func (client *testJupyterClient) recvShellReply(t *testing.T, timeout time.Duration) ComposedMsg {
 	t.Helper()
 
 	ch := make(chan ComposedMsg)
@@ -304,18 +415,21 @@ func (client *testJupyterClient) recvShellReply(t *testing.T, timeout time.Durat
 		ch <- msgParsed
 	}()
 
+	var reply ComposedMsg
+
 	select {
 	case reply = <-ch:
+		return reply
 	case <-time.After(timeout):
 		t.Fatalf("\t%s recvShellReply timed out", failure)
 	}
 
-	return
+	return reply
 }
 
 // recvIOSub tries to read a published message from the IOPub channel. It will timeout after the given
 // timeout delay. Upon error or timeout, recvIOSub will Fail the test.
-func (client *testJupyterClient) recvIOSub(t *testing.T, timeout time.Duration) (sub ComposedMsg) {
+func (client *testJupyterClient) recvIOSub(t *testing.T, timeout time.Duration) ComposedMsg {
 	t.Helper()
 
 	ch := make(chan ComposedMsg)
@@ -334,23 +448,24 @@ func (client *testJupyterClient) recvIOSub(t *testing.T, timeout time.Duration) 
 		ch <- msgParsed
 	}()
 
+	var sub ComposedMsg
 	select {
 	case sub = <-ch:
 	case <-time.After(timeout):
 		t.Fatalf("\t%s recvIOSub timed out", failure)
 	}
 
-	return
+	return sub
 }
 
 // performJupyterRequest preforms a request and awaits a reply on the shell channel. Additionally all messages on the
 // IOPub channel between the opening 'busy' messages and closing 'idle' message are captured and returned. The request
 // will timeout after the given timeout delay. Upon error or timeout, request will Fail the test.
-func (client *testJupyterClient) performJupyterRequest(t *testing.T, request ComposedMsg, timeout time.Duration) (reply ComposedMsg, pub []ComposedMsg) {
+func (client *testJupyterClient) performJupyterRequest(t *testing.T, request ComposedMsg, timeout time.Duration) (ComposedMsg, []ComposedMsg) {
 	t.Helper()
 
 	client.sendShellRequest(t, request)
-	reply = client.recvShellReply(t, timeout)
+	reply := client.recvShellReply(t, timeout)
 
 	// Read the expected 'busy' message and ensure it is in fact, a 'busy' message.
 	subMsg := client.recvIOSub(t, 1*time.Second)
@@ -362,6 +477,8 @@ func (client *testJupyterClient) performJupyterRequest(t *testing.T, request Com
 	if execState != kernelBusy {
 		t.Fatalf("\t%s Expected a 'busy' status message but got '%s'", failure, execState)
 	}
+
+	var pub []ComposedMsg
 
 	// Read messages from the IOPub channel until an 'idle' message is received.
 	for {
@@ -384,7 +501,41 @@ func (client *testJupyterClient) performJupyterRequest(t *testing.T, request Com
 		pub = append(pub, subMsg)
 	}
 
-	return
+	return reply, pub
+}
+
+// executeCode creates an execute request for the given code and preforms the request. It returns the content of the
+// reply as well as all of the messages captured from the IOPub channel during the execution.
+func (client *testJupyterClient) executeCode(t *testing.T, code string) (map[string]interface{}, []ComposedMsg) {
+	t.Helper()
+
+	// Create a message.
+	request, err := NewMsg("execute_request", ComposedMsg{})
+	if err != nil {
+		t.Fatalf("\t%s NewMsg: %s", failure, err)
+	}
+
+	// Fill in remaining header information.
+	request.Header.Session = sessionID
+	request.Header.Username = "KernelTester"
+
+	// Fill in Metadata.
+	request.Metadata = make(map[string]interface{})
+
+	// Fill in content.
+	content := make(map[string]interface{})
+	content["code"] = code
+	content["silent"] = false
+	request.Content = content
+
+	// Make the request.
+	reply, pub := client.performJupyterRequest(t, request, 10*time.Second)
+
+	// Ensure the reply is an execute_reply and extract the content from the reply.
+	assertMsgTypeEquals(t, reply, "execute_reply")
+	content = getMsgContentAsJSONObject(t, reply)
+
+	return content, pub
 }
 
 // assertMsgTypeEquals is a test helper that fails the test if the message header's MsgType is not the
@@ -446,4 +597,34 @@ func getJSONObject(t *testing.T, jsonObjectName string, content map[string]inter
 	}
 
 	return value
+}
+
+// testOutputStream is a test helper that collects "stream" messages upon executing the codeIn.
+func testOutputStream(t *testing.T, codeIn string) ([]string, []string) {
+	t.Helper()
+
+	client, closeClient := newTestJupyterClient(t)
+	defer closeClient()
+
+	_, pub := client.executeCode(t, codeIn)
+
+	var stdout, stderr []string
+	for _, pubMsg := range pub {
+		if pubMsg.Header.MsgType == "stream" {
+			content := getMsgContentAsJSONObject(t, pubMsg)
+			streamType := getString(t, "content", content, "name")
+			streamData := getString(t, "content", content, "text")
+
+			switch streamType {
+			case StreamStdout:
+				stdout = append(stdout, streamData)
+			case StreamStderr:
+				stderr = append(stderr, streamData)
+			default:
+				t.Fatalf("Unknown stream type '%s'", streamType)
+			}
+		}
+	}
+
+	return stdout, stderr
 }
