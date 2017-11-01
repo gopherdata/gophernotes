@@ -74,7 +74,7 @@ type kernelInfo struct {
 	HelpLinks             []helpLink         `json:"help_links"`
 }
 
-// shutdownReply encodes a boolean indication of stutdown/restart.
+// shutdownReply encodes a boolean indication of shutdown/restart.
 type shutdownReply struct {
 	Restart bool `json:"restart"`
 }
@@ -113,11 +113,12 @@ func runKernel(connectionFile string) {
 		log.Fatal(err)
 	}
 
-	// channelsWG waits for all channel handlers to shutdown.
-	var channelsWG sync.WaitGroup
+	// TODO connect all channel handlers to a WaitGroup to ensure shutdown before returning from runKernel.
 
 	// Start up the heartbeat handler.
-	shutdownHeartbeat := runHeartbeat(sockets.HBSocket, &channelsWG)
+	startHeartbeat(sockets.HBSocket, &sync.WaitGroup{})
+
+	// TODO gracefully shutdown the heartbeat handler on kernel shutdown by closing the chan returned by startHeartbeat.
 
 	poller := zmq.NewPoller()
 	poller.Add(sockets.ShellSocket, zmq.POLLIN)
@@ -129,7 +130,6 @@ func runKernel(connectionFile string) {
 
 	// Start a message receiving loop.
 	for {
-
 		polled, err := poller.Poll(-1)
 		if err != nil {
 			log.Fatal(err)
@@ -177,12 +177,6 @@ func runKernel(connectionFile string) {
 			}
 		}
 	}
-
-	// Request that the heartbeat channel handler be shutdown.
-	shutdownHeartbeat()
-
-	// Wait for the channel handlers to finish shutting down.
-	channelsWG.Wait()
 }
 
 // prepareSockets sets up the ZMQ sockets through which the kernel
@@ -198,26 +192,36 @@ func prepareSockets(connInfo ConnectionInfo) (SocketGroup, error) {
 	// Initialize the socket group.
 	var sg SocketGroup
 
+	// Create the shell socket, a request-reply socket that may receive messages from multiple frontend for
+	// code execution, introspection, auto-completion, etc.
 	sg.ShellSocket, err = context.NewSocket(zmq.ROUTER)
 	if err != nil {
 		return sg, err
 	}
 
+	// Create the control socket. This socket is a duplicate of the shell socket where messages on this channel
+	// should jump ahead of queued messages on the shell socket.
 	sg.ControlSocket, err = context.NewSocket(zmq.ROUTER)
 	if err != nil {
 		return sg, err
 	}
 
+	// Create the stdin socket, a request-reply socket used to request user input from a front-end. This is analogous
+	// to a standard input stream.
 	sg.StdinSocket, err = context.NewSocket(zmq.ROUTER)
 	if err != nil {
 		return sg, err
 	}
 
+	// Create the iopub socket, a publisher for broadcasting data like stdout/stderr output, displaying execution
+	// results or errors, kernel status, etc. to connected subscribers.
 	sg.IOPubSocket, err = context.NewSocket(zmq.PUB)
 	if err != nil {
 		return sg, err
 	}
 
+	// Create the heartbeat socket, a request-reply socket that only allows alternating recv-send (request-reply)
+	// calls. It should echo the byte strings it receives to let the requester know the kernel is still alive.
 	sg.HBSocket, err = context.NewSocket(zmq.REP)
 	if err != nil {
 		return sg, err
@@ -279,6 +283,7 @@ func sendKernelInfo(receipt msgReceipt) error {
 // handleExecuteRequest runs code from an execute_request method,
 // and sends the various reply messages.
 func handleExecuteRequest(ir *classic.Interp, receipt msgReceipt) error {
+
 	// Extract the data from the request.
 	reqcontent := receipt.Msg.Content.(map[string]interface{})
 	code := reqcontent["code"].(string)
@@ -382,6 +387,7 @@ func handleExecuteRequest(ir *classic.Interp, receipt msgReceipt) error {
 // doEval evaluates the code in the interpreter. This function captures an uncaught panic
 // as well as the values of the last statement/expression.
 func doEval(ir *classic.Interp, code string) (_ []interface{}, err error) {
+
 	// Capture a panic from the evaluation if one occurs and store it in the `err` return parameter.
 	defer func() {
 		if r := recover(); r != nil {
@@ -394,11 +400,14 @@ func doEval(ir *classic.Interp, code string) (_ []interface{}, err error) {
 
 	// Prepare and perform the multiline evaluation.
 	env := ir.Env
+
 	// Don't show the gomacro prompt.
 	env.Options &^= base.OptShowPrompt
+
 	// Don't swallow panics as they are recovered above and handled with a Jupyter `error` message instead.
 	env.Options &^= base.OptTrapPanic
-	// Reset the error line so that error messages correspond to the lines from the cell
+
+	// Reset the error line so that error messages correspond to the lines from the cell.
 	env.Line = 0
 
 	// Parse the input code (and don't preform gomacro's macroexpansion).
@@ -425,7 +434,7 @@ func doEval(ir *classic.Interp, code string) (_ []interface{}, err error) {
 	result, results := ir.EvalAst(src)
 
 	// If the source ends with an expression, then the result of the execution is the value of the expression. In the
-	// event that all return values are nil, then the
+	// event that all return values are nil, the result is also nil.
 	if srcEndsWithExpr {
 		// `len(results) == 0` implies a single result stored in `result`.
 		if len(results) == 0 {
@@ -472,11 +481,11 @@ func handleShutdownRequest(receipt msgReceipt) {
 	os.Exit(0)
 }
 
-// runHeartbeat starts a go-routine for handling heartbeat ping messages sent over the given `hbSocket`. The `wg`'s
-// `Done` method is invoked after the thread is completely shutdown. To request a shutdown the returned `func()` can
-// be called.
-func runHeartbeat(hbSocket *zmq.Socket, wg *sync.WaitGroup) func() {
-	quit := make(chan bool)
+// startHeartbeat starts a go-routine for handling heartbeat ping messages sent over the given `hbSocket`. The `wg`'s
+// `Done` method is invoked after the thread is completely shutdown. To request a shutdown the returned `shutdown` channel
+// can be closed.
+func startHeartbeat(hbSocket *zmq.Socket, wg *sync.WaitGroup) (shutdown chan struct{}) {
+	quit := make(chan struct{})
 
 	// Start the handler that will echo any received messages back to the sender.
 	wg.Add(1)
@@ -507,8 +516,7 @@ func runHeartbeat(hbSocket *zmq.Socket, wg *sync.WaitGroup) func() {
 					}
 
 					// Send the received byte string back to let the front-end know that the kernel is alive.
-					_, err = hbSocket.SendBytes(pingMsg, 0)
-					if err != nil {
+					if _, err = hbSocket.SendBytes(pingMsg, 0); err != nil {
 						log.Printf("Error sending heartbeat pong bytes: %b\n", err)
 					}
 				}
@@ -516,8 +524,5 @@ func runHeartbeat(hbSocket *zmq.Socket, wg *sync.WaitGroup) func() {
 		}
 	}()
 
-	// Wrap the quit channel in a function that writes `true` to the channel to shutdown the handler.
-	return func() {
-		quit <- true
-	}
+	return quit
 }
