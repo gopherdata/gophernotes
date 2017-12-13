@@ -1,0 +1,17 @@
+{
+  "@context": "https://raw.githubusercontent.com/codemeta/codemeta/master/codemeta.jsonld",
+  "@type": "Code",
+  "author": [
+
+  ],
+  "identifier": "",
+  "codeRepository": "https://github.com/gopherdata/gophernotes",
+  "datePublished": "2017-12-13",
+  "dateModified": "2017-12-13",
+  "dateCreated": "2017-12-13",
+  "description": "The Go kernel for Jupyter notebooks and nteract. ",
+  "keywords": "go, jupyter, nteract, golang, data science",
+  "license": "GPL v3.0",
+  "title": "gophernotes",
+  "version": "v1.0.0-RC"
+}
