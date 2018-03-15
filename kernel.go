@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"reflect"
 	"runtime"
 	"sync"
 	"time"
@@ -344,6 +345,10 @@ func handleExecuteRequest(ir *classic.Interp, receipt msgReceipt) error {
 		jupyterStdErr := JupyterStreamWriter{StreamStderr, &receipt}
 		io.Copy(&jupyterStdErr, rErr)
 	}()
+
+	// Inject the display function into the environment
+	ir.Binds.Ensure().Set("Display", reflect.ValueOf(receipt.display))
+	//TODO include the runtime.go in the kernel space somehow. Get all exported members?
 
 	vals, executionErr := doEval(ir, code)
 

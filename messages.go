@@ -65,7 +65,7 @@ func WireMsgToComposedMsg(msgparts [][]byte, signkey []byte) (ComposedMsg, [][]b
 	var msg ComposedMsg
 	if len(signkey) != 0 {
 		mac := hmac.New(sha256.New, signkey)
-		for _, msgpart := range msgparts[i+2 : i+6] {
+		for _, msgpart := range msgparts[i+2: i+6] {
 			mac.Write(msgpart)
 		}
 		signature := make([]byte, hex.DecodedLen(len(msgparts[i+1])))
@@ -211,6 +211,20 @@ func newTextBundledMIMEData(value string) bundledMIMEData {
 	return bundledMIMEData{
 		"text/plain": value,
 	}
+}
+
+func (receipt *msgReceipt) PublishDisplayData(data bundledMIMEData, meta, transient map[string]interface{}) error {
+	return receipt.Publish("display_data",
+		struct {
+			Data      bundledMIMEData        `json:"data"`
+			Metadata  map[string]interface{} `json:"metadata"`
+			Transient map[string]interface{} `json:"transient,omitempty"`
+		}{
+			Data:      data,
+			Metadata:  meta,
+			Transient: transient,
+		},
+	)
 }
 
 // PublishKernelStatus publishes a status message notifying front-ends of the state the kernel is in. Supports
