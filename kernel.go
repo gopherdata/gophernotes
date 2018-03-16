@@ -15,7 +15,7 @@ import (
 
 	"github.com/cosmos72/gomacro/ast2"
 	"github.com/cosmos72/gomacro/base"
-	"github.com/cosmos72/gomacro/classic"
+	interp "github.com/cosmos72/gomacro/fast"
 	zmq "github.com/pebbe/zmq4"
 )
 
@@ -88,12 +88,12 @@ const (
 // runKernel is the main entry point to start the kernel.
 func runKernel(connectionFile string) {
 
-	// Set up the "Session" with the replpkg.
-	ir := classic.New()
+	// Create a new interpreter for evaluating notebook code.
+	ir := interp.New()
 
 	// Throw out the error/warning messages that gomacro outputs writes to these streams.
-	ir.Stdout = ioutil.Discard
-	ir.Stderr = ioutil.Discard
+	ir.Comp.Stdout = ioutil.Discard
+	ir.Comp.Stderr = ioutil.Discard
 
 	// Parse the connection info.
 	var connInfo ConnectionInfo
@@ -242,7 +242,7 @@ func prepareSockets(connInfo ConnectionInfo) (SocketGroup, error) {
 }
 
 // handleShellMsg responds to a message on the shell ROUTER socket.
-func handleShellMsg(ir *classic.Interp, receipt msgReceipt) {
+func handleShellMsg(ir *interp.Interp, receipt msgReceipt) {
 	switch receipt.Msg.Header.MsgType {
 	case "kernel_info_request":
 		if err := sendKernelInfo(receipt); err != nil {
@@ -282,7 +282,7 @@ func sendKernelInfo(receipt msgReceipt) error {
 
 // handleExecuteRequest runs code from an execute_request method,
 // and sends the various reply messages.
-func handleExecuteRequest(ir *classic.Interp, receipt msgReceipt) error {
+func handleExecuteRequest(ir *interp.Interp, receipt msgReceipt) error {
 
 	// Extract the data from the request.
 	reqcontent := receipt.Msg.Content.(map[string]interface{})
@@ -386,7 +386,7 @@ func handleExecuteRequest(ir *classic.Interp, receipt msgReceipt) error {
 
 // doEval evaluates the code in the interpreter. This function captures an uncaught panic
 // as well as the values of the last statement/expression.
-func doEval(ir *classic.Interp, code string) (_ []interface{}, err error) {
+func doEval(ir *interp.Interp, code string) (val []interface{}, err error) {
 
 	// Capture a panic from the evaluation if one occurs and store it in the `err` return parameter.
 	defer func() {
@@ -399,39 +399,41 @@ func doEval(ir *classic.Interp, code string) (_ []interface{}, err error) {
 	}()
 
 	// Prepare and perform the multiline evaluation.
-	env := ir.Env
+	compiler := ir.Comp
 
 	// Don't show the gomacro prompt.
-	env.Options &^= base.OptShowPrompt
+	compiler.Options &^= base.OptShowPrompt
 
 	// Don't swallow panics as they are recovered above and handled with a Jupyter `error` message instead.
-	env.Options &^= base.OptTrapPanic
+	compiler.Options &^= base.OptTrapPanic
 
 	// Reset the error line so that error messages correspond to the lines from the cell.
-	env.Line = 0
+	compiler.Line = 0
 
 	// Parse the input code (and don't preform gomacro's macroexpansion).
-	src := ir.ParseOnly(code)
+	// These may panic but this will be recovered by the deferred recover() above so that the error
+	// may be returned instead.
+	nodes := compiler.ParseBytes([]byte(code))
+	srcAst := ast2.AnyToAst(nodes, "doEval")
 
-	if src == nil {
+	// If there is no srcAst then we must be evaluating nothing. The result must be nil then.
+	if srcAst == nil {
 		return nil, nil
 	}
 
-	// Check if the last node is an expression.
+	// Check if the last node is an expression. If the last node is not an expression then nothing
+	// is returned as a value. For example evaluating a function declaration shouldn't return a value but
+	// just have the side effect of declaring the function.
 	var srcEndsWithExpr bool
-
-	// If the parsed ast is a single node, check if the node implements `ast.Expr`. Otherwise if the is multiple
-	// nodes then just check if the last one is an expression. These are currently the 2 cases to consider from
-	// gomacro's `ParseOnly`.
-	if srcAstWithNode, ok := src.(ast2.AstWithNode); ok {
-		_, srcEndsWithExpr = srcAstWithNode.Node().(ast.Expr)
-	} else if srcNodeSlice, ok := src.(ast2.NodeSlice); ok {
-		nodes := srcNodeSlice.X
+	if len(nodes) > 0 {
 		_, srcEndsWithExpr = nodes[len(nodes)-1].(ast.Expr)
 	}
 
+	// Compile the ast.
+	compiledSrc := ir.CompileAst(srcAst)
+
 	// Evaluate the code.
-	result, results := ir.EvalAst(src)
+	result, results := ir.RunExpr(compiledSrc)
 
 	// If the source ends with an expression, then the result of the execution is the value of the expression. In the
 	// event that all return values are nil, the result is also nil.
