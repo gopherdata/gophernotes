@@ -243,6 +243,17 @@ func prepareSockets(connInfo ConnectionInfo) (SocketGroup, error) {
 
 // handleShellMsg responds to a message on the shell ROUTER socket.
 func handleShellMsg(ir *interp.Interp, receipt msgReceipt) {
+	// Tell the front-end that the kernel is working and when finished notify the
+	// front-end that the kernel is idle again.
+	if err := receipt.PublishKernelStatus(kernelBusy); err != nil {
+		log.Printf("Error publishing kernel status 'busy': %v\n", err)
+	}
+	defer func() {
+		if err := receipt.PublishKernelStatus(kernelIdle); err != nil {
+			log.Printf("Error publishing kernel status 'idle': %v\n", err)
+		}
+	}()
+
 	switch receipt.Msg.Header.MsgType {
 	case "kernel_info_request":
 		if err := sendKernelInfo(receipt); err != nil {
@@ -296,17 +307,6 @@ func handleExecuteRequest(ir *interp.Interp, receipt msgReceipt) error {
 	// Prepare the map that will hold the reply content.
 	content := make(map[string]interface{})
 	content["execution_count"] = ExecCounter
-
-	// Tell the front-end that the kernel is working and when finished notify the
-	// front-end that the kernel is idle again.
-	if err := receipt.PublishKernelStatus(kernelBusy); err != nil {
-		log.Printf("Error publishing kernel status 'busy': %v\n", err)
-	}
-	defer func() {
-		if err := receipt.PublishKernelStatus(kernelIdle); err != nil {
-			log.Printf("Error publishing kernel status 'idle': %v\n", err)
-		}
-	}()
 
 	// Tell the front-end what the kernel is about to execute.
 	if err := receipt.PublishExecutionInput(ExecCounter, code); err != nil {
