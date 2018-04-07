@@ -445,13 +445,13 @@ func doEval(ir *interp.Interp, code string) (val []interface{}, err error) {
 
 		// Count the number of non-nil values in the output. If they are all nil then the output is skipped.
 		nonNilCount := 0
-		var values []interface{}
-		for _, result := range results {
+		values := make([]interface{}, len(results))
+		for i, result := range results {
 			val := base.ValueInterface(result)
 			if val != nil {
 				nonNilCount++
 			}
-			values = append(values, val)
+			values[i] = val
 		}
 
 		if nonNilCount > 0 {
