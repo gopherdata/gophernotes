@@ -347,8 +347,6 @@ func handleExecuteRequest(ir *interp.Interp, receipt msgReceipt) error {
 
 	vals, executionErr := doEval(ir, code)
 
-	//TODO if value is a certain type like image then display it instead
-
 	// Close and restore the streams.
 	wOut.Close()
 	os.Stdout = oldStdout
@@ -360,6 +358,9 @@ func handleExecuteRequest(ir *interp.Interp, receipt msgReceipt) error {
 	writersWG.Wait()
 
 	if executionErr == nil {
+		// if one or more value is image.Image, display it instead
+		vals = publishImages(vals, receipt)
+
 		content["status"] = "ok"
 		content["user_expressions"] = make(map[string]string)
 

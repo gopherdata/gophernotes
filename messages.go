@@ -269,6 +269,21 @@ func (receipt *msgReceipt) PublishExecutionError(err string, trace []string) err
 	)
 }
 
+// PublishDisplayData publishes a single image.
+func (receipt *msgReceipt) PublishDisplayData(data, metadata bundledMIMEData) error {
+	return receipt.Publish("display_data",
+		struct {
+			Data      bundledMIMEData `json:"data"`
+			Metadata  bundledMIMEData `json:"metadata"`
+			Transient bundledMIMEData `json:"transient"`
+		}{
+			Data:      data,
+			Metadata:  metadata,
+			Transient: make(bundledMIMEData),
+		},
+	)
+}
+
 const (
 	// StreamStdout defines the stream name for standard out on the front-end. It
 	// is used in `PublishWriteStream` to specify the stream to write to.
