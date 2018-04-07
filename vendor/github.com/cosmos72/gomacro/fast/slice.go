@@ -28,8 +28,6 @@ package fast
 import (
 	"go/ast"
 	r "reflect"
-
-	xr "github.com/cosmos72/gomacro/xreflect"
 )
 
 // SliceExpr compiles slice[lo:hi] and slice[lo:hi:max]
@@ -143,7 +141,7 @@ func (c *Comp) slice2(node *ast.SliceExpr, e, lo, hi *Expr) *Expr {
 				}
 			}
 		}
-		tout := xr.SliceOf(t.Elem())
+		tout := c.Universe.SliceOf(t.Elem())
 		return exprX1(tout, fun)
 	}
 	c.Errorf("cannot slice %v: %v", t, node)
@@ -265,7 +263,7 @@ func (c *Comp) slice3(node *ast.SliceExpr, e, lo, hi, max *Expr) *Expr {
 				return obj.Slice3(lo, hi, max)
 			}
 		}
-		tout := xr.SliceOf(t.Elem())
+		tout := c.Universe.SliceOf(t.Elem())
 		return exprX1(tout, fun)
 	}
 	c.Errorf("cannot slice %v: %v", t, node)

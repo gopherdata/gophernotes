@@ -17,7 +17,7 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/lgpl>.
  *
  *
- * switch.go
+ * switch_type.go
  *
  *  Created on May 06, 2017
  *      Author Massimiliano Ghilardi
@@ -63,7 +63,7 @@ func (seen *typecaseHelper) add(c *Comp, t xr.Type, entry typecaseEntry) {
 	}
 	entry.Type = t
 	seen.TypeMap.Set(gtype, entry)
-	if t.Kind() == r.Interface {
+	if t != nil && t.Kind() == r.Interface {
 		seen.AllConcrete = false
 	} else if seen.AllConcrete {
 		seen.ConcreteMap.Set(gtype, entry)
@@ -102,7 +102,7 @@ func (c *Comp) TypeSwitch(node *ast.TypeSwitchStmt, labels []string) {
 	// just like Comp.Switch, we cannot invoke tagexpr.Fun() multiple times because
 	// side effects must be applied only once!
 	// typeswitchTag saves the result of tagexpr.Fun() in a runtime bind
-	// and returns the bind
+	// and returns the bind.
 	bind := c.typeswitchTag(tagexpr)
 
 	if node.Body != nil {
@@ -194,7 +194,14 @@ func (c *Comp) typeswitchNode(stmt ast.Stmt) (ast.Expr, string) {
 // finally returns another expression that retrieves the expression value
 // with its concrete type
 func (c *Comp) typeswitchTag(e *Expr) *Bind {
-	bind := c.AddBind("", VarBind, e.Type) // e.Type must be an interface type...
+	bind := c.AddBind("", VarBind, e.Type)               // e.Type must be an interface type...
+	tbind := c.AddBind("", VarBind, c.TypeOfInterface()) // no need to store as xr.Type
+	if tbind.Desc.Index() != bind.Desc.Index()+1 {
+		c.Errorf("internal error: consecutive binds have non-consecutive indexes %d and %d",
+			bind.Desc.Index()+1, tbind.Desc.Index())
+	}
+
+	extractor := c.extractor(e.Type)
 
 	// c.Debugf("typeswitchTag: allocated bind %v", bind)
 	switch bind.Desc.Class() {
@@ -205,10 +212,11 @@ func (c *Comp) typeswitchTag(e *Expr) *Bind {
 		index := bind.Desc.Index()
 		init := e.AsX1()
 		c.append(func(env *Env) (Stmt, *Env) {
-			v := r.ValueOf(init(env).Interface()) // extract concrete type
+			v, xt := extractor(init(env)) // extract value with concrete type
 			// Debugf("typeswitchTag = %v <%v>", v, ValueType(v))
 			// no need to create a settable reflect.Value
 			env.Binds[index] = v
+			env.Binds[index+1] = r.ValueOf(xt)
 			env.IP++
 			return env.Code[env.IP], env
 		})
@@ -225,15 +233,19 @@ func (c *Comp) typeswitchGotoMap(bind *Bind, seen *typecaseHelper, ip int) {
 	if seen.ConcreteMap.Len() <= 1 {
 		return
 	}
-	m := make(map[r.Type]int) // FIXME this breaks on types declared in the interpreter
+	m := make(map[r.Type]int)
 	seen.ConcreteMap.Iterate(func(k types.Type, v interface{}) {
 		entry := v.(typecaseEntry)
 		m[entry.Type.ReflectType()] = entry.IP
 	})
+	if len(m) != seen.ConcreteMap.Len() {
+		// one or more interpreted types are implemented by the same reflect.Type.
+		// cannot optimize typeswitch based on reflect.Type only.
+		return
+	}
 	idx := bind.Desc.Index()
 
 	stmt := func(env *Env) (Stmt, *Env) {
-		// FIXME this breaks on types declared in the interpreter
 		var rtype r.Type
 		if v := env.Binds[idx]; v.IsValid() {
 			rtype = v.Type() // concrete reflect.Type already extracted by typeswitchTag
@@ -288,40 +300,87 @@ func (c *Comp) typeswitchCase(node *ast.CaseClause, varname string, bind *Bind, 
 		t := ts[0]
 		rtype := rtypes[0]
 		if t == nil {
+			// case nil:
 			stmt = func(env *Env) (Stmt, *Env) {
 				v := env.Binds[idx]
 				// Debugf("typeswitchCase: comparing %v <%v> against nil type", v, ValueType(v))
 				var ip int
-				if !v.IsValid() {
-					ip = env.IP + 1
-				} else {
+				if v.IsValid() {
 					ip = iend
+				} else {
+					ip = env.IP + 1
+				}
+				env.IP = ip
+				return env.Code[ip], env
+			}
+		} else if t.Kind() == r.Interface && xr.IsEmulatedInterface(t) {
+			// case emulated_interface:
+			stmt = func(env *Env) (Stmt, *Env) {
+				v := env.Binds[idx]
+				// Debugf("typeswitchCase: comparing %v <%v> against interface type %v", v, ValueType(v), rtype)
+				ip := iend
+				if v.IsValid() {
+					// rtype may be an interpreted type:
+					// extract the concrete xr.Type and use it
+					xtv := env.Binds[idx+1]
+					if xtv.IsValid() && !xtv.IsNil() {
+						xt := xtv.Interface().(xr.Type)
+						if xt.Implements(t) {
+							ip = env.IP + 1
+							// need the compiler at run-time :(
+							conv := c.converterToEmulatedInterface(xt, t)
+							env.Binds[idx] = conv(v)
+						}
+					}
 				}
 				env.IP = ip
 				return env.Code[ip], env
 			}
 		} else if t.Kind() == r.Interface {
+			// case interface:
 			stmt = func(env *Env) (Stmt, *Env) {
 				v := env.Binds[idx]
 				// Debugf("typeswitchCase: comparing %v <%v> against interface type %v", v, ValueType(v), rtype)
-				var ip int
-				if v.IsValid() && v.Type().Implements(rtype) {
-					ip = env.IP + 1
-				} else {
-					ip = iend
+				ip := iend
+				if v.IsValid() {
+					if v.Type().Implements(rtype) {
+						ip = env.IP + 1
+					} else {
+						// rtype may be an interpreted type:
+						// extract the concrete xr.Type and use it
+						xtv := env.Binds[idx+1]
+						if xtv.IsValid() && !xtv.IsNil() {
+							xt := xtv.Interface().(xr.Type)
+							if xt.Implements(t) {
+								ip = env.IP + 1
+								// need the compiler at run-time :(
+								conv := c.converterToProxy(xt, t)
+								env.Binds[idx] = conv(v)
+							}
+						}
+					}
 				}
 				env.IP = ip
 				return env.Code[ip], env
 			}
 		} else {
+			// case concrete_type:
 			stmt = func(env *Env) (Stmt, *Env) {
 				v := env.Binds[idx]
-				// Debugf("typeswitchCase: comparing %v <%v> against concrete type %v", v, ValueType(v), rtype)
-				var ip int
+				ip := iend
 				if v.IsValid() && v.Type() == rtype {
-					ip = env.IP + 1
-				} else {
-					ip = iend
+					// rtype may be an interpreted type:
+					// extract the concrete xr.Type and use it
+					xtv := env.Binds[idx+1]
+					if xtv.IsValid() && !xtv.IsNil() {
+						xt := xtv.Interface().(xr.Type)
+						if xt.IdenticalTo(t) {
+							ip = env.IP + 1
+						}
+					} else {
+						// cannot check exactly...
+						ip = env.IP + 1
+					}
 				}
 				env.IP = ip
 				return env.Code[ip], env

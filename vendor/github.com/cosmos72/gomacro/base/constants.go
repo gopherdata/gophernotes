@@ -31,14 +31,16 @@ import (
 
 type none struct{}
 
+// the following constants must match with github.com/cosmos72/gomacro/xreflect/gensym.go
 const (
-	StrGensymInterface = "\u0080"     // name of extra struct field needed by the interpreter when creating interface proxies
-	StrGensymPrivate   = "\u00AD"     // prefix to generate names for unexported struct fields
-	StrGensymEmbedded  = "\u00BB"     // prefix to generate names for embedded struct fields
-	StrGensym          = "\U000124AD" // prefix to generate names in macros - arbitrarily chosen U+124AD CUNEIFORM SIGN ERIN2 X - reasons:
-	// * accepted by Go compiler identifier name in source code
-	// * belongs to an ancient language no longer spoken, so hopefully low collision risk
-	// * outside Unicode basic place, so hopefully lower collision risk
+	StrGensymInterface = "\U0001202A" // name of extra struct field needed by the interpreter when creating interface proxies
+	StrGensymPrivate   = "\U00012038" // prefix to generate names for unexported struct fields
+	StrGensymEmbedded  = "\U00012039" // prefix to generate names for embedded struct fields
+	StrGensym          = "\U00012035" // prefix to generate names in macros
+	// the symbols above are chosen somewhat arbitrarily. Reasons:
+	// * accepted by Go compiler as identifier names in source code
+	// * belong to an ancient language no longer spoken, so hopefully low collision risk
+	// * outside Unicode basic plane, so hopefully lower collision risk
 	// * relatively simple glyph picture
 
 	MaxUint16 = ^uint16(0)
@@ -84,9 +86,6 @@ var (
 	TypeOfError       = r.TypeOf((*error)(nil)).Elem()
 	TypeOfDeferFunc   = r.TypeOf(func() {})
 	TypeOfReflectType = r.TypeOf((*r.Type)(nil)).Elem() // inception
-
-	TypeOfSliceOfByte      = r.TypeOf([]byte{})
-	TypeOfSliceOfInterface = r.TypeOf([]interface{}{})
 
 	TypeOfPtrInt   = r.TypeOf((*int)(nil))
 	TypeOfPtrInt8  = r.TypeOf((*int8)(nil))

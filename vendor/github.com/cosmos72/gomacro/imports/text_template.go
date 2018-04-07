@@ -24,12 +24,12 @@ func init() {
 		"ParseFiles":	ValueOf(template.ParseFiles),
 		"ParseGlob":	ValueOf(template.ParseGlob),
 		"URLQueryEscaper":	ValueOf(template.URLQueryEscaper),
-	},Types: map[string]Type{
+	}, Types: map[string]Type{
 		"ExecError":	TypeOf((*template.ExecError)(nil)).Elem(),
 		"FuncMap":	TypeOf((*template.FuncMap)(nil)).Elem(),
 		"Template":	TypeOf((*template.Template)(nil)).Elem(),
-	},Wrappers: map[string][]string{
+	}, Wrappers: map[string][]string{
 		"Template":	[]string{"Copy","ErrorContext",},
-	},
+	}, 
 	}
 }

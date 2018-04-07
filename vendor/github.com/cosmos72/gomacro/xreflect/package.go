@@ -35,14 +35,11 @@ func (v *Universe) loadPackage(path string) *Package {
 		// do not create unnamed packages
 		return nil
 	}
-	if pkg := v.Packages[path]; pkg != nil {
-		return pkg
-	}
-	// try to import the package first...
-	// slower, but creates the correct Typename objects for named types
+	// try the importer and its cache
 	if pkg := v.importPackage(path); pkg != nil {
 		return pkg
 	}
+	// no luck. create and return an empty Package
 	if v.Packages == nil {
 		v.Packages = make(map[string]*Package)
 	}

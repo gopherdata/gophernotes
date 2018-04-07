@@ -183,9 +183,8 @@ func (lit *Lit) ConstTo(t xr.Type) I {
 		return nil
 	}
 	// stricter than t == lit.Type
-	rfrom := r.TypeOf(value)
-	rto := t.ReflectType()
-	if rfrom == rto {
+	tfrom := lit.Type
+	if tfrom != nil && t != nil && tfrom.IdenticalTo(t) {
 		return value
 	}
 	switch x := value.(type) {
@@ -203,12 +202,13 @@ func (lit *Lit) ConstTo(t xr.Type) I {
 			// return lit.Value
 		}
 	}
-	if rfrom != nil && rto != nil && (rfrom.AssignableTo(rto) || rfrom.Implements(rto)) {
+	if tfrom != nil && t != nil && (tfrom.AssignableTo(t) || t.Kind() == r.Interface && tfrom.Implements(t)) {
 		lit.Type = t
-		lit.Value = r.ValueOf(value).Convert(rto).Interface()
+		// FIXME: use (*Comp).Converter(), requires a *Comp parameter
+		lit.Value = r.ValueOf(value).Convert(t.ReflectType()).Interface()
 		return lit.Value
 	}
-	Errorf("cannot convert typed constant %v <%v> to <%v>", value, r.TypeOf(value), t)
+	Errorf("cannot convert typed constant %v <%v> to <%v>%s", value, lit.Type, t, interfaceMissingMethod(lit.Type, t))
 	return nil
 }
 
@@ -238,7 +238,7 @@ again:
 		val = UnescapeString(obj.ExactString())
 	case r.Interface:
 		// this can happen too... for example in "var foo interface{} = 7"
-		// and it requites to convert the untyped constant to its default type.
+		// and it requires to convert the untyped constant to its default type.
 		// obviously, untyped constants can only implement empty interfaces
 		if t.NumMethod() == 0 {
 			t = untyp.DefaultType()
@@ -280,11 +280,11 @@ func (lit *Lit) DefaultType() xr.Type {
 func (untyp *UntypedLit) DefaultType() xr.Type {
 	switch untyp.Kind {
 	case r.Bool, r.Int32, r.Int, r.Uint, r.Float64, r.Complex128, r.String:
-		if universe := untyp.Universe; universe == nil {
-			Errorf("UntypedLit.DefaultType(): malformed untyped constant %v, has nil Universe!", untyp)
+		if basicTypes := untyp.BasicTypes; basicTypes == nil {
+			Errorf("UntypedLit.DefaultType(): malformed untyped constant %v, has nil BasicTypes!", untyp)
 			return nil
 		} else {
-			return universe.BasicTypes[untyp.Kind]
+			return (*basicTypes)[untyp.Kind]
 		}
 
 	default:
@@ -304,6 +304,9 @@ func (untyp *UntypedLit) extractNumber(src constant.Value, t xr.Type) interface{
 	switch src.Kind() {
 	case constant.Int:
 		n, exact = constant.Int64Val(src)
+		if !exact {
+			n, exact = constant.Uint64Val(src)
+		}
 	case constant.Float:
 		n, exact = constant.Float64Val(src)
 	case constant.Complex:
@@ -352,7 +355,7 @@ func convertLiteralCheckOverflow(src interface{}, to xr.Type) interface{} {
 			t1 := ValueType(v)
 			vback := vto.Convert(t1)
 			if src != vback.Interface() {
-				Errorf("constant %v overflows %v", src, to)
+				Errorf("constant %v overflows <%v>", src, to)
 				return nil
 			}
 		}
@@ -404,7 +407,7 @@ func (e *Expr) To(c *Comp, t xr.Type) {
 		e.ConstTo(t)
 		return
 	}
-	if xr.SameType(e.Type, t) {
+	if e.Type.IdenticalTo(t) {
 		return
 	}
 	if !e.Type.AssignableTo(t) {
@@ -441,7 +444,7 @@ func (e *Expr) To(c *Comp, t xr.Type) {
 			if !v.IsValid() {
 				v = zero
 			} else {
-				v = conv(v, rtype)
+				v = conv(v)
 			}
 			return v
 		}

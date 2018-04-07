@@ -116,9 +116,9 @@ Recurse:
 	}
 	out = in.New()
 	n := in.Size()
-	if outSlice, canAppend := out.(AstWithSlice); canAppend {
+	if outSlice, appendable := out.(AstWithSlice); appendable {
 		// New() returns zero-length slice... resize it
-		for i := 0; i < n; i++ {
+		for outSlice.Size() < n {
 			outSlice = outSlice.Append(nil)
 		}
 		out = outSlice
@@ -193,7 +193,7 @@ func (c *Comp) extractMacroCall(form Ast) Macro {
 	switch form := form.(type) {
 	case Ident:
 		sym := c.TryResolve(form.X.Name)
-		if sym != nil && sym.Bind.Desc.Class() == ConstBind && sym.Type.Kind() == r.Struct {
+		if sym != nil && sym.Bind.Desc.Class() == ConstBind && sym.Type != nil && sym.Type.Kind() == r.Struct {
 			switch value := sym.Value.(type) {
 			case Macro:
 				if c.Options&OptDebugMacroExpand != 0 {
@@ -223,8 +223,8 @@ func (c *Comp) MacroExpand1(in Ast) (out Ast, expanded bool) {
 	if debug {
 		c.Debugf("MacroExpand1: found list: %v", ins.Interface())
 	}
-	outs := ins.New().(AstWithSlice)
 	n := ins.Size()
+	outs := ins.New().(AstWithSlice)
 
 	// since macro calls are sequences of statements,
 	// we must scan the whole list,

@@ -84,21 +84,15 @@ func (v *Universe) makeinterface() Type {
 	t := wrap(&xtype{
 		kind:     reflect.Interface,
 		gtype:    types.NewInterface(nil, nil).Complete(),
-		rtype:    reflect.TypeOf((*interface{})(nil)).Elem(),
+		rtype:    rTypeOfInterface,
 		universe: v,
 	})
 	v.add(t)
 	return t
 }
 
-func (v *Universe) Init() *Universe {
-	if v.ThreadSafe {
-		defer un(lock(v))
-	}
-	return v.init()
-}
-
-func (v *Universe) init() *Universe {
+func NewUniverse() *Universe {
+	v := &Universe{}
 	v.BasicTypes = v.makebasictypes()
 	v.TypeOfError = v.makeerror()
 	v.TypeOfInterface = v.makeinterface()
@@ -108,22 +102,12 @@ func (v *Universe) init() *Universe {
 	return v
 }
 
-func NewUniverse() *Universe {
-	v := &Universe{}
-	return v.init()
-}
-
 const MaxDepth = int(^uint(0) >> 1)
 
 var (
-	universe = (&Universe{ThreadSafe: true}).Init()
-
-	reflectTypeOfInterfaceHeader = reflect.TypeOf(InterfaceHeader{})
+	rTypeOfInterface       = reflect.TypeOf((*interface{})(nil)).Elem()
+	rTypeOfInterfaceHeader = reflect.TypeOf(InterfaceHeader{})
 )
-
-func DefaultUniverse() *Universe {
-	return universe
-}
 
 // Bits returns the size of the type in bits.
 // It panics if the type's Kind is not one of the

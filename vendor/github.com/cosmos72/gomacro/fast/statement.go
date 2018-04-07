@@ -367,7 +367,7 @@ func (c *Comp) Go(node *ast.GoStmt) {
 
 	stmt := func(env *Env) (Stmt, *Env) {
 		// create a new Env to hold the new ThreadGlobals and (initially empty) Pool
-		env2 := NewEnv4Func(env, 0, 0)
+		env2 := newEnv4Func(env, 0, 0)
 		tg := env.ThreadGlobals
 		env2.ThreadGlobals = &ThreadGlobals{
 			FileEnv: tg.FileEnv,

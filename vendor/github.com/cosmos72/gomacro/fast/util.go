@@ -989,6 +989,110 @@ func funAsXV(fun I, t xr.Type) func(*Env) (r.Value, []r.Value) {
 	return nil
 }
 
+func (e *Expr) exprXVAsI() *Expr {
+	// Debugf("exprXVAsI() %v -> %v", e.Types, e.Type)
+	e.CheckX1()
+	if e.NumOut() <= 1 {
+		return e
+	}
+	fun := e.Fun.(func(*Env) (r.Value, []r.Value))
+	t := e.Type
+	var ret I
+	switch t.Kind() {
+	case r.Bool:
+		ret = func(env *Env) bool {
+			v, _ := fun(env)
+			return v.Bool()
+		}
+	case r.Int:
+		ret = func(env *Env) int {
+			v, _ := fun(env)
+			return int(v.Int())
+		}
+	case r.Int8:
+		ret = func(env *Env) int8 {
+			v, _ := fun(env)
+			return int8(v.Int())
+		}
+	case r.Int16:
+		ret = func(env *Env) int16 {
+			v, _ := fun(env)
+			return int16(v.Int())
+		}
+	case r.Int32:
+		ret = func(env *Env) int32 {
+			v, _ := fun(env)
+			return int32(v.Int())
+		}
+	case r.Int64:
+		ret = func(env *Env) int64 {
+			v, _ := fun(env)
+			return v.Int()
+		}
+	case r.Uint:
+		ret = func(env *Env) uint {
+			v, _ := fun(env)
+			return uint(v.Uint())
+		}
+	case r.Uint8:
+		ret = func(env *Env) uint8 {
+			v, _ := fun(env)
+			return uint8(v.Uint())
+		}
+	case r.Uint16:
+		ret = func(env *Env) uint16 {
+			v, _ := fun(env)
+			return uint16(v.Uint())
+		}
+	case r.Uint32:
+		ret = func(env *Env) uint32 {
+			v, _ := fun(env)
+			return uint32(v.Uint())
+		}
+	case r.Uint64:
+		ret = func(env *Env) uint64 {
+			v, _ := fun(env)
+			return v.Uint()
+		}
+	case r.Uintptr:
+		ret = func(env *Env) uintptr {
+			v, _ := fun(env)
+			return uintptr(v.Uint())
+		}
+	case r.Float32:
+		ret = func(env *Env) float32 {
+			v, _ := fun(env)
+			return float32(v.Float())
+		}
+	case r.Float64:
+		ret = func(env *Env) float64 {
+			v, _ := fun(env)
+			return v.Float()
+		}
+	case r.Complex64:
+		ret = func(env *Env) complex64 {
+			v, _ := fun(env)
+			return complex64(v.Complex())
+		}
+	case r.Complex128:
+		ret = func(env *Env) complex128 {
+			v, _ := fun(env)
+			return v.Complex()
+		}
+	case r.String:
+		ret = func(env *Env) string {
+			v, _ := fun(env)
+			return v.String()
+		}
+	default:
+		ret = func(env *Env) r.Value {
+			v, _ := fun(env)
+			return v
+		}
+	}
+	return exprFun(t, ret)
+}
+
 func (e *Expr) AsStmt() Stmt {
 	if e == nil || e.Const() {
 		return nil

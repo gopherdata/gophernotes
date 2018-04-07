@@ -40,6 +40,9 @@ type Types struct {
 
 type Universe struct {
 	Types
+	// FromReflectType() map of types under construction.
+	// v.addmethods() will be invoked on them once the topmost FromReflectType() finishes.
+	partialTypes    Types
 	ReflectTypes    map[reflect.Type]Type
 	BasicTypes      []Type
 	TypeOfInterface Type
@@ -48,6 +51,7 @@ type Universe struct {
 	Packages        map[string]*Package
 	Importer        types.ImporterFrom
 	RebuildDepth    int
+	DebugDepth      int
 	mutex           sync.Mutex
 	debugmutex      int
 	ThreadSafe      bool
@@ -71,7 +75,7 @@ func un(v *Universe) {
 }
 
 func (v *Universe) rebuild() bool {
-	return v.RebuildDepth >= 0
+	return v.RebuildDepth > 0
 }
 
 func (v *Universe) cache(rt reflect.Type, t Type) Type {
@@ -122,14 +126,34 @@ func (v *Universe) CachePackage(pkg *types.Package) {
 	v.cachePackage(pkg)
 }
 
+// cacheMissingPackage adds a nil entry to Universe.Packages, if an entry is not present already.
+// Used to cache failures of Importer.Import.
+func (v *Universe) cacheMissingPackage(path string) {
+	if _, cached := v.Packages[path]; cached || len(path) == 0 {
+		return
+	}
+	if v.Packages == nil {
+		v.Packages = make(map[string]*Package)
+	}
+	v.Packages[path] = nil
+}
+
 func (v *Universe) importPackage(path string) *Package {
+	cachepkg, cached := v.Packages[path]
+	if cachepkg != nil {
+		return cachepkg
+	}
 	if v.Importer == nil {
 		v.Importer = DefaultImporter()
 	}
 	pkg, err := v.Importer.Import(path)
 	if err != nil || pkg == nil {
-		// debugf("cannot find metadata to import package %q: %v\n\t%s", path, err, debug.Stack())
-		debugf("importer: cannot find package %q metadata, approximating it with reflection", path)
+		if !cached {
+			if v.debug() {
+				debugf("importer: cannot find package %q metadata, approximating it with reflection", path)
+			}
+			v.cacheMissingPackage(path)
+		}
 		return nil
 	}
 	// debugf("imported package %q", path)
@@ -139,14 +163,13 @@ func (v *Universe) importPackage(path string) *Package {
 
 func (v *Universe) namedTypeFromImport(rtype reflect.Type) Type {
 	t := v.namedTypeFromPackageCache(rtype)
-	if t != nil {
+	if unwrap(t) != nil {
 		return t
 	}
-	pkg := v.importPackage(rtype.PkgPath())
+	pkg := v.loadPackage(rtype.PkgPath())
 	if pkg == nil {
 		return nil
 	}
-
 	return v.namedTypeFromPackage(rtype, (*types.Package)(pkg))
 }
 

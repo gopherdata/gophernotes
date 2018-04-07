@@ -17,7 +17,7 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/lgpl>.
  *
  *
- * import.go
+ * a_package.go
  *
  *  Created on: Feb 28, 2017
  *      Author: Massimiliano Ghilardi

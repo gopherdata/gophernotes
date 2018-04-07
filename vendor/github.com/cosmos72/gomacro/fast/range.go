@@ -151,7 +151,7 @@ func (c *Comp) rangeMap(node *ast.RangeStmt, erange *Expr, jump *rangeJump) {
 
 	t := erange.Type
 	tkey, tval := t.Key(), t.Elem()
-	tkeyslice := xr.SliceOf(tkey)
+	tkeyslice := c.Universe.SliceOf(tkey)
 	rtkeyslice := tkeyslice.ReflectType()
 
 	// unnamed bind, contains map

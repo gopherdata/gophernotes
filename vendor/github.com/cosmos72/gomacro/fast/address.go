@@ -36,7 +36,6 @@ import (
 	"unsafe"
 
 	"github.com/cosmos72/gomacro/base"
-	xr "github.com/cosmos72/gomacro/xreflect"
 )
 
 func (c *Comp) AddressOf(node *ast.UnaryExpr) *Expr { return c.addressOf(node.X) }
@@ -1695,5 +1694,6 @@ func (va *Var) Address(maxdepth int) *Expr {
 			}
 		}
 	}
-	return &Expr{Lit: Lit{Type: xr.PtrTo(va.Type)}, Fun: ret}
+	u := va.Type.Universe()
+	return &Expr{Lit: Lit{Type: u.PtrTo(va.Type)}, Fun: ret}
 }

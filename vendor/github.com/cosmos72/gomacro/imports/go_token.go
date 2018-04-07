@@ -99,16 +99,16 @@ func init() {
 		"VAR":	ValueOf(token.VAR),
 		"XOR":	ValueOf(token.XOR),
 		"XOR_ASSIGN":	ValueOf(token.XOR_ASSIGN),
-	},Types: map[string]Type{
+	}, Types: map[string]Type{
 		"File":	TypeOf((*token.File)(nil)).Elem(),
 		"FileSet":	TypeOf((*token.FileSet)(nil)).Elem(),
 		"Pos":	TypeOf((*token.Pos)(nil)).Elem(),
 		"Position":	TypeOf((*token.Position)(nil)).Elem(),
 		"Token":	TypeOf((*token.Token)(nil)).Elem(),
-	},Untypeds: map[string]string{
+	}, Untypeds: map[string]string{
 		"HighestPrec":	"int:7",
 		"LowestPrec":	"int:0",
 		"UnaryPrec":	"int:6",
-	},
+	}, 
 	}
 }

@@ -28,44 +28,67 @@ package xreflect
 import (
 	"go/types"
 	"reflect"
+	// "runtime/debug"
+
+	"github.com/cosmos72/gomacro/typeutil"
 )
 
-func SameType(t, u Type) bool {
-	xnil := t == nil
-	ynil := u == nil
+func identicalType(t, u Type) bool {
+	xt := unwrap(t)
+	yt := unwrap(u)
+	xnil := xt == nil
+	ynil := yt == nil
 	if xnil || ynil {
 		return xnil == ynil
 	}
-	xt := unwrap(t)
-	yt := unwrap(u)
-	return xt == yt || xt.same(yt)
+	return xt == yt || xt.identicalTo(yt)
 }
 
-func (t *xtype) same(u *xtype) bool {
-	return types.IdenticalIgnoreTags(t.GoType(), u.GoType())
+func debugOnMismatchCache(gtype types.Type, rtype reflect.Type, cached Type) {
+	debugf("overwriting mismatched reflect.Type found in cache for type %v:\n\tnew reflect.Type: %v\n\told reflect.Type: %v",
+		gtype, rtype, cached.ReflectType()) //, debug.Stack())
+}
+
+func warnOnSuspiciousCache(t *xtype) {
+	// reflect cannot create new interface types or new named types: accept whatever we have.
+	// also, it cannot create unnamed structs containing unexported fields. again, accept whatever we have.
+	// instead complain on mismatch for non-interface, non-named types
+	rt := t.rtype
+	bad := !t.Named() && len(rt.Name()) != 0 && rt.Kind() != reflect.Interface && rt.Kind() != reflect.Struct
+	if !bad {
+		if t.kind != rt.Kind() && rt.Kind() == reflect.Interface {
+			tinterf := unwrap(t.Universe().TypeOfInterface)
+			bad = t.NumMethod() != 0 || tinterf != nil && (t.gunderlying() != tinterf.gtype || rt != tinterf.rtype)
+		}
+	}
+	if bad {
+		debugf("caching suspicious/incomplete type %v => %v", t.GoType(), t.ReflectType())
+	}
+}
+
+func (m *Types) clear() {
+	*m = Types{}
 }
 
 func (m *Types) add(t Type) {
-	if t.Kind() == reflect.Interface {
+	xt := unwrap(t)
+	warnOnSuspiciousCache(xt)
+	switch t.Kind() {
+	case reflect.Func:
+		// even function types can be named => they need SetUnderlying() before being complete
+		if !xt.needSetUnderlying() {
+			t.NumIn() // check consistency
+		}
+	case reflect.Interface:
 		rtype := t.ReflectType()
 		rkind := rtype.Kind()
 		if rkind != reflect.Interface && (rkind != reflect.Ptr || rtype.Elem().Kind() != reflect.Struct) {
-			errorf(t, "bug! inconsistent type <%v>: has kind = %s but its Type.Reflect() is %s\n\tinstead of interface or pointer-to-struct: <%v>", t, t.Kind(), rtype.Kind(), t.ReflectType())
+			errorf(t, "bug! inconsistent type <%v>: has kind = %s but its Type.Reflect() is %s\n\tinstead of interface or pointer-to-struct: <%v>",
+				t, t.Kind(), rtype.Kind(), t.ReflectType())
 		}
 	}
 	m.gmap.Set(t.GoType(), t)
 	// debugf("added type to cache: %v <%v> <%v>", t.Kind(), t.GoType(), t.ReflectType())
-}
-
-func (v *Universe) unique(t Type) Type {
-	gtype := t.GoType()
-	ret := v.Types.gmap.At(gtype)
-	if ret != nil {
-		// debugf("unique: found type in cache: %v for %v <%v> <%v>", ret, t.Kind(), gtype, t.ReflectType())
-		return ret.(Type)
-	}
-	v.add(t)
-	return t
 }
 
 // all unexported methods assume lock is already held
@@ -78,12 +101,12 @@ func (v *Universe) maketype3(kind reflect.Kind, gtype types.Type, rtype reflect.
 	ret := v.Types.gmap.At(gtype)
 	if ret != nil {
 		t := ret.(Type)
-		// debugf("found type in cache:\n\t    %v <%v> <%v>\n\tfor %v <%v> <%v>", t.Kind(), t.GoType(), t.ReflectType(), kind, gtype, rtype)
-		return t
-	}
-	if v.BasicTypes == nil {
-		// lazy creation of basic types
-		v.init()
+		if t.ReflectType() == rtype {
+			return t
+		}
+		if v.debug() {
+			debugOnMismatchCache(gtype, rtype, t)
+		}
 	}
 	t := wrap(&xtype{kind: kind, gtype: gtype, rtype: rtype, universe: v})
 	v.add(t)
@@ -140,25 +163,27 @@ func (t *xtype) Universe() *Universe {
 // Named returns whether the type is named.
 // It returns false for unnamed types.
 func (t *xtype) Named() bool {
-	switch t.gtype.(type) {
-	case *types.Basic, *types.Named:
-		return true
-	default:
-		return false
+	if t != nil {
+		switch t.gtype.(type) {
+		case *types.Basic, *types.Named:
+			return true
+		}
 	}
+	return false
 }
 
 // Name returns the type's name within its package.
 // It returns an empty string for unnamed types.
 func (t *xtype) Name() string {
-	switch gtype := t.gtype.(type) {
-	case *types.Basic:
-		return gtype.Name()
-	case *types.Named:
-		return gtype.Obj().Name()
-	default:
-		return ""
+	if t != nil {
+		switch gtype := t.gtype.(type) {
+		case *types.Basic:
+			return gtype.Name()
+		case *types.Named:
+			return gtype.Obj().Name()
+		}
 	}
+	return ""
 }
 
 // Pkg returns a named type's package, that is, the package where it was defined.
@@ -208,7 +233,7 @@ func (t *xtype) Size() uintptr {
 // String returns a string representation of a type.
 func (t *xtype) String() string {
 	if t == nil {
-		return "invalid type"
+		return "<nil>"
 	}
 	return t.gtype.String()
 }
@@ -220,8 +245,13 @@ func (t *xtype) Underlying() Type {
 }
 */
 
-func (t *xtype) underlying() types.Type {
+func (t *xtype) gunderlying() types.Type {
 	return t.gtype.Underlying()
+}
+
+// best-effort implementation of missing reflect.Type.Underlying()
+func (t *xtype) runderlying() reflect.Type {
+	return ReflectUnderlying(t.rtype)
 }
 
 // Kind returns the specific kind of the type.
@@ -238,18 +268,28 @@ func (t *xtype) Implements(u Type) bool {
 	if u.Kind() != reflect.Interface {
 		xerrorf(t, "Type.Implements of non-interface type: %v", u)
 	}
-	return types.Implements(t.gtype, u.GoType().Underlying().(*types.Interface))
+	return t.gtype == u.GoType() || types.Implements(t.gtype, u.GoType().Underlying().(*types.Interface))
+}
+
+// IdenticalTo reports whether the type is identical to type u.
+func (t *xtype) IdenticalTo(u Type) bool {
+	xu := unwrap(u)
+	return t == xu || t.identicalTo(xu)
+}
+
+func (t *xtype) identicalTo(u *xtype) bool {
+	return typeutil.Identical(t.GoType(), u.GoType())
 }
 
 // AssignableTo reports whether a value of the type is assignable to type u.
 func (t *xtype) AssignableTo(u Type) bool {
 	// debugf("AssignableTo: <%v> <%v>", t, u)
-	return types.AssignableTo(t.gtype, u.GoType())
+	return t.gtype == u.GoType() || types.AssignableTo(t.gtype, u.GoType())
 }
 
 // ConvertibleTo reports whether a value of the type is convertible to type u.
 func (t *xtype) ConvertibleTo(u Type) bool {
-	return types.ConvertibleTo(t.gtype, u.GoType())
+	return t.gtype == u.GoType() || types.ConvertibleTo(t.gtype, u.GoType())
 }
 
 // Comparable reports whether values of this type are comparable.

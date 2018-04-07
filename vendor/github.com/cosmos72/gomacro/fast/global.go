@@ -38,12 +38,12 @@ import (
 )
 
 // opaqueTypeOf returns an xr.Type with the same name and package as r.TypeOf(val) but without fields or methods
-func (g *CompThreadGlobals) opaqueType(rtype r.Type) xr.Type {
+func (g *CompGlobals) opaqueType(rtype r.Type) xr.Type {
 	if k := rtype.Kind(); k != r.Struct {
 		g.Errorf("internal error: unimplemented opaqueTypeOf for kind=%v, expecting kind=Struct", k)
 	}
 	v := g.Universe
-	t := v.NamedOf(rtype.Name(), "fast")
+	t := v.NamedOf(rtype.Name(), "fast", r.Struct)
 	t.SetUnderlying(v.TypeOf(struct{}{}))
 	t.UnsafeForceReflectType(rtype)
 	v.ReflectTypes[rtype] = t // also cache Type in g.Universe.ReflectTypes
@@ -55,9 +55,9 @@ func (g *CompThreadGlobals) opaqueType(rtype r.Type) xr.Type {
 
 // UntypedLit represents an untyped literal value, i.e. an untyped constant
 type UntypedLit struct {
-	Kind     r.Kind // default type. matches Obj.Kind() except for rune literals, where Kind == reflect.Int32
-	Obj      constant.Value
-	Universe *xr.Universe
+	Kind       r.Kind // default type. matches Obj.Kind() except for rune literals, where Kind == reflect.Int32
+	Obj        constant.Value
+	BasicTypes *[]xr.Type
 }
 
 var (
@@ -152,6 +152,34 @@ func (lit Lit) String() string {
 	}
 }
 
+// ================================= EFlags =================================
+
+// EFlags represents the flags of an expression
+type EFlags uint32
+
+const (
+	EIsNil EFlags = 1 << iota
+	EIsTypeAssert
+)
+
+func (f EFlags) IsNil() bool {
+	return f&EIsNil != 0
+}
+
+func MakeEFlag(flag bool, iftrue EFlags) EFlags {
+	if flag {
+		return iftrue
+	}
+	return 0
+}
+
+func EFlag4Value(value I) EFlags {
+	if value == nil {
+		return EIsNil
+	}
+	return 0
+}
+
 // ================================= Expr =================================
 
 // Expr represents an expression in the "compiler"
@@ -160,11 +188,11 @@ type Expr struct {
 	Types []xr.Type // in case the expression produces multiple values. if nil, use Lit.Type.
 	Fun   I         // function that evaluates the expression at runtime.
 	Sym   *Symbol   // in case the expression is a symbol
-	IsNil bool
+	EFlags
 }
 
 func (e *Expr) Const() bool {
-	return e.Value != nil || e.IsNil
+	return e.Value != nil || e.IsNil()
 }
 
 // NumOut returns the number of values that an expression will produce when evaluated
@@ -325,7 +353,7 @@ func (bind *Bind) ConstValue() r.Value {
 }
 
 func (c *Comp) BindUntyped(value UntypedLit) *Bind {
-	value.Universe = c.Universe
+	value.BasicTypes = &c.Universe.BasicTypes
 	return &Bind{Lit: Lit{Type: c.TypeOfUntypedLit(), Value: value}, Desc: ConstBindDescriptor}
 }
 
@@ -424,7 +452,8 @@ func (opt PlaceOption) String() string {
 
 // ================================= Import =================================
 
-// Import represents an imported package
+// Import represents an imported package.
+// we cannot name it "Package" because it conflicts with go/ast.Package
 type Import struct {
 	// no need to split compile-time bind descriptors map from runtime values slice,
 	// because an import is a singleton - cannot be "instantiated" multiple times.
@@ -480,6 +509,7 @@ const (
 
 // ThreadGlobals contains per-goroutine interpreter runtime bookeeping information
 type ThreadGlobals struct {
+	*Globals
 	FileEnv      *Env
 	TopEnv       *Env
 	Interrupt    Stmt
@@ -492,20 +522,20 @@ type ThreadGlobals struct {
 	DeferOfFun   *Env        // function whose defer are running
 	StartDefer   bool        // true if next executed function body is a defer
 	IsDefer      bool        // true if function body being executed is a defer
-	*Globals
 }
 
-// CompGlobals contains per-goroutine interpreter compile bookeeping information
-type CompThreadGlobals struct {
+// CompGlobals contains interpreter compile bookeeping information
+type CompGlobals struct {
+	*Globals
 	Universe     *xr.Universe
 	interf2proxy map[r.Type]r.Type  // interface -> proxy
 	proxy2interf map[r.Type]xr.Type // proxy -> interface
-	*Globals
 }
 
 // Comp is a tree-of-closures builder: it transforms ast.Nodes into closures
 // for faster execution. Consider it a poor man's compiler (hence the name)
 type Comp struct {
+	*CompGlobals
 	Binds      map[string]*Bind
 	BindNum    int // len(Binds) == BindNum + IntBindNum + # of constants
 	IntBindNum int
@@ -521,7 +551,6 @@ type Comp struct {
 	Name           string // set by "package" directive
 	Path           string
 	CompileOptions CompileOptions
-	*CompThreadGlobals
 }
 
 const (

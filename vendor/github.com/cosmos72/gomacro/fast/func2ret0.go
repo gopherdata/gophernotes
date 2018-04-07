@@ -80,7 +80,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 						return r.ValueOf(func(arg0 bool,
 
 							arg1 bool) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*bool)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -107,7 +107,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 						return r.ValueOf(func(arg0 bool,
 
 							arg1 int) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*bool)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -134,7 +134,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 						return r.ValueOf(func(arg0 bool,
 
 							arg1 int8) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*bool)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -160,7 +160,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 						return r.ValueOf(func(arg0 bool,
 
 							arg1 int16) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*bool)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -186,7 +186,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 						return r.ValueOf(func(arg0 bool,
 
 							arg1 int32) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*bool)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -212,7 +212,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 						return r.ValueOf(func(arg0 bool,
 
 							arg1 int64) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*bool)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -238,7 +238,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 						return r.ValueOf(func(arg0 bool,
 
 							arg1 uint) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*bool)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -264,7 +264,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 						return r.ValueOf(func(arg0 bool,
 
 							arg1 uint8) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*bool)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -291,7 +291,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 						return r.ValueOf(func(arg0 bool,
 
 							arg1 uint16) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*bool)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -319,7 +319,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 						return r.ValueOf(func(arg0 bool,
 
 							arg1 uint32) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*bool)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -347,7 +347,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 						return r.ValueOf(func(arg0 bool,
 
 							arg1 uint64) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*bool)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -375,7 +375,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 						return r.ValueOf(func(arg0 bool,
 
 							arg1 uintptr) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*bool)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -403,7 +403,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 						return r.ValueOf(func(arg0 bool,
 
 							arg1 float32) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*bool)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -431,7 +431,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 						return r.ValueOf(func(arg0 bool,
 
 							arg1 float64) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*bool)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -459,7 +459,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 						return r.ValueOf(func(arg0 bool,
 
 							arg1 complex64) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*bool)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -487,7 +487,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 						return r.ValueOf(func(arg0 bool,
 
 							arg1 complex128) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*bool)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -520,7 +520,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 						return r.ValueOf(func(arg0 bool,
 
 							arg1 string) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*bool)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -554,7 +554,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 						return r.ValueOf(func(arg0 int,
 
 							arg1 bool) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*int)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -581,7 +581,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 						return r.ValueOf(func(arg0 int,
 
 							arg1 int) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*int)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -608,7 +608,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 						return r.ValueOf(func(arg0 int,
 
 							arg1 int8) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*int)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -634,7 +634,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 						return r.ValueOf(func(arg0 int,
 
 							arg1 int16) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*int)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -660,7 +660,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 						return r.ValueOf(func(arg0 int,
 
 							arg1 int32) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*int)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -686,7 +686,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 						return r.ValueOf(func(arg0 int,
 
 							arg1 int64) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*int)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -712,7 +712,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 						return r.ValueOf(func(arg0 int,
 
 							arg1 uint) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*int)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -738,7 +738,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 						return r.ValueOf(func(arg0 int,
 
 							arg1 uint8) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*int)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -764,7 +764,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 						return r.ValueOf(func(arg0 int,
 
 							arg1 uint16) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*int)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -791,7 +791,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 						return r.ValueOf(func(arg0 int,
 
 							arg1 uint32) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*int)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -819,7 +819,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 						return r.ValueOf(func(arg0 int,
 
 							arg1 uint64) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*int)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -847,7 +847,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 						return r.ValueOf(func(arg0 int,
 
 							arg1 uintptr) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*int)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -875,7 +875,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 						return r.ValueOf(func(arg0 int,
 
 							arg1 float32) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*int)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -903,7 +903,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 						return r.ValueOf(func(arg0 int,
 
 							arg1 float64) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*int)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -931,7 +931,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 						return r.ValueOf(func(arg0 int,
 
 							arg1 complex64) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*int)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -959,7 +959,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 						return r.ValueOf(func(arg0 int,
 
 							arg1 complex128) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*int)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -992,7 +992,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 						return r.ValueOf(func(arg0 int,
 
 							arg1 string) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*int)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -1026,7 +1026,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 						return r.ValueOf(func(arg0 int8,
 
 							arg1 bool) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*int8)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -1053,7 +1053,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 						return r.ValueOf(func(arg0 int8,
 
 							arg1 int) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*int8)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -1080,7 +1080,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 						return r.ValueOf(func(arg0 int8,
 
 							arg1 int8) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*int8)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -1106,7 +1106,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 						return r.ValueOf(func(arg0 int8,
 
 							arg1 int16) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*int8)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -1132,7 +1132,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 						return r.ValueOf(func(arg0 int8,
 
 							arg1 int32) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*int8)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -1158,7 +1158,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 						return r.ValueOf(func(arg0 int8,
 
 							arg1 int64) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*int8)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -1184,7 +1184,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 						return r.ValueOf(func(arg0 int8,
 
 							arg1 uint) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*int8)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -1210,7 +1210,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 						return r.ValueOf(func(arg0 int8,
 
 							arg1 uint8) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*int8)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -1236,7 +1236,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 						return r.ValueOf(func(arg0 int8,
 
 							arg1 uint16) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*int8)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -1262,7 +1262,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 						return r.ValueOf(func(arg0 int8,
 
 							arg1 uint32) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*int8)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -1289,7 +1289,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 						return r.ValueOf(func(arg0 int8,
 
 							arg1 uint64) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*int8)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -1317,7 +1317,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 						return r.ValueOf(func(arg0 int8,
 
 							arg1 uintptr) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*int8)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -1345,7 +1345,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 						return r.ValueOf(func(arg0 int8,
 
 							arg1 float32) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*int8)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -1373,7 +1373,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 						return r.ValueOf(func(arg0 int8,
 
 							arg1 float64) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*int8)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -1401,7 +1401,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 						return r.ValueOf(func(arg0 int8,
 
 							arg1 complex64) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*int8)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -1429,7 +1429,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 						return r.ValueOf(func(arg0 int8,
 
 							arg1 complex128) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*int8)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -1462,7 +1462,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 						return r.ValueOf(func(arg0 int8,
 
 							arg1 string) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*int8)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -1496,7 +1496,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 						return r.ValueOf(func(arg0 int16,
 
 							arg1 bool) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*int16)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -1523,7 +1523,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 						return r.ValueOf(func(arg0 int16,
 
 							arg1 int) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*int16)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -1550,7 +1550,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 						return r.ValueOf(func(arg0 int16,
 
 							arg1 int8) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*int16)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -1576,7 +1576,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 						return r.ValueOf(func(arg0 int16,
 
 							arg1 int16) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*int16)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -1602,7 +1602,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 						return r.ValueOf(func(arg0 int16,
 
 							arg1 int32) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*int16)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -1628,7 +1628,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 						return r.ValueOf(func(arg0 int16,
 
 							arg1 int64) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*int16)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -1654,7 +1654,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 						return r.ValueOf(func(arg0 int16,
 
 							arg1 uint) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*int16)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -1680,7 +1680,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 						return r.ValueOf(func(arg0 int16,
 
 							arg1 uint8) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*int16)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -1706,7 +1706,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 						return r.ValueOf(func(arg0 int16,
 
 							arg1 uint16) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*int16)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -1732,7 +1732,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 						return r.ValueOf(func(arg0 int16,
 
 							arg1 uint32) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*int16)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -1758,7 +1758,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 						return r.ValueOf(func(arg0 int16,
 
 							arg1 uint64) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*int16)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -1785,7 +1785,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 						return r.ValueOf(func(arg0 int16,
 
 							arg1 uintptr) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*int16)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -1813,7 +1813,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 						return r.ValueOf(func(arg0 int16,
 
 							arg1 float32) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*int16)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -1841,7 +1841,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 						return r.ValueOf(func(arg0 int16,
 
 							arg1 float64) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*int16)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -1869,7 +1869,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 						return r.ValueOf(func(arg0 int16,
 
 							arg1 complex64) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*int16)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -1897,7 +1897,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 						return r.ValueOf(func(arg0 int16,
 
 							arg1 complex128) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*int16)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -1930,7 +1930,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 						return r.ValueOf(func(arg0 int16,
 
 							arg1 string) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*int16)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -1964,7 +1964,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 						return r.ValueOf(func(arg0 int32,
 
 							arg1 bool) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*int32)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -1991,7 +1991,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 						return r.ValueOf(func(arg0 int32,
 
 							arg1 int) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*int32)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -2018,7 +2018,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 						return r.ValueOf(func(arg0 int32,
 
 							arg1 int8) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*int32)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -2044,7 +2044,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 						return r.ValueOf(func(arg0 int32,
 
 							arg1 int16) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*int32)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -2070,7 +2070,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 						return r.ValueOf(func(arg0 int32,
 
 							arg1 int32) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*int32)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -2096,7 +2096,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 						return r.ValueOf(func(arg0 int32,
 
 							arg1 int64) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*int32)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -2122,7 +2122,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 						return r.ValueOf(func(arg0 int32,
 
 							arg1 uint) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*int32)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -2148,7 +2148,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 						return r.ValueOf(func(arg0 int32,
 
 							arg1 uint8) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*int32)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -2174,7 +2174,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 						return r.ValueOf(func(arg0 int32,
 
 							arg1 uint16) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*int32)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -2200,7 +2200,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 						return r.ValueOf(func(arg0 int32,
 
 							arg1 uint32) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*int32)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -2226,7 +2226,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 						return r.ValueOf(func(arg0 int32,
 
 							arg1 uint64) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*int32)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -2252,7 +2252,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 						return r.ValueOf(func(arg0 int32,
 
 							arg1 uintptr) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*int32)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -2279,7 +2279,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 						return r.ValueOf(func(arg0 int32,
 
 							arg1 float32) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*int32)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -2307,7 +2307,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 						return r.ValueOf(func(arg0 int32,
 
 							arg1 float64) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*int32)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -2335,7 +2335,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 						return r.ValueOf(func(arg0 int32,
 
 							arg1 complex64) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*int32)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -2363,7 +2363,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 						return r.ValueOf(func(arg0 int32,
 
 							arg1 complex128) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*int32)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -2396,7 +2396,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 						return r.ValueOf(func(arg0 int32,
 
 							arg1 string) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*int32)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -2430,7 +2430,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 						return r.ValueOf(func(arg0 int64,
 
 							arg1 bool) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*int64)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -2457,7 +2457,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 						return r.ValueOf(func(arg0 int64,
 
 							arg1 int) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*int64)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -2484,7 +2484,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 						return r.ValueOf(func(arg0 int64,
 
 							arg1 int8) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*int64)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -2510,7 +2510,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 						return r.ValueOf(func(arg0 int64,
 
 							arg1 int16) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*int64)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -2536,7 +2536,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 						return r.ValueOf(func(arg0 int64,
 
 							arg1 int32) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*int64)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -2562,7 +2562,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 						return r.ValueOf(func(arg0 int64,
 
 							arg1 int64) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*int64)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -2588,7 +2588,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 						return r.ValueOf(func(arg0 int64,
 
 							arg1 uint) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*int64)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -2614,7 +2614,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 						return r.ValueOf(func(arg0 int64,
 
 							arg1 uint8) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*int64)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -2640,7 +2640,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 						return r.ValueOf(func(arg0 int64,
 
 							arg1 uint16) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*int64)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -2666,7 +2666,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 						return r.ValueOf(func(arg0 int64,
 
 							arg1 uint32) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*int64)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -2692,7 +2692,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 						return r.ValueOf(func(arg0 int64,
 
 							arg1 uint64) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*int64)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -2718,7 +2718,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 						return r.ValueOf(func(arg0 int64,
 
 							arg1 uintptr) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*int64)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -2744,7 +2744,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 						return r.ValueOf(func(arg0 int64,
 
 							arg1 float32) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*int64)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -2771,7 +2771,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 						return r.ValueOf(func(arg0 int64,
 
 							arg1 float64) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*int64)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -2799,7 +2799,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 						return r.ValueOf(func(arg0 int64,
 
 							arg1 complex64) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*int64)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -2827,7 +2827,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 						return r.ValueOf(func(arg0 int64,
 
 							arg1 complex128) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*int64)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -2860,7 +2860,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 						return r.ValueOf(func(arg0 int64,
 
 							arg1 string) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*int64)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -2893,7 +2893,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 uint,
 							arg1 bool) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*uint)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -2919,7 +2919,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 uint,
 							arg1 int) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*uint)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -2945,7 +2945,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 uint,
 							arg1 int8) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*uint)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -2970,7 +2970,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 uint,
 							arg1 int16) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*uint)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -2995,7 +2995,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 uint,
 							arg1 int32) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*uint)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -3020,7 +3020,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 uint,
 							arg1 int64) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*uint)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -3045,7 +3045,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 uint,
 							arg1 uint) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*uint)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -3070,7 +3070,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 uint,
 							arg1 uint8) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*uint)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -3095,7 +3095,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 uint,
 							arg1 uint16) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*uint)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -3120,7 +3120,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 uint,
 							arg1 uint32) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*uint)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -3145,7 +3145,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 uint,
 							arg1 uint64) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*uint)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -3170,7 +3170,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 uint,
 							arg1 uintptr) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*uint)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -3195,7 +3195,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 uint,
 							arg1 float32) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*uint)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -3220,7 +3220,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 uint,
 							arg1 float64) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*uint)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -3246,7 +3246,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 uint,
 							arg1 complex64) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*uint)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -3273,7 +3273,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 uint,
 							arg1 complex128) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*uint)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -3305,7 +3305,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 uint,
 							arg1 string) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*uint)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -3337,7 +3337,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 uint8, arg1 bool) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*uint8)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -3362,7 +3362,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 uint8, arg1 int) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*uint8)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -3387,7 +3387,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 uint8, arg1 int8) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*uint8)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -3411,7 +3411,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 uint8, arg1 int16) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*uint8)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -3435,7 +3435,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 uint8, arg1 int32) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*uint8)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -3459,7 +3459,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 uint8, arg1 int64) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*uint8)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -3483,7 +3483,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 uint8, arg1 uint) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*uint8)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -3507,7 +3507,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 uint8, arg1 uint8) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*uint8)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -3531,7 +3531,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 uint8, arg1 uint16) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*uint8)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -3555,7 +3555,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 uint8, arg1 uint32) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*uint8)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -3579,7 +3579,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 uint8, arg1 uint64) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*uint8)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -3603,7 +3603,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 uint8, arg1 uintptr) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*uint8)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -3627,7 +3627,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 uint8, arg1 float32) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*uint8)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -3651,7 +3651,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 uint8, arg1 float64) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*uint8)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -3675,7 +3675,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 uint8, arg1 complex64) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*uint8)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -3700,7 +3700,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 uint8, arg1 complex128) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*uint8)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -3731,7 +3731,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 uint8, arg1 string) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*uint8)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -3763,7 +3763,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 uint16, arg1 bool) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*uint16)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -3788,7 +3788,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 uint16, arg1 int) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*uint16)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -3813,7 +3813,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 uint16, arg1 int8) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*uint16)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -3837,7 +3837,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 uint16, arg1 int16) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*uint16)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -3861,7 +3861,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 uint16, arg1 int32) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*uint16)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -3885,7 +3885,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 uint16, arg1 int64) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*uint16)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -3909,7 +3909,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 uint16, arg1 uint) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*uint16)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -3933,7 +3933,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 uint16, arg1 uint8) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*uint16)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -3957,7 +3957,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 uint16, arg1 uint16) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*uint16)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -3981,7 +3981,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 uint16, arg1 uint32) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*uint16)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -4005,7 +4005,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 uint16, arg1 uint64) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*uint16)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -4029,7 +4029,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 uint16, arg1 uintptr) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*uint16)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -4053,7 +4053,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 uint16, arg1 float32) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*uint16)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -4077,7 +4077,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 uint16, arg1 float64) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*uint16)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -4101,7 +4101,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 uint16, arg1 complex64) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*uint16)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -4125,7 +4125,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 uint16, arg1 complex128) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*uint16)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -4155,7 +4155,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 uint16, arg1 string) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*uint16)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -4187,7 +4187,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 uint32, arg1 bool) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*uint32)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -4212,7 +4212,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 uint32, arg1 int) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*uint32)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -4237,7 +4237,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 uint32, arg1 int8) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*uint32)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -4261,7 +4261,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 uint32, arg1 int16) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*uint32)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -4285,7 +4285,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 uint32, arg1 int32) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*uint32)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -4309,7 +4309,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 uint32, arg1 int64) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*uint32)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -4333,7 +4333,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 uint32, arg1 uint) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*uint32)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -4357,7 +4357,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 uint32, arg1 uint8) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*uint32)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -4381,7 +4381,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 uint32, arg1 uint16) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*uint32)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -4405,7 +4405,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 uint32, arg1 uint32) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*uint32)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -4429,7 +4429,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 uint32, arg1 uint64) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*uint32)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -4453,7 +4453,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 uint32, arg1 uintptr) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*uint32)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -4477,7 +4477,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 uint32, arg1 float32) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*uint32)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -4501,7 +4501,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 uint32, arg1 float64) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*uint32)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -4525,7 +4525,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 uint32, arg1 complex64) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*uint32)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -4549,7 +4549,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 uint32, arg1 complex128) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*uint32)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -4578,7 +4578,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 uint32, arg1 string) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*uint32)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -4610,7 +4610,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 uint64, arg1 bool) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							env.IntBinds[indexes[0]] = arg0
 
@@ -4635,7 +4635,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 uint64, arg1 int) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							env.IntBinds[indexes[0]] = arg0
 
@@ -4660,7 +4660,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 uint64, arg1 int8) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							env.IntBinds[indexes[0]] = arg0
 
@@ -4684,7 +4684,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 uint64, arg1 int16) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							env.IntBinds[indexes[0]] = arg0
 
@@ -4708,7 +4708,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 uint64, arg1 int32) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							env.IntBinds[indexes[0]] = arg0
 
@@ -4732,7 +4732,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 uint64, arg1 int64) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							env.IntBinds[indexes[0]] = arg0
 
@@ -4756,7 +4756,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 uint64, arg1 uint) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							env.IntBinds[indexes[0]] = arg0
 
@@ -4780,7 +4780,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 uint64, arg1 uint8) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							env.IntBinds[indexes[0]] = arg0
 
@@ -4804,7 +4804,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 uint64, arg1 uint16) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							env.IntBinds[indexes[0]] = arg0
 
@@ -4828,7 +4828,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 uint64, arg1 uint32) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							env.IntBinds[indexes[0]] = arg0
 
@@ -4852,7 +4852,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 uint64, arg1 uint64) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							env.IntBinds[indexes[0]] = arg0
 
@@ -4876,7 +4876,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 uint64, arg1 uintptr) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							env.IntBinds[indexes[0]] = arg0
 
@@ -4900,7 +4900,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 uint64, arg1 float32) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							env.IntBinds[indexes[0]] = arg0
 
@@ -4924,7 +4924,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 uint64, arg1 float64) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							env.IntBinds[indexes[0]] = arg0
 
@@ -4948,7 +4948,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 uint64, arg1 complex64) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							env.IntBinds[indexes[0]] = arg0
 
@@ -4972,7 +4972,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 uint64, arg1 complex128) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							env.IntBinds[indexes[0]] = arg0
 
@@ -5001,7 +5001,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 uint64, arg1 string) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							env.IntBinds[indexes[0]] = arg0
 
@@ -5033,7 +5033,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 uintptr, arg1 bool) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*uintptr)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -5058,7 +5058,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 uintptr, arg1 int) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*uintptr)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -5083,7 +5083,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 uintptr, arg1 int8) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*uintptr)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -5107,7 +5107,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 uintptr, arg1 int16) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*uintptr)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -5131,7 +5131,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 uintptr, arg1 int32) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*uintptr)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -5155,7 +5155,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 uintptr, arg1 int64) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*uintptr)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -5179,7 +5179,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 uintptr, arg1 uint) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*uintptr)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -5203,7 +5203,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 uintptr, arg1 uint8) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*uintptr)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -5227,7 +5227,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 uintptr, arg1 uint16) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*uintptr)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -5251,7 +5251,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 uintptr, arg1 uint32) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*uintptr)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -5275,7 +5275,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 uintptr, arg1 uint64) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*uintptr)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -5299,7 +5299,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 uintptr, arg1 uintptr) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*uintptr)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -5323,7 +5323,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 uintptr, arg1 float32) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*uintptr)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -5347,7 +5347,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 uintptr, arg1 float64) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*uintptr)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -5371,7 +5371,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 uintptr, arg1 complex64) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*uintptr)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -5395,7 +5395,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 uintptr, arg1 complex128) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*uintptr)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -5424,7 +5424,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 uintptr, arg1 string) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*uintptr)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -5457,7 +5457,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 float32, arg1 bool) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*float32)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -5482,7 +5482,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 float32, arg1 int) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*float32)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -5507,7 +5507,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 float32, arg1 int8) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*float32)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -5531,7 +5531,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 float32, arg1 int16) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*float32)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -5555,7 +5555,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 float32, arg1 int32) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*float32)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -5579,7 +5579,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 float32, arg1 int64) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*float32)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -5603,7 +5603,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 float32, arg1 uint) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*float32)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -5627,7 +5627,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 float32, arg1 uint8) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*float32)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -5651,7 +5651,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 float32, arg1 uint16) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*float32)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -5675,7 +5675,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 float32, arg1 uint32) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*float32)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -5699,7 +5699,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 float32, arg1 uint64) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*float32)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -5723,7 +5723,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 float32, arg1 uintptr) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*float32)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -5747,7 +5747,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 float32, arg1 float32) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*float32)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -5771,7 +5771,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 float32, arg1 float64) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*float32)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -5795,7 +5795,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 float32, arg1 complex64) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*float32)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -5819,7 +5819,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 float32, arg1 complex128) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*float32)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -5848,7 +5848,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 float32, arg1 string) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*float32)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -5881,7 +5881,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 float64, arg1 bool) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*float64)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -5906,7 +5906,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 float64, arg1 int) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*float64)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -5931,7 +5931,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 float64, arg1 int8) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*float64)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -5955,7 +5955,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 float64, arg1 int16) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*float64)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -5979,7 +5979,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 float64, arg1 int32) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*float64)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -6003,7 +6003,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 float64, arg1 int64) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*float64)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -6027,7 +6027,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 float64, arg1 uint) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*float64)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -6051,7 +6051,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 float64, arg1 uint8) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*float64)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -6075,7 +6075,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 float64, arg1 uint16) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*float64)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -6099,7 +6099,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 float64, arg1 uint32) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*float64)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -6123,7 +6123,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 float64, arg1 uint64) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*float64)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -6147,7 +6147,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 float64, arg1 uintptr) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*float64)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -6171,7 +6171,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 float64, arg1 float32) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*float64)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -6195,7 +6195,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 float64, arg1 float64) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*float64)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -6219,7 +6219,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 float64, arg1 complex64) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*float64)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -6243,7 +6243,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 float64, arg1 complex128) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*float64)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -6272,7 +6272,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 float64, arg1 string) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*float64)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -6305,7 +6305,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 complex64, arg1 bool) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*complex64)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -6330,7 +6330,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 complex64, arg1 int) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*complex64)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -6355,7 +6355,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 complex64, arg1 int8) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*complex64)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -6379,7 +6379,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 complex64, arg1 int16) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*complex64)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -6403,7 +6403,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 complex64, arg1 int32) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*complex64)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -6427,7 +6427,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 complex64, arg1 int64) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*complex64)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -6451,7 +6451,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 complex64, arg1 uint) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*complex64)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -6475,7 +6475,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 complex64, arg1 uint8) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*complex64)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -6499,7 +6499,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 complex64, arg1 uint16) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*complex64)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -6523,7 +6523,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 complex64, arg1 uint32) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*complex64)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -6547,7 +6547,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 complex64, arg1 uint64) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*complex64)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -6571,7 +6571,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 complex64, arg1 uintptr) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*complex64)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -6595,7 +6595,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 complex64, arg1 float32) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*complex64)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -6619,7 +6619,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 complex64, arg1 float64) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*complex64)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -6643,7 +6643,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 complex64, arg1 complex64) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*complex64)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -6667,7 +6667,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 complex64, arg1 complex128) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*complex64)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -6696,7 +6696,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 complex64, arg1 string) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 
 							*(*complex64)(unsafe.Pointer(&env.IntBinds[indexes[0]])) = arg0
 
@@ -6729,7 +6729,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 complex128, arg1 bool) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 							{
 								place := r.New(TypeOfComplex128).Elem()
 								place.SetComplex(arg0,
@@ -6758,7 +6758,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 complex128, arg1 int) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 							{
 								place := r.New(TypeOfComplex128).Elem()
 								place.SetComplex(arg0,
@@ -6787,7 +6787,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 complex128, arg1 int8) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 							{
 								place := r.New(TypeOfComplex128).Elem()
 								place.SetComplex(arg0,
@@ -6815,7 +6815,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 complex128, arg1 int16) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 							{
 								place := r.New(TypeOfComplex128).Elem()
 								place.SetComplex(arg0,
@@ -6843,7 +6843,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 complex128, arg1 int32) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 							{
 								place := r.New(TypeOfComplex128).Elem()
 								place.SetComplex(arg0,
@@ -6871,7 +6871,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 complex128, arg1 int64) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 							{
 								place := r.New(TypeOfComplex128).Elem()
 								place.SetComplex(arg0,
@@ -6899,7 +6899,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 complex128, arg1 uint) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 							{
 								place := r.New(TypeOfComplex128).Elem()
 								place.SetComplex(arg0,
@@ -6927,7 +6927,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 complex128, arg1 uint8) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 							{
 								place := r.New(TypeOfComplex128).Elem()
 								place.SetComplex(arg0,
@@ -6955,7 +6955,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 complex128, arg1 uint16) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 							{
 								place := r.New(TypeOfComplex128).Elem()
 								place.SetComplex(arg0,
@@ -6983,7 +6983,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 complex128, arg1 uint32) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 							{
 								place := r.New(TypeOfComplex128).Elem()
 								place.SetComplex(arg0,
@@ -7011,7 +7011,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 complex128, arg1 uint64) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 							{
 								place := r.New(TypeOfComplex128).Elem()
 								place.SetComplex(arg0,
@@ -7039,7 +7039,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 complex128, arg1 uintptr) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 							{
 								place := r.New(TypeOfComplex128).Elem()
 								place.SetComplex(arg0,
@@ -7067,7 +7067,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 complex128, arg1 float32) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 							{
 								place := r.New(TypeOfComplex128).Elem()
 								place.SetComplex(arg0,
@@ -7095,7 +7095,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 complex128, arg1 float64) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 							{
 								place := r.New(TypeOfComplex128).Elem()
 								place.SetComplex(arg0,
@@ -7123,7 +7123,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 complex128, arg1 complex64) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 							{
 								place := r.New(TypeOfComplex128).Elem()
 								place.SetComplex(arg0,
@@ -7151,7 +7151,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 complex128, arg1 complex128) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 							{
 								place := r.New(TypeOfComplex128).Elem()
 								place.SetComplex(arg0,
@@ -7183,7 +7183,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 complex128, arg1 string) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 							{
 								place := r.New(TypeOfComplex128).Elem()
 								place.SetComplex(arg0,
@@ -7220,7 +7220,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 string, arg1 bool) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 							{
 								place := r.New(TypeOfString).Elem()
 								place.SetString(arg0,
@@ -7249,7 +7249,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 string, arg1 int) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 							{
 								place := r.New(TypeOfString).Elem()
 								place.SetString(arg0,
@@ -7278,7 +7278,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 string, arg1 int8) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 							{
 								place := r.New(TypeOfString).Elem()
 								place.SetString(arg0,
@@ -7306,7 +7306,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 string, arg1 int16) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 							{
 								place := r.New(TypeOfString).Elem()
 								place.SetString(arg0,
@@ -7334,7 +7334,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 string, arg1 int32) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 							{
 								place := r.New(TypeOfString).Elem()
 								place.SetString(arg0,
@@ -7362,7 +7362,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 string, arg1 int64) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 							{
 								place := r.New(TypeOfString).Elem()
 								place.SetString(arg0,
@@ -7390,7 +7390,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 string, arg1 uint) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 							{
 								place := r.New(TypeOfString).Elem()
 								place.SetString(arg0,
@@ -7418,7 +7418,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 string, arg1 uint8) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 							{
 								place := r.New(TypeOfString).Elem()
 								place.SetString(arg0,
@@ -7446,7 +7446,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 string, arg1 uint16) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 							{
 								place := r.New(TypeOfString).Elem()
 								place.SetString(arg0,
@@ -7474,7 +7474,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 string, arg1 uint32) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 							{
 								place := r.New(TypeOfString).Elem()
 								place.SetString(arg0,
@@ -7502,7 +7502,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 string, arg1 uint64) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 							{
 								place := r.New(TypeOfString).Elem()
 								place.SetString(arg0,
@@ -7530,7 +7530,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 string, arg1 uintptr) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 							{
 								place := r.New(TypeOfString).Elem()
 								place.SetString(arg0,
@@ -7558,7 +7558,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 string, arg1 float32) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 							{
 								place := r.New(TypeOfString).Elem()
 								place.SetString(arg0,
@@ -7586,7 +7586,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 string, arg1 float64) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 							{
 								place := r.New(TypeOfString).Elem()
 								place.SetString(arg0,
@@ -7614,7 +7614,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 string, arg1 complex64) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 							{
 								place := r.New(TypeOfString).Elem()
 								place.SetString(arg0,
@@ -7642,7 +7642,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 string, arg1 complex128) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 							{
 								place := r.New(TypeOfString).Elem()
 								place.SetString(arg0,
@@ -7674,7 +7674,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
 						env.MarkUsedByClosure()
 						return r.ValueOf(func(arg0 string, arg1 string) {
-							env := NewEnv4Func(env, nbinds, nintbinds)
+							env := newEnv4Func(env, nbinds, nintbinds)
 							{
 								place := r.New(TypeOfString).Elem()
 								place.SetString(arg0,

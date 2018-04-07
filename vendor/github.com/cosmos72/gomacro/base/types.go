@@ -62,6 +62,7 @@ const (
 	OptDebugParse
 	OptDebugQuasiquote
 	OptDebugSleepOnSwitch // to torture-test "switch" implementation for race conditions
+	OptDebugFromReflect
 )
 
 const (
@@ -92,6 +93,7 @@ var optNames = map[Options]string{
 	OptDebugParse:          "?Parse.Debug",
 	OptDebugQuasiquote:     "?Quasiquote.Debug",
 	OptDebugSleepOnSwitch:  "?SwitchSleep.Debug",
+	OptDebugFromReflect:    "?FromReflect.Debug",
 }
 
 var optValues = map[string]Options{}

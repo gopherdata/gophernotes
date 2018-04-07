@@ -26,7 +26,6 @@
 package classic
 
 import (
-	"bufio"
 	"fmt"
 	"io"
 	r "reflect"
@@ -37,17 +36,16 @@ import (
 )
 
 type ThreadGlobals struct {
-	Globals
+	*Globals
 	AllMethods map[r.Type]Methods // methods implemented by interpreted code
 	FastInterp interface{}        // *fast.Interp // temporary...
 }
 
 func NewThreadGlobals() *ThreadGlobals {
-	tg := &ThreadGlobals{
+	return &ThreadGlobals{
+		Globals:    NewGlobals(),
 		AllMethods: make(map[r.Type]Methods),
 	}
-	tg.Globals.Init()
-	return tg
 }
 
 type Env struct {
@@ -164,8 +162,8 @@ func (env *Env) ValueOf(name string) (value r.Value) {
 	return
 }
 
-func (env *Env) ReadMultiline(in *bufio.Reader, opts ReadOptions) (str string, firstToken int) {
-	str, firstToken, err := ReadMultiline(in, opts, env.Stdout, "gomacro> ")
+func (env *Env) ReadMultiline(in Readline, opts ReadOptions) (str string, firstToken int) {
+	str, firstToken, err := ReadMultiline(in, opts, "gomacro> ")
 	if err != nil && err != io.EOF {
 		fmt.Fprintf(env.Stderr, "// read error: %s\n", err)
 	}

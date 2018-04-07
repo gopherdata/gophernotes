@@ -26,6 +26,7 @@
 package xreflect
 
 import (
+	"fmt"
 	"go/types"
 	"reflect"
 )
@@ -37,7 +38,7 @@ func (t *xtype) IsMethod() bool {
 	if t.Kind() != reflect.Func {
 		xerrorf(t, "IsMethod of non-func type %v", t)
 	}
-	gtype := t.underlying().(*types.Signature)
+	gtype := t.gunderlying().(*types.Signature)
 	return gtype.Recv() != nil
 }
 
@@ -58,9 +59,10 @@ func (t *xtype) In(i int) Type {
 	if t.Kind() != reflect.Func {
 		xerrorf(t, "In of non-func type %v", t)
 	}
-	gtype := t.underlying().(*types.Signature)
+	gtype := t.gunderlying().(*types.Signature)
+	recv := gtype.Recv()
 	var va *types.Var
-	if recv := gtype.Recv(); recv != nil {
+	if recv != nil {
 		// include the receiver as first parameter
 		if i == 0 {
 			va = recv
@@ -70,6 +72,7 @@ func (t *xtype) In(i int) Type {
 	} else {
 		va = gtype.Params().At(i)
 	}
+	t.NumIn() // for consistency check
 	return t.universe.MakeType(va.Type(), t.rtype.In(i))
 }
 
@@ -79,15 +82,26 @@ func (t *xtype) NumIn() int {
 	if t.Kind() != reflect.Func {
 		xerrorf(t, "NumIn of non-func type %v", t)
 	}
-	var nparams, nrecv int
-	gtype := t.underlying().(*types.Signature)
+	n := 0
+	gtype, ok := t.gunderlying().(*types.Signature)
+	if !ok {
+		xerrorf(t, "NumIn of non-func type %v (gotype = %v)", t, t.gunderlying())
+	}
 	if gtype.Recv() != nil {
-		nrecv = 1
+		n++
 	}
 	if params := gtype.Params(); params != nil {
-		nparams = params.Len()
+		n += params.Len()
 	}
-	return nparams + nrecv
+	if t.rtype.NumIn() != n {
+		var srecv string
+		if gtype.Recv() != nil {
+			srecv = fmt.Sprintf(" - including receiver type %v", gtype.Recv().Type())
+		}
+		xerrorf(t, `inconsistent function type: %v has %d params%s
+      but its reflect.Type: %v has %d params`, t, n, srecv, t.rtype, t.rtype.NumIn())
+	}
+	return n
 }
 
 // NumOut returns a function type's output parameter count.
@@ -96,7 +110,7 @@ func (t *xtype) NumOut() int {
 	if t.Kind() != reflect.Func {
 		xerrorf(t, "NumOut of non-func type %v", t)
 	}
-	gtype := t.underlying().(*types.Signature)
+	gtype := t.gunderlying().(*types.Signature)
 	return gtype.Results().Len()
 }
 
@@ -107,17 +121,18 @@ func (t *xtype) Out(i int) Type {
 	if t.Kind() != reflect.Func {
 		xerrorf(t, "Out of non-func type %v", t)
 	}
-	gtype := t.underlying().(*types.Signature)
+	gtype := t.gunderlying().(*types.Signature)
 	va := gtype.Results().At(i)
 	return t.universe.MakeType(va.Type(), t.rtype.Out(i))
 }
 
-func FuncOf(in []Type, out []Type, variadic bool) Type {
-	return MethodOf(nil, in, out, variadic)
-}
-
 func (v *Universe) FuncOf(in []Type, out []Type, variadic bool) Type {
 	return v.MethodOf(nil, in, out, variadic)
+}
+
+/*
+func FuncOf(in []Type, out []Type, variadic bool) Type {
+	return MethodOf(nil, in, out, variadic)
 }
 
 func MethodOf(recv Type, in []Type, out []Type, variadic bool) Type {
@@ -131,6 +146,7 @@ func MethodOf(recv Type, in []Type, out []Type, variadic bool) Type {
 	}
 	return v.MethodOf(recv, in, out, variadic)
 }
+*/
 
 func (v *Universe) MethodOf(recv Type, in []Type, out []Type, variadic bool) Type {
 	gin := toGoTuple(in)
@@ -138,7 +154,7 @@ func (v *Universe) MethodOf(recv Type, in []Type, out []Type, variadic bool) Typ
 	rin := toReflectTypes(in)
 	rout := toReflectTypes(out)
 	var grecv *types.Var
-	if recv != nil {
+	if unwrap(recv) != nil {
 		rin = append([]reflect.Type{recv.ReflectType()}, rin...)
 		grecv = toGoParam(recv)
 	}

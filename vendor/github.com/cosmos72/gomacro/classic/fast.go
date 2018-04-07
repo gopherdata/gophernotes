@@ -34,17 +34,42 @@ import (
 	xr "github.com/cosmos72/gomacro/xreflect"
 )
 
-// temporary helper to invoke the new fast interpreter.
-// executes macroexpand + collect + compile + eval
-func (env *Env) fastEval(form ast2.Ast) (r.Value, []r.Value, xr.Type, []xr.Type) {
+func (env *Env) fastInterp() *fast.Interp {
 	var f *fast.Interp
 	if env.FastInterp == nil {
 		f = fast.New()
 		f.Comp.CompileOptions |= fast.OptKeepUntyped
+		f.Comp.CompGlobals.Globals = env.ThreadGlobals.Globals // share *Globals and Globals.Options
 		env.FastInterp = f
+		env.fastUpdateOptions()
 	} else {
 		f = env.FastInterp.(*fast.Interp)
 	}
+	return f
+}
+
+func (env *Env) fastUpdateOptions() {
+	f, _ := env.FastInterp.(*fast.Interp)
+	if f == nil {
+		return
+	}
+	debugdepth := 0
+	g := f.Comp.CompGlobals
+	if g.Options&base.OptDebugFromReflect != 0 {
+		debugdepth = 1
+	}
+	g.Universe.DebugDepth = debugdepth
+}
+
+func (env *Env) fastShowPackage(name string) {
+	f := env.fastInterp()
+	f.ShowPackage(name)
+}
+
+// temporary helper to invoke the new fast interpreter.
+// executes macroexpand + collect + compile + eval
+func (env *Env) fastEval(form ast2.Ast) (r.Value, []r.Value, xr.Type, []xr.Type) {
+	f := env.fastInterp()
 	f.Comp.Stringer.Copy(&env.Stringer) // sync Fileset, Pos, Line
 	f.Comp.Options = env.Options        // sync Options
 

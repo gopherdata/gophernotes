@@ -72,6 +72,21 @@ func (ir *Interp) cmdPackage(cmd string) {
 	}
 }
 
+// find user's home directory, see https://stackoverflow.com/questions/2552416/how-can-i-find-the-users-home-dir-in-a-cross-platform-manner-using-c
+// without importing "os/user" - which requires cgo to work thus makes cross-compile difficult, see https://github.com/golang/go/issues/11797
+func userHomeDir() string {
+	home := os.Getenv("HOME")
+	if len(home) == 0 {
+		home = os.Getenv("USERPROFILE")
+		if len(home) == 0 {
+			home = os.Getenv("HOMEDRIVE") + os.Getenv("HOMEPATH")
+		}
+	}
+	return home
+}
+
+var historyfile = fmt.Sprintf("%s%c%s", userHomeDir(), os.PathSeparator, ".gomacro_history")
+
 func (ir *Interp) ReplStdin() {
 	if ir.Options&OptShowPrompt != 0 {
 		fmt.Fprint(ir.Stdout, `// GOMACRO, an interactive Go interpreter with macros <https://github.com/cosmos72/gomacro>
@@ -82,20 +97,23 @@ func (ir *Interp) ReplStdin() {
 // Type :help for help
 `)
 	}
-	in := bufio.NewReader(os.Stdin)
+	tty, _ := MakeTtyReadline(historyfile)
+	defer tty.Close(historyfile) // restore normal tty mode!
 
 	ir.Line = 0
-	for ir.ReadParseEvalPrint(in) {
+	for ir.ReadParseEvalPrint(tty) {
 		ir.Line = 0
 	}
+	os.Stdout.WriteString("\n")
 }
 
 func (ir *Interp) Repl(in *bufio.Reader) {
-	for ir.ReadParseEvalPrint(in) {
+	r := MakeBufReadline(in, ir.Stdout)
+	for ir.ReadParseEvalPrint(r) {
 	}
 }
 
-func (ir *Interp) ReadParseEvalPrint(in *bufio.Reader) (callAgain bool) {
+func (ir *Interp) ReadParseEvalPrint(in Readline) (callAgain bool) {
 	var opts ReadOptions
 	if ir.Options&OptShowPrompt != 0 {
 		opts |= ReadOptShowPrompt
@@ -111,7 +129,7 @@ func (ir *Interp) ReadParseEvalPrint(in *bufio.Reader) (callAgain bool) {
 	return ir.ParseEvalPrint(str[firstToken:], in)
 }
 
-func (ir *Interp) ParseEvalPrint(str string, in *bufio.Reader) (callAgain bool) {
+func (ir *Interp) ParseEvalPrint(str string, in Readline) (callAgain bool) {
 	var t1 time.Time
 	trap := ir.Options&OptTrapPanic != 0
 	duration := ir.Options&OptShowTime != 0
@@ -130,8 +148,8 @@ func (ir *Interp) ParseEvalPrint(str string, in *bufio.Reader) (callAgain bool) 
 			callAgain = true
 		}
 		if duration {
-			delta := time.Now().Sub(t1)
-			ir.Debugf("eval time %.6f s", float32(delta)/float32(time.Second))
+			delta := time.Since(t1)
+			ir.Debugf("eval time %v", delta)
 		}
 	}()
 	callAgain = ir.parseEvalPrint(str, in)
@@ -139,15 +157,15 @@ func (ir *Interp) ParseEvalPrint(str string, in *bufio.Reader) (callAgain bool) 
 	return callAgain
 }
 
-func (ir *Interp) parseEvalPrint(src string, in *bufio.Reader) (callAgain bool) {
-
+func (ir *Interp) parseEvalPrint(src string, in Readline) (callAgain bool) {
 	src = strings.TrimSpace(src)
 	n := len(src)
 	if n == 0 {
 		return true // no input. don't print anything
 	}
 	env := ir.Env
-	fast := env.Options&OptFastInterpreter != 0 // use the fast interpreter?
+	g := env.Globals
+	fast := g.Options&OptFastInterpreter != 0 // use the fast interpreter?
 
 	if n > 0 && src[0] == ':' {
 		args := strings.SplitN(src, " ", 2)
@@ -155,28 +173,32 @@ func (ir *Interp) parseEvalPrint(src string, in *bufio.Reader) (callAgain bool) 
 		switch {
 		case strings.HasPrefix(":classic", cmd):
 			if len(args) <= 1 {
-				if env.Options&OptFastInterpreter != 0 {
+				if g.Options&OptFastInterpreter != 0 {
 					env.Debugf("switched to classic interpreter")
 				}
-				env.Options &^= OptFastInterpreter
+				g.Options &^= OptFastInterpreter
 				return true
 			}
 			// temporary override
 			src = strings.TrimSpace(args[1])
 			fast = false
 		case strings.HasPrefix(":env", cmd):
-			if len(args) <= 1 {
-				env.ShowPackage("")
+			var arg string
+			if len(args) > 1 {
+				arg = args[1]
+			}
+			if fast {
+				ir.fastShowPackage(arg)
 			} else {
-				env.ShowPackage(args[1])
+				env.ShowPackage(arg)
 			}
 			return true
 		case strings.HasPrefix(":fast", cmd):
 			if len(args) <= 1 {
-				if env.Options&OptFastInterpreter == 0 {
+				if g.Options&OptFastInterpreter == 0 {
 					env.Debugf("switched to fast interpreter")
 				}
-				env.Options |= OptFastInterpreter
+				g.Options |= OptFastInterpreter
 				return true
 			}
 			// temporary override
@@ -186,9 +208,7 @@ func (ir *Interp) parseEvalPrint(src string, in *bufio.Reader) (callAgain bool) 
 			env.ShowHelp(env.Stdout)
 			return true
 		case strings.HasPrefix(":inspect", cmd):
-			if in == nil {
-				fmt.Fprint(env.Stdout, "// not connected to user input, cannot :inspect\n")
-			} else if len(args) == 1 {
+			if len(args) == 1 {
 				fmt.Fprint(env.Stdout, "// inspect: missing argument\n")
 			} else {
 				env.Inspect(in, args[1], fast)
@@ -196,10 +216,11 @@ func (ir *Interp) parseEvalPrint(src string, in *bufio.Reader) (callAgain bool) 
 			return true
 		case strings.HasPrefix(":options", cmd):
 			if len(args) > 1 {
-				env.Options ^= ParseOptions(args[1])
+				g.Options ^= ParseOptions(args[1])
+				env.fastUpdateOptions() // to set fastInterp.Comp.CompGlobals.Universe.DebugDepth
 			}
-			fmt.Fprintf(env.Stdout, "// current options: %v\n", env.Options)
-			fmt.Fprintf(env.Stdout, "// unset   options: %v\n", ^env.Options)
+			fmt.Fprintf(env.Stdout, "// current options: %v\n", g.Options)
+			fmt.Fprintf(env.Stdout, "// unset   options: %v\n", ^g.Options)
 			return true
 		case strings.HasPrefix(":quit", cmd):
 			return false
@@ -213,12 +234,12 @@ func (ir *Interp) parseEvalPrint(src string, in *bufio.Reader) (callAgain bool) 
 		default:
 			// temporarily disable collection of declarations and statements,
 			// and temporarily disable macroexpandonly (i.e. re-enable eval)
-			saved := env.Options
+			opts := g.Options
 			todisable := OptMacroExpandOnly | OptCollectDeclarations | OptCollectStatements
-			if saved&todisable != 0 {
-				env.Options &^= todisable
+			if opts&todisable != 0 {
+				g.Options &^= todisable
 				defer func() {
-					env.Options = saved
+					g.Options = opts
 				}()
 			}
 			src = " " + src[1:] // slower than src = src[1:], but gives accurate column positions in error messages

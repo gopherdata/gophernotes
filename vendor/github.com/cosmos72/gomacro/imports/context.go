@@ -21,32 +21,32 @@ func init() {
 		"WithDeadline":	ValueOf(context.WithDeadline),
 		"WithTimeout":	ValueOf(context.WithTimeout),
 		"WithValue":	ValueOf(context.WithValue),
-	},Types: map[string]Type{
+	}, Types: map[string]Type{
 		"CancelFunc":	TypeOf((*context.CancelFunc)(nil)).Elem(),
 		"Context":	TypeOf((*context.Context)(nil)).Elem(),
-	},Proxies: map[string]Type{
-		"Context":	TypeOf((*Context_context)(nil)).Elem(),
-	},
+	}, Proxies: map[string]Type{
+		"Context":	TypeOf((*P_context_Context)(nil)).Elem(),
+	}, 
 	}
 }
 
 // --------------- proxy for context.Context ---------------
-type Context_context struct {
+type P_context_Context struct {
 	Object	interface{}
 	Deadline_	func(interface{}) (deadline time.Time, ok bool)
 	Done_	func(interface{}) <-chan struct{}
 	Err_	func(interface{}) error
 	Value_	func(_proxy_obj_ interface{}, key interface{}) interface{}
 }
-func (Proxy *Context_context) Deadline() (deadline time.Time, ok bool) {
-	return Proxy.Deadline_(Proxy.Object)
+func (P *P_context_Context) Deadline() (deadline time.Time, ok bool) {
+	return P.Deadline_(P.Object)
 }
-func (Proxy *Context_context) Done() <-chan struct{} {
-	return Proxy.Done_(Proxy.Object)
+func (P *P_context_Context) Done() <-chan struct{} {
+	return P.Done_(P.Object)
 }
-func (Proxy *Context_context) Err() error {
-	return Proxy.Err_(Proxy.Object)
+func (P *P_context_Context) Err() error {
+	return P.Err_(P.Object)
 }
-func (Proxy *Context_context) Value(key interface{}) interface{} {
-	return Proxy.Value_(Proxy.Object, key)
+func (P *P_context_Context) Value(key interface{}) interface{} {
+	return P.Value_(P.Object, key)
 }

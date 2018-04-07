@@ -152,8 +152,7 @@ func (c *Comp) assignPrepareRhs(node *ast.AssignStmt, places []*Place, exprs []*
 			c.Pos = node.Pos()
 			c.Errorf("invalid assignment: expression returns %d values, cannot assign them to %d places: %v", nexpr, ln, node)
 		}
-		convs := make([]func(r.Value, r.Type) r.Value, nexpr)
-		rtypes := make([]r.Type, nexpr)
+		convs := make([]func(r.Value) r.Value, nexpr)
 		needconvs := false
 		for i := 0; i < nexpr; i++ {
 			texpr := expr.Out(i)
@@ -163,7 +162,6 @@ func (c *Comp) assignPrepareRhs(node *ast.AssignStmt, places []*Place, exprs []*
 				c.Errorf("cannot assign <%v> to %v <%v> in multiple assignment", texpr, lhs[i], tplace)
 			} else if conv := c.Converter(texpr, tplace); conv != nil {
 				convs[i] = conv
-				rtypes[i] = tplace.ReflectType()
 				needconvs = true
 			}
 		}
@@ -173,7 +171,7 @@ func (c *Comp) assignPrepareRhs(node *ast.AssignStmt, places []*Place, exprs []*
 				_, vs := f(env)
 				for i, conv := range convs {
 					if conv != nil {
-						vs[i] = conv(vs[i], rtypes[i])
+						vs[i] = conv(vs[i])
 					}
 				}
 				return vs[0], vs

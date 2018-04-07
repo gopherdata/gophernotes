@@ -102,6 +102,20 @@ func (c *Comp) Symbol(sym *Symbol) *Expr {
 	return nil
 }
 
+// upn must be >= 3
+func outerEnv3(env *Env, upn int) *Env {
+	for ; upn >= 3; upn -= 3 {
+		env = env.Outer.Outer.Outer
+	}
+	if upn > 0 {
+		env = env.Outer
+		if upn > 1 {
+			env = env.Outer
+		}
+	}
+	return env
+}
+
 func (c *Comp) symbol(sym *Symbol) *Expr {
 	idx := sym.Desc.Index()
 	upn := sym.Upn
@@ -338,129 +352,93 @@ func (c *Comp) symbol(sym *Symbol) *Expr {
 		switch kind {
 		case r.Bool:
 			fun = func(env *Env) bool {
-				for i := 3; i < upn; i++ {
-					env = env.Outer
-				}
-				return env.Outer.Outer.Outer.Binds[idx].Bool()
+				env = outerEnv3(env, upn)
+				return env.Binds[idx].Bool()
 			}
 		case r.Int:
 			fun = func(env *Env) int {
-				for i := 3; i < upn; i++ {
-					env = env.Outer
-				}
-				return int(env.Outer.Outer.Outer.Binds[idx].Int())
+				env = outerEnv3(env, upn)
+				return int(env.Binds[idx].Int())
 			}
 		case r.Int8:
 			fun = func(env *Env) int8 {
-				for i := 3; i < upn; i++ {
-					env = env.Outer
-				}
-				return int8(env.Outer.Outer.Outer.Binds[idx].Int())
+				env = outerEnv3(env, upn)
+				return int8(env.Binds[idx].Int())
 			}
 		case r.Int16:
 			fun = func(env *Env) int16 {
-				for i := 3; i < upn; i++ {
-					env = env.Outer
-				}
-				return int16(env.Outer.Outer.Outer.Binds[idx].Int())
+				env = outerEnv3(env, upn)
+				return int16(env.Binds[idx].Int())
 			}
 		case r.Int32:
 			fun = func(env *Env) int32 {
-				for i := 3; i < upn; i++ {
-					env = env.Outer
-				}
-				return int32(env.Outer.Outer.Outer.Binds[idx].Int())
+				env = outerEnv3(env, upn)
+				return int32(env.Binds[idx].Int())
 			}
 		case r.Int64:
 			fun = func(env *Env) int64 {
-				for i := 3; i < upn; i++ {
-					env = env.Outer
-				}
-				return env.Outer.Outer.Outer.Binds[idx].Int()
+				env = outerEnv3(env, upn)
+				return env.Binds[idx].Int()
 			}
 		case r.Uint:
 			fun = func(env *Env) uint {
-				for i := 3; i < upn; i++ {
-					env = env.Outer
-				}
-				return uint(env.Outer.Outer.Outer.Binds[idx].Uint())
+				env = outerEnv3(env, upn)
+				return uint(env.Binds[idx].Uint())
 			}
 		case r.Uint8:
 			fun = func(env *Env) uint8 {
-				for i := 3; i < upn; i++ {
-					env = env.Outer
-				}
-				return uint8(env.Outer.Outer.Outer.Binds[idx].Uint())
+				env = outerEnv3(env, upn)
+				return uint8(env.Binds[idx].Uint())
 			}
 		case r.Uint16:
 			fun = func(env *Env) uint16 {
-				for i := 3; i < upn; i++ {
-					env = env.Outer
-				}
-				return uint16(env.Outer.Outer.Outer.Binds[idx].Uint())
+				env = outerEnv3(env, upn)
+				return uint16(env.Binds[idx].Uint())
 			}
 		case r.Uint32:
 			fun = func(env *Env) uint32 {
-				for i := 3; i < upn; i++ {
-					env = env.Outer
-				}
-				return uint32(env.Outer.Outer.Outer.Binds[idx].Uint())
+				env = outerEnv3(env, upn)
+				return uint32(env.Binds[idx].Uint())
 			}
 		case r.Uint64:
 			fun = func(env *Env) uint64 {
-				for i := 3; i < upn; i++ {
-					env = env.Outer
-				}
-				return env.Outer.Outer.Outer.Binds[idx].Uint()
+				env = outerEnv3(env, upn)
+				return env.Binds[idx].Uint()
 			}
 		case r.Uintptr:
 			fun = func(env *Env) uintptr {
-				for i := 3; i < upn; i++ {
-					env = env.Outer
-				}
-				return uintptr(env.Outer.Outer.Outer.Binds[idx].Uint())
+				env = outerEnv3(env, upn)
+				return uintptr(env.Binds[idx].Uint())
 			}
 		case r.Float32:
 			fun = func(env *Env) float32 {
-				for i := 3; i < upn; i++ {
-					env = env.Outer
-				}
-				return float32(env.Outer.Outer.Outer.Binds[idx].Float())
+				env = outerEnv3(env, upn)
+				return float32(env.Binds[idx].Float())
 			}
 		case r.Float64:
 			fun = func(env *Env) float64 {
-				for i := 3; i < upn; i++ {
-					env = env.Outer
-				}
-				return env.Outer.Outer.Outer.Binds[idx].Float()
+				env = outerEnv3(env, upn)
+				return env.Binds[idx].Float()
 			}
 		case r.Complex64:
 			fun = func(env *Env) complex64 {
-				for i := 3; i < upn; i++ {
-					env = env.Outer
-				}
-				return complex64(env.Outer.Outer.Outer.Binds[idx].Complex())
+				env = outerEnv3(env, upn)
+				return complex64(env.Binds[idx].Complex())
 			}
 		case r.Complex128:
 			fun = func(env *Env) complex128 {
-				for i := 3; i < upn; i++ {
-					env = env.Outer
-				}
-				return env.Outer.Outer.Outer.Binds[idx].Complex()
+				env = outerEnv3(env, upn)
+				return env.Binds[idx].Complex()
 			}
 		case r.String:
 			fun = func(env *Env) string {
-				for i := 3; i < upn; i++ {
-					env = env.Outer
-				}
-				return env.Outer.Outer.Outer.Binds[idx].String()
+				env = outerEnv3(env, upn)
+				return env.Binds[idx].String()
 			}
 		default:
 			fun = func(env *Env) r.Value {
-				for i := 3; i < upn; i++ {
-					env = env.Outer
-				}
-				return env.Outer.Outer.Outer.Binds[idx]
+				env = outerEnv3(env, upn)
+				return env.Binds[idx]
 			}
 		}
 	case c.Depth - 1:
@@ -825,108 +803,78 @@ func (c *Comp) intSymbol(sym *Symbol) *Expr {
 		switch k {
 		case r.Bool:
 			fun = func(env *Env) bool {
-				for i := 3; i < upn; i++ {
-					env = env.Outer
-				}
-				return *(*bool)(unsafe.Pointer(&env.Outer.Outer.IntBinds[idx]))
+				env = outerEnv3(env, upn)
+				return *(*bool)(unsafe.Pointer(&env.IntBinds[idx]))
 			}
 		case r.Int:
 			fun = func(env *Env) int {
-				for i := 3; i < upn; i++ {
-					env = env.Outer
-				}
-				return *(*int)(unsafe.Pointer(&env.Outer.Outer.IntBinds[idx]))
+				env = outerEnv3(env, upn)
+				return *(*int)(unsafe.Pointer(&env.IntBinds[idx]))
 			}
 		case r.Int8:
 			fun = func(env *Env) int8 {
-				for i := 3; i < upn; i++ {
-					env = env.Outer
-				}
-				return *(*int8)(unsafe.Pointer(&env.Outer.Outer.IntBinds[idx]))
+				env = outerEnv3(env, upn)
+				return *(*int8)(unsafe.Pointer(&env.IntBinds[idx]))
 			}
 		case r.Int16:
 			fun = func(env *Env) int16 {
-				for i := 3; i < upn; i++ {
-					env = env.Outer
-				}
-				return *(*int16)(unsafe.Pointer(&env.Outer.Outer.IntBinds[idx]))
+				env = outerEnv3(env, upn)
+				return *(*int16)(unsafe.Pointer(&env.IntBinds[idx]))
 			}
 		case r.Int32:
 			fun = func(env *Env) int32 {
-				for i := 3; i < upn; i++ {
-					env = env.Outer
-				}
-				return *(*int32)(unsafe.Pointer(&env.Outer.Outer.IntBinds[idx]))
+				env = outerEnv3(env, upn)
+				return *(*int32)(unsafe.Pointer(&env.IntBinds[idx]))
 			}
 		case r.Int64:
 			fun = func(env *Env) int64 {
-				for i := 3; i < upn; i++ {
-					env = env.Outer
-				}
-				return *(*int64)(unsafe.Pointer(&env.Outer.Outer.IntBinds[idx]))
+				env = outerEnv3(env, upn)
+				return *(*int64)(unsafe.Pointer(&env.IntBinds[idx]))
 			}
 		case r.Uint:
 			fun = func(env *Env) uint {
-				for i := 3; i < upn; i++ {
-					env = env.Outer
-				}
-				return *(*uint)(unsafe.Pointer(&env.Outer.Outer.IntBinds[idx]))
+				env = outerEnv3(env, upn)
+				return *(*uint)(unsafe.Pointer(&env.IntBinds[idx]))
 			}
 		case r.Uint8:
 			fun = func(env *Env) uint8 {
-				for i := 3; i < upn; i++ {
-					env = env.Outer
-				}
-				return *(*uint8)(unsafe.Pointer(&env.Outer.Outer.IntBinds[idx]))
+				env = outerEnv3(env, upn)
+				return *(*uint8)(unsafe.Pointer(&env.IntBinds[idx]))
 			}
 		case r.Uint16:
 			fun = func(env *Env) uint16 {
-				for i := 3; i < upn; i++ {
-					env = env.Outer
-				}
-				return *(*uint16)(unsafe.Pointer(&env.Outer.Outer.IntBinds[idx]))
+				env = outerEnv3(env, upn)
+				return *(*uint16)(unsafe.Pointer(&env.IntBinds[idx]))
 			}
 		case r.Uint32:
 			fun = func(env *Env) uint32 {
-				for i := 3; i < upn; i++ {
-					env = env.Outer
-				}
-				return *(*uint32)(unsafe.Pointer(&env.Outer.Outer.IntBinds[idx]))
+				env = outerEnv3(env, upn)
+				return *(*uint32)(unsafe.Pointer(&env.IntBinds[idx]))
 			}
 		case r.Uint64:
 			fun = func(env *Env) uint64 {
-				for i := 3; i < upn; i++ {
-					env = env.Outer
-				}
+				env = outerEnv3(env, upn)
 				return env.Outer.Outer.IntBinds[idx]
 			}
 		case r.Uintptr:
 			fun = func(env *Env) uintptr {
-				for i := 3; i < upn; i++ {
-					env = env.Outer
-				}
-				return *(*uintptr)(unsafe.Pointer(&env.Outer.Outer.IntBinds[idx]))
+				env = outerEnv3(env, upn)
+				return *(*uintptr)(unsafe.Pointer(&env.IntBinds[idx]))
 			}
 		case r.Float32:
 			fun = func(env *Env) float32 {
-				for i := 3; i < upn; i++ {
-					env = env.Outer
-				}
-				return *(*float32)(unsafe.Pointer(&env.Outer.Outer.IntBinds[idx]))
+				env = outerEnv3(env, upn)
+				return *(*float32)(unsafe.Pointer(&env.IntBinds[idx]))
 			}
 		case r.Float64:
 			fun = func(env *Env) float64 {
-				for i := 3; i < upn; i++ {
-					env = env.Outer
-				}
-				return *(*float64)(unsafe.Pointer(&env.Outer.Outer.IntBinds[idx]))
+				env = outerEnv3(env, upn)
+				return *(*float64)(unsafe.Pointer(&env.IntBinds[idx]))
 			}
 		case r.Complex64:
 			fun = func(env *Env) complex64 {
-				for i := 3; i < upn; i++ {
-					env = env.Outer
-				}
-				return *(*complex64)(unsafe.Pointer(&env.Outer.Outer.IntBinds[idx]))
+				env = outerEnv3(env, upn)
+				return *(*complex64)(unsafe.Pointer(&env.IntBinds[idx]))
 			}
 		default:
 			c.Errorf("unsupported variable type, cannot use for optimized read: %s <%v>", sym.Name, sym.Type)

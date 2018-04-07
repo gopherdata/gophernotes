@@ -378,7 +378,7 @@ func DeclCollatz(env *Env, idx int) FuncInt {
 					),
 				),
 			),
-			ReturnInt(Int(0)),
+			ReturnInt(VarInt(n)),
 		),
 	)(env)
 }

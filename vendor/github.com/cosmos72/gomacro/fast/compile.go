@@ -30,7 +30,6 @@ import (
 	"go/token"
 	"go/types"
 	r "reflect"
-	"strings"
 
 	. "github.com/cosmos72/gomacro/ast2"
 	. "github.com/cosmos72/gomacro/base"
@@ -44,20 +43,20 @@ func NewThreadGlobals() *ThreadGlobals {
 }
 
 func New() *Interp {
-	top := NewCompEnvTop("builtin")
+	top := newTopInterp("builtin")
 	top.env.UsedByClosure = true // do not free this *Env
-	file := NewCompEnv(top, "main")
+	file := NewInnerInterp(top, "main", "main")
 	file.env.UsedByClosure = true // do not free this *Env
 	return file
 }
 
-func NewCompEnvTop(path string) *Interp {
-	name := path[1+strings.LastIndexByte(path, '/'):]
+func newTopInterp(path string) *Interp {
+	name := FileName(path)
 
 	globals := NewGlobals()
 	universe := xr.NewUniverse()
 
-	compGlobals := &CompThreadGlobals{
+	compGlobals := &CompGlobals{
 		Universe:     universe,
 		interf2proxy: make(map[r.Type]r.Type),
 		proxy2interf: make(map[r.Type]xr.Type),
@@ -66,12 +65,12 @@ func NewCompEnvTop(path string) *Interp {
 	envGlobals := &ThreadGlobals{Globals: globals}
 	ce := &Interp{
 		Comp: &Comp{
-			UpCost:            1,
-			Depth:             0,
-			Outer:             nil,
-			Name:              name,
-			Path:              path,
-			CompThreadGlobals: compGlobals,
+			UpCost:      1,
+			Depth:       0,
+			Outer:       nil,
+			Name:        name,
+			Path:        path,
+			CompGlobals: compGlobals,
 		},
 		env: &Env{
 			Outer:         nil,
@@ -93,29 +92,31 @@ func NewCompEnvTop(path string) *Interp {
 	return ce
 }
 
-func NewCompEnv(outer *Interp, path string) *Interp {
-	name := path[1+strings.LastIndexByte(path, '/'):]
+func NewInnerInterp(outer *Interp, name string, path string) *Interp {
+	if len(name) == 0 {
+		name = FileName(path)
+	}
 
-	compGlobals := outer.Comp.CompThreadGlobals
-	envGlobals := outer.env.ThreadGlobals
-	c := &Interp{
+	outerComp := outer.Comp
+	outerEnv := outer.env
+	ir := &Interp{
 		Comp: &Comp{
-			UpCost:            1,
-			Depth:             outer.Comp.Depth + 1,
-			Outer:             outer.Comp,
-			Name:              name,
-			Path:              path,
-			CompThreadGlobals: compGlobals,
+			UpCost:      1,
+			Depth:       outerComp.Depth + 1,
+			Outer:       outerComp,
+			Name:        name,
+			Path:        path,
+			CompGlobals: outerComp.CompGlobals,
 		},
 		env: &Env{
-			Outer:         outer.env,
-			ThreadGlobals: envGlobals,
+			Outer:         outerEnv,
+			ThreadGlobals: outerEnv.ThreadGlobals,
 		},
 	}
-	if outer.env.Outer == nil {
-		envGlobals.FileEnv = c.env
+	if outerEnv.Outer == nil {
+		outerEnv.ThreadGlobals.FileEnv = ir.env
 	}
-	return c
+	return ir
 }
 
 func NewComp(outer *Comp, code *Code) *Comp {
@@ -123,11 +124,11 @@ func NewComp(outer *Comp, code *Code) *Comp {
 		return &Comp{UpCost: 1}
 	}
 	c := Comp{
-		UpCost:            1,
-		Depth:             outer.Depth + 1,
-		Outer:             outer,
-		CompileOptions:    outer.CompileOptions,
-		CompThreadGlobals: outer.CompThreadGlobals,
+		UpCost:         1,
+		Depth:          outer.Depth + 1,
+		Outer:          outer,
+		CompileOptions: outer.CompileOptions,
+		CompGlobals:    outer.CompGlobals,
 	}
 	// Debugf("NewComp(%p->%p) %s", outer, &c, debug.Stack())
 	if code != nil {
@@ -192,7 +193,7 @@ func NewEnv(outer *Env, nbinds int, nintbinds int) *Env {
 	return env
 }
 
-func NewEnv4Func(outer *Env, nbinds int, nintbinds int) *Env {
+func newEnv4Func(outer *Env, nbinds int, nintbinds int) *Env {
 	tg := outer.ThreadGlobals
 	pool := &tg.Pool // pool is an array, do NOT copy it!
 	index := tg.PoolSize - 1
@@ -220,7 +221,7 @@ func NewEnv4Func(outer *Env, nbinds int, nintbinds int) *Env {
 	}
 	env.Outer = outer
 	env.ThreadGlobals = tg
-	// Debugf("NewEnv4Func(%p->%p) binds=%d intbinds=%d", outer, env, nbinds, nintbinds)
+	// Debugf("newEnv4Func(%p->%p) binds=%d intbinds=%d", outer, env, nbinds, nintbinds)
 	return env
 }
 
@@ -312,7 +313,7 @@ func (c *Comp) Compile(in Ast) *Expr {
 		}
 		return exprList(list, c.CompileOptions)
 	}
-	c.Errorf("Compile: unsupported value, expecting <AstWithNode> or <AstWithSlice>, found %v <%v>", in, r.TypeOf(in))
+	c.Errorf("unsupported Ast node, expecting <AstWithNode> or <AstWithSlice>, found %v <%v>", in, r.TypeOf(in))
 	return nil
 }
 
@@ -348,7 +349,7 @@ func (c *Comp) CompileNode(node ast.Node) *Expr {
 	case *ast.File:
 		c.File(node)
 	default:
-		c.Errorf("Compile: unsupported expression, expecting <ast.Decl>, <ast.Expr>, <ast.Stmt> or <*ast.File>, found %v <%v>", node, r.TypeOf(node))
+		c.Errorf("unsupported node type, expecting <ast.Decl>, <ast.Expr>, <ast.Stmt> or <*ast.File>, found %v <%v>", node, r.TypeOf(node))
 		return nil
 	}
 	return c.Code.AsExpr()

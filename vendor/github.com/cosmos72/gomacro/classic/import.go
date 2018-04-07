@@ -43,7 +43,7 @@ func (env *Env) evalImport(node ast.Spec) (r.Value, []r.Value) {
 		if node.Name != nil {
 			name = node.Name.Name
 		} else {
-			name = path[1+strings.LastIndexByte(path, '/'):]
+			name = FileName(path)
 		}
 		pkg := env.ImportPackage(name, path)
 		if pkg != nil {

@@ -23,13 +23,13 @@ func init() {
 		"NewIEEE":	ValueOf(crc32.NewIEEE),
 		"Size":	ValueOf(crc32.Size),
 		"Update":	ValueOf(crc32.Update),
-	},Types: map[string]Type{
+	}, Types: map[string]Type{
 		"Table":	TypeOf((*crc32.Table)(nil)).Elem(),
-	},Untypeds: map[string]string{
+	}, Untypeds: map[string]string{
 		"Castagnoli":	"int:2197175160",
 		"IEEE":	"int:3988292384",
 		"Koopman":	"int:3945912366",
 		"Size":	"int:4",
-	},
+	}, 
 	}
 }

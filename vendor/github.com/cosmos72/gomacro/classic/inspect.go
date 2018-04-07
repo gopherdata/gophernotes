@@ -26,7 +26,6 @@
 package classic
 
 import (
-	"bufio"
 	"errors"
 	"fmt"
 	r "reflect"
@@ -42,11 +41,11 @@ type Inspector struct {
 	vs    []r.Value
 	ts    []r.Type
 	xts   []xr.Type
-	in    *bufio.Reader
+	in    Readline
 	env   *Env
 }
 
-func (env *Env) Inspect(in *bufio.Reader, str string, fastInterpreter bool) {
+func (env *Env) Inspect(in Readline, str string, fastInterpreter bool) {
 	form := env.Parse(str)
 	var v r.Value
 	var xt xr.Type
@@ -128,12 +127,12 @@ func (ip *Inspector) Show() {
 
 func (ip *Inspector) Repl() error {
 	for len(ip.names) > 0 {
-		fmt.Fprintf(ip.env.Stdout, "goinspect %s> ", strings.Join(ip.names, "."))
-		cmd, err := ip.in.ReadString('\n')
+		prompt := fmt.Sprintf("goinspect %s> ", strings.Join(ip.names, "."))
+		bytes, err := ip.in.Read(prompt)
 		if err != nil {
 			return err
 		}
-		cmd = strings.TrimSpace(cmd)
+		cmd := strings.TrimSpace(string(bytes))
 		err = ip.Eval(cmd)
 		if err != nil {
 			return err
@@ -239,7 +238,11 @@ func (ip *Inspector) Enter(cmd string) {
 	}
 	var t r.Type
 	if f != Nil && f != None {
-		t = r.TypeOf(f.Interface()) // concrete type
+		if f.CanInterface() {
+			t = r.TypeOf(f.Interface()) // concrete type
+		} else {
+			t = f.Type()
+		}
 	}
 
 	switch dereferenceValue(f).Kind() { // dereference pointers on-the-fly

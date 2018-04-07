@@ -34,11 +34,11 @@ func init() {
 		"ToSlash":	ValueOf(filepath.ToSlash),
 		"VolumeName":	ValueOf(filepath.VolumeName),
 		"Walk":	ValueOf(filepath.Walk),
-	},Types: map[string]Type{
+	}, Types: map[string]Type{
 		"WalkFunc":	TypeOf((*filepath.WalkFunc)(nil)).Elem(),
-	},Untypeds: map[string]string{
+	}, Untypeds: map[string]string{
 		"ListSeparator":	"rune:58",
 		"Separator":	"rune:47",
-	},
+	}, 
 	}
 }

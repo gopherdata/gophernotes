@@ -16,9 +16,9 @@ func init() {
 		"New":	ValueOf(sha1.New),
 		"Size":	ValueOf(sha1.Size),
 		"Sum":	ValueOf(sha1.Sum),
-	},Untypeds: map[string]string{
+	}, Untypeds: map[string]string{
 		"BlockSize":	"int:64",
 		"Size":	"int:20",
-	},
+	}, 
 	}
 }

@@ -26,7 +26,6 @@
 package base
 
 import (
-	"bufio"
 	"bytes"
 	"errors"
 	"fmt"
@@ -152,22 +151,19 @@ func (m mode) String() string {
 	}
 }
 
-var paragraph_separator_bytes = []byte{0xe2, 0x80, 0xa9}
-var nl_bytes = []byte{'\n'}
-
-func ReadMultiline(in *bufio.Reader, opts ReadOptions, out io.Writer, prompt string) (src string, firstToken int, err error) {
+func ReadMultiline(in Readline, opts ReadOptions, prompt string) (src string, firstToken int, err error) {
+	var line, buf []byte
 	m := mNormal
 	paren := 0
+	firstToken = -1
+	lastToken := -1
 	optPrompt := opts&ReadOptShowPrompt != 0
 	optAllComments := opts&ReadOptCollectAllComments != 0
 	ignorenl := false
-	firstToken = -1
-	lastToken := -1
-
+	var currPrompt string
 	if optPrompt {
-		fmt.Fprint(out, prompt)
+		currPrompt = prompt
 	}
-	var line, buf []byte
 
 	// comments do not reset ignorenl
 	resetnl := func(paren int, m mode) bool {
@@ -190,8 +186,7 @@ func ReadMultiline(in *bufio.Reader, opts ReadOptions, out io.Writer, prompt str
 	}
 
 	for {
-		line, err = in.ReadBytes('\n')
-		line = bytes.Replace(line, paragraph_separator_bytes, nl_bytes, -1)
+		line, err = in.Read(currPrompt)
 		for i, ch := range line {
 			if debug {
 				Debugf("ReadMultiline: found %q\tmode=%v\tparen=%d ignorenl=%t", ch, m, paren, ignorenl)
@@ -374,7 +369,7 @@ func ReadMultiline(in *bufio.Reader, opts ReadOptions, out io.Writer, prompt str
 			m = mNormal
 		}
 		if optPrompt {
-			printDots(out, 4+2*paren)
+			currPrompt = makeDots(9 + 2*paren)
 		}
 	}
 	if err != nil {
@@ -430,21 +425,25 @@ func lastIsKeywordIgnoresNl(line []byte, first, last int) bool {
 		ignorenl = true
 	}
 	if debug {
-		Debugf("lastIsKeywordIgnoresNl: found %ignorenl=%t", str, ignorenl)
+		Debugf("lastIsKeywordIgnoresNl: found %q ignorenl=%t", str, ignorenl)
 	}
 	return ignorenl
 }
 
-func printDots(out io.Writer, count int) {
+func makeDots(count int) string {
 	const (
-		dots  = ". . . . . . . . . . . . . . . . "
-		ndots = len(dots)
+		dots    = ". . . .                                                                                             "
+		spaces  = "                                                                                                    "
+		ndots   = len(dots)
+		nspaces = len(spaces)
 	)
-	for count >= ndots {
-		fmt.Fprint(out, dots)
-		count -= ndots
+	if count <= ndots {
+		return dots[0:count]
 	}
-	if count > 0 {
-		fmt.Fprint(out, dots[0:count])
+	buf := make([]byte, count)
+	copy(buf, dots)
+	for i := ndots; i < count; i += nspaces {
+		copy(buf[i:], spaces)
 	}
+	return string(buf)
 }

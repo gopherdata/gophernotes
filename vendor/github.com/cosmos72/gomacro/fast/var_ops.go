@@ -31,6 +31,7 @@
 package fast
 
 import (
+	"fmt"
 	"go/token"
 	r "reflect"
 	"unsafe"
@@ -67,9 +68,7 @@ func (c *Comp) varAddConst(va *Var, val I) {
 						{
 							lhs := env.
 								Binds[index]
-							lhs.SetInt(lhs.Int() + int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() + int64(val))
 						}
 
 						env.IP++
@@ -92,9 +91,7 @@ func (c *Comp) varAddConst(va *Var, val I) {
 							lhs := env.
 								Outer.
 								Binds[index]
-							lhs.SetInt(lhs.Int() + int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() + int64(val))
 						}
 
 						env.IP++
@@ -117,9 +114,7 @@ func (c *Comp) varAddConst(va *Var, val I) {
 							lhs := env.
 								Outer.Outer.
 								Binds[index]
-							lhs.SetInt(lhs.Int() + int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() + int64(val))
 						}
 
 						env.IP++
@@ -149,9 +144,7 @@ func (c *Comp) varAddConst(va *Var, val I) {
 							lhs :=
 
 								o.Binds[index]
-							lhs.SetInt(lhs.Int() + int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() + int64(val))
 						}
 
 						env.IP++
@@ -172,9 +165,7 @@ func (c *Comp) varAddConst(va *Var, val I) {
 						{
 							lhs := env.ThreadGlobals.FileEnv.
 								Binds[index]
-							lhs.SetInt(lhs.Int() + int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() + int64(val))
 						}
 
 						env.IP++
@@ -199,9 +190,7 @@ func (c *Comp) varAddConst(va *Var, val I) {
 						{
 							lhs := env.
 								Binds[index]
-							lhs.SetInt(lhs.Int() + int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() + int64(val))
 						}
 
 						env.IP++
@@ -224,9 +213,7 @@ func (c *Comp) varAddConst(va *Var, val I) {
 							lhs := env.
 								Outer.
 								Binds[index]
-							lhs.SetInt(lhs.Int() + int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() + int64(val))
 						}
 
 						env.IP++
@@ -249,9 +236,7 @@ func (c *Comp) varAddConst(va *Var, val I) {
 							lhs := env.
 								Outer.Outer.
 								Binds[index]
-							lhs.SetInt(lhs.Int() + int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() + int64(val))
 						}
 
 						env.IP++
@@ -281,9 +266,7 @@ func (c *Comp) varAddConst(va *Var, val I) {
 							lhs :=
 
 								o.Binds[index]
-							lhs.SetInt(lhs.Int() + int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() + int64(val))
 						}
 
 						env.IP++
@@ -304,9 +287,7 @@ func (c *Comp) varAddConst(va *Var, val I) {
 						{
 							lhs := env.ThreadGlobals.FileEnv.
 								Binds[index]
-							lhs.SetInt(lhs.Int() + int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() + int64(val))
 						}
 
 						env.IP++
@@ -331,9 +312,7 @@ func (c *Comp) varAddConst(va *Var, val I) {
 						{
 							lhs := env.
 								Binds[index]
-							lhs.SetInt(lhs.Int() + int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() + int64(val))
 						}
 
 						env.IP++
@@ -356,9 +335,7 @@ func (c *Comp) varAddConst(va *Var, val I) {
 							lhs := env.
 								Outer.
 								Binds[index]
-							lhs.SetInt(lhs.Int() + int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() + int64(val))
 						}
 
 						env.IP++
@@ -381,9 +358,7 @@ func (c *Comp) varAddConst(va *Var, val I) {
 							lhs := env.
 								Outer.Outer.
 								Binds[index]
-							lhs.SetInt(lhs.Int() + int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() + int64(val))
 						}
 
 						env.IP++
@@ -413,9 +388,7 @@ func (c *Comp) varAddConst(va *Var, val I) {
 							lhs :=
 
 								o.Binds[index]
-							lhs.SetInt(lhs.Int() + int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() + int64(val))
 						}
 
 						env.IP++
@@ -436,9 +409,7 @@ func (c *Comp) varAddConst(va *Var, val I) {
 						{
 							lhs := env.ThreadGlobals.FileEnv.
 								Binds[index]
-							lhs.SetInt(lhs.Int() + int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() + int64(val))
 						}
 
 						env.IP++
@@ -463,9 +434,7 @@ func (c *Comp) varAddConst(va *Var, val I) {
 						{
 							lhs := env.
 								Binds[index]
-							lhs.SetInt(lhs.Int() + int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() + int64(val))
 						}
 
 						env.IP++
@@ -488,9 +457,7 @@ func (c *Comp) varAddConst(va *Var, val I) {
 							lhs := env.
 								Outer.
 								Binds[index]
-							lhs.SetInt(lhs.Int() + int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() + int64(val))
 						}
 
 						env.IP++
@@ -513,9 +480,7 @@ func (c *Comp) varAddConst(va *Var, val I) {
 							lhs := env.
 								Outer.Outer.
 								Binds[index]
-							lhs.SetInt(lhs.Int() + int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() + int64(val))
 						}
 
 						env.IP++
@@ -545,9 +510,7 @@ func (c *Comp) varAddConst(va *Var, val I) {
 							lhs :=
 
 								o.Binds[index]
-							lhs.SetInt(lhs.Int() + int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() + int64(val))
 						}
 
 						env.IP++
@@ -568,9 +531,7 @@ func (c *Comp) varAddConst(va *Var, val I) {
 						{
 							lhs := env.ThreadGlobals.FileEnv.
 								Binds[index]
-							lhs.SetInt(lhs.Int() + int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() + int64(val))
 						}
 
 						env.IP++
@@ -595,9 +556,7 @@ func (c *Comp) varAddConst(va *Var, val I) {
 						{
 							lhs := env.
 								Binds[index]
-							lhs.SetInt(lhs.Int() + int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() + int64(val))
 						}
 
 						env.IP++
@@ -620,9 +579,7 @@ func (c *Comp) varAddConst(va *Var, val I) {
 							lhs := env.
 								Outer.
 								Binds[index]
-							lhs.SetInt(lhs.Int() + int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() + int64(val))
 						}
 
 						env.IP++
@@ -645,9 +602,7 @@ func (c *Comp) varAddConst(va *Var, val I) {
 							lhs := env.
 								Outer.Outer.
 								Binds[index]
-							lhs.SetInt(lhs.Int() + int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() + int64(val))
 						}
 
 						env.IP++
@@ -677,9 +632,7 @@ func (c *Comp) varAddConst(va *Var, val I) {
 							lhs :=
 
 								o.Binds[index]
-							lhs.SetInt(lhs.Int() + int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() + int64(val))
 						}
 
 						env.IP++
@@ -700,9 +653,7 @@ func (c *Comp) varAddConst(va *Var, val I) {
 						{
 							lhs := env.ThreadGlobals.FileEnv.
 								Binds[index]
-							lhs.SetInt(lhs.Int() + int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() + int64(val))
 						}
 
 						env.IP++
@@ -727,9 +678,7 @@ func (c *Comp) varAddConst(va *Var, val I) {
 						{
 							lhs := env.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() + uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() + uint64(val))
 						}
 
 						env.IP++
@@ -752,9 +701,7 @@ func (c *Comp) varAddConst(va *Var, val I) {
 							lhs := env.
 								Outer.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() + uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() + uint64(val))
 						}
 
 						env.IP++
@@ -777,9 +724,7 @@ func (c *Comp) varAddConst(va *Var, val I) {
 							lhs := env.
 								Outer.Outer.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() + uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() + uint64(val))
 						}
 
 						env.IP++
@@ -809,9 +754,7 @@ func (c *Comp) varAddConst(va *Var, val I) {
 						{
 							lhs := o.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() + uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() + uint64(val))
 						}
 
 						env.IP++
@@ -832,9 +775,7 @@ func (c *Comp) varAddConst(va *Var, val I) {
 						{
 							lhs := env.ThreadGlobals.FileEnv.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() + uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() + uint64(val))
 						}
 
 						env.IP++
@@ -859,9 +800,7 @@ func (c *Comp) varAddConst(va *Var, val I) {
 						{
 							lhs := env.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() + uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() + uint64(val))
 						}
 
 						env.IP++
@@ -884,9 +823,7 @@ func (c *Comp) varAddConst(va *Var, val I) {
 							lhs := env.
 								Outer.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() + uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() + uint64(val))
 						}
 
 						env.IP++
@@ -909,9 +846,7 @@ func (c *Comp) varAddConst(va *Var, val I) {
 							lhs := env.
 								Outer.Outer.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() + uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() + uint64(val))
 						}
 
 						env.IP++
@@ -941,9 +876,7 @@ func (c *Comp) varAddConst(va *Var, val I) {
 						{
 							lhs := o.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() + uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() + uint64(val))
 						}
 
 						env.IP++
@@ -964,9 +897,7 @@ func (c *Comp) varAddConst(va *Var, val I) {
 						{
 							lhs := env.ThreadGlobals.FileEnv.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() + uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() + uint64(val))
 						}
 
 						env.IP++
@@ -991,9 +922,7 @@ func (c *Comp) varAddConst(va *Var, val I) {
 						{
 							lhs := env.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() + uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() + uint64(val))
 						}
 
 						env.IP++
@@ -1016,9 +945,7 @@ func (c *Comp) varAddConst(va *Var, val I) {
 							lhs := env.
 								Outer.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() + uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() + uint64(val))
 						}
 
 						env.IP++
@@ -1041,9 +968,7 @@ func (c *Comp) varAddConst(va *Var, val I) {
 							lhs := env.
 								Outer.Outer.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() + uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() + uint64(val))
 						}
 
 						env.IP++
@@ -1073,9 +998,7 @@ func (c *Comp) varAddConst(va *Var, val I) {
 						{
 							lhs := o.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() + uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() + uint64(val))
 						}
 
 						env.IP++
@@ -1096,9 +1019,7 @@ func (c *Comp) varAddConst(va *Var, val I) {
 						{
 							lhs := env.ThreadGlobals.FileEnv.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() + uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() + uint64(val))
 						}
 
 						env.IP++
@@ -1123,9 +1044,7 @@ func (c *Comp) varAddConst(va *Var, val I) {
 						{
 							lhs := env.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() + uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() + uint64(val))
 						}
 
 						env.IP++
@@ -1148,9 +1067,7 @@ func (c *Comp) varAddConst(va *Var, val I) {
 							lhs := env.
 								Outer.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() + uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() + uint64(val))
 						}
 
 						env.IP++
@@ -1173,9 +1090,7 @@ func (c *Comp) varAddConst(va *Var, val I) {
 							lhs := env.
 								Outer.Outer.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() + uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() + uint64(val))
 						}
 
 						env.IP++
@@ -1205,9 +1120,7 @@ func (c *Comp) varAddConst(va *Var, val I) {
 						{
 							lhs := o.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() + uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() + uint64(val))
 						}
 
 						env.IP++
@@ -1228,9 +1141,7 @@ func (c *Comp) varAddConst(va *Var, val I) {
 						{
 							lhs := env.ThreadGlobals.FileEnv.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() + uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() + uint64(val))
 						}
 
 						env.IP++
@@ -1256,9 +1167,7 @@ func (c *Comp) varAddConst(va *Var, val I) {
 						{
 							lhs := env.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() + uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() + uint64(val))
 						}
 
 						env.IP++
@@ -1282,9 +1191,7 @@ func (c *Comp) varAddConst(va *Var, val I) {
 							lhs := env.
 								Outer.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() + uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() + uint64(val))
 						}
 
 						env.IP++
@@ -1308,9 +1215,7 @@ func (c *Comp) varAddConst(va *Var, val I) {
 							lhs := env.
 								Outer.Outer.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() + uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() + uint64(val))
 						}
 
 						env.IP++
@@ -1342,9 +1247,7 @@ func (c *Comp) varAddConst(va *Var, val I) {
 						{
 							lhs := o.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() + uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() + uint64(val))
 						}
 
 						env.IP++
@@ -1366,9 +1269,7 @@ func (c *Comp) varAddConst(va *Var, val I) {
 						{
 							lhs := env.ThreadGlobals.FileEnv.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() + uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() + uint64(val))
 						}
 
 						env.IP++
@@ -1393,9 +1294,7 @@ func (c *Comp) varAddConst(va *Var, val I) {
 						{
 							lhs := env.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() + uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() + uint64(val))
 						}
 
 						env.IP++
@@ -1418,9 +1317,7 @@ func (c *Comp) varAddConst(va *Var, val I) {
 							lhs := env.
 								Outer.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() + uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() + uint64(val))
 						}
 
 						env.IP++
@@ -1443,9 +1340,7 @@ func (c *Comp) varAddConst(va *Var, val I) {
 							lhs := env.
 								Outer.Outer.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() + uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() + uint64(val))
 						}
 
 						env.IP++
@@ -1475,9 +1370,7 @@ func (c *Comp) varAddConst(va *Var, val I) {
 						{
 							lhs := o.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() + uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() + uint64(val))
 						}
 
 						env.IP++
@@ -1498,9 +1391,7 @@ func (c *Comp) varAddConst(va *Var, val I) {
 						{
 							lhs := env.ThreadGlobals.FileEnv.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() + uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() + uint64(val))
 						}
 
 						env.IP++
@@ -1527,9 +1418,7 @@ func (c *Comp) varAddConst(va *Var, val I) {
 						{
 							lhs := env.
 								Binds[index]
-							lhs.SetFloat(lhs.Float() + float64(val,
-							),
-							)
+							lhs.SetFloat(lhs.Float() + float64(val))
 						}
 
 						env.IP++
@@ -1552,9 +1441,7 @@ func (c *Comp) varAddConst(va *Var, val I) {
 							lhs := env.
 								Outer.
 								Binds[index]
-							lhs.SetFloat(lhs.Float() + float64(val,
-							),
-							)
+							lhs.SetFloat(lhs.Float() + float64(val))
 						}
 
 						env.IP++
@@ -1577,9 +1464,7 @@ func (c *Comp) varAddConst(va *Var, val I) {
 							lhs := env.
 								Outer.Outer.
 								Binds[index]
-							lhs.SetFloat(lhs.Float() + float64(val,
-							),
-							)
+							lhs.SetFloat(lhs.Float() + float64(val))
 						}
 
 						env.IP++
@@ -1609,9 +1494,7 @@ func (c *Comp) varAddConst(va *Var, val I) {
 						{
 							lhs := o.
 								Binds[index]
-							lhs.SetFloat(lhs.Float() + float64(val,
-							),
-							)
+							lhs.SetFloat(lhs.Float() + float64(val))
 						}
 
 						env.IP++
@@ -1632,9 +1515,7 @@ func (c *Comp) varAddConst(va *Var, val I) {
 						{
 							lhs := env.ThreadGlobals.FileEnv.
 								Binds[index]
-							lhs.SetFloat(lhs.Float() + float64(val,
-							),
-							)
+							lhs.SetFloat(lhs.Float() + float64(val))
 						}
 
 						env.IP++
@@ -1659,9 +1540,7 @@ func (c *Comp) varAddConst(va *Var, val I) {
 						{
 							lhs := env.
 								Binds[index]
-							lhs.SetFloat(lhs.Float() + float64(val,
-							),
-							)
+							lhs.SetFloat(lhs.Float() + float64(val))
 						}
 
 						env.IP++
@@ -1684,9 +1563,7 @@ func (c *Comp) varAddConst(va *Var, val I) {
 							lhs := env.
 								Outer.
 								Binds[index]
-							lhs.SetFloat(lhs.Float() + float64(val,
-							),
-							)
+							lhs.SetFloat(lhs.Float() + float64(val))
 						}
 
 						env.IP++
@@ -1709,9 +1586,7 @@ func (c *Comp) varAddConst(va *Var, val I) {
 							lhs := env.
 								Outer.Outer.
 								Binds[index]
-							lhs.SetFloat(lhs.Float() + float64(val,
-							),
-							)
+							lhs.SetFloat(lhs.Float() + float64(val))
 						}
 
 						env.IP++
@@ -1741,9 +1616,7 @@ func (c *Comp) varAddConst(va *Var, val I) {
 						{
 							lhs := o.
 								Binds[index]
-							lhs.SetFloat(lhs.Float() + float64(val,
-							),
-							)
+							lhs.SetFloat(lhs.Float() + float64(val))
 						}
 
 						env.IP++
@@ -1764,9 +1637,7 @@ func (c *Comp) varAddConst(va *Var, val I) {
 						{
 							lhs := env.ThreadGlobals.FileEnv.
 								Binds[index]
-							lhs.SetFloat(lhs.Float() + float64(val,
-							),
-							)
+							lhs.SetFloat(lhs.Float() + float64(val))
 						}
 
 						env.IP++
@@ -1793,9 +1664,7 @@ func (c *Comp) varAddConst(va *Var, val I) {
 						{
 							lhs := env.
 								Binds[index]
-							lhs.SetComplex(lhs.Complex() + complex128(val,
-							),
-							)
+							lhs.SetComplex(lhs.Complex() + complex128(val))
 						}
 
 						env.IP++
@@ -1818,9 +1687,7 @@ func (c *Comp) varAddConst(va *Var, val I) {
 							lhs := env.
 								Outer.
 								Binds[index]
-							lhs.SetComplex(lhs.Complex() + complex128(val,
-							),
-							)
+							lhs.SetComplex(lhs.Complex() + complex128(val))
 						}
 
 						env.IP++
@@ -1843,9 +1710,7 @@ func (c *Comp) varAddConst(va *Var, val I) {
 							lhs := env.
 								Outer.Outer.
 								Binds[index]
-							lhs.SetComplex(lhs.Complex() + complex128(val,
-							),
-							)
+							lhs.SetComplex(lhs.Complex() + complex128(val))
 						}
 
 						env.IP++
@@ -1875,9 +1740,7 @@ func (c *Comp) varAddConst(va *Var, val I) {
 						{
 							lhs := o.
 								Binds[index]
-							lhs.SetComplex(lhs.Complex() + complex128(val,
-							),
-							)
+							lhs.SetComplex(lhs.Complex() + complex128(val))
 						}
 
 						env.IP++
@@ -1898,9 +1761,7 @@ func (c *Comp) varAddConst(va *Var, val I) {
 						{
 							lhs := env.ThreadGlobals.FileEnv.
 								Binds[index]
-							lhs.SetComplex(lhs.Complex() + complex128(val,
-							),
-							)
+							lhs.SetComplex(lhs.Complex() + complex128(val))
 						}
 
 						env.IP++
@@ -2100,9 +1961,7 @@ func (c *Comp) varAddExpr(va *Var, fun I) {
 					{
 						lhs := env.
 							Binds[index]
-						lhs.SetInt(lhs.Int() + int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() + int64(fun(env)))
 					}
 
 					env.IP++
@@ -2125,9 +1984,7 @@ func (c *Comp) varAddExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.
 							Binds[index]
-						lhs.SetInt(lhs.Int() + int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() + int64(fun(env)))
 					}
 
 					env.IP++
@@ -2150,9 +2007,7 @@ func (c *Comp) varAddExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.Outer.
 							Binds[index]
-						lhs.SetInt(lhs.Int() + int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() + int64(fun(env)))
 					}
 
 					env.IP++
@@ -2182,9 +2037,7 @@ func (c *Comp) varAddExpr(va *Var, fun I) {
 						lhs :=
 
 							o.Binds[index]
-						lhs.SetInt(lhs.Int() + int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() + int64(fun(env)))
 					}
 
 					env.IP++
@@ -2205,9 +2058,7 @@ func (c *Comp) varAddExpr(va *Var, fun I) {
 					{
 						lhs := env.ThreadGlobals.FileEnv.
 							Binds[index]
-						lhs.SetInt(lhs.Int() + int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() + int64(fun(env)))
 					}
 
 					env.IP++
@@ -2231,9 +2082,7 @@ func (c *Comp) varAddExpr(va *Var, fun I) {
 					{
 						lhs := env.
 							Binds[index]
-						lhs.SetInt(lhs.Int() + int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() + int64(fun(env)))
 					}
 
 					env.IP++
@@ -2256,9 +2105,7 @@ func (c *Comp) varAddExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.
 							Binds[index]
-						lhs.SetInt(lhs.Int() + int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() + int64(fun(env)))
 					}
 
 					env.IP++
@@ -2281,9 +2128,7 @@ func (c *Comp) varAddExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.Outer.
 							Binds[index]
-						lhs.SetInt(lhs.Int() + int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() + int64(fun(env)))
 					}
 
 					env.IP++
@@ -2313,9 +2158,7 @@ func (c *Comp) varAddExpr(va *Var, fun I) {
 						lhs :=
 
 							o.Binds[index]
-						lhs.SetInt(lhs.Int() + int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() + int64(fun(env)))
 					}
 
 					env.IP++
@@ -2336,9 +2179,7 @@ func (c *Comp) varAddExpr(va *Var, fun I) {
 					{
 						lhs := env.ThreadGlobals.FileEnv.
 							Binds[index]
-						lhs.SetInt(lhs.Int() + int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() + int64(fun(env)))
 					}
 
 					env.IP++
@@ -2362,9 +2203,7 @@ func (c *Comp) varAddExpr(va *Var, fun I) {
 					{
 						lhs := env.
 							Binds[index]
-						lhs.SetInt(lhs.Int() + int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() + int64(fun(env)))
 					}
 
 					env.IP++
@@ -2387,9 +2226,7 @@ func (c *Comp) varAddExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.
 							Binds[index]
-						lhs.SetInt(lhs.Int() + int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() + int64(fun(env)))
 					}
 
 					env.IP++
@@ -2412,9 +2249,7 @@ func (c *Comp) varAddExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.Outer.
 							Binds[index]
-						lhs.SetInt(lhs.Int() + int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() + int64(fun(env)))
 					}
 
 					env.IP++
@@ -2444,9 +2279,7 @@ func (c *Comp) varAddExpr(va *Var, fun I) {
 						lhs :=
 
 							o.Binds[index]
-						lhs.SetInt(lhs.Int() + int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() + int64(fun(env)))
 					}
 
 					env.IP++
@@ -2467,9 +2300,7 @@ func (c *Comp) varAddExpr(va *Var, fun I) {
 					{
 						lhs := env.ThreadGlobals.FileEnv.
 							Binds[index]
-						lhs.SetInt(lhs.Int() + int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() + int64(fun(env)))
 					}
 
 					env.IP++
@@ -2493,9 +2324,7 @@ func (c *Comp) varAddExpr(va *Var, fun I) {
 					{
 						lhs := env.
 							Binds[index]
-						lhs.SetInt(lhs.Int() + int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() + int64(fun(env)))
 					}
 
 					env.IP++
@@ -2518,9 +2347,7 @@ func (c *Comp) varAddExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.
 							Binds[index]
-						lhs.SetInt(lhs.Int() + int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() + int64(fun(env)))
 					}
 
 					env.IP++
@@ -2543,9 +2370,7 @@ func (c *Comp) varAddExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.Outer.
 							Binds[index]
-						lhs.SetInt(lhs.Int() + int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() + int64(fun(env)))
 					}
 
 					env.IP++
@@ -2575,9 +2400,7 @@ func (c *Comp) varAddExpr(va *Var, fun I) {
 						lhs :=
 
 							o.Binds[index]
-						lhs.SetInt(lhs.Int() + int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() + int64(fun(env)))
 					}
 
 					env.IP++
@@ -2598,9 +2421,7 @@ func (c *Comp) varAddExpr(va *Var, fun I) {
 					{
 						lhs := env.ThreadGlobals.FileEnv.
 							Binds[index]
-						lhs.SetInt(lhs.Int() + int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() + int64(fun(env)))
 					}
 
 					env.IP++
@@ -2624,9 +2445,7 @@ func (c *Comp) varAddExpr(va *Var, fun I) {
 					{
 						lhs := env.
 							Binds[index]
-						lhs.SetInt(lhs.Int() + int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() + int64(fun(env)))
 					}
 
 					env.IP++
@@ -2649,9 +2468,7 @@ func (c *Comp) varAddExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.
 							Binds[index]
-						lhs.SetInt(lhs.Int() + int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() + int64(fun(env)))
 					}
 
 					env.IP++
@@ -2674,9 +2491,7 @@ func (c *Comp) varAddExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.Outer.
 							Binds[index]
-						lhs.SetInt(lhs.Int() + int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() + int64(fun(env)))
 					}
 
 					env.IP++
@@ -2706,9 +2521,7 @@ func (c *Comp) varAddExpr(va *Var, fun I) {
 						lhs :=
 
 							o.Binds[index]
-						lhs.SetInt(lhs.Int() + int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() + int64(fun(env)))
 					}
 
 					env.IP++
@@ -2729,9 +2542,7 @@ func (c *Comp) varAddExpr(va *Var, fun I) {
 					{
 						lhs := env.ThreadGlobals.FileEnv.
 							Binds[index]
-						lhs.SetInt(lhs.Int() + int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() + int64(fun(env)))
 					}
 
 					env.IP++
@@ -2755,9 +2566,7 @@ func (c *Comp) varAddExpr(va *Var, fun I) {
 					{
 						lhs := env.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() + uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() + uint64(fun(env)))
 					}
 
 					env.IP++
@@ -2780,9 +2589,7 @@ func (c *Comp) varAddExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() + uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() + uint64(fun(env)))
 					}
 
 					env.IP++
@@ -2805,9 +2612,7 @@ func (c *Comp) varAddExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.Outer.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() + uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() + uint64(fun(env)))
 					}
 
 					env.IP++
@@ -2837,9 +2642,7 @@ func (c *Comp) varAddExpr(va *Var, fun I) {
 					{
 						lhs := o.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() + uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() + uint64(fun(env)))
 					}
 
 					env.IP++
@@ -2860,9 +2663,7 @@ func (c *Comp) varAddExpr(va *Var, fun I) {
 					{
 						lhs := env.ThreadGlobals.FileEnv.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() + uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() + uint64(fun(env)))
 					}
 
 					env.IP++
@@ -2886,9 +2687,7 @@ func (c *Comp) varAddExpr(va *Var, fun I) {
 					{
 						lhs := env.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() + uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() + uint64(fun(env)))
 					}
 
 					env.IP++
@@ -2911,9 +2710,7 @@ func (c *Comp) varAddExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() + uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() + uint64(fun(env)))
 					}
 
 					env.IP++
@@ -2936,9 +2733,7 @@ func (c *Comp) varAddExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.Outer.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() + uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() + uint64(fun(env)))
 					}
 
 					env.IP++
@@ -2968,9 +2763,7 @@ func (c *Comp) varAddExpr(va *Var, fun I) {
 					{
 						lhs := o.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() + uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() + uint64(fun(env)))
 					}
 
 					env.IP++
@@ -2991,9 +2784,7 @@ func (c *Comp) varAddExpr(va *Var, fun I) {
 					{
 						lhs := env.ThreadGlobals.FileEnv.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() + uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() + uint64(fun(env)))
 					}
 
 					env.IP++
@@ -3017,9 +2808,7 @@ func (c *Comp) varAddExpr(va *Var, fun I) {
 					{
 						lhs := env.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() + uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() + uint64(fun(env)))
 					}
 
 					env.IP++
@@ -3042,9 +2831,7 @@ func (c *Comp) varAddExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() + uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() + uint64(fun(env)))
 					}
 
 					env.IP++
@@ -3067,9 +2854,7 @@ func (c *Comp) varAddExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.Outer.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() + uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() + uint64(fun(env)))
 					}
 
 					env.IP++
@@ -3099,9 +2884,7 @@ func (c *Comp) varAddExpr(va *Var, fun I) {
 					{
 						lhs := o.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() + uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() + uint64(fun(env)))
 					}
 
 					env.IP++
@@ -3122,9 +2905,7 @@ func (c *Comp) varAddExpr(va *Var, fun I) {
 					{
 						lhs := env.ThreadGlobals.FileEnv.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() + uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() + uint64(fun(env)))
 					}
 
 					env.IP++
@@ -3148,9 +2929,7 @@ func (c *Comp) varAddExpr(va *Var, fun I) {
 					{
 						lhs := env.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() + uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() + uint64(fun(env)))
 					}
 
 					env.IP++
@@ -3173,9 +2952,7 @@ func (c *Comp) varAddExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() + uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() + uint64(fun(env)))
 					}
 
 					env.IP++
@@ -3198,9 +2975,7 @@ func (c *Comp) varAddExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.Outer.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() + uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() + uint64(fun(env)))
 					}
 
 					env.IP++
@@ -3230,9 +3005,7 @@ func (c *Comp) varAddExpr(va *Var, fun I) {
 					{
 						lhs := o.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() + uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() + uint64(fun(env)))
 					}
 
 					env.IP++
@@ -3253,9 +3026,7 @@ func (c *Comp) varAddExpr(va *Var, fun I) {
 					{
 						lhs := env.ThreadGlobals.FileEnv.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() + uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() + uint64(fun(env)))
 					}
 
 					env.IP++
@@ -3280,9 +3051,7 @@ func (c *Comp) varAddExpr(va *Var, fun I) {
 					{
 						lhs := env.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() + uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() + uint64(fun(env)))
 					}
 
 					env.IP++
@@ -3306,9 +3075,7 @@ func (c *Comp) varAddExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() + uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() + uint64(fun(env)))
 					}
 
 					env.IP++
@@ -3332,9 +3099,7 @@ func (c *Comp) varAddExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.Outer.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() + uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() + uint64(fun(env)))
 					}
 
 					env.IP++
@@ -3366,9 +3131,7 @@ func (c *Comp) varAddExpr(va *Var, fun I) {
 					{
 						lhs := o.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() + uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() + uint64(fun(env)))
 					}
 
 					env.IP++
@@ -3390,9 +3153,7 @@ func (c *Comp) varAddExpr(va *Var, fun I) {
 					{
 						lhs := env.ThreadGlobals.FileEnv.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() + uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() + uint64(fun(env)))
 					}
 
 					env.IP++
@@ -3416,9 +3177,7 @@ func (c *Comp) varAddExpr(va *Var, fun I) {
 					{
 						lhs := env.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() + uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() + uint64(fun(env)))
 					}
 
 					env.IP++
@@ -3441,9 +3200,7 @@ func (c *Comp) varAddExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() + uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() + uint64(fun(env)))
 					}
 
 					env.IP++
@@ -3466,9 +3223,7 @@ func (c *Comp) varAddExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.Outer.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() + uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() + uint64(fun(env)))
 					}
 
 					env.IP++
@@ -3498,9 +3253,7 @@ func (c *Comp) varAddExpr(va *Var, fun I) {
 					{
 						lhs := o.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() + uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() + uint64(fun(env)))
 					}
 
 					env.IP++
@@ -3521,9 +3274,7 @@ func (c *Comp) varAddExpr(va *Var, fun I) {
 					{
 						lhs := env.ThreadGlobals.FileEnv.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() + uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() + uint64(fun(env)))
 					}
 
 					env.IP++
@@ -3547,9 +3298,7 @@ func (c *Comp) varAddExpr(va *Var, fun I) {
 					{
 						lhs := env.
 							Binds[index]
-						lhs.SetFloat(lhs.Float() + float64(fun(env),
-						),
-						)
+						lhs.SetFloat(lhs.Float() + float64(fun(env)))
 					}
 
 					env.IP++
@@ -3572,9 +3321,7 @@ func (c *Comp) varAddExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.
 							Binds[index]
-						lhs.SetFloat(lhs.Float() + float64(fun(env),
-						),
-						)
+						lhs.SetFloat(lhs.Float() + float64(fun(env)))
 					}
 
 					env.IP++
@@ -3597,9 +3344,7 @@ func (c *Comp) varAddExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.Outer.
 							Binds[index]
-						lhs.SetFloat(lhs.Float() + float64(fun(env),
-						),
-						)
+						lhs.SetFloat(lhs.Float() + float64(fun(env)))
 					}
 
 					env.IP++
@@ -3629,9 +3374,7 @@ func (c *Comp) varAddExpr(va *Var, fun I) {
 					{
 						lhs := o.
 							Binds[index]
-						lhs.SetFloat(lhs.Float() + float64(fun(env),
-						),
-						)
+						lhs.SetFloat(lhs.Float() + float64(fun(env)))
 					}
 
 					env.IP++
@@ -3652,9 +3395,7 @@ func (c *Comp) varAddExpr(va *Var, fun I) {
 					{
 						lhs := env.ThreadGlobals.FileEnv.
 							Binds[index]
-						lhs.SetFloat(lhs.Float() + float64(fun(env),
-						),
-						)
+						lhs.SetFloat(lhs.Float() + float64(fun(env)))
 					}
 
 					env.IP++
@@ -3678,9 +3419,7 @@ func (c *Comp) varAddExpr(va *Var, fun I) {
 					{
 						lhs := env.
 							Binds[index]
-						lhs.SetFloat(lhs.Float() + float64(fun(env),
-						),
-						)
+						lhs.SetFloat(lhs.Float() + float64(fun(env)))
 					}
 
 					env.IP++
@@ -3703,9 +3442,7 @@ func (c *Comp) varAddExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.
 							Binds[index]
-						lhs.SetFloat(lhs.Float() + float64(fun(env),
-						),
-						)
+						lhs.SetFloat(lhs.Float() + float64(fun(env)))
 					}
 
 					env.IP++
@@ -3728,9 +3465,7 @@ func (c *Comp) varAddExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.Outer.
 							Binds[index]
-						lhs.SetFloat(lhs.Float() + float64(fun(env),
-						),
-						)
+						lhs.SetFloat(lhs.Float() + float64(fun(env)))
 					}
 
 					env.IP++
@@ -3760,9 +3495,7 @@ func (c *Comp) varAddExpr(va *Var, fun I) {
 					{
 						lhs := o.
 							Binds[index]
-						lhs.SetFloat(lhs.Float() + float64(fun(env),
-						),
-						)
+						lhs.SetFloat(lhs.Float() + float64(fun(env)))
 					}
 
 					env.IP++
@@ -3783,9 +3516,7 @@ func (c *Comp) varAddExpr(va *Var, fun I) {
 					{
 						lhs := env.ThreadGlobals.FileEnv.
 							Binds[index]
-						lhs.SetFloat(lhs.Float() + float64(fun(env),
-						),
-						)
+						lhs.SetFloat(lhs.Float() + float64(fun(env)))
 					}
 
 					env.IP++
@@ -3809,9 +3540,7 @@ func (c *Comp) varAddExpr(va *Var, fun I) {
 					{
 						lhs := env.
 							Binds[index]
-						lhs.SetComplex(lhs.Complex() + complex128(fun(env),
-						),
-						)
+						lhs.SetComplex(lhs.Complex() + complex128(fun(env)))
 					}
 
 					env.IP++
@@ -3834,9 +3563,7 @@ func (c *Comp) varAddExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.
 							Binds[index]
-						lhs.SetComplex(lhs.Complex() + complex128(fun(env),
-						),
-						)
+						lhs.SetComplex(lhs.Complex() + complex128(fun(env)))
 					}
 
 					env.IP++
@@ -3859,9 +3586,7 @@ func (c *Comp) varAddExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.Outer.
 							Binds[index]
-						lhs.SetComplex(lhs.Complex() + complex128(fun(env),
-						),
-						)
+						lhs.SetComplex(lhs.Complex() + complex128(fun(env)))
 					}
 
 					env.IP++
@@ -3891,9 +3616,7 @@ func (c *Comp) varAddExpr(va *Var, fun I) {
 					{
 						lhs := o.
 							Binds[index]
-						lhs.SetComplex(lhs.Complex() + complex128(fun(env),
-						),
-						)
+						lhs.SetComplex(lhs.Complex() + complex128(fun(env)))
 					}
 
 					env.IP++
@@ -3914,9 +3637,7 @@ func (c *Comp) varAddExpr(va *Var, fun I) {
 					{
 						lhs := env.ThreadGlobals.FileEnv.
 							Binds[index]
-						lhs.SetComplex(lhs.Complex() + complex128(fun(env),
-						),
-						)
+						lhs.SetComplex(lhs.Complex() + complex128(fun(env)))
 					}
 
 					env.IP++
@@ -4119,9 +3840,7 @@ func (c *Comp) varSubConst(va *Var, val I) {
 						{
 							lhs := env.
 								Binds[index]
-							lhs.SetInt(lhs.Int() - int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() - int64(val))
 						}
 
 						env.IP++
@@ -4144,9 +3863,7 @@ func (c *Comp) varSubConst(va *Var, val I) {
 							lhs := env.
 								Outer.
 								Binds[index]
-							lhs.SetInt(lhs.Int() - int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() - int64(val))
 						}
 
 						env.IP++
@@ -4169,9 +3886,7 @@ func (c *Comp) varSubConst(va *Var, val I) {
 							lhs := env.
 								Outer.Outer.
 								Binds[index]
-							lhs.SetInt(lhs.Int() - int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() - int64(val))
 						}
 
 						env.IP++
@@ -4201,9 +3916,7 @@ func (c *Comp) varSubConst(va *Var, val I) {
 							lhs :=
 
 								o.Binds[index]
-							lhs.SetInt(lhs.Int() - int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() - int64(val))
 						}
 
 						env.IP++
@@ -4224,9 +3937,7 @@ func (c *Comp) varSubConst(va *Var, val I) {
 						{
 							lhs := env.ThreadGlobals.FileEnv.
 								Binds[index]
-							lhs.SetInt(lhs.Int() - int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() - int64(val))
 						}
 
 						env.IP++
@@ -4251,9 +3962,7 @@ func (c *Comp) varSubConst(va *Var, val I) {
 						{
 							lhs := env.
 								Binds[index]
-							lhs.SetInt(lhs.Int() - int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() - int64(val))
 						}
 
 						env.IP++
@@ -4276,9 +3985,7 @@ func (c *Comp) varSubConst(va *Var, val I) {
 							lhs := env.
 								Outer.
 								Binds[index]
-							lhs.SetInt(lhs.Int() - int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() - int64(val))
 						}
 
 						env.IP++
@@ -4301,9 +4008,7 @@ func (c *Comp) varSubConst(va *Var, val I) {
 							lhs := env.
 								Outer.Outer.
 								Binds[index]
-							lhs.SetInt(lhs.Int() - int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() - int64(val))
 						}
 
 						env.IP++
@@ -4333,9 +4038,7 @@ func (c *Comp) varSubConst(va *Var, val I) {
 							lhs :=
 
 								o.Binds[index]
-							lhs.SetInt(lhs.Int() - int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() - int64(val))
 						}
 
 						env.IP++
@@ -4356,9 +4059,7 @@ func (c *Comp) varSubConst(va *Var, val I) {
 						{
 							lhs := env.ThreadGlobals.FileEnv.
 								Binds[index]
-							lhs.SetInt(lhs.Int() - int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() - int64(val))
 						}
 
 						env.IP++
@@ -4383,9 +4084,7 @@ func (c *Comp) varSubConst(va *Var, val I) {
 						{
 							lhs := env.
 								Binds[index]
-							lhs.SetInt(lhs.Int() - int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() - int64(val))
 						}
 
 						env.IP++
@@ -4408,9 +4107,7 @@ func (c *Comp) varSubConst(va *Var, val I) {
 							lhs := env.
 								Outer.
 								Binds[index]
-							lhs.SetInt(lhs.Int() - int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() - int64(val))
 						}
 
 						env.IP++
@@ -4433,9 +4130,7 @@ func (c *Comp) varSubConst(va *Var, val I) {
 							lhs := env.
 								Outer.Outer.
 								Binds[index]
-							lhs.SetInt(lhs.Int() - int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() - int64(val))
 						}
 
 						env.IP++
@@ -4465,9 +4160,7 @@ func (c *Comp) varSubConst(va *Var, val I) {
 							lhs :=
 
 								o.Binds[index]
-							lhs.SetInt(lhs.Int() - int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() - int64(val))
 						}
 
 						env.IP++
@@ -4488,9 +4181,7 @@ func (c *Comp) varSubConst(va *Var, val I) {
 						{
 							lhs := env.ThreadGlobals.FileEnv.
 								Binds[index]
-							lhs.SetInt(lhs.Int() - int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() - int64(val))
 						}
 
 						env.IP++
@@ -4515,9 +4206,7 @@ func (c *Comp) varSubConst(va *Var, val I) {
 						{
 							lhs := env.
 								Binds[index]
-							lhs.SetInt(lhs.Int() - int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() - int64(val))
 						}
 
 						env.IP++
@@ -4540,9 +4229,7 @@ func (c *Comp) varSubConst(va *Var, val I) {
 							lhs := env.
 								Outer.
 								Binds[index]
-							lhs.SetInt(lhs.Int() - int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() - int64(val))
 						}
 
 						env.IP++
@@ -4565,9 +4252,7 @@ func (c *Comp) varSubConst(va *Var, val I) {
 							lhs := env.
 								Outer.Outer.
 								Binds[index]
-							lhs.SetInt(lhs.Int() - int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() - int64(val))
 						}
 
 						env.IP++
@@ -4597,9 +4282,7 @@ func (c *Comp) varSubConst(va *Var, val I) {
 							lhs :=
 
 								o.Binds[index]
-							lhs.SetInt(lhs.Int() - int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() - int64(val))
 						}
 
 						env.IP++
@@ -4620,9 +4303,7 @@ func (c *Comp) varSubConst(va *Var, val I) {
 						{
 							lhs := env.ThreadGlobals.FileEnv.
 								Binds[index]
-							lhs.SetInt(lhs.Int() - int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() - int64(val))
 						}
 
 						env.IP++
@@ -4647,9 +4328,7 @@ func (c *Comp) varSubConst(va *Var, val I) {
 						{
 							lhs := env.
 								Binds[index]
-							lhs.SetInt(lhs.Int() - int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() - int64(val))
 						}
 
 						env.IP++
@@ -4672,9 +4351,7 @@ func (c *Comp) varSubConst(va *Var, val I) {
 							lhs := env.
 								Outer.
 								Binds[index]
-							lhs.SetInt(lhs.Int() - int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() - int64(val))
 						}
 
 						env.IP++
@@ -4697,9 +4374,7 @@ func (c *Comp) varSubConst(va *Var, val I) {
 							lhs := env.
 								Outer.Outer.
 								Binds[index]
-							lhs.SetInt(lhs.Int() - int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() - int64(val))
 						}
 
 						env.IP++
@@ -4729,9 +4404,7 @@ func (c *Comp) varSubConst(va *Var, val I) {
 							lhs :=
 
 								o.Binds[index]
-							lhs.SetInt(lhs.Int() - int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() - int64(val))
 						}
 
 						env.IP++
@@ -4752,9 +4425,7 @@ func (c *Comp) varSubConst(va *Var, val I) {
 						{
 							lhs := env.ThreadGlobals.FileEnv.
 								Binds[index]
-							lhs.SetInt(lhs.Int() - int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() - int64(val))
 						}
 
 						env.IP++
@@ -4779,9 +4450,7 @@ func (c *Comp) varSubConst(va *Var, val I) {
 						{
 							lhs := env.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() - uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() - uint64(val))
 						}
 
 						env.IP++
@@ -4804,9 +4473,7 @@ func (c *Comp) varSubConst(va *Var, val I) {
 							lhs := env.
 								Outer.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() - uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() - uint64(val))
 						}
 
 						env.IP++
@@ -4829,9 +4496,7 @@ func (c *Comp) varSubConst(va *Var, val I) {
 							lhs := env.
 								Outer.Outer.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() - uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() - uint64(val))
 						}
 
 						env.IP++
@@ -4861,9 +4526,7 @@ func (c *Comp) varSubConst(va *Var, val I) {
 						{
 							lhs := o.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() - uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() - uint64(val))
 						}
 
 						env.IP++
@@ -4884,9 +4547,7 @@ func (c *Comp) varSubConst(va *Var, val I) {
 						{
 							lhs := env.ThreadGlobals.FileEnv.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() - uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() - uint64(val))
 						}
 
 						env.IP++
@@ -4911,9 +4572,7 @@ func (c *Comp) varSubConst(va *Var, val I) {
 						{
 							lhs := env.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() - uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() - uint64(val))
 						}
 
 						env.IP++
@@ -4936,9 +4595,7 @@ func (c *Comp) varSubConst(va *Var, val I) {
 							lhs := env.
 								Outer.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() - uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() - uint64(val))
 						}
 
 						env.IP++
@@ -4961,9 +4618,7 @@ func (c *Comp) varSubConst(va *Var, val I) {
 							lhs := env.
 								Outer.Outer.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() - uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() - uint64(val))
 						}
 
 						env.IP++
@@ -4993,9 +4648,7 @@ func (c *Comp) varSubConst(va *Var, val I) {
 						{
 							lhs := o.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() - uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() - uint64(val))
 						}
 
 						env.IP++
@@ -5016,9 +4669,7 @@ func (c *Comp) varSubConst(va *Var, val I) {
 						{
 							lhs := env.ThreadGlobals.FileEnv.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() - uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() - uint64(val))
 						}
 
 						env.IP++
@@ -5043,9 +4694,7 @@ func (c *Comp) varSubConst(va *Var, val I) {
 						{
 							lhs := env.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() - uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() - uint64(val))
 						}
 
 						env.IP++
@@ -5068,9 +4717,7 @@ func (c *Comp) varSubConst(va *Var, val I) {
 							lhs := env.
 								Outer.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() - uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() - uint64(val))
 						}
 
 						env.IP++
@@ -5093,9 +4740,7 @@ func (c *Comp) varSubConst(va *Var, val I) {
 							lhs := env.
 								Outer.Outer.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() - uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() - uint64(val))
 						}
 
 						env.IP++
@@ -5125,9 +4770,7 @@ func (c *Comp) varSubConst(va *Var, val I) {
 						{
 							lhs := o.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() - uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() - uint64(val))
 						}
 
 						env.IP++
@@ -5148,9 +4791,7 @@ func (c *Comp) varSubConst(va *Var, val I) {
 						{
 							lhs := env.ThreadGlobals.FileEnv.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() - uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() - uint64(val))
 						}
 
 						env.IP++
@@ -5175,9 +4816,7 @@ func (c *Comp) varSubConst(va *Var, val I) {
 						{
 							lhs := env.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() - uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() - uint64(val))
 						}
 
 						env.IP++
@@ -5200,9 +4839,7 @@ func (c *Comp) varSubConst(va *Var, val I) {
 							lhs := env.
 								Outer.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() - uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() - uint64(val))
 						}
 
 						env.IP++
@@ -5225,9 +4862,7 @@ func (c *Comp) varSubConst(va *Var, val I) {
 							lhs := env.
 								Outer.Outer.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() - uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() - uint64(val))
 						}
 
 						env.IP++
@@ -5257,9 +4892,7 @@ func (c *Comp) varSubConst(va *Var, val I) {
 						{
 							lhs := o.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() - uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() - uint64(val))
 						}
 
 						env.IP++
@@ -5280,9 +4913,7 @@ func (c *Comp) varSubConst(va *Var, val I) {
 						{
 							lhs := env.ThreadGlobals.FileEnv.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() - uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() - uint64(val))
 						}
 
 						env.IP++
@@ -5308,9 +4939,7 @@ func (c *Comp) varSubConst(va *Var, val I) {
 						{
 							lhs := env.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() - uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() - uint64(val))
 						}
 
 						env.IP++
@@ -5334,9 +4963,7 @@ func (c *Comp) varSubConst(va *Var, val I) {
 							lhs := env.
 								Outer.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() - uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() - uint64(val))
 						}
 
 						env.IP++
@@ -5360,9 +4987,7 @@ func (c *Comp) varSubConst(va *Var, val I) {
 							lhs := env.
 								Outer.Outer.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() - uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() - uint64(val))
 						}
 
 						env.IP++
@@ -5394,9 +5019,7 @@ func (c *Comp) varSubConst(va *Var, val I) {
 						{
 							lhs := o.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() - uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() - uint64(val))
 						}
 
 						env.IP++
@@ -5418,9 +5041,7 @@ func (c *Comp) varSubConst(va *Var, val I) {
 						{
 							lhs := env.ThreadGlobals.FileEnv.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() - uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() - uint64(val))
 						}
 
 						env.IP++
@@ -5445,9 +5066,7 @@ func (c *Comp) varSubConst(va *Var, val I) {
 						{
 							lhs := env.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() - uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() - uint64(val))
 						}
 
 						env.IP++
@@ -5470,9 +5089,7 @@ func (c *Comp) varSubConst(va *Var, val I) {
 							lhs := env.
 								Outer.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() - uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() - uint64(val))
 						}
 
 						env.IP++
@@ -5495,9 +5112,7 @@ func (c *Comp) varSubConst(va *Var, val I) {
 							lhs := env.
 								Outer.Outer.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() - uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() - uint64(val))
 						}
 
 						env.IP++
@@ -5527,9 +5142,7 @@ func (c *Comp) varSubConst(va *Var, val I) {
 						{
 							lhs := o.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() - uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() - uint64(val))
 						}
 
 						env.IP++
@@ -5550,9 +5163,7 @@ func (c *Comp) varSubConst(va *Var, val I) {
 						{
 							lhs := env.ThreadGlobals.FileEnv.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() - uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() - uint64(val))
 						}
 
 						env.IP++
@@ -5579,9 +5190,7 @@ func (c *Comp) varSubConst(va *Var, val I) {
 						{
 							lhs := env.
 								Binds[index]
-							lhs.SetFloat(lhs.Float() - float64(val,
-							),
-							)
+							lhs.SetFloat(lhs.Float() - float64(val))
 						}
 
 						env.IP++
@@ -5604,9 +5213,7 @@ func (c *Comp) varSubConst(va *Var, val I) {
 							lhs := env.
 								Outer.
 								Binds[index]
-							lhs.SetFloat(lhs.Float() - float64(val,
-							),
-							)
+							lhs.SetFloat(lhs.Float() - float64(val))
 						}
 
 						env.IP++
@@ -5629,9 +5236,7 @@ func (c *Comp) varSubConst(va *Var, val I) {
 							lhs := env.
 								Outer.Outer.
 								Binds[index]
-							lhs.SetFloat(lhs.Float() - float64(val,
-							),
-							)
+							lhs.SetFloat(lhs.Float() - float64(val))
 						}
 
 						env.IP++
@@ -5661,9 +5266,7 @@ func (c *Comp) varSubConst(va *Var, val I) {
 						{
 							lhs := o.
 								Binds[index]
-							lhs.SetFloat(lhs.Float() - float64(val,
-							),
-							)
+							lhs.SetFloat(lhs.Float() - float64(val))
 						}
 
 						env.IP++
@@ -5684,9 +5287,7 @@ func (c *Comp) varSubConst(va *Var, val I) {
 						{
 							lhs := env.ThreadGlobals.FileEnv.
 								Binds[index]
-							lhs.SetFloat(lhs.Float() - float64(val,
-							),
-							)
+							lhs.SetFloat(lhs.Float() - float64(val))
 						}
 
 						env.IP++
@@ -5711,9 +5312,7 @@ func (c *Comp) varSubConst(va *Var, val I) {
 						{
 							lhs := env.
 								Binds[index]
-							lhs.SetFloat(lhs.Float() - float64(val,
-							),
-							)
+							lhs.SetFloat(lhs.Float() - float64(val))
 						}
 
 						env.IP++
@@ -5736,9 +5335,7 @@ func (c *Comp) varSubConst(va *Var, val I) {
 							lhs := env.
 								Outer.
 								Binds[index]
-							lhs.SetFloat(lhs.Float() - float64(val,
-							),
-							)
+							lhs.SetFloat(lhs.Float() - float64(val))
 						}
 
 						env.IP++
@@ -5761,9 +5358,7 @@ func (c *Comp) varSubConst(va *Var, val I) {
 							lhs := env.
 								Outer.Outer.
 								Binds[index]
-							lhs.SetFloat(lhs.Float() - float64(val,
-							),
-							)
+							lhs.SetFloat(lhs.Float() - float64(val))
 						}
 
 						env.IP++
@@ -5793,9 +5388,7 @@ func (c *Comp) varSubConst(va *Var, val I) {
 						{
 							lhs := o.
 								Binds[index]
-							lhs.SetFloat(lhs.Float() - float64(val,
-							),
-							)
+							lhs.SetFloat(lhs.Float() - float64(val))
 						}
 
 						env.IP++
@@ -5816,9 +5409,7 @@ func (c *Comp) varSubConst(va *Var, val I) {
 						{
 							lhs := env.ThreadGlobals.FileEnv.
 								Binds[index]
-							lhs.SetFloat(lhs.Float() - float64(val,
-							),
-							)
+							lhs.SetFloat(lhs.Float() - float64(val))
 						}
 
 						env.IP++
@@ -5845,9 +5436,7 @@ func (c *Comp) varSubConst(va *Var, val I) {
 						{
 							lhs := env.
 								Binds[index]
-							lhs.SetComplex(lhs.Complex() - complex128(val,
-							),
-							)
+							lhs.SetComplex(lhs.Complex() - complex128(val))
 						}
 
 						env.IP++
@@ -5870,9 +5459,7 @@ func (c *Comp) varSubConst(va *Var, val I) {
 							lhs := env.
 								Outer.
 								Binds[index]
-							lhs.SetComplex(lhs.Complex() - complex128(val,
-							),
-							)
+							lhs.SetComplex(lhs.Complex() - complex128(val))
 						}
 
 						env.IP++
@@ -5895,9 +5482,7 @@ func (c *Comp) varSubConst(va *Var, val I) {
 							lhs := env.
 								Outer.Outer.
 								Binds[index]
-							lhs.SetComplex(lhs.Complex() - complex128(val,
-							),
-							)
+							lhs.SetComplex(lhs.Complex() - complex128(val))
 						}
 
 						env.IP++
@@ -5927,9 +5512,7 @@ func (c *Comp) varSubConst(va *Var, val I) {
 						{
 							lhs := o.
 								Binds[index]
-							lhs.SetComplex(lhs.Complex() - complex128(val,
-							),
-							)
+							lhs.SetComplex(lhs.Complex() - complex128(val))
 						}
 
 						env.IP++
@@ -5950,9 +5533,7 @@ func (c *Comp) varSubConst(va *Var, val I) {
 						{
 							lhs := env.ThreadGlobals.FileEnv.
 								Binds[index]
-							lhs.SetComplex(lhs.Complex() - complex128(val,
-							),
-							)
+							lhs.SetComplex(lhs.Complex() - complex128(val))
 						}
 
 						env.IP++
@@ -6071,9 +5652,7 @@ func (c *Comp) varSubExpr(va *Var, fun I) {
 					{
 						lhs := env.
 							Binds[index]
-						lhs.SetInt(lhs.Int() - int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() - int64(fun(env)))
 					}
 
 					env.IP++
@@ -6096,9 +5675,7 @@ func (c *Comp) varSubExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.
 							Binds[index]
-						lhs.SetInt(lhs.Int() - int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() - int64(fun(env)))
 					}
 
 					env.IP++
@@ -6121,9 +5698,7 @@ func (c *Comp) varSubExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.Outer.
 							Binds[index]
-						lhs.SetInt(lhs.Int() - int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() - int64(fun(env)))
 					}
 
 					env.IP++
@@ -6153,9 +5728,7 @@ func (c *Comp) varSubExpr(va *Var, fun I) {
 						lhs :=
 
 							o.Binds[index]
-						lhs.SetInt(lhs.Int() - int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() - int64(fun(env)))
 					}
 
 					env.IP++
@@ -6176,9 +5749,7 @@ func (c *Comp) varSubExpr(va *Var, fun I) {
 					{
 						lhs := env.ThreadGlobals.FileEnv.
 							Binds[index]
-						lhs.SetInt(lhs.Int() - int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() - int64(fun(env)))
 					}
 
 					env.IP++
@@ -6202,9 +5773,7 @@ func (c *Comp) varSubExpr(va *Var, fun I) {
 					{
 						lhs := env.
 							Binds[index]
-						lhs.SetInt(lhs.Int() - int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() - int64(fun(env)))
 					}
 
 					env.IP++
@@ -6227,9 +5796,7 @@ func (c *Comp) varSubExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.
 							Binds[index]
-						lhs.SetInt(lhs.Int() - int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() - int64(fun(env)))
 					}
 
 					env.IP++
@@ -6252,9 +5819,7 @@ func (c *Comp) varSubExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.Outer.
 							Binds[index]
-						lhs.SetInt(lhs.Int() - int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() - int64(fun(env)))
 					}
 
 					env.IP++
@@ -6284,9 +5849,7 @@ func (c *Comp) varSubExpr(va *Var, fun I) {
 						lhs :=
 
 							o.Binds[index]
-						lhs.SetInt(lhs.Int() - int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() - int64(fun(env)))
 					}
 
 					env.IP++
@@ -6307,9 +5870,7 @@ func (c *Comp) varSubExpr(va *Var, fun I) {
 					{
 						lhs := env.ThreadGlobals.FileEnv.
 							Binds[index]
-						lhs.SetInt(lhs.Int() - int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() - int64(fun(env)))
 					}
 
 					env.IP++
@@ -6333,9 +5894,7 @@ func (c *Comp) varSubExpr(va *Var, fun I) {
 					{
 						lhs := env.
 							Binds[index]
-						lhs.SetInt(lhs.Int() - int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() - int64(fun(env)))
 					}
 
 					env.IP++
@@ -6358,9 +5917,7 @@ func (c *Comp) varSubExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.
 							Binds[index]
-						lhs.SetInt(lhs.Int() - int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() - int64(fun(env)))
 					}
 
 					env.IP++
@@ -6383,9 +5940,7 @@ func (c *Comp) varSubExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.Outer.
 							Binds[index]
-						lhs.SetInt(lhs.Int() - int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() - int64(fun(env)))
 					}
 
 					env.IP++
@@ -6415,9 +5970,7 @@ func (c *Comp) varSubExpr(va *Var, fun I) {
 						lhs :=
 
 							o.Binds[index]
-						lhs.SetInt(lhs.Int() - int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() - int64(fun(env)))
 					}
 
 					env.IP++
@@ -6438,9 +5991,7 @@ func (c *Comp) varSubExpr(va *Var, fun I) {
 					{
 						lhs := env.ThreadGlobals.FileEnv.
 							Binds[index]
-						lhs.SetInt(lhs.Int() - int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() - int64(fun(env)))
 					}
 
 					env.IP++
@@ -6464,9 +6015,7 @@ func (c *Comp) varSubExpr(va *Var, fun I) {
 					{
 						lhs := env.
 							Binds[index]
-						lhs.SetInt(lhs.Int() - int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() - int64(fun(env)))
 					}
 
 					env.IP++
@@ -6489,9 +6038,7 @@ func (c *Comp) varSubExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.
 							Binds[index]
-						lhs.SetInt(lhs.Int() - int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() - int64(fun(env)))
 					}
 
 					env.IP++
@@ -6514,9 +6061,7 @@ func (c *Comp) varSubExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.Outer.
 							Binds[index]
-						lhs.SetInt(lhs.Int() - int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() - int64(fun(env)))
 					}
 
 					env.IP++
@@ -6546,9 +6091,7 @@ func (c *Comp) varSubExpr(va *Var, fun I) {
 						lhs :=
 
 							o.Binds[index]
-						lhs.SetInt(lhs.Int() - int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() - int64(fun(env)))
 					}
 
 					env.IP++
@@ -6569,9 +6112,7 @@ func (c *Comp) varSubExpr(va *Var, fun I) {
 					{
 						lhs := env.ThreadGlobals.FileEnv.
 							Binds[index]
-						lhs.SetInt(lhs.Int() - int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() - int64(fun(env)))
 					}
 
 					env.IP++
@@ -6595,9 +6136,7 @@ func (c *Comp) varSubExpr(va *Var, fun I) {
 					{
 						lhs := env.
 							Binds[index]
-						lhs.SetInt(lhs.Int() - int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() - int64(fun(env)))
 					}
 
 					env.IP++
@@ -6620,9 +6159,7 @@ func (c *Comp) varSubExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.
 							Binds[index]
-						lhs.SetInt(lhs.Int() - int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() - int64(fun(env)))
 					}
 
 					env.IP++
@@ -6645,9 +6182,7 @@ func (c *Comp) varSubExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.Outer.
 							Binds[index]
-						lhs.SetInt(lhs.Int() - int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() - int64(fun(env)))
 					}
 
 					env.IP++
@@ -6677,9 +6212,7 @@ func (c *Comp) varSubExpr(va *Var, fun I) {
 						lhs :=
 
 							o.Binds[index]
-						lhs.SetInt(lhs.Int() - int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() - int64(fun(env)))
 					}
 
 					env.IP++
@@ -6700,9 +6233,7 @@ func (c *Comp) varSubExpr(va *Var, fun I) {
 					{
 						lhs := env.ThreadGlobals.FileEnv.
 							Binds[index]
-						lhs.SetInt(lhs.Int() - int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() - int64(fun(env)))
 					}
 
 					env.IP++
@@ -6726,9 +6257,7 @@ func (c *Comp) varSubExpr(va *Var, fun I) {
 					{
 						lhs := env.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() - uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() - uint64(fun(env)))
 					}
 
 					env.IP++
@@ -6751,9 +6280,7 @@ func (c *Comp) varSubExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() - uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() - uint64(fun(env)))
 					}
 
 					env.IP++
@@ -6776,9 +6303,7 @@ func (c *Comp) varSubExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.Outer.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() - uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() - uint64(fun(env)))
 					}
 
 					env.IP++
@@ -6808,9 +6333,7 @@ func (c *Comp) varSubExpr(va *Var, fun I) {
 					{
 						lhs := o.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() - uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() - uint64(fun(env)))
 					}
 
 					env.IP++
@@ -6831,9 +6354,7 @@ func (c *Comp) varSubExpr(va *Var, fun I) {
 					{
 						lhs := env.ThreadGlobals.FileEnv.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() - uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() - uint64(fun(env)))
 					}
 
 					env.IP++
@@ -6857,9 +6378,7 @@ func (c *Comp) varSubExpr(va *Var, fun I) {
 					{
 						lhs := env.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() - uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() - uint64(fun(env)))
 					}
 
 					env.IP++
@@ -6882,9 +6401,7 @@ func (c *Comp) varSubExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() - uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() - uint64(fun(env)))
 					}
 
 					env.IP++
@@ -6907,9 +6424,7 @@ func (c *Comp) varSubExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.Outer.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() - uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() - uint64(fun(env)))
 					}
 
 					env.IP++
@@ -6939,9 +6454,7 @@ func (c *Comp) varSubExpr(va *Var, fun I) {
 					{
 						lhs := o.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() - uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() - uint64(fun(env)))
 					}
 
 					env.IP++
@@ -6962,9 +6475,7 @@ func (c *Comp) varSubExpr(va *Var, fun I) {
 					{
 						lhs := env.ThreadGlobals.FileEnv.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() - uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() - uint64(fun(env)))
 					}
 
 					env.IP++
@@ -6988,9 +6499,7 @@ func (c *Comp) varSubExpr(va *Var, fun I) {
 					{
 						lhs := env.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() - uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() - uint64(fun(env)))
 					}
 
 					env.IP++
@@ -7013,9 +6522,7 @@ func (c *Comp) varSubExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() - uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() - uint64(fun(env)))
 					}
 
 					env.IP++
@@ -7038,9 +6545,7 @@ func (c *Comp) varSubExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.Outer.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() - uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() - uint64(fun(env)))
 					}
 
 					env.IP++
@@ -7070,9 +6575,7 @@ func (c *Comp) varSubExpr(va *Var, fun I) {
 					{
 						lhs := o.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() - uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() - uint64(fun(env)))
 					}
 
 					env.IP++
@@ -7093,9 +6596,7 @@ func (c *Comp) varSubExpr(va *Var, fun I) {
 					{
 						lhs := env.ThreadGlobals.FileEnv.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() - uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() - uint64(fun(env)))
 					}
 
 					env.IP++
@@ -7119,9 +6620,7 @@ func (c *Comp) varSubExpr(va *Var, fun I) {
 					{
 						lhs := env.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() - uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() - uint64(fun(env)))
 					}
 
 					env.IP++
@@ -7144,9 +6643,7 @@ func (c *Comp) varSubExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() - uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() - uint64(fun(env)))
 					}
 
 					env.IP++
@@ -7169,9 +6666,7 @@ func (c *Comp) varSubExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.Outer.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() - uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() - uint64(fun(env)))
 					}
 
 					env.IP++
@@ -7201,9 +6696,7 @@ func (c *Comp) varSubExpr(va *Var, fun I) {
 					{
 						lhs := o.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() - uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() - uint64(fun(env)))
 					}
 
 					env.IP++
@@ -7224,9 +6717,7 @@ func (c *Comp) varSubExpr(va *Var, fun I) {
 					{
 						lhs := env.ThreadGlobals.FileEnv.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() - uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() - uint64(fun(env)))
 					}
 
 					env.IP++
@@ -7251,9 +6742,7 @@ func (c *Comp) varSubExpr(va *Var, fun I) {
 					{
 						lhs := env.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() - uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() - uint64(fun(env)))
 					}
 
 					env.IP++
@@ -7277,9 +6766,7 @@ func (c *Comp) varSubExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() - uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() - uint64(fun(env)))
 					}
 
 					env.IP++
@@ -7303,9 +6790,7 @@ func (c *Comp) varSubExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.Outer.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() - uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() - uint64(fun(env)))
 					}
 
 					env.IP++
@@ -7337,9 +6822,7 @@ func (c *Comp) varSubExpr(va *Var, fun I) {
 					{
 						lhs := o.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() - uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() - uint64(fun(env)))
 					}
 
 					env.IP++
@@ -7361,9 +6844,7 @@ func (c *Comp) varSubExpr(va *Var, fun I) {
 					{
 						lhs := env.ThreadGlobals.FileEnv.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() - uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() - uint64(fun(env)))
 					}
 
 					env.IP++
@@ -7387,9 +6868,7 @@ func (c *Comp) varSubExpr(va *Var, fun I) {
 					{
 						lhs := env.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() - uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() - uint64(fun(env)))
 					}
 
 					env.IP++
@@ -7412,9 +6891,7 @@ func (c *Comp) varSubExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() - uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() - uint64(fun(env)))
 					}
 
 					env.IP++
@@ -7437,9 +6914,7 @@ func (c *Comp) varSubExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.Outer.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() - uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() - uint64(fun(env)))
 					}
 
 					env.IP++
@@ -7469,9 +6944,7 @@ func (c *Comp) varSubExpr(va *Var, fun I) {
 					{
 						lhs := o.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() - uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() - uint64(fun(env)))
 					}
 
 					env.IP++
@@ -7492,9 +6965,7 @@ func (c *Comp) varSubExpr(va *Var, fun I) {
 					{
 						lhs := env.ThreadGlobals.FileEnv.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() - uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() - uint64(fun(env)))
 					}
 
 					env.IP++
@@ -7518,9 +6989,7 @@ func (c *Comp) varSubExpr(va *Var, fun I) {
 					{
 						lhs := env.
 							Binds[index]
-						lhs.SetFloat(lhs.Float() - float64(fun(env),
-						),
-						)
+						lhs.SetFloat(lhs.Float() - float64(fun(env)))
 					}
 
 					env.IP++
@@ -7543,9 +7012,7 @@ func (c *Comp) varSubExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.
 							Binds[index]
-						lhs.SetFloat(lhs.Float() - float64(fun(env),
-						),
-						)
+						lhs.SetFloat(lhs.Float() - float64(fun(env)))
 					}
 
 					env.IP++
@@ -7568,9 +7035,7 @@ func (c *Comp) varSubExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.Outer.
 							Binds[index]
-						lhs.SetFloat(lhs.Float() - float64(fun(env),
-						),
-						)
+						lhs.SetFloat(lhs.Float() - float64(fun(env)))
 					}
 
 					env.IP++
@@ -7600,9 +7065,7 @@ func (c *Comp) varSubExpr(va *Var, fun I) {
 					{
 						lhs := o.
 							Binds[index]
-						lhs.SetFloat(lhs.Float() - float64(fun(env),
-						),
-						)
+						lhs.SetFloat(lhs.Float() - float64(fun(env)))
 					}
 
 					env.IP++
@@ -7623,9 +7086,7 @@ func (c *Comp) varSubExpr(va *Var, fun I) {
 					{
 						lhs := env.ThreadGlobals.FileEnv.
 							Binds[index]
-						lhs.SetFloat(lhs.Float() - float64(fun(env),
-						),
-						)
+						lhs.SetFloat(lhs.Float() - float64(fun(env)))
 					}
 
 					env.IP++
@@ -7649,9 +7110,7 @@ func (c *Comp) varSubExpr(va *Var, fun I) {
 					{
 						lhs := env.
 							Binds[index]
-						lhs.SetFloat(lhs.Float() - float64(fun(env),
-						),
-						)
+						lhs.SetFloat(lhs.Float() - float64(fun(env)))
 					}
 
 					env.IP++
@@ -7674,9 +7133,7 @@ func (c *Comp) varSubExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.
 							Binds[index]
-						lhs.SetFloat(lhs.Float() - float64(fun(env),
-						),
-						)
+						lhs.SetFloat(lhs.Float() - float64(fun(env)))
 					}
 
 					env.IP++
@@ -7699,9 +7156,7 @@ func (c *Comp) varSubExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.Outer.
 							Binds[index]
-						lhs.SetFloat(lhs.Float() - float64(fun(env),
-						),
-						)
+						lhs.SetFloat(lhs.Float() - float64(fun(env)))
 					}
 
 					env.IP++
@@ -7731,9 +7186,7 @@ func (c *Comp) varSubExpr(va *Var, fun I) {
 					{
 						lhs := o.
 							Binds[index]
-						lhs.SetFloat(lhs.Float() - float64(fun(env),
-						),
-						)
+						lhs.SetFloat(lhs.Float() - float64(fun(env)))
 					}
 
 					env.IP++
@@ -7754,9 +7207,7 @@ func (c *Comp) varSubExpr(va *Var, fun I) {
 					{
 						lhs := env.ThreadGlobals.FileEnv.
 							Binds[index]
-						lhs.SetFloat(lhs.Float() - float64(fun(env),
-						),
-						)
+						lhs.SetFloat(lhs.Float() - float64(fun(env)))
 					}
 
 					env.IP++
@@ -7780,9 +7231,7 @@ func (c *Comp) varSubExpr(va *Var, fun I) {
 					{
 						lhs := env.
 							Binds[index]
-						lhs.SetComplex(lhs.Complex() - complex128(fun(env),
-						),
-						)
+						lhs.SetComplex(lhs.Complex() - complex128(fun(env)))
 					}
 
 					env.IP++
@@ -7805,9 +7254,7 @@ func (c *Comp) varSubExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.
 							Binds[index]
-						lhs.SetComplex(lhs.Complex() - complex128(fun(env),
-						),
-						)
+						lhs.SetComplex(lhs.Complex() - complex128(fun(env)))
 					}
 
 					env.IP++
@@ -7830,9 +7277,7 @@ func (c *Comp) varSubExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.Outer.
 							Binds[index]
-						lhs.SetComplex(lhs.Complex() - complex128(fun(env),
-						),
-						)
+						lhs.SetComplex(lhs.Complex() - complex128(fun(env)))
 					}
 
 					env.IP++
@@ -7862,9 +7307,7 @@ func (c *Comp) varSubExpr(va *Var, fun I) {
 					{
 						lhs := o.
 							Binds[index]
-						lhs.SetComplex(lhs.Complex() - complex128(fun(env),
-						),
-						)
+						lhs.SetComplex(lhs.Complex() - complex128(fun(env)))
 					}
 
 					env.IP++
@@ -7885,9 +7328,7 @@ func (c *Comp) varSubExpr(va *Var, fun I) {
 					{
 						lhs := env.ThreadGlobals.FileEnv.
 							Binds[index]
-						lhs.SetComplex(lhs.Complex() - complex128(fun(env),
-						),
-						)
+						lhs.SetComplex(lhs.Complex() - complex128(fun(env)))
 					}
 
 					env.IP++
@@ -8014,9 +7455,7 @@ func (c *Comp) varMulConst(va *Var, val I) {
 						{
 							lhs := env.
 								Binds[index]
-							lhs.SetInt(lhs.Int() * int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() * int64(val))
 						}
 
 						env.IP++
@@ -8039,9 +7478,7 @@ func (c *Comp) varMulConst(va *Var, val I) {
 							lhs := env.
 								Outer.
 								Binds[index]
-							lhs.SetInt(lhs.Int() * int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() * int64(val))
 						}
 
 						env.IP++
@@ -8064,9 +7501,7 @@ func (c *Comp) varMulConst(va *Var, val I) {
 							lhs := env.
 								Outer.Outer.
 								Binds[index]
-							lhs.SetInt(lhs.Int() * int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() * int64(val))
 						}
 
 						env.IP++
@@ -8096,9 +7531,7 @@ func (c *Comp) varMulConst(va *Var, val I) {
 							lhs :=
 
 								o.Binds[index]
-							lhs.SetInt(lhs.Int() * int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() * int64(val))
 						}
 
 						env.IP++
@@ -8119,9 +7552,7 @@ func (c *Comp) varMulConst(va *Var, val I) {
 						{
 							lhs := env.ThreadGlobals.FileEnv.
 								Binds[index]
-							lhs.SetInt(lhs.Int() * int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() * int64(val))
 						}
 
 						env.IP++
@@ -8146,9 +7577,7 @@ func (c *Comp) varMulConst(va *Var, val I) {
 						{
 							lhs := env.
 								Binds[index]
-							lhs.SetInt(lhs.Int() * int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() * int64(val))
 						}
 
 						env.IP++
@@ -8171,9 +7600,7 @@ func (c *Comp) varMulConst(va *Var, val I) {
 							lhs := env.
 								Outer.
 								Binds[index]
-							lhs.SetInt(lhs.Int() * int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() * int64(val))
 						}
 
 						env.IP++
@@ -8196,9 +7623,7 @@ func (c *Comp) varMulConst(va *Var, val I) {
 							lhs := env.
 								Outer.Outer.
 								Binds[index]
-							lhs.SetInt(lhs.Int() * int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() * int64(val))
 						}
 
 						env.IP++
@@ -8228,9 +7653,7 @@ func (c *Comp) varMulConst(va *Var, val I) {
 							lhs :=
 
 								o.Binds[index]
-							lhs.SetInt(lhs.Int() * int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() * int64(val))
 						}
 
 						env.IP++
@@ -8251,9 +7674,7 @@ func (c *Comp) varMulConst(va *Var, val I) {
 						{
 							lhs := env.ThreadGlobals.FileEnv.
 								Binds[index]
-							lhs.SetInt(lhs.Int() * int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() * int64(val))
 						}
 
 						env.IP++
@@ -8278,9 +7699,7 @@ func (c *Comp) varMulConst(va *Var, val I) {
 						{
 							lhs := env.
 								Binds[index]
-							lhs.SetInt(lhs.Int() * int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() * int64(val))
 						}
 
 						env.IP++
@@ -8303,9 +7722,7 @@ func (c *Comp) varMulConst(va *Var, val I) {
 							lhs := env.
 								Outer.
 								Binds[index]
-							lhs.SetInt(lhs.Int() * int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() * int64(val))
 						}
 
 						env.IP++
@@ -8328,9 +7745,7 @@ func (c *Comp) varMulConst(va *Var, val I) {
 							lhs := env.
 								Outer.Outer.
 								Binds[index]
-							lhs.SetInt(lhs.Int() * int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() * int64(val))
 						}
 
 						env.IP++
@@ -8360,9 +7775,7 @@ func (c *Comp) varMulConst(va *Var, val I) {
 							lhs :=
 
 								o.Binds[index]
-							lhs.SetInt(lhs.Int() * int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() * int64(val))
 						}
 
 						env.IP++
@@ -8383,9 +7796,7 @@ func (c *Comp) varMulConst(va *Var, val I) {
 						{
 							lhs := env.ThreadGlobals.FileEnv.
 								Binds[index]
-							lhs.SetInt(lhs.Int() * int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() * int64(val))
 						}
 
 						env.IP++
@@ -8410,9 +7821,7 @@ func (c *Comp) varMulConst(va *Var, val I) {
 						{
 							lhs := env.
 								Binds[index]
-							lhs.SetInt(lhs.Int() * int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() * int64(val))
 						}
 
 						env.IP++
@@ -8435,9 +7844,7 @@ func (c *Comp) varMulConst(va *Var, val I) {
 							lhs := env.
 								Outer.
 								Binds[index]
-							lhs.SetInt(lhs.Int() * int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() * int64(val))
 						}
 
 						env.IP++
@@ -8460,9 +7867,7 @@ func (c *Comp) varMulConst(va *Var, val I) {
 							lhs := env.
 								Outer.Outer.
 								Binds[index]
-							lhs.SetInt(lhs.Int() * int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() * int64(val))
 						}
 
 						env.IP++
@@ -8492,9 +7897,7 @@ func (c *Comp) varMulConst(va *Var, val I) {
 							lhs :=
 
 								o.Binds[index]
-							lhs.SetInt(lhs.Int() * int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() * int64(val))
 						}
 
 						env.IP++
@@ -8515,9 +7918,7 @@ func (c *Comp) varMulConst(va *Var, val I) {
 						{
 							lhs := env.ThreadGlobals.FileEnv.
 								Binds[index]
-							lhs.SetInt(lhs.Int() * int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() * int64(val))
 						}
 
 						env.IP++
@@ -8542,9 +7943,7 @@ func (c *Comp) varMulConst(va *Var, val I) {
 						{
 							lhs := env.
 								Binds[index]
-							lhs.SetInt(lhs.Int() * int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() * int64(val))
 						}
 
 						env.IP++
@@ -8567,9 +7966,7 @@ func (c *Comp) varMulConst(va *Var, val I) {
 							lhs := env.
 								Outer.
 								Binds[index]
-							lhs.SetInt(lhs.Int() * int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() * int64(val))
 						}
 
 						env.IP++
@@ -8592,9 +7989,7 @@ func (c *Comp) varMulConst(va *Var, val I) {
 							lhs := env.
 								Outer.Outer.
 								Binds[index]
-							lhs.SetInt(lhs.Int() * int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() * int64(val))
 						}
 
 						env.IP++
@@ -8624,9 +8019,7 @@ func (c *Comp) varMulConst(va *Var, val I) {
 							lhs :=
 
 								o.Binds[index]
-							lhs.SetInt(lhs.Int() * int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() * int64(val))
 						}
 
 						env.IP++
@@ -8647,9 +8040,7 @@ func (c *Comp) varMulConst(va *Var, val I) {
 						{
 							lhs := env.ThreadGlobals.FileEnv.
 								Binds[index]
-							lhs.SetInt(lhs.Int() * int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() * int64(val))
 						}
 
 						env.IP++
@@ -8674,9 +8065,7 @@ func (c *Comp) varMulConst(va *Var, val I) {
 						{
 							lhs := env.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() * uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() * uint64(val))
 						}
 
 						env.IP++
@@ -8699,9 +8088,7 @@ func (c *Comp) varMulConst(va *Var, val I) {
 							lhs := env.
 								Outer.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() * uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() * uint64(val))
 						}
 
 						env.IP++
@@ -8724,9 +8111,7 @@ func (c *Comp) varMulConst(va *Var, val I) {
 							lhs := env.
 								Outer.Outer.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() * uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() * uint64(val))
 						}
 
 						env.IP++
@@ -8756,9 +8141,7 @@ func (c *Comp) varMulConst(va *Var, val I) {
 						{
 							lhs := o.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() * uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() * uint64(val))
 						}
 
 						env.IP++
@@ -8779,9 +8162,7 @@ func (c *Comp) varMulConst(va *Var, val I) {
 						{
 							lhs := env.ThreadGlobals.FileEnv.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() * uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() * uint64(val))
 						}
 
 						env.IP++
@@ -8806,9 +8187,7 @@ func (c *Comp) varMulConst(va *Var, val I) {
 						{
 							lhs := env.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() * uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() * uint64(val))
 						}
 
 						env.IP++
@@ -8831,9 +8210,7 @@ func (c *Comp) varMulConst(va *Var, val I) {
 							lhs := env.
 								Outer.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() * uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() * uint64(val))
 						}
 
 						env.IP++
@@ -8856,9 +8233,7 @@ func (c *Comp) varMulConst(va *Var, val I) {
 							lhs := env.
 								Outer.Outer.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() * uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() * uint64(val))
 						}
 
 						env.IP++
@@ -8888,9 +8263,7 @@ func (c *Comp) varMulConst(va *Var, val I) {
 						{
 							lhs := o.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() * uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() * uint64(val))
 						}
 
 						env.IP++
@@ -8911,9 +8284,7 @@ func (c *Comp) varMulConst(va *Var, val I) {
 						{
 							lhs := env.ThreadGlobals.FileEnv.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() * uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() * uint64(val))
 						}
 
 						env.IP++
@@ -8938,9 +8309,7 @@ func (c *Comp) varMulConst(va *Var, val I) {
 						{
 							lhs := env.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() * uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() * uint64(val))
 						}
 
 						env.IP++
@@ -8963,9 +8332,7 @@ func (c *Comp) varMulConst(va *Var, val I) {
 							lhs := env.
 								Outer.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() * uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() * uint64(val))
 						}
 
 						env.IP++
@@ -8988,9 +8355,7 @@ func (c *Comp) varMulConst(va *Var, val I) {
 							lhs := env.
 								Outer.Outer.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() * uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() * uint64(val))
 						}
 
 						env.IP++
@@ -9020,9 +8385,7 @@ func (c *Comp) varMulConst(va *Var, val I) {
 						{
 							lhs := o.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() * uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() * uint64(val))
 						}
 
 						env.IP++
@@ -9043,9 +8406,7 @@ func (c *Comp) varMulConst(va *Var, val I) {
 						{
 							lhs := env.ThreadGlobals.FileEnv.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() * uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() * uint64(val))
 						}
 
 						env.IP++
@@ -9070,9 +8431,7 @@ func (c *Comp) varMulConst(va *Var, val I) {
 						{
 							lhs := env.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() * uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() * uint64(val))
 						}
 
 						env.IP++
@@ -9095,9 +8454,7 @@ func (c *Comp) varMulConst(va *Var, val I) {
 							lhs := env.
 								Outer.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() * uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() * uint64(val))
 						}
 
 						env.IP++
@@ -9120,9 +8477,7 @@ func (c *Comp) varMulConst(va *Var, val I) {
 							lhs := env.
 								Outer.Outer.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() * uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() * uint64(val))
 						}
 
 						env.IP++
@@ -9152,9 +8507,7 @@ func (c *Comp) varMulConst(va *Var, val I) {
 						{
 							lhs := o.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() * uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() * uint64(val))
 						}
 
 						env.IP++
@@ -9175,9 +8528,7 @@ func (c *Comp) varMulConst(va *Var, val I) {
 						{
 							lhs := env.ThreadGlobals.FileEnv.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() * uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() * uint64(val))
 						}
 
 						env.IP++
@@ -9203,9 +8554,7 @@ func (c *Comp) varMulConst(va *Var, val I) {
 						{
 							lhs := env.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() * uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() * uint64(val))
 						}
 
 						env.IP++
@@ -9229,9 +8578,7 @@ func (c *Comp) varMulConst(va *Var, val I) {
 							lhs := env.
 								Outer.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() * uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() * uint64(val))
 						}
 
 						env.IP++
@@ -9255,9 +8602,7 @@ func (c *Comp) varMulConst(va *Var, val I) {
 							lhs := env.
 								Outer.Outer.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() * uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() * uint64(val))
 						}
 
 						env.IP++
@@ -9289,9 +8634,7 @@ func (c *Comp) varMulConst(va *Var, val I) {
 						{
 							lhs := o.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() * uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() * uint64(val))
 						}
 
 						env.IP++
@@ -9313,9 +8656,7 @@ func (c *Comp) varMulConst(va *Var, val I) {
 						{
 							lhs := env.ThreadGlobals.FileEnv.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() * uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() * uint64(val))
 						}
 
 						env.IP++
@@ -9340,9 +8681,7 @@ func (c *Comp) varMulConst(va *Var, val I) {
 						{
 							lhs := env.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() * uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() * uint64(val))
 						}
 
 						env.IP++
@@ -9365,9 +8704,7 @@ func (c *Comp) varMulConst(va *Var, val I) {
 							lhs := env.
 								Outer.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() * uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() * uint64(val))
 						}
 
 						env.IP++
@@ -9390,9 +8727,7 @@ func (c *Comp) varMulConst(va *Var, val I) {
 							lhs := env.
 								Outer.Outer.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() * uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() * uint64(val))
 						}
 
 						env.IP++
@@ -9422,9 +8757,7 @@ func (c *Comp) varMulConst(va *Var, val I) {
 						{
 							lhs := o.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() * uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() * uint64(val))
 						}
 
 						env.IP++
@@ -9445,9 +8778,7 @@ func (c *Comp) varMulConst(va *Var, val I) {
 						{
 							lhs := env.ThreadGlobals.FileEnv.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() * uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() * uint64(val))
 						}
 
 						env.IP++
@@ -9474,9 +8805,7 @@ func (c *Comp) varMulConst(va *Var, val I) {
 						{
 							lhs := env.
 								Binds[index]
-							lhs.SetFloat(lhs.Float() * float64(val,
-							),
-							)
+							lhs.SetFloat(lhs.Float() * float64(val))
 						}
 
 						env.IP++
@@ -9499,9 +8828,7 @@ func (c *Comp) varMulConst(va *Var, val I) {
 							lhs := env.
 								Outer.
 								Binds[index]
-							lhs.SetFloat(lhs.Float() * float64(val,
-							),
-							)
+							lhs.SetFloat(lhs.Float() * float64(val))
 						}
 
 						env.IP++
@@ -9524,9 +8851,7 @@ func (c *Comp) varMulConst(va *Var, val I) {
 							lhs := env.
 								Outer.Outer.
 								Binds[index]
-							lhs.SetFloat(lhs.Float() * float64(val,
-							),
-							)
+							lhs.SetFloat(lhs.Float() * float64(val))
 						}
 
 						env.IP++
@@ -9556,9 +8881,7 @@ func (c *Comp) varMulConst(va *Var, val I) {
 						{
 							lhs := o.
 								Binds[index]
-							lhs.SetFloat(lhs.Float() * float64(val,
-							),
-							)
+							lhs.SetFloat(lhs.Float() * float64(val))
 						}
 
 						env.IP++
@@ -9579,9 +8902,7 @@ func (c *Comp) varMulConst(va *Var, val I) {
 						{
 							lhs := env.ThreadGlobals.FileEnv.
 								Binds[index]
-							lhs.SetFloat(lhs.Float() * float64(val,
-							),
-							)
+							lhs.SetFloat(lhs.Float() * float64(val))
 						}
 
 						env.IP++
@@ -9606,9 +8927,7 @@ func (c *Comp) varMulConst(va *Var, val I) {
 						{
 							lhs := env.
 								Binds[index]
-							lhs.SetFloat(lhs.Float() * float64(val,
-							),
-							)
+							lhs.SetFloat(lhs.Float() * float64(val))
 						}
 
 						env.IP++
@@ -9631,9 +8950,7 @@ func (c *Comp) varMulConst(va *Var, val I) {
 							lhs := env.
 								Outer.
 								Binds[index]
-							lhs.SetFloat(lhs.Float() * float64(val,
-							),
-							)
+							lhs.SetFloat(lhs.Float() * float64(val))
 						}
 
 						env.IP++
@@ -9656,9 +8973,7 @@ func (c *Comp) varMulConst(va *Var, val I) {
 							lhs := env.
 								Outer.Outer.
 								Binds[index]
-							lhs.SetFloat(lhs.Float() * float64(val,
-							),
-							)
+							lhs.SetFloat(lhs.Float() * float64(val))
 						}
 
 						env.IP++
@@ -9688,9 +9003,7 @@ func (c *Comp) varMulConst(va *Var, val I) {
 						{
 							lhs := o.
 								Binds[index]
-							lhs.SetFloat(lhs.Float() * float64(val,
-							),
-							)
+							lhs.SetFloat(lhs.Float() * float64(val))
 						}
 
 						env.IP++
@@ -9711,9 +9024,7 @@ func (c *Comp) varMulConst(va *Var, val I) {
 						{
 							lhs := env.ThreadGlobals.FileEnv.
 								Binds[index]
-							lhs.SetFloat(lhs.Float() * float64(val,
-							),
-							)
+							lhs.SetFloat(lhs.Float() * float64(val))
 						}
 
 						env.IP++
@@ -9740,9 +9051,7 @@ func (c *Comp) varMulConst(va *Var, val I) {
 						{
 							lhs := env.
 								Binds[index]
-							lhs.SetComplex(lhs.Complex() * complex128(val,
-							),
-							)
+							lhs.SetComplex(lhs.Complex() * complex128(val))
 						}
 
 						env.IP++
@@ -9765,9 +9074,7 @@ func (c *Comp) varMulConst(va *Var, val I) {
 							lhs := env.
 								Outer.
 								Binds[index]
-							lhs.SetComplex(lhs.Complex() * complex128(val,
-							),
-							)
+							lhs.SetComplex(lhs.Complex() * complex128(val))
 						}
 
 						env.IP++
@@ -9790,9 +9097,7 @@ func (c *Comp) varMulConst(va *Var, val I) {
 							lhs := env.
 								Outer.Outer.
 								Binds[index]
-							lhs.SetComplex(lhs.Complex() * complex128(val,
-							),
-							)
+							lhs.SetComplex(lhs.Complex() * complex128(val))
 						}
 
 						env.IP++
@@ -9822,9 +9127,7 @@ func (c *Comp) varMulConst(va *Var, val I) {
 						{
 							lhs := o.
 								Binds[index]
-							lhs.SetComplex(lhs.Complex() * complex128(val,
-							),
-							)
+							lhs.SetComplex(lhs.Complex() * complex128(val))
 						}
 
 						env.IP++
@@ -9845,9 +9148,7 @@ func (c *Comp) varMulConst(va *Var, val I) {
 						{
 							lhs := env.ThreadGlobals.FileEnv.
 								Binds[index]
-							lhs.SetComplex(lhs.Complex() * complex128(val,
-							),
-							)
+							lhs.SetComplex(lhs.Complex() * complex128(val))
 						}
 
 						env.IP++
@@ -9966,9 +9267,7 @@ func (c *Comp) varMulExpr(va *Var, fun I) {
 					{
 						lhs := env.
 							Binds[index]
-						lhs.SetInt(lhs.Int() * int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() * int64(fun(env)))
 					}
 
 					env.IP++
@@ -9991,9 +9290,7 @@ func (c *Comp) varMulExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.
 							Binds[index]
-						lhs.SetInt(lhs.Int() * int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() * int64(fun(env)))
 					}
 
 					env.IP++
@@ -10016,9 +9313,7 @@ func (c *Comp) varMulExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.Outer.
 							Binds[index]
-						lhs.SetInt(lhs.Int() * int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() * int64(fun(env)))
 					}
 
 					env.IP++
@@ -10048,9 +9343,7 @@ func (c *Comp) varMulExpr(va *Var, fun I) {
 						lhs :=
 
 							o.Binds[index]
-						lhs.SetInt(lhs.Int() * int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() * int64(fun(env)))
 					}
 
 					env.IP++
@@ -10071,9 +9364,7 @@ func (c *Comp) varMulExpr(va *Var, fun I) {
 					{
 						lhs := env.ThreadGlobals.FileEnv.
 							Binds[index]
-						lhs.SetInt(lhs.Int() * int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() * int64(fun(env)))
 					}
 
 					env.IP++
@@ -10097,9 +9388,7 @@ func (c *Comp) varMulExpr(va *Var, fun I) {
 					{
 						lhs := env.
 							Binds[index]
-						lhs.SetInt(lhs.Int() * int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() * int64(fun(env)))
 					}
 
 					env.IP++
@@ -10122,9 +9411,7 @@ func (c *Comp) varMulExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.
 							Binds[index]
-						lhs.SetInt(lhs.Int() * int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() * int64(fun(env)))
 					}
 
 					env.IP++
@@ -10147,9 +9434,7 @@ func (c *Comp) varMulExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.Outer.
 							Binds[index]
-						lhs.SetInt(lhs.Int() * int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() * int64(fun(env)))
 					}
 
 					env.IP++
@@ -10179,9 +9464,7 @@ func (c *Comp) varMulExpr(va *Var, fun I) {
 						lhs :=
 
 							o.Binds[index]
-						lhs.SetInt(lhs.Int() * int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() * int64(fun(env)))
 					}
 
 					env.IP++
@@ -10202,9 +9485,7 @@ func (c *Comp) varMulExpr(va *Var, fun I) {
 					{
 						lhs := env.ThreadGlobals.FileEnv.
 							Binds[index]
-						lhs.SetInt(lhs.Int() * int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() * int64(fun(env)))
 					}
 
 					env.IP++
@@ -10228,9 +9509,7 @@ func (c *Comp) varMulExpr(va *Var, fun I) {
 					{
 						lhs := env.
 							Binds[index]
-						lhs.SetInt(lhs.Int() * int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() * int64(fun(env)))
 					}
 
 					env.IP++
@@ -10253,9 +9532,7 @@ func (c *Comp) varMulExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.
 							Binds[index]
-						lhs.SetInt(lhs.Int() * int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() * int64(fun(env)))
 					}
 
 					env.IP++
@@ -10278,9 +9555,7 @@ func (c *Comp) varMulExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.Outer.
 							Binds[index]
-						lhs.SetInt(lhs.Int() * int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() * int64(fun(env)))
 					}
 
 					env.IP++
@@ -10310,9 +9585,7 @@ func (c *Comp) varMulExpr(va *Var, fun I) {
 						lhs :=
 
 							o.Binds[index]
-						lhs.SetInt(lhs.Int() * int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() * int64(fun(env)))
 					}
 
 					env.IP++
@@ -10333,9 +9606,7 @@ func (c *Comp) varMulExpr(va *Var, fun I) {
 					{
 						lhs := env.ThreadGlobals.FileEnv.
 							Binds[index]
-						lhs.SetInt(lhs.Int() * int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() * int64(fun(env)))
 					}
 
 					env.IP++
@@ -10359,9 +9630,7 @@ func (c *Comp) varMulExpr(va *Var, fun I) {
 					{
 						lhs := env.
 							Binds[index]
-						lhs.SetInt(lhs.Int() * int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() * int64(fun(env)))
 					}
 
 					env.IP++
@@ -10384,9 +9653,7 @@ func (c *Comp) varMulExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.
 							Binds[index]
-						lhs.SetInt(lhs.Int() * int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() * int64(fun(env)))
 					}
 
 					env.IP++
@@ -10409,9 +9676,7 @@ func (c *Comp) varMulExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.Outer.
 							Binds[index]
-						lhs.SetInt(lhs.Int() * int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() * int64(fun(env)))
 					}
 
 					env.IP++
@@ -10441,9 +9706,7 @@ func (c *Comp) varMulExpr(va *Var, fun I) {
 						lhs :=
 
 							o.Binds[index]
-						lhs.SetInt(lhs.Int() * int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() * int64(fun(env)))
 					}
 
 					env.IP++
@@ -10464,9 +9727,7 @@ func (c *Comp) varMulExpr(va *Var, fun I) {
 					{
 						lhs := env.ThreadGlobals.FileEnv.
 							Binds[index]
-						lhs.SetInt(lhs.Int() * int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() * int64(fun(env)))
 					}
 
 					env.IP++
@@ -10490,9 +9751,7 @@ func (c *Comp) varMulExpr(va *Var, fun I) {
 					{
 						lhs := env.
 							Binds[index]
-						lhs.SetInt(lhs.Int() * int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() * int64(fun(env)))
 					}
 
 					env.IP++
@@ -10515,9 +9774,7 @@ func (c *Comp) varMulExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.
 							Binds[index]
-						lhs.SetInt(lhs.Int() * int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() * int64(fun(env)))
 					}
 
 					env.IP++
@@ -10540,9 +9797,7 @@ func (c *Comp) varMulExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.Outer.
 							Binds[index]
-						lhs.SetInt(lhs.Int() * int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() * int64(fun(env)))
 					}
 
 					env.IP++
@@ -10572,9 +9827,7 @@ func (c *Comp) varMulExpr(va *Var, fun I) {
 						lhs :=
 
 							o.Binds[index]
-						lhs.SetInt(lhs.Int() * int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() * int64(fun(env)))
 					}
 
 					env.IP++
@@ -10595,9 +9848,7 @@ func (c *Comp) varMulExpr(va *Var, fun I) {
 					{
 						lhs := env.ThreadGlobals.FileEnv.
 							Binds[index]
-						lhs.SetInt(lhs.Int() * int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() * int64(fun(env)))
 					}
 
 					env.IP++
@@ -10621,9 +9872,7 @@ func (c *Comp) varMulExpr(va *Var, fun I) {
 					{
 						lhs := env.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() * uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() * uint64(fun(env)))
 					}
 
 					env.IP++
@@ -10646,9 +9895,7 @@ func (c *Comp) varMulExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() * uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() * uint64(fun(env)))
 					}
 
 					env.IP++
@@ -10671,9 +9918,7 @@ func (c *Comp) varMulExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.Outer.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() * uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() * uint64(fun(env)))
 					}
 
 					env.IP++
@@ -10703,9 +9948,7 @@ func (c *Comp) varMulExpr(va *Var, fun I) {
 					{
 						lhs := o.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() * uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() * uint64(fun(env)))
 					}
 
 					env.IP++
@@ -10726,9 +9969,7 @@ func (c *Comp) varMulExpr(va *Var, fun I) {
 					{
 						lhs := env.ThreadGlobals.FileEnv.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() * uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() * uint64(fun(env)))
 					}
 
 					env.IP++
@@ -10752,9 +9993,7 @@ func (c *Comp) varMulExpr(va *Var, fun I) {
 					{
 						lhs := env.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() * uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() * uint64(fun(env)))
 					}
 
 					env.IP++
@@ -10777,9 +10016,7 @@ func (c *Comp) varMulExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() * uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() * uint64(fun(env)))
 					}
 
 					env.IP++
@@ -10802,9 +10039,7 @@ func (c *Comp) varMulExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.Outer.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() * uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() * uint64(fun(env)))
 					}
 
 					env.IP++
@@ -10834,9 +10069,7 @@ func (c *Comp) varMulExpr(va *Var, fun I) {
 					{
 						lhs := o.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() * uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() * uint64(fun(env)))
 					}
 
 					env.IP++
@@ -10857,9 +10090,7 @@ func (c *Comp) varMulExpr(va *Var, fun I) {
 					{
 						lhs := env.ThreadGlobals.FileEnv.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() * uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() * uint64(fun(env)))
 					}
 
 					env.IP++
@@ -10883,9 +10114,7 @@ func (c *Comp) varMulExpr(va *Var, fun I) {
 					{
 						lhs := env.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() * uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() * uint64(fun(env)))
 					}
 
 					env.IP++
@@ -10908,9 +10137,7 @@ func (c *Comp) varMulExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() * uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() * uint64(fun(env)))
 					}
 
 					env.IP++
@@ -10933,9 +10160,7 @@ func (c *Comp) varMulExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.Outer.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() * uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() * uint64(fun(env)))
 					}
 
 					env.IP++
@@ -10965,9 +10190,7 @@ func (c *Comp) varMulExpr(va *Var, fun I) {
 					{
 						lhs := o.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() * uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() * uint64(fun(env)))
 					}
 
 					env.IP++
@@ -10988,9 +10211,7 @@ func (c *Comp) varMulExpr(va *Var, fun I) {
 					{
 						lhs := env.ThreadGlobals.FileEnv.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() * uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() * uint64(fun(env)))
 					}
 
 					env.IP++
@@ -11014,9 +10235,7 @@ func (c *Comp) varMulExpr(va *Var, fun I) {
 					{
 						lhs := env.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() * uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() * uint64(fun(env)))
 					}
 
 					env.IP++
@@ -11039,9 +10258,7 @@ func (c *Comp) varMulExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() * uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() * uint64(fun(env)))
 					}
 
 					env.IP++
@@ -11064,9 +10281,7 @@ func (c *Comp) varMulExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.Outer.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() * uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() * uint64(fun(env)))
 					}
 
 					env.IP++
@@ -11096,9 +10311,7 @@ func (c *Comp) varMulExpr(va *Var, fun I) {
 					{
 						lhs := o.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() * uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() * uint64(fun(env)))
 					}
 
 					env.IP++
@@ -11119,9 +10332,7 @@ func (c *Comp) varMulExpr(va *Var, fun I) {
 					{
 						lhs := env.ThreadGlobals.FileEnv.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() * uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() * uint64(fun(env)))
 					}
 
 					env.IP++
@@ -11146,9 +10357,7 @@ func (c *Comp) varMulExpr(va *Var, fun I) {
 					{
 						lhs := env.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() * uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() * uint64(fun(env)))
 					}
 
 					env.IP++
@@ -11172,9 +10381,7 @@ func (c *Comp) varMulExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() * uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() * uint64(fun(env)))
 					}
 
 					env.IP++
@@ -11198,9 +10405,7 @@ func (c *Comp) varMulExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.Outer.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() * uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() * uint64(fun(env)))
 					}
 
 					env.IP++
@@ -11232,9 +10437,7 @@ func (c *Comp) varMulExpr(va *Var, fun I) {
 					{
 						lhs := o.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() * uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() * uint64(fun(env)))
 					}
 
 					env.IP++
@@ -11256,9 +10459,7 @@ func (c *Comp) varMulExpr(va *Var, fun I) {
 					{
 						lhs := env.ThreadGlobals.FileEnv.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() * uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() * uint64(fun(env)))
 					}
 
 					env.IP++
@@ -11282,9 +10483,7 @@ func (c *Comp) varMulExpr(va *Var, fun I) {
 					{
 						lhs := env.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() * uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() * uint64(fun(env)))
 					}
 
 					env.IP++
@@ -11307,9 +10506,7 @@ func (c *Comp) varMulExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() * uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() * uint64(fun(env)))
 					}
 
 					env.IP++
@@ -11332,9 +10529,7 @@ func (c *Comp) varMulExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.Outer.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() * uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() * uint64(fun(env)))
 					}
 
 					env.IP++
@@ -11364,9 +10559,7 @@ func (c *Comp) varMulExpr(va *Var, fun I) {
 					{
 						lhs := o.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() * uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() * uint64(fun(env)))
 					}
 
 					env.IP++
@@ -11387,9 +10580,7 @@ func (c *Comp) varMulExpr(va *Var, fun I) {
 					{
 						lhs := env.ThreadGlobals.FileEnv.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() * uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() * uint64(fun(env)))
 					}
 
 					env.IP++
@@ -11413,9 +10604,7 @@ func (c *Comp) varMulExpr(va *Var, fun I) {
 					{
 						lhs := env.
 							Binds[index]
-						lhs.SetFloat(lhs.Float() * float64(fun(env),
-						),
-						)
+						lhs.SetFloat(lhs.Float() * float64(fun(env)))
 					}
 
 					env.IP++
@@ -11438,9 +10627,7 @@ func (c *Comp) varMulExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.
 							Binds[index]
-						lhs.SetFloat(lhs.Float() * float64(fun(env),
-						),
-						)
+						lhs.SetFloat(lhs.Float() * float64(fun(env)))
 					}
 
 					env.IP++
@@ -11463,9 +10650,7 @@ func (c *Comp) varMulExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.Outer.
 							Binds[index]
-						lhs.SetFloat(lhs.Float() * float64(fun(env),
-						),
-						)
+						lhs.SetFloat(lhs.Float() * float64(fun(env)))
 					}
 
 					env.IP++
@@ -11495,9 +10680,7 @@ func (c *Comp) varMulExpr(va *Var, fun I) {
 					{
 						lhs := o.
 							Binds[index]
-						lhs.SetFloat(lhs.Float() * float64(fun(env),
-						),
-						)
+						lhs.SetFloat(lhs.Float() * float64(fun(env)))
 					}
 
 					env.IP++
@@ -11518,9 +10701,7 @@ func (c *Comp) varMulExpr(va *Var, fun I) {
 					{
 						lhs := env.ThreadGlobals.FileEnv.
 							Binds[index]
-						lhs.SetFloat(lhs.Float() * float64(fun(env),
-						),
-						)
+						lhs.SetFloat(lhs.Float() * float64(fun(env)))
 					}
 
 					env.IP++
@@ -11544,9 +10725,7 @@ func (c *Comp) varMulExpr(va *Var, fun I) {
 					{
 						lhs := env.
 							Binds[index]
-						lhs.SetFloat(lhs.Float() * float64(fun(env),
-						),
-						)
+						lhs.SetFloat(lhs.Float() * float64(fun(env)))
 					}
 
 					env.IP++
@@ -11569,9 +10748,7 @@ func (c *Comp) varMulExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.
 							Binds[index]
-						lhs.SetFloat(lhs.Float() * float64(fun(env),
-						),
-						)
+						lhs.SetFloat(lhs.Float() * float64(fun(env)))
 					}
 
 					env.IP++
@@ -11594,9 +10771,7 @@ func (c *Comp) varMulExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.Outer.
 							Binds[index]
-						lhs.SetFloat(lhs.Float() * float64(fun(env),
-						),
-						)
+						lhs.SetFloat(lhs.Float() * float64(fun(env)))
 					}
 
 					env.IP++
@@ -11626,9 +10801,7 @@ func (c *Comp) varMulExpr(va *Var, fun I) {
 					{
 						lhs := o.
 							Binds[index]
-						lhs.SetFloat(lhs.Float() * float64(fun(env),
-						),
-						)
+						lhs.SetFloat(lhs.Float() * float64(fun(env)))
 					}
 
 					env.IP++
@@ -11649,9 +10822,7 @@ func (c *Comp) varMulExpr(va *Var, fun I) {
 					{
 						lhs := env.ThreadGlobals.FileEnv.
 							Binds[index]
-						lhs.SetFloat(lhs.Float() * float64(fun(env),
-						),
-						)
+						lhs.SetFloat(lhs.Float() * float64(fun(env)))
 					}
 
 					env.IP++
@@ -11675,9 +10846,7 @@ func (c *Comp) varMulExpr(va *Var, fun I) {
 					{
 						lhs := env.
 							Binds[index]
-						lhs.SetComplex(lhs.Complex() * complex128(fun(env),
-						),
-						)
+						lhs.SetComplex(lhs.Complex() * complex128(fun(env)))
 					}
 
 					env.IP++
@@ -11700,9 +10869,7 @@ func (c *Comp) varMulExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.
 							Binds[index]
-						lhs.SetComplex(lhs.Complex() * complex128(fun(env),
-						),
-						)
+						lhs.SetComplex(lhs.Complex() * complex128(fun(env)))
 					}
 
 					env.IP++
@@ -11725,9 +10892,7 @@ func (c *Comp) varMulExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.Outer.
 							Binds[index]
-						lhs.SetComplex(lhs.Complex() * complex128(fun(env),
-						),
-						)
+						lhs.SetComplex(lhs.Complex() * complex128(fun(env)))
 					}
 
 					env.IP++
@@ -11757,9 +10922,7 @@ func (c *Comp) varMulExpr(va *Var, fun I) {
 					{
 						lhs := o.
 							Binds[index]
-						lhs.SetComplex(lhs.Complex() * complex128(fun(env),
-						),
-						)
+						lhs.SetComplex(lhs.Complex() * complex128(fun(env)))
 					}
 
 					env.IP++
@@ -11780,9 +10943,7 @@ func (c *Comp) varMulExpr(va *Var, fun I) {
 					{
 						lhs := env.ThreadGlobals.FileEnv.
 							Binds[index]
-						lhs.SetComplex(lhs.Complex() * complex128(fun(env),
-						),
-						)
+						lhs.SetComplex(lhs.Complex() * complex128(fun(env)))
 					}
 
 					env.IP++
@@ -13218,9 +12379,7 @@ func (c *Comp) varQuoConst(va *Var, val I) {
 						{
 							lhs := env.
 								Binds[index]
-							lhs.SetInt(lhs.Int() / int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() / int64(val))
 						}
 
 						env.IP++
@@ -13243,9 +12402,7 @@ func (c *Comp) varQuoConst(va *Var, val I) {
 							lhs := env.
 								Outer.
 								Binds[index]
-							lhs.SetInt(lhs.Int() / int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() / int64(val))
 						}
 
 						env.IP++
@@ -13268,9 +12425,7 @@ func (c *Comp) varQuoConst(va *Var, val I) {
 							lhs := env.
 								Outer.Outer.
 								Binds[index]
-							lhs.SetInt(lhs.Int() / int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() / int64(val))
 						}
 
 						env.IP++
@@ -13300,9 +12455,7 @@ func (c *Comp) varQuoConst(va *Var, val I) {
 							lhs :=
 
 								o.Binds[index]
-							lhs.SetInt(lhs.Int() / int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() / int64(val))
 						}
 
 						env.IP++
@@ -13323,9 +12476,7 @@ func (c *Comp) varQuoConst(va *Var, val I) {
 						{
 							lhs := env.ThreadGlobals.FileEnv.
 								Binds[index]
-							lhs.SetInt(lhs.Int() / int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() / int64(val))
 						}
 
 						env.IP++
@@ -13350,9 +12501,7 @@ func (c *Comp) varQuoConst(va *Var, val I) {
 						{
 							lhs := env.
 								Binds[index]
-							lhs.SetInt(lhs.Int() / int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() / int64(val))
 						}
 
 						env.IP++
@@ -13375,9 +12524,7 @@ func (c *Comp) varQuoConst(va *Var, val I) {
 							lhs := env.
 								Outer.
 								Binds[index]
-							lhs.SetInt(lhs.Int() / int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() / int64(val))
 						}
 
 						env.IP++
@@ -13400,9 +12547,7 @@ func (c *Comp) varQuoConst(va *Var, val I) {
 							lhs := env.
 								Outer.Outer.
 								Binds[index]
-							lhs.SetInt(lhs.Int() / int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() / int64(val))
 						}
 
 						env.IP++
@@ -13432,9 +12577,7 @@ func (c *Comp) varQuoConst(va *Var, val I) {
 							lhs :=
 
 								o.Binds[index]
-							lhs.SetInt(lhs.Int() / int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() / int64(val))
 						}
 
 						env.IP++
@@ -13455,9 +12598,7 @@ func (c *Comp) varQuoConst(va *Var, val I) {
 						{
 							lhs := env.ThreadGlobals.FileEnv.
 								Binds[index]
-							lhs.SetInt(lhs.Int() / int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() / int64(val))
 						}
 
 						env.IP++
@@ -13482,9 +12623,7 @@ func (c *Comp) varQuoConst(va *Var, val I) {
 						{
 							lhs := env.
 								Binds[index]
-							lhs.SetInt(lhs.Int() / int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() / int64(val))
 						}
 
 						env.IP++
@@ -13507,9 +12646,7 @@ func (c *Comp) varQuoConst(va *Var, val I) {
 							lhs := env.
 								Outer.
 								Binds[index]
-							lhs.SetInt(lhs.Int() / int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() / int64(val))
 						}
 
 						env.IP++
@@ -13532,9 +12669,7 @@ func (c *Comp) varQuoConst(va *Var, val I) {
 							lhs := env.
 								Outer.Outer.
 								Binds[index]
-							lhs.SetInt(lhs.Int() / int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() / int64(val))
 						}
 
 						env.IP++
@@ -13564,9 +12699,7 @@ func (c *Comp) varQuoConst(va *Var, val I) {
 							lhs :=
 
 								o.Binds[index]
-							lhs.SetInt(lhs.Int() / int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() / int64(val))
 						}
 
 						env.IP++
@@ -13587,9 +12720,7 @@ func (c *Comp) varQuoConst(va *Var, val I) {
 						{
 							lhs := env.ThreadGlobals.FileEnv.
 								Binds[index]
-							lhs.SetInt(lhs.Int() / int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() / int64(val))
 						}
 
 						env.IP++
@@ -13614,9 +12745,7 @@ func (c *Comp) varQuoConst(va *Var, val I) {
 						{
 							lhs := env.
 								Binds[index]
-							lhs.SetInt(lhs.Int() / int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() / int64(val))
 						}
 
 						env.IP++
@@ -13639,9 +12768,7 @@ func (c *Comp) varQuoConst(va *Var, val I) {
 							lhs := env.
 								Outer.
 								Binds[index]
-							lhs.SetInt(lhs.Int() / int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() / int64(val))
 						}
 
 						env.IP++
@@ -13664,9 +12791,7 @@ func (c *Comp) varQuoConst(va *Var, val I) {
 							lhs := env.
 								Outer.Outer.
 								Binds[index]
-							lhs.SetInt(lhs.Int() / int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() / int64(val))
 						}
 
 						env.IP++
@@ -13696,9 +12821,7 @@ func (c *Comp) varQuoConst(va *Var, val I) {
 							lhs :=
 
 								o.Binds[index]
-							lhs.SetInt(lhs.Int() / int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() / int64(val))
 						}
 
 						env.IP++
@@ -13719,9 +12842,7 @@ func (c *Comp) varQuoConst(va *Var, val I) {
 						{
 							lhs := env.ThreadGlobals.FileEnv.
 								Binds[index]
-							lhs.SetInt(lhs.Int() / int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() / int64(val))
 						}
 
 						env.IP++
@@ -13746,9 +12867,7 @@ func (c *Comp) varQuoConst(va *Var, val I) {
 						{
 							lhs := env.
 								Binds[index]
-							lhs.SetInt(lhs.Int() / int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() / int64(val))
 						}
 
 						env.IP++
@@ -13771,9 +12890,7 @@ func (c *Comp) varQuoConst(va *Var, val I) {
 							lhs := env.
 								Outer.
 								Binds[index]
-							lhs.SetInt(lhs.Int() / int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() / int64(val))
 						}
 
 						env.IP++
@@ -13796,9 +12913,7 @@ func (c *Comp) varQuoConst(va *Var, val I) {
 							lhs := env.
 								Outer.Outer.
 								Binds[index]
-							lhs.SetInt(lhs.Int() / int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() / int64(val))
 						}
 
 						env.IP++
@@ -13828,9 +12943,7 @@ func (c *Comp) varQuoConst(va *Var, val I) {
 							lhs :=
 
 								o.Binds[index]
-							lhs.SetInt(lhs.Int() / int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() / int64(val))
 						}
 
 						env.IP++
@@ -13851,9 +12964,7 @@ func (c *Comp) varQuoConst(va *Var, val I) {
 						{
 							lhs := env.ThreadGlobals.FileEnv.
 								Binds[index]
-							lhs.SetInt(lhs.Int() / int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() / int64(val))
 						}
 
 						env.IP++
@@ -13878,9 +12989,7 @@ func (c *Comp) varQuoConst(va *Var, val I) {
 						{
 							lhs := env.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() / uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() / uint64(val))
 						}
 
 						env.IP++
@@ -13903,9 +13012,7 @@ func (c *Comp) varQuoConst(va *Var, val I) {
 							lhs := env.
 								Outer.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() / uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() / uint64(val))
 						}
 
 						env.IP++
@@ -13928,9 +13035,7 @@ func (c *Comp) varQuoConst(va *Var, val I) {
 							lhs := env.
 								Outer.Outer.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() / uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() / uint64(val))
 						}
 
 						env.IP++
@@ -13960,9 +13065,7 @@ func (c *Comp) varQuoConst(va *Var, val I) {
 						{
 							lhs := o.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() / uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() / uint64(val))
 						}
 
 						env.IP++
@@ -13983,9 +13086,7 @@ func (c *Comp) varQuoConst(va *Var, val I) {
 						{
 							lhs := env.ThreadGlobals.FileEnv.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() / uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() / uint64(val))
 						}
 
 						env.IP++
@@ -14010,9 +13111,7 @@ func (c *Comp) varQuoConst(va *Var, val I) {
 						{
 							lhs := env.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() / uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() / uint64(val))
 						}
 
 						env.IP++
@@ -14035,9 +13134,7 @@ func (c *Comp) varQuoConst(va *Var, val I) {
 							lhs := env.
 								Outer.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() / uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() / uint64(val))
 						}
 
 						env.IP++
@@ -14060,9 +13157,7 @@ func (c *Comp) varQuoConst(va *Var, val I) {
 							lhs := env.
 								Outer.Outer.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() / uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() / uint64(val))
 						}
 
 						env.IP++
@@ -14092,9 +13187,7 @@ func (c *Comp) varQuoConst(va *Var, val I) {
 						{
 							lhs := o.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() / uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() / uint64(val))
 						}
 
 						env.IP++
@@ -14115,9 +13208,7 @@ func (c *Comp) varQuoConst(va *Var, val I) {
 						{
 							lhs := env.ThreadGlobals.FileEnv.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() / uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() / uint64(val))
 						}
 
 						env.IP++
@@ -14142,9 +13233,7 @@ func (c *Comp) varQuoConst(va *Var, val I) {
 						{
 							lhs := env.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() / uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() / uint64(val))
 						}
 
 						env.IP++
@@ -14167,9 +13256,7 @@ func (c *Comp) varQuoConst(va *Var, val I) {
 							lhs := env.
 								Outer.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() / uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() / uint64(val))
 						}
 
 						env.IP++
@@ -14192,9 +13279,7 @@ func (c *Comp) varQuoConst(va *Var, val I) {
 							lhs := env.
 								Outer.Outer.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() / uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() / uint64(val))
 						}
 
 						env.IP++
@@ -14224,9 +13309,7 @@ func (c *Comp) varQuoConst(va *Var, val I) {
 						{
 							lhs := o.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() / uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() / uint64(val))
 						}
 
 						env.IP++
@@ -14247,9 +13330,7 @@ func (c *Comp) varQuoConst(va *Var, val I) {
 						{
 							lhs := env.ThreadGlobals.FileEnv.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() / uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() / uint64(val))
 						}
 
 						env.IP++
@@ -14274,9 +13355,7 @@ func (c *Comp) varQuoConst(va *Var, val I) {
 						{
 							lhs := env.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() / uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() / uint64(val))
 						}
 
 						env.IP++
@@ -14299,9 +13378,7 @@ func (c *Comp) varQuoConst(va *Var, val I) {
 							lhs := env.
 								Outer.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() / uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() / uint64(val))
 						}
 
 						env.IP++
@@ -14324,9 +13401,7 @@ func (c *Comp) varQuoConst(va *Var, val I) {
 							lhs := env.
 								Outer.Outer.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() / uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() / uint64(val))
 						}
 
 						env.IP++
@@ -14356,9 +13431,7 @@ func (c *Comp) varQuoConst(va *Var, val I) {
 						{
 							lhs := o.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() / uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() / uint64(val))
 						}
 
 						env.IP++
@@ -14379,9 +13452,7 @@ func (c *Comp) varQuoConst(va *Var, val I) {
 						{
 							lhs := env.ThreadGlobals.FileEnv.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() / uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() / uint64(val))
 						}
 
 						env.IP++
@@ -14407,9 +13478,7 @@ func (c *Comp) varQuoConst(va *Var, val I) {
 						{
 							lhs := env.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() / uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() / uint64(val))
 						}
 
 						env.IP++
@@ -14433,9 +13502,7 @@ func (c *Comp) varQuoConst(va *Var, val I) {
 							lhs := env.
 								Outer.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() / uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() / uint64(val))
 						}
 
 						env.IP++
@@ -14459,9 +13526,7 @@ func (c *Comp) varQuoConst(va *Var, val I) {
 							lhs := env.
 								Outer.Outer.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() / uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() / uint64(val))
 						}
 
 						env.IP++
@@ -14493,9 +13558,7 @@ func (c *Comp) varQuoConst(va *Var, val I) {
 						{
 							lhs := o.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() / uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() / uint64(val))
 						}
 
 						env.IP++
@@ -14517,9 +13580,7 @@ func (c *Comp) varQuoConst(va *Var, val I) {
 						{
 							lhs := env.ThreadGlobals.FileEnv.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() / uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() / uint64(val))
 						}
 
 						env.IP++
@@ -14544,9 +13605,7 @@ func (c *Comp) varQuoConst(va *Var, val I) {
 						{
 							lhs := env.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() / uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() / uint64(val))
 						}
 
 						env.IP++
@@ -14569,9 +13628,7 @@ func (c *Comp) varQuoConst(va *Var, val I) {
 							lhs := env.
 								Outer.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() / uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() / uint64(val))
 						}
 
 						env.IP++
@@ -14594,9 +13651,7 @@ func (c *Comp) varQuoConst(va *Var, val I) {
 							lhs := env.
 								Outer.Outer.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() / uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() / uint64(val))
 						}
 
 						env.IP++
@@ -14626,9 +13681,7 @@ func (c *Comp) varQuoConst(va *Var, val I) {
 						{
 							lhs := o.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() / uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() / uint64(val))
 						}
 
 						env.IP++
@@ -14649,9 +13702,7 @@ func (c *Comp) varQuoConst(va *Var, val I) {
 						{
 							lhs := env.ThreadGlobals.FileEnv.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() / uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() / uint64(val))
 						}
 
 						env.IP++
@@ -14678,9 +13729,7 @@ func (c *Comp) varQuoConst(va *Var, val I) {
 						{
 							lhs := env.
 								Binds[index]
-							lhs.SetFloat(lhs.Float() / float64(val,
-							),
-							)
+							lhs.SetFloat(lhs.Float() / float64(val))
 						}
 
 						env.IP++
@@ -14703,9 +13752,7 @@ func (c *Comp) varQuoConst(va *Var, val I) {
 							lhs := env.
 								Outer.
 								Binds[index]
-							lhs.SetFloat(lhs.Float() / float64(val,
-							),
-							)
+							lhs.SetFloat(lhs.Float() / float64(val))
 						}
 
 						env.IP++
@@ -14728,9 +13775,7 @@ func (c *Comp) varQuoConst(va *Var, val I) {
 							lhs := env.
 								Outer.Outer.
 								Binds[index]
-							lhs.SetFloat(lhs.Float() / float64(val,
-							),
-							)
+							lhs.SetFloat(lhs.Float() / float64(val))
 						}
 
 						env.IP++
@@ -14760,9 +13805,7 @@ func (c *Comp) varQuoConst(va *Var, val I) {
 						{
 							lhs := o.
 								Binds[index]
-							lhs.SetFloat(lhs.Float() / float64(val,
-							),
-							)
+							lhs.SetFloat(lhs.Float() / float64(val))
 						}
 
 						env.IP++
@@ -14783,9 +13826,7 @@ func (c *Comp) varQuoConst(va *Var, val I) {
 						{
 							lhs := env.ThreadGlobals.FileEnv.
 								Binds[index]
-							lhs.SetFloat(lhs.Float() / float64(val,
-							),
-							)
+							lhs.SetFloat(lhs.Float() / float64(val))
 						}
 
 						env.IP++
@@ -14810,9 +13851,7 @@ func (c *Comp) varQuoConst(va *Var, val I) {
 						{
 							lhs := env.
 								Binds[index]
-							lhs.SetFloat(lhs.Float() / float64(val,
-							),
-							)
+							lhs.SetFloat(lhs.Float() / float64(val))
 						}
 
 						env.IP++
@@ -14835,9 +13874,7 @@ func (c *Comp) varQuoConst(va *Var, val I) {
 							lhs := env.
 								Outer.
 								Binds[index]
-							lhs.SetFloat(lhs.Float() / float64(val,
-							),
-							)
+							lhs.SetFloat(lhs.Float() / float64(val))
 						}
 
 						env.IP++
@@ -14860,9 +13897,7 @@ func (c *Comp) varQuoConst(va *Var, val I) {
 							lhs := env.
 								Outer.Outer.
 								Binds[index]
-							lhs.SetFloat(lhs.Float() / float64(val,
-							),
-							)
+							lhs.SetFloat(lhs.Float() / float64(val))
 						}
 
 						env.IP++
@@ -14892,9 +13927,7 @@ func (c *Comp) varQuoConst(va *Var, val I) {
 						{
 							lhs := o.
 								Binds[index]
-							lhs.SetFloat(lhs.Float() / float64(val,
-							),
-							)
+							lhs.SetFloat(lhs.Float() / float64(val))
 						}
 
 						env.IP++
@@ -14915,9 +13948,7 @@ func (c *Comp) varQuoConst(va *Var, val I) {
 						{
 							lhs := env.ThreadGlobals.FileEnv.
 								Binds[index]
-							lhs.SetFloat(lhs.Float() / float64(val,
-							),
-							)
+							lhs.SetFloat(lhs.Float() / float64(val))
 						}
 
 						env.IP++
@@ -14944,9 +13975,7 @@ func (c *Comp) varQuoConst(va *Var, val I) {
 						{
 							lhs := env.
 								Binds[index]
-							lhs.SetComplex(lhs.Complex() / complex128(val,
-							),
-							)
+							lhs.SetComplex(lhs.Complex() / complex128(val))
 						}
 
 						env.IP++
@@ -14969,9 +13998,7 @@ func (c *Comp) varQuoConst(va *Var, val I) {
 							lhs := env.
 								Outer.
 								Binds[index]
-							lhs.SetComplex(lhs.Complex() / complex128(val,
-							),
-							)
+							lhs.SetComplex(lhs.Complex() / complex128(val))
 						}
 
 						env.IP++
@@ -14994,9 +14021,7 @@ func (c *Comp) varQuoConst(va *Var, val I) {
 							lhs := env.
 								Outer.Outer.
 								Binds[index]
-							lhs.SetComplex(lhs.Complex() / complex128(val,
-							),
-							)
+							lhs.SetComplex(lhs.Complex() / complex128(val))
 						}
 
 						env.IP++
@@ -15026,9 +14051,7 @@ func (c *Comp) varQuoConst(va *Var, val I) {
 						{
 							lhs := o.
 								Binds[index]
-							lhs.SetComplex(lhs.Complex() / complex128(val,
-							),
-							)
+							lhs.SetComplex(lhs.Complex() / complex128(val))
 						}
 
 						env.IP++
@@ -15049,9 +14072,7 @@ func (c *Comp) varQuoConst(va *Var, val I) {
 						{
 							lhs := env.ThreadGlobals.FileEnv.
 								Binds[index]
-							lhs.SetComplex(lhs.Complex() / complex128(val,
-							),
-							)
+							lhs.SetComplex(lhs.Complex() / complex128(val))
 						}
 
 						env.IP++
@@ -15170,9 +14191,7 @@ func (c *Comp) varQuoExpr(va *Var, fun I) {
 					{
 						lhs := env.
 							Binds[index]
-						lhs.SetInt(lhs.Int() / int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() / int64(fun(env)))
 					}
 
 					env.IP++
@@ -15195,9 +14214,7 @@ func (c *Comp) varQuoExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.
 							Binds[index]
-						lhs.SetInt(lhs.Int() / int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() / int64(fun(env)))
 					}
 
 					env.IP++
@@ -15220,9 +14237,7 @@ func (c *Comp) varQuoExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.Outer.
 							Binds[index]
-						lhs.SetInt(lhs.Int() / int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() / int64(fun(env)))
 					}
 
 					env.IP++
@@ -15252,9 +14267,7 @@ func (c *Comp) varQuoExpr(va *Var, fun I) {
 						lhs :=
 
 							o.Binds[index]
-						lhs.SetInt(lhs.Int() / int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() / int64(fun(env)))
 					}
 
 					env.IP++
@@ -15275,9 +14288,7 @@ func (c *Comp) varQuoExpr(va *Var, fun I) {
 					{
 						lhs := env.ThreadGlobals.FileEnv.
 							Binds[index]
-						lhs.SetInt(lhs.Int() / int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() / int64(fun(env)))
 					}
 
 					env.IP++
@@ -15301,9 +14312,7 @@ func (c *Comp) varQuoExpr(va *Var, fun I) {
 					{
 						lhs := env.
 							Binds[index]
-						lhs.SetInt(lhs.Int() / int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() / int64(fun(env)))
 					}
 
 					env.IP++
@@ -15326,9 +14335,7 @@ func (c *Comp) varQuoExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.
 							Binds[index]
-						lhs.SetInt(lhs.Int() / int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() / int64(fun(env)))
 					}
 
 					env.IP++
@@ -15351,9 +14358,7 @@ func (c *Comp) varQuoExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.Outer.
 							Binds[index]
-						lhs.SetInt(lhs.Int() / int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() / int64(fun(env)))
 					}
 
 					env.IP++
@@ -15383,9 +14388,7 @@ func (c *Comp) varQuoExpr(va *Var, fun I) {
 						lhs :=
 
 							o.Binds[index]
-						lhs.SetInt(lhs.Int() / int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() / int64(fun(env)))
 					}
 
 					env.IP++
@@ -15406,9 +14409,7 @@ func (c *Comp) varQuoExpr(va *Var, fun I) {
 					{
 						lhs := env.ThreadGlobals.FileEnv.
 							Binds[index]
-						lhs.SetInt(lhs.Int() / int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() / int64(fun(env)))
 					}
 
 					env.IP++
@@ -15432,9 +14433,7 @@ func (c *Comp) varQuoExpr(va *Var, fun I) {
 					{
 						lhs := env.
 							Binds[index]
-						lhs.SetInt(lhs.Int() / int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() / int64(fun(env)))
 					}
 
 					env.IP++
@@ -15457,9 +14456,7 @@ func (c *Comp) varQuoExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.
 							Binds[index]
-						lhs.SetInt(lhs.Int() / int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() / int64(fun(env)))
 					}
 
 					env.IP++
@@ -15482,9 +14479,7 @@ func (c *Comp) varQuoExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.Outer.
 							Binds[index]
-						lhs.SetInt(lhs.Int() / int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() / int64(fun(env)))
 					}
 
 					env.IP++
@@ -15514,9 +14509,7 @@ func (c *Comp) varQuoExpr(va *Var, fun I) {
 						lhs :=
 
 							o.Binds[index]
-						lhs.SetInt(lhs.Int() / int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() / int64(fun(env)))
 					}
 
 					env.IP++
@@ -15537,9 +14530,7 @@ func (c *Comp) varQuoExpr(va *Var, fun I) {
 					{
 						lhs := env.ThreadGlobals.FileEnv.
 							Binds[index]
-						lhs.SetInt(lhs.Int() / int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() / int64(fun(env)))
 					}
 
 					env.IP++
@@ -15563,9 +14554,7 @@ func (c *Comp) varQuoExpr(va *Var, fun I) {
 					{
 						lhs := env.
 							Binds[index]
-						lhs.SetInt(lhs.Int() / int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() / int64(fun(env)))
 					}
 
 					env.IP++
@@ -15588,9 +14577,7 @@ func (c *Comp) varQuoExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.
 							Binds[index]
-						lhs.SetInt(lhs.Int() / int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() / int64(fun(env)))
 					}
 
 					env.IP++
@@ -15613,9 +14600,7 @@ func (c *Comp) varQuoExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.Outer.
 							Binds[index]
-						lhs.SetInt(lhs.Int() / int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() / int64(fun(env)))
 					}
 
 					env.IP++
@@ -15645,9 +14630,7 @@ func (c *Comp) varQuoExpr(va *Var, fun I) {
 						lhs :=
 
 							o.Binds[index]
-						lhs.SetInt(lhs.Int() / int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() / int64(fun(env)))
 					}
 
 					env.IP++
@@ -15668,9 +14651,7 @@ func (c *Comp) varQuoExpr(va *Var, fun I) {
 					{
 						lhs := env.ThreadGlobals.FileEnv.
 							Binds[index]
-						lhs.SetInt(lhs.Int() / int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() / int64(fun(env)))
 					}
 
 					env.IP++
@@ -15694,9 +14675,7 @@ func (c *Comp) varQuoExpr(va *Var, fun I) {
 					{
 						lhs := env.
 							Binds[index]
-						lhs.SetInt(lhs.Int() / int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() / int64(fun(env)))
 					}
 
 					env.IP++
@@ -15719,9 +14698,7 @@ func (c *Comp) varQuoExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.
 							Binds[index]
-						lhs.SetInt(lhs.Int() / int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() / int64(fun(env)))
 					}
 
 					env.IP++
@@ -15744,9 +14721,7 @@ func (c *Comp) varQuoExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.Outer.
 							Binds[index]
-						lhs.SetInt(lhs.Int() / int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() / int64(fun(env)))
 					}
 
 					env.IP++
@@ -15776,9 +14751,7 @@ func (c *Comp) varQuoExpr(va *Var, fun I) {
 						lhs :=
 
 							o.Binds[index]
-						lhs.SetInt(lhs.Int() / int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() / int64(fun(env)))
 					}
 
 					env.IP++
@@ -15799,9 +14772,7 @@ func (c *Comp) varQuoExpr(va *Var, fun I) {
 					{
 						lhs := env.ThreadGlobals.FileEnv.
 							Binds[index]
-						lhs.SetInt(lhs.Int() / int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() / int64(fun(env)))
 					}
 
 					env.IP++
@@ -15825,9 +14796,7 @@ func (c *Comp) varQuoExpr(va *Var, fun I) {
 					{
 						lhs := env.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() / uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() / uint64(fun(env)))
 					}
 
 					env.IP++
@@ -15850,9 +14819,7 @@ func (c *Comp) varQuoExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() / uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() / uint64(fun(env)))
 					}
 
 					env.IP++
@@ -15875,9 +14842,7 @@ func (c *Comp) varQuoExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.Outer.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() / uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() / uint64(fun(env)))
 					}
 
 					env.IP++
@@ -15907,9 +14872,7 @@ func (c *Comp) varQuoExpr(va *Var, fun I) {
 					{
 						lhs := o.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() / uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() / uint64(fun(env)))
 					}
 
 					env.IP++
@@ -15930,9 +14893,7 @@ func (c *Comp) varQuoExpr(va *Var, fun I) {
 					{
 						lhs := env.ThreadGlobals.FileEnv.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() / uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() / uint64(fun(env)))
 					}
 
 					env.IP++
@@ -15956,9 +14917,7 @@ func (c *Comp) varQuoExpr(va *Var, fun I) {
 					{
 						lhs := env.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() / uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() / uint64(fun(env)))
 					}
 
 					env.IP++
@@ -15981,9 +14940,7 @@ func (c *Comp) varQuoExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() / uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() / uint64(fun(env)))
 					}
 
 					env.IP++
@@ -16006,9 +14963,7 @@ func (c *Comp) varQuoExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.Outer.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() / uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() / uint64(fun(env)))
 					}
 
 					env.IP++
@@ -16038,9 +14993,7 @@ func (c *Comp) varQuoExpr(va *Var, fun I) {
 					{
 						lhs := o.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() / uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() / uint64(fun(env)))
 					}
 
 					env.IP++
@@ -16061,9 +15014,7 @@ func (c *Comp) varQuoExpr(va *Var, fun I) {
 					{
 						lhs := env.ThreadGlobals.FileEnv.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() / uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() / uint64(fun(env)))
 					}
 
 					env.IP++
@@ -16087,9 +15038,7 @@ func (c *Comp) varQuoExpr(va *Var, fun I) {
 					{
 						lhs := env.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() / uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() / uint64(fun(env)))
 					}
 
 					env.IP++
@@ -16112,9 +15061,7 @@ func (c *Comp) varQuoExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() / uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() / uint64(fun(env)))
 					}
 
 					env.IP++
@@ -16137,9 +15084,7 @@ func (c *Comp) varQuoExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.Outer.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() / uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() / uint64(fun(env)))
 					}
 
 					env.IP++
@@ -16169,9 +15114,7 @@ func (c *Comp) varQuoExpr(va *Var, fun I) {
 					{
 						lhs := o.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() / uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() / uint64(fun(env)))
 					}
 
 					env.IP++
@@ -16192,9 +15135,7 @@ func (c *Comp) varQuoExpr(va *Var, fun I) {
 					{
 						lhs := env.ThreadGlobals.FileEnv.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() / uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() / uint64(fun(env)))
 					}
 
 					env.IP++
@@ -16218,9 +15159,7 @@ func (c *Comp) varQuoExpr(va *Var, fun I) {
 					{
 						lhs := env.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() / uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() / uint64(fun(env)))
 					}
 
 					env.IP++
@@ -16243,9 +15182,7 @@ func (c *Comp) varQuoExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() / uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() / uint64(fun(env)))
 					}
 
 					env.IP++
@@ -16268,9 +15205,7 @@ func (c *Comp) varQuoExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.Outer.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() / uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() / uint64(fun(env)))
 					}
 
 					env.IP++
@@ -16300,9 +15235,7 @@ func (c *Comp) varQuoExpr(va *Var, fun I) {
 					{
 						lhs := o.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() / uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() / uint64(fun(env)))
 					}
 
 					env.IP++
@@ -16323,9 +15256,7 @@ func (c *Comp) varQuoExpr(va *Var, fun I) {
 					{
 						lhs := env.ThreadGlobals.FileEnv.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() / uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() / uint64(fun(env)))
 					}
 
 					env.IP++
@@ -16350,9 +15281,7 @@ func (c *Comp) varQuoExpr(va *Var, fun I) {
 					{
 						lhs := env.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() / uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() / uint64(fun(env)))
 					}
 
 					env.IP++
@@ -16376,9 +15305,7 @@ func (c *Comp) varQuoExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() / uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() / uint64(fun(env)))
 					}
 
 					env.IP++
@@ -16402,9 +15329,7 @@ func (c *Comp) varQuoExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.Outer.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() / uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() / uint64(fun(env)))
 					}
 
 					env.IP++
@@ -16436,9 +15361,7 @@ func (c *Comp) varQuoExpr(va *Var, fun I) {
 					{
 						lhs := o.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() / uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() / uint64(fun(env)))
 					}
 
 					env.IP++
@@ -16460,9 +15383,7 @@ func (c *Comp) varQuoExpr(va *Var, fun I) {
 					{
 						lhs := env.ThreadGlobals.FileEnv.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() / uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() / uint64(fun(env)))
 					}
 
 					env.IP++
@@ -16486,9 +15407,7 @@ func (c *Comp) varQuoExpr(va *Var, fun I) {
 					{
 						lhs := env.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() / uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() / uint64(fun(env)))
 					}
 
 					env.IP++
@@ -16511,9 +15430,7 @@ func (c *Comp) varQuoExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() / uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() / uint64(fun(env)))
 					}
 
 					env.IP++
@@ -16536,9 +15453,7 @@ func (c *Comp) varQuoExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.Outer.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() / uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() / uint64(fun(env)))
 					}
 
 					env.IP++
@@ -16568,9 +15483,7 @@ func (c *Comp) varQuoExpr(va *Var, fun I) {
 					{
 						lhs := o.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() / uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() / uint64(fun(env)))
 					}
 
 					env.IP++
@@ -16591,9 +15504,7 @@ func (c *Comp) varQuoExpr(va *Var, fun I) {
 					{
 						lhs := env.ThreadGlobals.FileEnv.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() / uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() / uint64(fun(env)))
 					}
 
 					env.IP++
@@ -16617,9 +15528,7 @@ func (c *Comp) varQuoExpr(va *Var, fun I) {
 					{
 						lhs := env.
 							Binds[index]
-						lhs.SetFloat(lhs.Float() / float64(fun(env),
-						),
-						)
+						lhs.SetFloat(lhs.Float() / float64(fun(env)))
 					}
 
 					env.IP++
@@ -16642,9 +15551,7 @@ func (c *Comp) varQuoExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.
 							Binds[index]
-						lhs.SetFloat(lhs.Float() / float64(fun(env),
-						),
-						)
+						lhs.SetFloat(lhs.Float() / float64(fun(env)))
 					}
 
 					env.IP++
@@ -16667,9 +15574,7 @@ func (c *Comp) varQuoExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.Outer.
 							Binds[index]
-						lhs.SetFloat(lhs.Float() / float64(fun(env),
-						),
-						)
+						lhs.SetFloat(lhs.Float() / float64(fun(env)))
 					}
 
 					env.IP++
@@ -16699,9 +15604,7 @@ func (c *Comp) varQuoExpr(va *Var, fun I) {
 					{
 						lhs := o.
 							Binds[index]
-						lhs.SetFloat(lhs.Float() / float64(fun(env),
-						),
-						)
+						lhs.SetFloat(lhs.Float() / float64(fun(env)))
 					}
 
 					env.IP++
@@ -16722,9 +15625,7 @@ func (c *Comp) varQuoExpr(va *Var, fun I) {
 					{
 						lhs := env.ThreadGlobals.FileEnv.
 							Binds[index]
-						lhs.SetFloat(lhs.Float() / float64(fun(env),
-						),
-						)
+						lhs.SetFloat(lhs.Float() / float64(fun(env)))
 					}
 
 					env.IP++
@@ -16748,9 +15649,7 @@ func (c *Comp) varQuoExpr(va *Var, fun I) {
 					{
 						lhs := env.
 							Binds[index]
-						lhs.SetFloat(lhs.Float() / float64(fun(env),
-						),
-						)
+						lhs.SetFloat(lhs.Float() / float64(fun(env)))
 					}
 
 					env.IP++
@@ -16773,9 +15672,7 @@ func (c *Comp) varQuoExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.
 							Binds[index]
-						lhs.SetFloat(lhs.Float() / float64(fun(env),
-						),
-						)
+						lhs.SetFloat(lhs.Float() / float64(fun(env)))
 					}
 
 					env.IP++
@@ -16798,9 +15695,7 @@ func (c *Comp) varQuoExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.Outer.
 							Binds[index]
-						lhs.SetFloat(lhs.Float() / float64(fun(env),
-						),
-						)
+						lhs.SetFloat(lhs.Float() / float64(fun(env)))
 					}
 
 					env.IP++
@@ -16830,9 +15725,7 @@ func (c *Comp) varQuoExpr(va *Var, fun I) {
 					{
 						lhs := o.
 							Binds[index]
-						lhs.SetFloat(lhs.Float() / float64(fun(env),
-						),
-						)
+						lhs.SetFloat(lhs.Float() / float64(fun(env)))
 					}
 
 					env.IP++
@@ -16853,9 +15746,7 @@ func (c *Comp) varQuoExpr(va *Var, fun I) {
 					{
 						lhs := env.ThreadGlobals.FileEnv.
 							Binds[index]
-						lhs.SetFloat(lhs.Float() / float64(fun(env),
-						),
-						)
+						lhs.SetFloat(lhs.Float() / float64(fun(env)))
 					}
 
 					env.IP++
@@ -16879,9 +15770,7 @@ func (c *Comp) varQuoExpr(va *Var, fun I) {
 					{
 						lhs := env.
 							Binds[index]
-						lhs.SetComplex(lhs.Complex() / complex128(fun(env),
-						),
-						)
+						lhs.SetComplex(lhs.Complex() / complex128(fun(env)))
 					}
 
 					env.IP++
@@ -16904,9 +15793,7 @@ func (c *Comp) varQuoExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.
 							Binds[index]
-						lhs.SetComplex(lhs.Complex() / complex128(fun(env),
-						),
-						)
+						lhs.SetComplex(lhs.Complex() / complex128(fun(env)))
 					}
 
 					env.IP++
@@ -16929,9 +15816,7 @@ func (c *Comp) varQuoExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.Outer.
 							Binds[index]
-						lhs.SetComplex(lhs.Complex() / complex128(fun(env),
-						),
-						)
+						lhs.SetComplex(lhs.Complex() / complex128(fun(env)))
 					}
 
 					env.IP++
@@ -16961,9 +15846,7 @@ func (c *Comp) varQuoExpr(va *Var, fun I) {
 					{
 						lhs := o.
 							Binds[index]
-						lhs.SetComplex(lhs.Complex() / complex128(fun(env),
-						),
-						)
+						lhs.SetComplex(lhs.Complex() / complex128(fun(env)))
 					}
 
 					env.IP++
@@ -16984,9 +15867,7 @@ func (c *Comp) varQuoExpr(va *Var, fun I) {
 					{
 						lhs := env.ThreadGlobals.FileEnv.
 							Binds[index]
-						lhs.SetComplex(lhs.Complex() / complex128(fun(env),
-						),
-						)
+						lhs.SetComplex(lhs.Complex() / complex128(fun(env)))
 					}
 
 					env.IP++
@@ -17117,9 +15998,7 @@ func (c *Comp) varRemConst(va *Var, val I) {
 						{
 							lhs := env.
 								Binds[index]
-							lhs.SetInt(lhs.Int() % int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() % int64(val))
 						}
 
 						env.IP++
@@ -17142,9 +16021,7 @@ func (c *Comp) varRemConst(va *Var, val I) {
 							lhs := env.
 								Outer.
 								Binds[index]
-							lhs.SetInt(lhs.Int() % int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() % int64(val))
 						}
 
 						env.IP++
@@ -17167,9 +16044,7 @@ func (c *Comp) varRemConst(va *Var, val I) {
 							lhs := env.
 								Outer.Outer.
 								Binds[index]
-							lhs.SetInt(lhs.Int() % int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() % int64(val))
 						}
 
 						env.IP++
@@ -17199,9 +16074,7 @@ func (c *Comp) varRemConst(va *Var, val I) {
 							lhs :=
 
 								o.Binds[index]
-							lhs.SetInt(lhs.Int() % int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() % int64(val))
 						}
 
 						env.IP++
@@ -17222,9 +16095,7 @@ func (c *Comp) varRemConst(va *Var, val I) {
 						{
 							lhs := env.ThreadGlobals.FileEnv.
 								Binds[index]
-							lhs.SetInt(lhs.Int() % int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() % int64(val))
 						}
 
 						env.IP++
@@ -17249,9 +16120,7 @@ func (c *Comp) varRemConst(va *Var, val I) {
 						{
 							lhs := env.
 								Binds[index]
-							lhs.SetInt(lhs.Int() % int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() % int64(val))
 						}
 
 						env.IP++
@@ -17274,9 +16143,7 @@ func (c *Comp) varRemConst(va *Var, val I) {
 							lhs := env.
 								Outer.
 								Binds[index]
-							lhs.SetInt(lhs.Int() % int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() % int64(val))
 						}
 
 						env.IP++
@@ -17299,9 +16166,7 @@ func (c *Comp) varRemConst(va *Var, val I) {
 							lhs := env.
 								Outer.Outer.
 								Binds[index]
-							lhs.SetInt(lhs.Int() % int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() % int64(val))
 						}
 
 						env.IP++
@@ -17331,9 +16196,7 @@ func (c *Comp) varRemConst(va *Var, val I) {
 							lhs :=
 
 								o.Binds[index]
-							lhs.SetInt(lhs.Int() % int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() % int64(val))
 						}
 
 						env.IP++
@@ -17354,9 +16217,7 @@ func (c *Comp) varRemConst(va *Var, val I) {
 						{
 							lhs := env.ThreadGlobals.FileEnv.
 								Binds[index]
-							lhs.SetInt(lhs.Int() % int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() % int64(val))
 						}
 
 						env.IP++
@@ -17381,9 +16242,7 @@ func (c *Comp) varRemConst(va *Var, val I) {
 						{
 							lhs := env.
 								Binds[index]
-							lhs.SetInt(lhs.Int() % int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() % int64(val))
 						}
 
 						env.IP++
@@ -17406,9 +16265,7 @@ func (c *Comp) varRemConst(va *Var, val I) {
 							lhs := env.
 								Outer.
 								Binds[index]
-							lhs.SetInt(lhs.Int() % int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() % int64(val))
 						}
 
 						env.IP++
@@ -17431,9 +16288,7 @@ func (c *Comp) varRemConst(va *Var, val I) {
 							lhs := env.
 								Outer.Outer.
 								Binds[index]
-							lhs.SetInt(lhs.Int() % int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() % int64(val))
 						}
 
 						env.IP++
@@ -17463,9 +16318,7 @@ func (c *Comp) varRemConst(va *Var, val I) {
 							lhs :=
 
 								o.Binds[index]
-							lhs.SetInt(lhs.Int() % int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() % int64(val))
 						}
 
 						env.IP++
@@ -17486,9 +16339,7 @@ func (c *Comp) varRemConst(va *Var, val I) {
 						{
 							lhs := env.ThreadGlobals.FileEnv.
 								Binds[index]
-							lhs.SetInt(lhs.Int() % int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() % int64(val))
 						}
 
 						env.IP++
@@ -17513,9 +16364,7 @@ func (c *Comp) varRemConst(va *Var, val I) {
 						{
 							lhs := env.
 								Binds[index]
-							lhs.SetInt(lhs.Int() % int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() % int64(val))
 						}
 
 						env.IP++
@@ -17538,9 +16387,7 @@ func (c *Comp) varRemConst(va *Var, val I) {
 							lhs := env.
 								Outer.
 								Binds[index]
-							lhs.SetInt(lhs.Int() % int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() % int64(val))
 						}
 
 						env.IP++
@@ -17563,9 +16410,7 @@ func (c *Comp) varRemConst(va *Var, val I) {
 							lhs := env.
 								Outer.Outer.
 								Binds[index]
-							lhs.SetInt(lhs.Int() % int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() % int64(val))
 						}
 
 						env.IP++
@@ -17595,9 +16440,7 @@ func (c *Comp) varRemConst(va *Var, val I) {
 							lhs :=
 
 								o.Binds[index]
-							lhs.SetInt(lhs.Int() % int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() % int64(val))
 						}
 
 						env.IP++
@@ -17618,9 +16461,7 @@ func (c *Comp) varRemConst(va *Var, val I) {
 						{
 							lhs := env.ThreadGlobals.FileEnv.
 								Binds[index]
-							lhs.SetInt(lhs.Int() % int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() % int64(val))
 						}
 
 						env.IP++
@@ -17645,9 +16486,7 @@ func (c *Comp) varRemConst(va *Var, val I) {
 						{
 							lhs := env.
 								Binds[index]
-							lhs.SetInt(lhs.Int() % int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() % int64(val))
 						}
 
 						env.IP++
@@ -17670,9 +16509,7 @@ func (c *Comp) varRemConst(va *Var, val I) {
 							lhs := env.
 								Outer.
 								Binds[index]
-							lhs.SetInt(lhs.Int() % int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() % int64(val))
 						}
 
 						env.IP++
@@ -17695,9 +16532,7 @@ func (c *Comp) varRemConst(va *Var, val I) {
 							lhs := env.
 								Outer.Outer.
 								Binds[index]
-							lhs.SetInt(lhs.Int() % int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() % int64(val))
 						}
 
 						env.IP++
@@ -17727,9 +16562,7 @@ func (c *Comp) varRemConst(va *Var, val I) {
 							lhs :=
 
 								o.Binds[index]
-							lhs.SetInt(lhs.Int() % int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() % int64(val))
 						}
 
 						env.IP++
@@ -17750,9 +16583,7 @@ func (c *Comp) varRemConst(va *Var, val I) {
 						{
 							lhs := env.ThreadGlobals.FileEnv.
 								Binds[index]
-							lhs.SetInt(lhs.Int() % int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() % int64(val))
 						}
 
 						env.IP++
@@ -17777,9 +16608,7 @@ func (c *Comp) varRemConst(va *Var, val I) {
 						{
 							lhs := env.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() % uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() % uint64(val))
 						}
 
 						env.IP++
@@ -17802,9 +16631,7 @@ func (c *Comp) varRemConst(va *Var, val I) {
 							lhs := env.
 								Outer.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() % uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() % uint64(val))
 						}
 
 						env.IP++
@@ -17827,9 +16654,7 @@ func (c *Comp) varRemConst(va *Var, val I) {
 							lhs := env.
 								Outer.Outer.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() % uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() % uint64(val))
 						}
 
 						env.IP++
@@ -17859,9 +16684,7 @@ func (c *Comp) varRemConst(va *Var, val I) {
 						{
 							lhs := o.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() % uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() % uint64(val))
 						}
 
 						env.IP++
@@ -17882,9 +16705,7 @@ func (c *Comp) varRemConst(va *Var, val I) {
 						{
 							lhs := env.ThreadGlobals.FileEnv.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() % uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() % uint64(val))
 						}
 
 						env.IP++
@@ -17909,9 +16730,7 @@ func (c *Comp) varRemConst(va *Var, val I) {
 						{
 							lhs := env.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() % uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() % uint64(val))
 						}
 
 						env.IP++
@@ -17934,9 +16753,7 @@ func (c *Comp) varRemConst(va *Var, val I) {
 							lhs := env.
 								Outer.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() % uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() % uint64(val))
 						}
 
 						env.IP++
@@ -17959,9 +16776,7 @@ func (c *Comp) varRemConst(va *Var, val I) {
 							lhs := env.
 								Outer.Outer.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() % uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() % uint64(val))
 						}
 
 						env.IP++
@@ -17991,9 +16806,7 @@ func (c *Comp) varRemConst(va *Var, val I) {
 						{
 							lhs := o.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() % uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() % uint64(val))
 						}
 
 						env.IP++
@@ -18014,9 +16827,7 @@ func (c *Comp) varRemConst(va *Var, val I) {
 						{
 							lhs := env.ThreadGlobals.FileEnv.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() % uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() % uint64(val))
 						}
 
 						env.IP++
@@ -18041,9 +16852,7 @@ func (c *Comp) varRemConst(va *Var, val I) {
 						{
 							lhs := env.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() % uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() % uint64(val))
 						}
 
 						env.IP++
@@ -18066,9 +16875,7 @@ func (c *Comp) varRemConst(va *Var, val I) {
 							lhs := env.
 								Outer.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() % uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() % uint64(val))
 						}
 
 						env.IP++
@@ -18091,9 +16898,7 @@ func (c *Comp) varRemConst(va *Var, val I) {
 							lhs := env.
 								Outer.Outer.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() % uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() % uint64(val))
 						}
 
 						env.IP++
@@ -18123,9 +16928,7 @@ func (c *Comp) varRemConst(va *Var, val I) {
 						{
 							lhs := o.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() % uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() % uint64(val))
 						}
 
 						env.IP++
@@ -18146,9 +16949,7 @@ func (c *Comp) varRemConst(va *Var, val I) {
 						{
 							lhs := env.ThreadGlobals.FileEnv.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() % uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() % uint64(val))
 						}
 
 						env.IP++
@@ -18173,9 +16974,7 @@ func (c *Comp) varRemConst(va *Var, val I) {
 						{
 							lhs := env.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() % uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() % uint64(val))
 						}
 
 						env.IP++
@@ -18198,9 +16997,7 @@ func (c *Comp) varRemConst(va *Var, val I) {
 							lhs := env.
 								Outer.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() % uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() % uint64(val))
 						}
 
 						env.IP++
@@ -18223,9 +17020,7 @@ func (c *Comp) varRemConst(va *Var, val I) {
 							lhs := env.
 								Outer.Outer.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() % uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() % uint64(val))
 						}
 
 						env.IP++
@@ -18255,9 +17050,7 @@ func (c *Comp) varRemConst(va *Var, val I) {
 						{
 							lhs := o.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() % uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() % uint64(val))
 						}
 
 						env.IP++
@@ -18278,9 +17071,7 @@ func (c *Comp) varRemConst(va *Var, val I) {
 						{
 							lhs := env.ThreadGlobals.FileEnv.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() % uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() % uint64(val))
 						}
 
 						env.IP++
@@ -18306,9 +17097,7 @@ func (c *Comp) varRemConst(va *Var, val I) {
 						{
 							lhs := env.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() % uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() % uint64(val))
 						}
 
 						env.IP++
@@ -18332,9 +17121,7 @@ func (c *Comp) varRemConst(va *Var, val I) {
 							lhs := env.
 								Outer.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() % uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() % uint64(val))
 						}
 
 						env.IP++
@@ -18358,9 +17145,7 @@ func (c *Comp) varRemConst(va *Var, val I) {
 							lhs := env.
 								Outer.Outer.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() % uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() % uint64(val))
 						}
 
 						env.IP++
@@ -18392,9 +17177,7 @@ func (c *Comp) varRemConst(va *Var, val I) {
 						{
 							lhs := o.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() % uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() % uint64(val))
 						}
 
 						env.IP++
@@ -18416,9 +17199,7 @@ func (c *Comp) varRemConst(va *Var, val I) {
 						{
 							lhs := env.ThreadGlobals.FileEnv.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() % uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() % uint64(val))
 						}
 
 						env.IP++
@@ -18443,9 +17224,7 @@ func (c *Comp) varRemConst(va *Var, val I) {
 						{
 							lhs := env.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() % uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() % uint64(val))
 						}
 
 						env.IP++
@@ -18468,9 +17247,7 @@ func (c *Comp) varRemConst(va *Var, val I) {
 							lhs := env.
 								Outer.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() % uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() % uint64(val))
 						}
 
 						env.IP++
@@ -18493,9 +17270,7 @@ func (c *Comp) varRemConst(va *Var, val I) {
 							lhs := env.
 								Outer.Outer.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() % uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() % uint64(val))
 						}
 
 						env.IP++
@@ -18525,9 +17300,7 @@ func (c *Comp) varRemConst(va *Var, val I) {
 						{
 							lhs := o.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() % uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() % uint64(val))
 						}
 
 						env.IP++
@@ -18548,9 +17321,7 @@ func (c *Comp) varRemConst(va *Var, val I) {
 						{
 							lhs := env.ThreadGlobals.FileEnv.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() % uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() % uint64(val))
 						}
 
 						env.IP++
@@ -18588,9 +17359,7 @@ func (c *Comp) varRemExpr(va *Var, fun I) {
 					{
 						lhs := env.
 							Binds[index]
-						lhs.SetInt(lhs.Int() % int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() % int64(fun(env)))
 					}
 
 					env.IP++
@@ -18613,9 +17382,7 @@ func (c *Comp) varRemExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.
 							Binds[index]
-						lhs.SetInt(lhs.Int() % int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() % int64(fun(env)))
 					}
 
 					env.IP++
@@ -18638,9 +17405,7 @@ func (c *Comp) varRemExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.Outer.
 							Binds[index]
-						lhs.SetInt(lhs.Int() % int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() % int64(fun(env)))
 					}
 
 					env.IP++
@@ -18670,9 +17435,7 @@ func (c *Comp) varRemExpr(va *Var, fun I) {
 						lhs :=
 
 							o.Binds[index]
-						lhs.SetInt(lhs.Int() % int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() % int64(fun(env)))
 					}
 
 					env.IP++
@@ -18693,9 +17456,7 @@ func (c *Comp) varRemExpr(va *Var, fun I) {
 					{
 						lhs := env.ThreadGlobals.FileEnv.
 							Binds[index]
-						lhs.SetInt(lhs.Int() % int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() % int64(fun(env)))
 					}
 
 					env.IP++
@@ -18719,9 +17480,7 @@ func (c *Comp) varRemExpr(va *Var, fun I) {
 					{
 						lhs := env.
 							Binds[index]
-						lhs.SetInt(lhs.Int() % int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() % int64(fun(env)))
 					}
 
 					env.IP++
@@ -18744,9 +17503,7 @@ func (c *Comp) varRemExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.
 							Binds[index]
-						lhs.SetInt(lhs.Int() % int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() % int64(fun(env)))
 					}
 
 					env.IP++
@@ -18769,9 +17526,7 @@ func (c *Comp) varRemExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.Outer.
 							Binds[index]
-						lhs.SetInt(lhs.Int() % int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() % int64(fun(env)))
 					}
 
 					env.IP++
@@ -18801,9 +17556,7 @@ func (c *Comp) varRemExpr(va *Var, fun I) {
 						lhs :=
 
 							o.Binds[index]
-						lhs.SetInt(lhs.Int() % int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() % int64(fun(env)))
 					}
 
 					env.IP++
@@ -18824,9 +17577,7 @@ func (c *Comp) varRemExpr(va *Var, fun I) {
 					{
 						lhs := env.ThreadGlobals.FileEnv.
 							Binds[index]
-						lhs.SetInt(lhs.Int() % int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() % int64(fun(env)))
 					}
 
 					env.IP++
@@ -18850,9 +17601,7 @@ func (c *Comp) varRemExpr(va *Var, fun I) {
 					{
 						lhs := env.
 							Binds[index]
-						lhs.SetInt(lhs.Int() % int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() % int64(fun(env)))
 					}
 
 					env.IP++
@@ -18875,9 +17624,7 @@ func (c *Comp) varRemExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.
 							Binds[index]
-						lhs.SetInt(lhs.Int() % int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() % int64(fun(env)))
 					}
 
 					env.IP++
@@ -18900,9 +17647,7 @@ func (c *Comp) varRemExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.Outer.
 							Binds[index]
-						lhs.SetInt(lhs.Int() % int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() % int64(fun(env)))
 					}
 
 					env.IP++
@@ -18932,9 +17677,7 @@ func (c *Comp) varRemExpr(va *Var, fun I) {
 						lhs :=
 
 							o.Binds[index]
-						lhs.SetInt(lhs.Int() % int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() % int64(fun(env)))
 					}
 
 					env.IP++
@@ -18955,9 +17698,7 @@ func (c *Comp) varRemExpr(va *Var, fun I) {
 					{
 						lhs := env.ThreadGlobals.FileEnv.
 							Binds[index]
-						lhs.SetInt(lhs.Int() % int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() % int64(fun(env)))
 					}
 
 					env.IP++
@@ -18981,9 +17722,7 @@ func (c *Comp) varRemExpr(va *Var, fun I) {
 					{
 						lhs := env.
 							Binds[index]
-						lhs.SetInt(lhs.Int() % int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() % int64(fun(env)))
 					}
 
 					env.IP++
@@ -19006,9 +17745,7 @@ func (c *Comp) varRemExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.
 							Binds[index]
-						lhs.SetInt(lhs.Int() % int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() % int64(fun(env)))
 					}
 
 					env.IP++
@@ -19031,9 +17768,7 @@ func (c *Comp) varRemExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.Outer.
 							Binds[index]
-						lhs.SetInt(lhs.Int() % int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() % int64(fun(env)))
 					}
 
 					env.IP++
@@ -19063,9 +17798,7 @@ func (c *Comp) varRemExpr(va *Var, fun I) {
 						lhs :=
 
 							o.Binds[index]
-						lhs.SetInt(lhs.Int() % int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() % int64(fun(env)))
 					}
 
 					env.IP++
@@ -19086,9 +17819,7 @@ func (c *Comp) varRemExpr(va *Var, fun I) {
 					{
 						lhs := env.ThreadGlobals.FileEnv.
 							Binds[index]
-						lhs.SetInt(lhs.Int() % int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() % int64(fun(env)))
 					}
 
 					env.IP++
@@ -19112,9 +17843,7 @@ func (c *Comp) varRemExpr(va *Var, fun I) {
 					{
 						lhs := env.
 							Binds[index]
-						lhs.SetInt(lhs.Int() % int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() % int64(fun(env)))
 					}
 
 					env.IP++
@@ -19137,9 +17866,7 @@ func (c *Comp) varRemExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.
 							Binds[index]
-						lhs.SetInt(lhs.Int() % int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() % int64(fun(env)))
 					}
 
 					env.IP++
@@ -19162,9 +17889,7 @@ func (c *Comp) varRemExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.Outer.
 							Binds[index]
-						lhs.SetInt(lhs.Int() % int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() % int64(fun(env)))
 					}
 
 					env.IP++
@@ -19194,9 +17919,7 @@ func (c *Comp) varRemExpr(va *Var, fun I) {
 						lhs :=
 
 							o.Binds[index]
-						lhs.SetInt(lhs.Int() % int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() % int64(fun(env)))
 					}
 
 					env.IP++
@@ -19217,9 +17940,7 @@ func (c *Comp) varRemExpr(va *Var, fun I) {
 					{
 						lhs := env.ThreadGlobals.FileEnv.
 							Binds[index]
-						lhs.SetInt(lhs.Int() % int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() % int64(fun(env)))
 					}
 
 					env.IP++
@@ -19243,9 +17964,7 @@ func (c *Comp) varRemExpr(va *Var, fun I) {
 					{
 						lhs := env.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() % uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() % uint64(fun(env)))
 					}
 
 					env.IP++
@@ -19268,9 +17987,7 @@ func (c *Comp) varRemExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() % uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() % uint64(fun(env)))
 					}
 
 					env.IP++
@@ -19293,9 +18010,7 @@ func (c *Comp) varRemExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.Outer.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() % uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() % uint64(fun(env)))
 					}
 
 					env.IP++
@@ -19325,9 +18040,7 @@ func (c *Comp) varRemExpr(va *Var, fun I) {
 					{
 						lhs := o.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() % uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() % uint64(fun(env)))
 					}
 
 					env.IP++
@@ -19348,9 +18061,7 @@ func (c *Comp) varRemExpr(va *Var, fun I) {
 					{
 						lhs := env.ThreadGlobals.FileEnv.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() % uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() % uint64(fun(env)))
 					}
 
 					env.IP++
@@ -19374,9 +18085,7 @@ func (c *Comp) varRemExpr(va *Var, fun I) {
 					{
 						lhs := env.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() % uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() % uint64(fun(env)))
 					}
 
 					env.IP++
@@ -19399,9 +18108,7 @@ func (c *Comp) varRemExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() % uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() % uint64(fun(env)))
 					}
 
 					env.IP++
@@ -19424,9 +18131,7 @@ func (c *Comp) varRemExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.Outer.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() % uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() % uint64(fun(env)))
 					}
 
 					env.IP++
@@ -19456,9 +18161,7 @@ func (c *Comp) varRemExpr(va *Var, fun I) {
 					{
 						lhs := o.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() % uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() % uint64(fun(env)))
 					}
 
 					env.IP++
@@ -19479,9 +18182,7 @@ func (c *Comp) varRemExpr(va *Var, fun I) {
 					{
 						lhs := env.ThreadGlobals.FileEnv.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() % uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() % uint64(fun(env)))
 					}
 
 					env.IP++
@@ -19505,9 +18206,7 @@ func (c *Comp) varRemExpr(va *Var, fun I) {
 					{
 						lhs := env.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() % uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() % uint64(fun(env)))
 					}
 
 					env.IP++
@@ -19530,9 +18229,7 @@ func (c *Comp) varRemExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() % uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() % uint64(fun(env)))
 					}
 
 					env.IP++
@@ -19555,9 +18252,7 @@ func (c *Comp) varRemExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.Outer.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() % uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() % uint64(fun(env)))
 					}
 
 					env.IP++
@@ -19587,9 +18282,7 @@ func (c *Comp) varRemExpr(va *Var, fun I) {
 					{
 						lhs := o.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() % uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() % uint64(fun(env)))
 					}
 
 					env.IP++
@@ -19610,9 +18303,7 @@ func (c *Comp) varRemExpr(va *Var, fun I) {
 					{
 						lhs := env.ThreadGlobals.FileEnv.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() % uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() % uint64(fun(env)))
 					}
 
 					env.IP++
@@ -19636,9 +18327,7 @@ func (c *Comp) varRemExpr(va *Var, fun I) {
 					{
 						lhs := env.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() % uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() % uint64(fun(env)))
 					}
 
 					env.IP++
@@ -19661,9 +18350,7 @@ func (c *Comp) varRemExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() % uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() % uint64(fun(env)))
 					}
 
 					env.IP++
@@ -19686,9 +18373,7 @@ func (c *Comp) varRemExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.Outer.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() % uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() % uint64(fun(env)))
 					}
 
 					env.IP++
@@ -19718,9 +18403,7 @@ func (c *Comp) varRemExpr(va *Var, fun I) {
 					{
 						lhs := o.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() % uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() % uint64(fun(env)))
 					}
 
 					env.IP++
@@ -19741,9 +18424,7 @@ func (c *Comp) varRemExpr(va *Var, fun I) {
 					{
 						lhs := env.ThreadGlobals.FileEnv.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() % uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() % uint64(fun(env)))
 					}
 
 					env.IP++
@@ -19768,9 +18449,7 @@ func (c *Comp) varRemExpr(va *Var, fun I) {
 					{
 						lhs := env.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() % uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() % uint64(fun(env)))
 					}
 
 					env.IP++
@@ -19794,9 +18473,7 @@ func (c *Comp) varRemExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() % uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() % uint64(fun(env)))
 					}
 
 					env.IP++
@@ -19820,9 +18497,7 @@ func (c *Comp) varRemExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.Outer.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() % uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() % uint64(fun(env)))
 					}
 
 					env.IP++
@@ -19854,9 +18529,7 @@ func (c *Comp) varRemExpr(va *Var, fun I) {
 					{
 						lhs := o.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() % uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() % uint64(fun(env)))
 					}
 
 					env.IP++
@@ -19878,9 +18551,7 @@ func (c *Comp) varRemExpr(va *Var, fun I) {
 					{
 						lhs := env.ThreadGlobals.FileEnv.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() % uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() % uint64(fun(env)))
 					}
 
 					env.IP++
@@ -19904,9 +18575,7 @@ func (c *Comp) varRemExpr(va *Var, fun I) {
 					{
 						lhs := env.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() % uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() % uint64(fun(env)))
 					}
 
 					env.IP++
@@ -19929,9 +18598,7 @@ func (c *Comp) varRemExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() % uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() % uint64(fun(env)))
 					}
 
 					env.IP++
@@ -19954,9 +18621,7 @@ func (c *Comp) varRemExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.Outer.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() % uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() % uint64(fun(env)))
 					}
 
 					env.IP++
@@ -19986,9 +18651,7 @@ func (c *Comp) varRemExpr(va *Var, fun I) {
 					{
 						lhs := o.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() % uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() % uint64(fun(env)))
 					}
 
 					env.IP++
@@ -20009,9 +18672,7 @@ func (c *Comp) varRemExpr(va *Var, fun I) {
 					{
 						lhs := env.ThreadGlobals.FileEnv.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() % uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() % uint64(fun(env)))
 					}
 
 					env.IP++
@@ -20061,9 +18722,7 @@ func (c *Comp) varAndConst(va *Var, val I) {
 						{
 							lhs := env.
 								Binds[index]
-							lhs.SetInt(lhs.Int() & int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() & int64(val))
 						}
 
 						env.IP++
@@ -20086,9 +18745,7 @@ func (c *Comp) varAndConst(va *Var, val I) {
 							lhs := env.
 								Outer.
 								Binds[index]
-							lhs.SetInt(lhs.Int() & int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() & int64(val))
 						}
 
 						env.IP++
@@ -20111,9 +18768,7 @@ func (c *Comp) varAndConst(va *Var, val I) {
 							lhs := env.
 								Outer.Outer.
 								Binds[index]
-							lhs.SetInt(lhs.Int() & int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() & int64(val))
 						}
 
 						env.IP++
@@ -20143,9 +18798,7 @@ func (c *Comp) varAndConst(va *Var, val I) {
 							lhs :=
 
 								o.Binds[index]
-							lhs.SetInt(lhs.Int() & int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() & int64(val))
 						}
 
 						env.IP++
@@ -20166,9 +18819,7 @@ func (c *Comp) varAndConst(va *Var, val I) {
 						{
 							lhs := env.ThreadGlobals.FileEnv.
 								Binds[index]
-							lhs.SetInt(lhs.Int() & int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() & int64(val))
 						}
 
 						env.IP++
@@ -20193,9 +18844,7 @@ func (c *Comp) varAndConst(va *Var, val I) {
 						{
 							lhs := env.
 								Binds[index]
-							lhs.SetInt(lhs.Int() & int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() & int64(val))
 						}
 
 						env.IP++
@@ -20218,9 +18867,7 @@ func (c *Comp) varAndConst(va *Var, val I) {
 							lhs := env.
 								Outer.
 								Binds[index]
-							lhs.SetInt(lhs.Int() & int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() & int64(val))
 						}
 
 						env.IP++
@@ -20243,9 +18890,7 @@ func (c *Comp) varAndConst(va *Var, val I) {
 							lhs := env.
 								Outer.Outer.
 								Binds[index]
-							lhs.SetInt(lhs.Int() & int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() & int64(val))
 						}
 
 						env.IP++
@@ -20275,9 +18920,7 @@ func (c *Comp) varAndConst(va *Var, val I) {
 							lhs :=
 
 								o.Binds[index]
-							lhs.SetInt(lhs.Int() & int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() & int64(val))
 						}
 
 						env.IP++
@@ -20298,9 +18941,7 @@ func (c *Comp) varAndConst(va *Var, val I) {
 						{
 							lhs := env.ThreadGlobals.FileEnv.
 								Binds[index]
-							lhs.SetInt(lhs.Int() & int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() & int64(val))
 						}
 
 						env.IP++
@@ -20325,9 +18966,7 @@ func (c *Comp) varAndConst(va *Var, val I) {
 						{
 							lhs := env.
 								Binds[index]
-							lhs.SetInt(lhs.Int() & int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() & int64(val))
 						}
 
 						env.IP++
@@ -20350,9 +18989,7 @@ func (c *Comp) varAndConst(va *Var, val I) {
 							lhs := env.
 								Outer.
 								Binds[index]
-							lhs.SetInt(lhs.Int() & int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() & int64(val))
 						}
 
 						env.IP++
@@ -20375,9 +19012,7 @@ func (c *Comp) varAndConst(va *Var, val I) {
 							lhs := env.
 								Outer.Outer.
 								Binds[index]
-							lhs.SetInt(lhs.Int() & int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() & int64(val))
 						}
 
 						env.IP++
@@ -20407,9 +19042,7 @@ func (c *Comp) varAndConst(va *Var, val I) {
 							lhs :=
 
 								o.Binds[index]
-							lhs.SetInt(lhs.Int() & int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() & int64(val))
 						}
 
 						env.IP++
@@ -20430,9 +19063,7 @@ func (c *Comp) varAndConst(va *Var, val I) {
 						{
 							lhs := env.ThreadGlobals.FileEnv.
 								Binds[index]
-							lhs.SetInt(lhs.Int() & int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() & int64(val))
 						}
 
 						env.IP++
@@ -20457,9 +19088,7 @@ func (c *Comp) varAndConst(va *Var, val I) {
 						{
 							lhs := env.
 								Binds[index]
-							lhs.SetInt(lhs.Int() & int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() & int64(val))
 						}
 
 						env.IP++
@@ -20482,9 +19111,7 @@ func (c *Comp) varAndConst(va *Var, val I) {
 							lhs := env.
 								Outer.
 								Binds[index]
-							lhs.SetInt(lhs.Int() & int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() & int64(val))
 						}
 
 						env.IP++
@@ -20507,9 +19134,7 @@ func (c *Comp) varAndConst(va *Var, val I) {
 							lhs := env.
 								Outer.Outer.
 								Binds[index]
-							lhs.SetInt(lhs.Int() & int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() & int64(val))
 						}
 
 						env.IP++
@@ -20539,9 +19164,7 @@ func (c *Comp) varAndConst(va *Var, val I) {
 							lhs :=
 
 								o.Binds[index]
-							lhs.SetInt(lhs.Int() & int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() & int64(val))
 						}
 
 						env.IP++
@@ -20562,9 +19185,7 @@ func (c *Comp) varAndConst(va *Var, val I) {
 						{
 							lhs := env.ThreadGlobals.FileEnv.
 								Binds[index]
-							lhs.SetInt(lhs.Int() & int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() & int64(val))
 						}
 
 						env.IP++
@@ -20589,9 +19210,7 @@ func (c *Comp) varAndConst(va *Var, val I) {
 						{
 							lhs := env.
 								Binds[index]
-							lhs.SetInt(lhs.Int() & int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() & int64(val))
 						}
 
 						env.IP++
@@ -20614,9 +19233,7 @@ func (c *Comp) varAndConst(va *Var, val I) {
 							lhs := env.
 								Outer.
 								Binds[index]
-							lhs.SetInt(lhs.Int() & int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() & int64(val))
 						}
 
 						env.IP++
@@ -20639,9 +19256,7 @@ func (c *Comp) varAndConst(va *Var, val I) {
 							lhs := env.
 								Outer.Outer.
 								Binds[index]
-							lhs.SetInt(lhs.Int() & int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() & int64(val))
 						}
 
 						env.IP++
@@ -20671,9 +19286,7 @@ func (c *Comp) varAndConst(va *Var, val I) {
 							lhs :=
 
 								o.Binds[index]
-							lhs.SetInt(lhs.Int() & int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() & int64(val))
 						}
 
 						env.IP++
@@ -20694,9 +19307,7 @@ func (c *Comp) varAndConst(va *Var, val I) {
 						{
 							lhs := env.ThreadGlobals.FileEnv.
 								Binds[index]
-							lhs.SetInt(lhs.Int() & int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() & int64(val))
 						}
 
 						env.IP++
@@ -20721,9 +19332,7 @@ func (c *Comp) varAndConst(va *Var, val I) {
 						{
 							lhs := env.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() & uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() & uint64(val))
 						}
 
 						env.IP++
@@ -20746,9 +19355,7 @@ func (c *Comp) varAndConst(va *Var, val I) {
 							lhs := env.
 								Outer.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() & uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() & uint64(val))
 						}
 
 						env.IP++
@@ -20771,9 +19378,7 @@ func (c *Comp) varAndConst(va *Var, val I) {
 							lhs := env.
 								Outer.Outer.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() & uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() & uint64(val))
 						}
 
 						env.IP++
@@ -20803,9 +19408,7 @@ func (c *Comp) varAndConst(va *Var, val I) {
 						{
 							lhs := o.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() & uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() & uint64(val))
 						}
 
 						env.IP++
@@ -20826,9 +19429,7 @@ func (c *Comp) varAndConst(va *Var, val I) {
 						{
 							lhs := env.ThreadGlobals.FileEnv.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() & uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() & uint64(val))
 						}
 
 						env.IP++
@@ -20853,9 +19454,7 @@ func (c *Comp) varAndConst(va *Var, val I) {
 						{
 							lhs := env.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() & uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() & uint64(val))
 						}
 
 						env.IP++
@@ -20878,9 +19477,7 @@ func (c *Comp) varAndConst(va *Var, val I) {
 							lhs := env.
 								Outer.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() & uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() & uint64(val))
 						}
 
 						env.IP++
@@ -20903,9 +19500,7 @@ func (c *Comp) varAndConst(va *Var, val I) {
 							lhs := env.
 								Outer.Outer.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() & uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() & uint64(val))
 						}
 
 						env.IP++
@@ -20935,9 +19530,7 @@ func (c *Comp) varAndConst(va *Var, val I) {
 						{
 							lhs := o.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() & uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() & uint64(val))
 						}
 
 						env.IP++
@@ -20958,9 +19551,7 @@ func (c *Comp) varAndConst(va *Var, val I) {
 						{
 							lhs := env.ThreadGlobals.FileEnv.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() & uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() & uint64(val))
 						}
 
 						env.IP++
@@ -20985,9 +19576,7 @@ func (c *Comp) varAndConst(va *Var, val I) {
 						{
 							lhs := env.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() & uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() & uint64(val))
 						}
 
 						env.IP++
@@ -21010,9 +19599,7 @@ func (c *Comp) varAndConst(va *Var, val I) {
 							lhs := env.
 								Outer.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() & uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() & uint64(val))
 						}
 
 						env.IP++
@@ -21035,9 +19622,7 @@ func (c *Comp) varAndConst(va *Var, val I) {
 							lhs := env.
 								Outer.Outer.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() & uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() & uint64(val))
 						}
 
 						env.IP++
@@ -21067,9 +19652,7 @@ func (c *Comp) varAndConst(va *Var, val I) {
 						{
 							lhs := o.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() & uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() & uint64(val))
 						}
 
 						env.IP++
@@ -21090,9 +19673,7 @@ func (c *Comp) varAndConst(va *Var, val I) {
 						{
 							lhs := env.ThreadGlobals.FileEnv.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() & uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() & uint64(val))
 						}
 
 						env.IP++
@@ -21117,9 +19698,7 @@ func (c *Comp) varAndConst(va *Var, val I) {
 						{
 							lhs := env.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() & uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() & uint64(val))
 						}
 
 						env.IP++
@@ -21142,9 +19721,7 @@ func (c *Comp) varAndConst(va *Var, val I) {
 							lhs := env.
 								Outer.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() & uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() & uint64(val))
 						}
 
 						env.IP++
@@ -21167,9 +19744,7 @@ func (c *Comp) varAndConst(va *Var, val I) {
 							lhs := env.
 								Outer.Outer.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() & uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() & uint64(val))
 						}
 
 						env.IP++
@@ -21199,9 +19774,7 @@ func (c *Comp) varAndConst(va *Var, val I) {
 						{
 							lhs := o.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() & uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() & uint64(val))
 						}
 
 						env.IP++
@@ -21222,9 +19795,7 @@ func (c *Comp) varAndConst(va *Var, val I) {
 						{
 							lhs := env.ThreadGlobals.FileEnv.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() & uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() & uint64(val))
 						}
 
 						env.IP++
@@ -21250,9 +19821,7 @@ func (c *Comp) varAndConst(va *Var, val I) {
 						{
 							lhs := env.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() & uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() & uint64(val))
 						}
 
 						env.IP++
@@ -21276,9 +19845,7 @@ func (c *Comp) varAndConst(va *Var, val I) {
 							lhs := env.
 								Outer.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() & uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() & uint64(val))
 						}
 
 						env.IP++
@@ -21302,9 +19869,7 @@ func (c *Comp) varAndConst(va *Var, val I) {
 							lhs := env.
 								Outer.Outer.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() & uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() & uint64(val))
 						}
 
 						env.IP++
@@ -21336,9 +19901,7 @@ func (c *Comp) varAndConst(va *Var, val I) {
 						{
 							lhs := o.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() & uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() & uint64(val))
 						}
 
 						env.IP++
@@ -21360,9 +19923,7 @@ func (c *Comp) varAndConst(va *Var, val I) {
 						{
 							lhs := env.ThreadGlobals.FileEnv.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() & uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() & uint64(val))
 						}
 
 						env.IP++
@@ -21387,9 +19948,7 @@ func (c *Comp) varAndConst(va *Var, val I) {
 						{
 							lhs := env.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() & uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() & uint64(val))
 						}
 
 						env.IP++
@@ -21412,9 +19971,7 @@ func (c *Comp) varAndConst(va *Var, val I) {
 							lhs := env.
 								Outer.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() & uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() & uint64(val))
 						}
 
 						env.IP++
@@ -21437,9 +19994,7 @@ func (c *Comp) varAndConst(va *Var, val I) {
 							lhs := env.
 								Outer.Outer.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() & uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() & uint64(val))
 						}
 
 						env.IP++
@@ -21469,9 +20024,7 @@ func (c *Comp) varAndConst(va *Var, val I) {
 						{
 							lhs := o.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() & uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() & uint64(val))
 						}
 
 						env.IP++
@@ -21492,9 +20045,7 @@ func (c *Comp) varAndConst(va *Var, val I) {
 						{
 							lhs := env.ThreadGlobals.FileEnv.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() & uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() & uint64(val))
 						}
 
 						env.IP++
@@ -21532,9 +20083,7 @@ func (c *Comp) varAndExpr(va *Var, fun I) {
 					{
 						lhs := env.
 							Binds[index]
-						lhs.SetInt(lhs.Int() & int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() & int64(fun(env)))
 					}
 
 					env.IP++
@@ -21557,9 +20106,7 @@ func (c *Comp) varAndExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.
 							Binds[index]
-						lhs.SetInt(lhs.Int() & int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() & int64(fun(env)))
 					}
 
 					env.IP++
@@ -21582,9 +20129,7 @@ func (c *Comp) varAndExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.Outer.
 							Binds[index]
-						lhs.SetInt(lhs.Int() & int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() & int64(fun(env)))
 					}
 
 					env.IP++
@@ -21614,9 +20159,7 @@ func (c *Comp) varAndExpr(va *Var, fun I) {
 						lhs :=
 
 							o.Binds[index]
-						lhs.SetInt(lhs.Int() & int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() & int64(fun(env)))
 					}
 
 					env.IP++
@@ -21637,9 +20180,7 @@ func (c *Comp) varAndExpr(va *Var, fun I) {
 					{
 						lhs := env.ThreadGlobals.FileEnv.
 							Binds[index]
-						lhs.SetInt(lhs.Int() & int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() & int64(fun(env)))
 					}
 
 					env.IP++
@@ -21663,9 +20204,7 @@ func (c *Comp) varAndExpr(va *Var, fun I) {
 					{
 						lhs := env.
 							Binds[index]
-						lhs.SetInt(lhs.Int() & int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() & int64(fun(env)))
 					}
 
 					env.IP++
@@ -21688,9 +20227,7 @@ func (c *Comp) varAndExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.
 							Binds[index]
-						lhs.SetInt(lhs.Int() & int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() & int64(fun(env)))
 					}
 
 					env.IP++
@@ -21713,9 +20250,7 @@ func (c *Comp) varAndExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.Outer.
 							Binds[index]
-						lhs.SetInt(lhs.Int() & int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() & int64(fun(env)))
 					}
 
 					env.IP++
@@ -21745,9 +20280,7 @@ func (c *Comp) varAndExpr(va *Var, fun I) {
 						lhs :=
 
 							o.Binds[index]
-						lhs.SetInt(lhs.Int() & int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() & int64(fun(env)))
 					}
 
 					env.IP++
@@ -21768,9 +20301,7 @@ func (c *Comp) varAndExpr(va *Var, fun I) {
 					{
 						lhs := env.ThreadGlobals.FileEnv.
 							Binds[index]
-						lhs.SetInt(lhs.Int() & int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() & int64(fun(env)))
 					}
 
 					env.IP++
@@ -21794,9 +20325,7 @@ func (c *Comp) varAndExpr(va *Var, fun I) {
 					{
 						lhs := env.
 							Binds[index]
-						lhs.SetInt(lhs.Int() & int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() & int64(fun(env)))
 					}
 
 					env.IP++
@@ -21819,9 +20348,7 @@ func (c *Comp) varAndExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.
 							Binds[index]
-						lhs.SetInt(lhs.Int() & int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() & int64(fun(env)))
 					}
 
 					env.IP++
@@ -21844,9 +20371,7 @@ func (c *Comp) varAndExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.Outer.
 							Binds[index]
-						lhs.SetInt(lhs.Int() & int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() & int64(fun(env)))
 					}
 
 					env.IP++
@@ -21876,9 +20401,7 @@ func (c *Comp) varAndExpr(va *Var, fun I) {
 						lhs :=
 
 							o.Binds[index]
-						lhs.SetInt(lhs.Int() & int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() & int64(fun(env)))
 					}
 
 					env.IP++
@@ -21899,9 +20422,7 @@ func (c *Comp) varAndExpr(va *Var, fun I) {
 					{
 						lhs := env.ThreadGlobals.FileEnv.
 							Binds[index]
-						lhs.SetInt(lhs.Int() & int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() & int64(fun(env)))
 					}
 
 					env.IP++
@@ -21925,9 +20446,7 @@ func (c *Comp) varAndExpr(va *Var, fun I) {
 					{
 						lhs := env.
 							Binds[index]
-						lhs.SetInt(lhs.Int() & int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() & int64(fun(env)))
 					}
 
 					env.IP++
@@ -21950,9 +20469,7 @@ func (c *Comp) varAndExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.
 							Binds[index]
-						lhs.SetInt(lhs.Int() & int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() & int64(fun(env)))
 					}
 
 					env.IP++
@@ -21975,9 +20492,7 @@ func (c *Comp) varAndExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.Outer.
 							Binds[index]
-						lhs.SetInt(lhs.Int() & int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() & int64(fun(env)))
 					}
 
 					env.IP++
@@ -22007,9 +20522,7 @@ func (c *Comp) varAndExpr(va *Var, fun I) {
 						lhs :=
 
 							o.Binds[index]
-						lhs.SetInt(lhs.Int() & int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() & int64(fun(env)))
 					}
 
 					env.IP++
@@ -22030,9 +20543,7 @@ func (c *Comp) varAndExpr(va *Var, fun I) {
 					{
 						lhs := env.ThreadGlobals.FileEnv.
 							Binds[index]
-						lhs.SetInt(lhs.Int() & int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() & int64(fun(env)))
 					}
 
 					env.IP++
@@ -22056,9 +20567,7 @@ func (c *Comp) varAndExpr(va *Var, fun I) {
 					{
 						lhs := env.
 							Binds[index]
-						lhs.SetInt(lhs.Int() & int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() & int64(fun(env)))
 					}
 
 					env.IP++
@@ -22081,9 +20590,7 @@ func (c *Comp) varAndExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.
 							Binds[index]
-						lhs.SetInt(lhs.Int() & int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() & int64(fun(env)))
 					}
 
 					env.IP++
@@ -22106,9 +20613,7 @@ func (c *Comp) varAndExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.Outer.
 							Binds[index]
-						lhs.SetInt(lhs.Int() & int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() & int64(fun(env)))
 					}
 
 					env.IP++
@@ -22138,9 +20643,7 @@ func (c *Comp) varAndExpr(va *Var, fun I) {
 						lhs :=
 
 							o.Binds[index]
-						lhs.SetInt(lhs.Int() & int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() & int64(fun(env)))
 					}
 
 					env.IP++
@@ -22161,9 +20664,7 @@ func (c *Comp) varAndExpr(va *Var, fun I) {
 					{
 						lhs := env.ThreadGlobals.FileEnv.
 							Binds[index]
-						lhs.SetInt(lhs.Int() & int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() & int64(fun(env)))
 					}
 
 					env.IP++
@@ -22187,9 +20688,7 @@ func (c *Comp) varAndExpr(va *Var, fun I) {
 					{
 						lhs := env.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() & uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() & uint64(fun(env)))
 					}
 
 					env.IP++
@@ -22212,9 +20711,7 @@ func (c *Comp) varAndExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() & uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() & uint64(fun(env)))
 					}
 
 					env.IP++
@@ -22237,9 +20734,7 @@ func (c *Comp) varAndExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.Outer.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() & uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() & uint64(fun(env)))
 					}
 
 					env.IP++
@@ -22269,9 +20764,7 @@ func (c *Comp) varAndExpr(va *Var, fun I) {
 					{
 						lhs := o.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() & uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() & uint64(fun(env)))
 					}
 
 					env.IP++
@@ -22292,9 +20785,7 @@ func (c *Comp) varAndExpr(va *Var, fun I) {
 					{
 						lhs := env.ThreadGlobals.FileEnv.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() & uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() & uint64(fun(env)))
 					}
 
 					env.IP++
@@ -22318,9 +20809,7 @@ func (c *Comp) varAndExpr(va *Var, fun I) {
 					{
 						lhs := env.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() & uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() & uint64(fun(env)))
 					}
 
 					env.IP++
@@ -22343,9 +20832,7 @@ func (c *Comp) varAndExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() & uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() & uint64(fun(env)))
 					}
 
 					env.IP++
@@ -22368,9 +20855,7 @@ func (c *Comp) varAndExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.Outer.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() & uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() & uint64(fun(env)))
 					}
 
 					env.IP++
@@ -22400,9 +20885,7 @@ func (c *Comp) varAndExpr(va *Var, fun I) {
 					{
 						lhs := o.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() & uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() & uint64(fun(env)))
 					}
 
 					env.IP++
@@ -22423,9 +20906,7 @@ func (c *Comp) varAndExpr(va *Var, fun I) {
 					{
 						lhs := env.ThreadGlobals.FileEnv.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() & uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() & uint64(fun(env)))
 					}
 
 					env.IP++
@@ -22449,9 +20930,7 @@ func (c *Comp) varAndExpr(va *Var, fun I) {
 					{
 						lhs := env.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() & uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() & uint64(fun(env)))
 					}
 
 					env.IP++
@@ -22474,9 +20953,7 @@ func (c *Comp) varAndExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() & uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() & uint64(fun(env)))
 					}
 
 					env.IP++
@@ -22499,9 +20976,7 @@ func (c *Comp) varAndExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.Outer.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() & uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() & uint64(fun(env)))
 					}
 
 					env.IP++
@@ -22531,9 +21006,7 @@ func (c *Comp) varAndExpr(va *Var, fun I) {
 					{
 						lhs := o.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() & uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() & uint64(fun(env)))
 					}
 
 					env.IP++
@@ -22554,9 +21027,7 @@ func (c *Comp) varAndExpr(va *Var, fun I) {
 					{
 						lhs := env.ThreadGlobals.FileEnv.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() & uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() & uint64(fun(env)))
 					}
 
 					env.IP++
@@ -22580,9 +21051,7 @@ func (c *Comp) varAndExpr(va *Var, fun I) {
 					{
 						lhs := env.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() & uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() & uint64(fun(env)))
 					}
 
 					env.IP++
@@ -22605,9 +21074,7 @@ func (c *Comp) varAndExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() & uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() & uint64(fun(env)))
 					}
 
 					env.IP++
@@ -22630,9 +21097,7 @@ func (c *Comp) varAndExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.Outer.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() & uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() & uint64(fun(env)))
 					}
 
 					env.IP++
@@ -22662,9 +21127,7 @@ func (c *Comp) varAndExpr(va *Var, fun I) {
 					{
 						lhs := o.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() & uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() & uint64(fun(env)))
 					}
 
 					env.IP++
@@ -22685,9 +21148,7 @@ func (c *Comp) varAndExpr(va *Var, fun I) {
 					{
 						lhs := env.ThreadGlobals.FileEnv.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() & uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() & uint64(fun(env)))
 					}
 
 					env.IP++
@@ -22712,9 +21173,7 @@ func (c *Comp) varAndExpr(va *Var, fun I) {
 					{
 						lhs := env.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() & uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() & uint64(fun(env)))
 					}
 
 					env.IP++
@@ -22738,9 +21197,7 @@ func (c *Comp) varAndExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() & uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() & uint64(fun(env)))
 					}
 
 					env.IP++
@@ -22764,9 +21221,7 @@ func (c *Comp) varAndExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.Outer.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() & uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() & uint64(fun(env)))
 					}
 
 					env.IP++
@@ -22798,9 +21253,7 @@ func (c *Comp) varAndExpr(va *Var, fun I) {
 					{
 						lhs := o.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() & uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() & uint64(fun(env)))
 					}
 
 					env.IP++
@@ -22822,9 +21275,7 @@ func (c *Comp) varAndExpr(va *Var, fun I) {
 					{
 						lhs := env.ThreadGlobals.FileEnv.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() & uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() & uint64(fun(env)))
 					}
 
 					env.IP++
@@ -22848,9 +21299,7 @@ func (c *Comp) varAndExpr(va *Var, fun I) {
 					{
 						lhs := env.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() & uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() & uint64(fun(env)))
 					}
 
 					env.IP++
@@ -22873,9 +21322,7 @@ func (c *Comp) varAndExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() & uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() & uint64(fun(env)))
 					}
 
 					env.IP++
@@ -22898,9 +21345,7 @@ func (c *Comp) varAndExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.Outer.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() & uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() & uint64(fun(env)))
 					}
 
 					env.IP++
@@ -22930,9 +21375,7 @@ func (c *Comp) varAndExpr(va *Var, fun I) {
 					{
 						lhs := o.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() & uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() & uint64(fun(env)))
 					}
 
 					env.IP++
@@ -22953,9 +21396,7 @@ func (c *Comp) varAndExpr(va *Var, fun I) {
 					{
 						lhs := env.ThreadGlobals.FileEnv.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() & uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() & uint64(fun(env)))
 					}
 
 					env.IP++
@@ -22999,9 +21440,7 @@ func (c *Comp) varOrConst(va *Var, val I) {
 						{
 							lhs := env.
 								Binds[index]
-							lhs.SetInt(lhs.Int() | int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() | int64(val))
 						}
 
 						env.IP++
@@ -23024,9 +21463,7 @@ func (c *Comp) varOrConst(va *Var, val I) {
 							lhs := env.
 								Outer.
 								Binds[index]
-							lhs.SetInt(lhs.Int() | int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() | int64(val))
 						}
 
 						env.IP++
@@ -23049,9 +21486,7 @@ func (c *Comp) varOrConst(va *Var, val I) {
 							lhs := env.
 								Outer.Outer.
 								Binds[index]
-							lhs.SetInt(lhs.Int() | int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() | int64(val))
 						}
 
 						env.IP++
@@ -23081,9 +21516,7 @@ func (c *Comp) varOrConst(va *Var, val I) {
 							lhs :=
 
 								o.Binds[index]
-							lhs.SetInt(lhs.Int() | int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() | int64(val))
 						}
 
 						env.IP++
@@ -23104,9 +21537,7 @@ func (c *Comp) varOrConst(va *Var, val I) {
 						{
 							lhs := env.ThreadGlobals.FileEnv.
 								Binds[index]
-							lhs.SetInt(lhs.Int() | int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() | int64(val))
 						}
 
 						env.IP++
@@ -23131,9 +21562,7 @@ func (c *Comp) varOrConst(va *Var, val I) {
 						{
 							lhs := env.
 								Binds[index]
-							lhs.SetInt(lhs.Int() | int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() | int64(val))
 						}
 
 						env.IP++
@@ -23156,9 +21585,7 @@ func (c *Comp) varOrConst(va *Var, val I) {
 							lhs := env.
 								Outer.
 								Binds[index]
-							lhs.SetInt(lhs.Int() | int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() | int64(val))
 						}
 
 						env.IP++
@@ -23181,9 +21608,7 @@ func (c *Comp) varOrConst(va *Var, val I) {
 							lhs := env.
 								Outer.Outer.
 								Binds[index]
-							lhs.SetInt(lhs.Int() | int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() | int64(val))
 						}
 
 						env.IP++
@@ -23213,9 +21638,7 @@ func (c *Comp) varOrConst(va *Var, val I) {
 							lhs :=
 
 								o.Binds[index]
-							lhs.SetInt(lhs.Int() | int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() | int64(val))
 						}
 
 						env.IP++
@@ -23236,9 +21659,7 @@ func (c *Comp) varOrConst(va *Var, val I) {
 						{
 							lhs := env.ThreadGlobals.FileEnv.
 								Binds[index]
-							lhs.SetInt(lhs.Int() | int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() | int64(val))
 						}
 
 						env.IP++
@@ -23263,9 +21684,7 @@ func (c *Comp) varOrConst(va *Var, val I) {
 						{
 							lhs := env.
 								Binds[index]
-							lhs.SetInt(lhs.Int() | int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() | int64(val))
 						}
 
 						env.IP++
@@ -23288,9 +21707,7 @@ func (c *Comp) varOrConst(va *Var, val I) {
 							lhs := env.
 								Outer.
 								Binds[index]
-							lhs.SetInt(lhs.Int() | int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() | int64(val))
 						}
 
 						env.IP++
@@ -23313,9 +21730,7 @@ func (c *Comp) varOrConst(va *Var, val I) {
 							lhs := env.
 								Outer.Outer.
 								Binds[index]
-							lhs.SetInt(lhs.Int() | int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() | int64(val))
 						}
 
 						env.IP++
@@ -23345,9 +21760,7 @@ func (c *Comp) varOrConst(va *Var, val I) {
 							lhs :=
 
 								o.Binds[index]
-							lhs.SetInt(lhs.Int() | int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() | int64(val))
 						}
 
 						env.IP++
@@ -23368,9 +21781,7 @@ func (c *Comp) varOrConst(va *Var, val I) {
 						{
 							lhs := env.ThreadGlobals.FileEnv.
 								Binds[index]
-							lhs.SetInt(lhs.Int() | int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() | int64(val))
 						}
 
 						env.IP++
@@ -23395,9 +21806,7 @@ func (c *Comp) varOrConst(va *Var, val I) {
 						{
 							lhs := env.
 								Binds[index]
-							lhs.SetInt(lhs.Int() | int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() | int64(val))
 						}
 
 						env.IP++
@@ -23420,9 +21829,7 @@ func (c *Comp) varOrConst(va *Var, val I) {
 							lhs := env.
 								Outer.
 								Binds[index]
-							lhs.SetInt(lhs.Int() | int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() | int64(val))
 						}
 
 						env.IP++
@@ -23445,9 +21852,7 @@ func (c *Comp) varOrConst(va *Var, val I) {
 							lhs := env.
 								Outer.Outer.
 								Binds[index]
-							lhs.SetInt(lhs.Int() | int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() | int64(val))
 						}
 
 						env.IP++
@@ -23477,9 +21882,7 @@ func (c *Comp) varOrConst(va *Var, val I) {
 							lhs :=
 
 								o.Binds[index]
-							lhs.SetInt(lhs.Int() | int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() | int64(val))
 						}
 
 						env.IP++
@@ -23500,9 +21903,7 @@ func (c *Comp) varOrConst(va *Var, val I) {
 						{
 							lhs := env.ThreadGlobals.FileEnv.
 								Binds[index]
-							lhs.SetInt(lhs.Int() | int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() | int64(val))
 						}
 
 						env.IP++
@@ -23527,9 +21928,7 @@ func (c *Comp) varOrConst(va *Var, val I) {
 						{
 							lhs := env.
 								Binds[index]
-							lhs.SetInt(lhs.Int() | int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() | int64(val))
 						}
 
 						env.IP++
@@ -23552,9 +21951,7 @@ func (c *Comp) varOrConst(va *Var, val I) {
 							lhs := env.
 								Outer.
 								Binds[index]
-							lhs.SetInt(lhs.Int() | int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() | int64(val))
 						}
 
 						env.IP++
@@ -23577,9 +21974,7 @@ func (c *Comp) varOrConst(va *Var, val I) {
 							lhs := env.
 								Outer.Outer.
 								Binds[index]
-							lhs.SetInt(lhs.Int() | int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() | int64(val))
 						}
 
 						env.IP++
@@ -23609,9 +22004,7 @@ func (c *Comp) varOrConst(va *Var, val I) {
 							lhs :=
 
 								o.Binds[index]
-							lhs.SetInt(lhs.Int() | int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() | int64(val))
 						}
 
 						env.IP++
@@ -23632,9 +22025,7 @@ func (c *Comp) varOrConst(va *Var, val I) {
 						{
 							lhs := env.ThreadGlobals.FileEnv.
 								Binds[index]
-							lhs.SetInt(lhs.Int() | int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() | int64(val))
 						}
 
 						env.IP++
@@ -23659,9 +22050,7 @@ func (c *Comp) varOrConst(va *Var, val I) {
 						{
 							lhs := env.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() | uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() | uint64(val))
 						}
 
 						env.IP++
@@ -23684,9 +22073,7 @@ func (c *Comp) varOrConst(va *Var, val I) {
 							lhs := env.
 								Outer.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() | uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() | uint64(val))
 						}
 
 						env.IP++
@@ -23709,9 +22096,7 @@ func (c *Comp) varOrConst(va *Var, val I) {
 							lhs := env.
 								Outer.Outer.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() | uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() | uint64(val))
 						}
 
 						env.IP++
@@ -23741,9 +22126,7 @@ func (c *Comp) varOrConst(va *Var, val I) {
 						{
 							lhs := o.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() | uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() | uint64(val))
 						}
 
 						env.IP++
@@ -23764,9 +22147,7 @@ func (c *Comp) varOrConst(va *Var, val I) {
 						{
 							lhs := env.ThreadGlobals.FileEnv.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() | uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() | uint64(val))
 						}
 
 						env.IP++
@@ -23791,9 +22172,7 @@ func (c *Comp) varOrConst(va *Var, val I) {
 						{
 							lhs := env.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() | uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() | uint64(val))
 						}
 
 						env.IP++
@@ -23816,9 +22195,7 @@ func (c *Comp) varOrConst(va *Var, val I) {
 							lhs := env.
 								Outer.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() | uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() | uint64(val))
 						}
 
 						env.IP++
@@ -23841,9 +22218,7 @@ func (c *Comp) varOrConst(va *Var, val I) {
 							lhs := env.
 								Outer.Outer.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() | uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() | uint64(val))
 						}
 
 						env.IP++
@@ -23873,9 +22248,7 @@ func (c *Comp) varOrConst(va *Var, val I) {
 						{
 							lhs := o.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() | uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() | uint64(val))
 						}
 
 						env.IP++
@@ -23896,9 +22269,7 @@ func (c *Comp) varOrConst(va *Var, val I) {
 						{
 							lhs := env.ThreadGlobals.FileEnv.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() | uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() | uint64(val))
 						}
 
 						env.IP++
@@ -23923,9 +22294,7 @@ func (c *Comp) varOrConst(va *Var, val I) {
 						{
 							lhs := env.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() | uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() | uint64(val))
 						}
 
 						env.IP++
@@ -23948,9 +22317,7 @@ func (c *Comp) varOrConst(va *Var, val I) {
 							lhs := env.
 								Outer.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() | uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() | uint64(val))
 						}
 
 						env.IP++
@@ -23973,9 +22340,7 @@ func (c *Comp) varOrConst(va *Var, val I) {
 							lhs := env.
 								Outer.Outer.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() | uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() | uint64(val))
 						}
 
 						env.IP++
@@ -24005,9 +22370,7 @@ func (c *Comp) varOrConst(va *Var, val I) {
 						{
 							lhs := o.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() | uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() | uint64(val))
 						}
 
 						env.IP++
@@ -24028,9 +22391,7 @@ func (c *Comp) varOrConst(va *Var, val I) {
 						{
 							lhs := env.ThreadGlobals.FileEnv.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() | uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() | uint64(val))
 						}
 
 						env.IP++
@@ -24055,9 +22416,7 @@ func (c *Comp) varOrConst(va *Var, val I) {
 						{
 							lhs := env.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() | uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() | uint64(val))
 						}
 
 						env.IP++
@@ -24080,9 +22439,7 @@ func (c *Comp) varOrConst(va *Var, val I) {
 							lhs := env.
 								Outer.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() | uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() | uint64(val))
 						}
 
 						env.IP++
@@ -24105,9 +22462,7 @@ func (c *Comp) varOrConst(va *Var, val I) {
 							lhs := env.
 								Outer.Outer.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() | uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() | uint64(val))
 						}
 
 						env.IP++
@@ -24137,9 +22492,7 @@ func (c *Comp) varOrConst(va *Var, val I) {
 						{
 							lhs := o.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() | uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() | uint64(val))
 						}
 
 						env.IP++
@@ -24160,9 +22513,7 @@ func (c *Comp) varOrConst(va *Var, val I) {
 						{
 							lhs := env.ThreadGlobals.FileEnv.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() | uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() | uint64(val))
 						}
 
 						env.IP++
@@ -24188,9 +22539,7 @@ func (c *Comp) varOrConst(va *Var, val I) {
 						{
 							lhs := env.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() | uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() | uint64(val))
 						}
 
 						env.IP++
@@ -24214,9 +22563,7 @@ func (c *Comp) varOrConst(va *Var, val I) {
 							lhs := env.
 								Outer.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() | uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() | uint64(val))
 						}
 
 						env.IP++
@@ -24240,9 +22587,7 @@ func (c *Comp) varOrConst(va *Var, val I) {
 							lhs := env.
 								Outer.Outer.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() | uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() | uint64(val))
 						}
 
 						env.IP++
@@ -24274,9 +22619,7 @@ func (c *Comp) varOrConst(va *Var, val I) {
 						{
 							lhs := o.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() | uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() | uint64(val))
 						}
 
 						env.IP++
@@ -24298,9 +22641,7 @@ func (c *Comp) varOrConst(va *Var, val I) {
 						{
 							lhs := env.ThreadGlobals.FileEnv.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() | uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() | uint64(val))
 						}
 
 						env.IP++
@@ -24325,9 +22666,7 @@ func (c *Comp) varOrConst(va *Var, val I) {
 						{
 							lhs := env.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() | uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() | uint64(val))
 						}
 
 						env.IP++
@@ -24350,9 +22689,7 @@ func (c *Comp) varOrConst(va *Var, val I) {
 							lhs := env.
 								Outer.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() | uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() | uint64(val))
 						}
 
 						env.IP++
@@ -24375,9 +22712,7 @@ func (c *Comp) varOrConst(va *Var, val I) {
 							lhs := env.
 								Outer.Outer.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() | uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() | uint64(val))
 						}
 
 						env.IP++
@@ -24407,9 +22742,7 @@ func (c *Comp) varOrConst(va *Var, val I) {
 						{
 							lhs := o.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() | uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() | uint64(val))
 						}
 
 						env.IP++
@@ -24430,9 +22763,7 @@ func (c *Comp) varOrConst(va *Var, val I) {
 						{
 							lhs := env.ThreadGlobals.FileEnv.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() | uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() | uint64(val))
 						}
 
 						env.IP++
@@ -24470,9 +22801,7 @@ func (c *Comp) varOrExpr(va *Var, fun I) {
 					{
 						lhs := env.
 							Binds[index]
-						lhs.SetInt(lhs.Int() | int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() | int64(fun(env)))
 					}
 
 					env.IP++
@@ -24495,9 +22824,7 @@ func (c *Comp) varOrExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.
 							Binds[index]
-						lhs.SetInt(lhs.Int() | int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() | int64(fun(env)))
 					}
 
 					env.IP++
@@ -24520,9 +22847,7 @@ func (c *Comp) varOrExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.Outer.
 							Binds[index]
-						lhs.SetInt(lhs.Int() | int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() | int64(fun(env)))
 					}
 
 					env.IP++
@@ -24552,9 +22877,7 @@ func (c *Comp) varOrExpr(va *Var, fun I) {
 						lhs :=
 
 							o.Binds[index]
-						lhs.SetInt(lhs.Int() | int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() | int64(fun(env)))
 					}
 
 					env.IP++
@@ -24575,9 +22898,7 @@ func (c *Comp) varOrExpr(va *Var, fun I) {
 					{
 						lhs := env.ThreadGlobals.FileEnv.
 							Binds[index]
-						lhs.SetInt(lhs.Int() | int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() | int64(fun(env)))
 					}
 
 					env.IP++
@@ -24601,9 +22922,7 @@ func (c *Comp) varOrExpr(va *Var, fun I) {
 					{
 						lhs := env.
 							Binds[index]
-						lhs.SetInt(lhs.Int() | int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() | int64(fun(env)))
 					}
 
 					env.IP++
@@ -24626,9 +22945,7 @@ func (c *Comp) varOrExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.
 							Binds[index]
-						lhs.SetInt(lhs.Int() | int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() | int64(fun(env)))
 					}
 
 					env.IP++
@@ -24651,9 +22968,7 @@ func (c *Comp) varOrExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.Outer.
 							Binds[index]
-						lhs.SetInt(lhs.Int() | int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() | int64(fun(env)))
 					}
 
 					env.IP++
@@ -24683,9 +22998,7 @@ func (c *Comp) varOrExpr(va *Var, fun I) {
 						lhs :=
 
 							o.Binds[index]
-						lhs.SetInt(lhs.Int() | int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() | int64(fun(env)))
 					}
 
 					env.IP++
@@ -24706,9 +23019,7 @@ func (c *Comp) varOrExpr(va *Var, fun I) {
 					{
 						lhs := env.ThreadGlobals.FileEnv.
 							Binds[index]
-						lhs.SetInt(lhs.Int() | int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() | int64(fun(env)))
 					}
 
 					env.IP++
@@ -24732,9 +23043,7 @@ func (c *Comp) varOrExpr(va *Var, fun I) {
 					{
 						lhs := env.
 							Binds[index]
-						lhs.SetInt(lhs.Int() | int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() | int64(fun(env)))
 					}
 
 					env.IP++
@@ -24757,9 +23066,7 @@ func (c *Comp) varOrExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.
 							Binds[index]
-						lhs.SetInt(lhs.Int() | int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() | int64(fun(env)))
 					}
 
 					env.IP++
@@ -24782,9 +23089,7 @@ func (c *Comp) varOrExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.Outer.
 							Binds[index]
-						lhs.SetInt(lhs.Int() | int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() | int64(fun(env)))
 					}
 
 					env.IP++
@@ -24814,9 +23119,7 @@ func (c *Comp) varOrExpr(va *Var, fun I) {
 						lhs :=
 
 							o.Binds[index]
-						lhs.SetInt(lhs.Int() | int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() | int64(fun(env)))
 					}
 
 					env.IP++
@@ -24837,9 +23140,7 @@ func (c *Comp) varOrExpr(va *Var, fun I) {
 					{
 						lhs := env.ThreadGlobals.FileEnv.
 							Binds[index]
-						lhs.SetInt(lhs.Int() | int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() | int64(fun(env)))
 					}
 
 					env.IP++
@@ -24863,9 +23164,7 @@ func (c *Comp) varOrExpr(va *Var, fun I) {
 					{
 						lhs := env.
 							Binds[index]
-						lhs.SetInt(lhs.Int() | int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() | int64(fun(env)))
 					}
 
 					env.IP++
@@ -24888,9 +23187,7 @@ func (c *Comp) varOrExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.
 							Binds[index]
-						lhs.SetInt(lhs.Int() | int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() | int64(fun(env)))
 					}
 
 					env.IP++
@@ -24913,9 +23210,7 @@ func (c *Comp) varOrExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.Outer.
 							Binds[index]
-						lhs.SetInt(lhs.Int() | int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() | int64(fun(env)))
 					}
 
 					env.IP++
@@ -24945,9 +23240,7 @@ func (c *Comp) varOrExpr(va *Var, fun I) {
 						lhs :=
 
 							o.Binds[index]
-						lhs.SetInt(lhs.Int() | int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() | int64(fun(env)))
 					}
 
 					env.IP++
@@ -24968,9 +23261,7 @@ func (c *Comp) varOrExpr(va *Var, fun I) {
 					{
 						lhs := env.ThreadGlobals.FileEnv.
 							Binds[index]
-						lhs.SetInt(lhs.Int() | int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() | int64(fun(env)))
 					}
 
 					env.IP++
@@ -24994,9 +23285,7 @@ func (c *Comp) varOrExpr(va *Var, fun I) {
 					{
 						lhs := env.
 							Binds[index]
-						lhs.SetInt(lhs.Int() | int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() | int64(fun(env)))
 					}
 
 					env.IP++
@@ -25019,9 +23308,7 @@ func (c *Comp) varOrExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.
 							Binds[index]
-						lhs.SetInt(lhs.Int() | int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() | int64(fun(env)))
 					}
 
 					env.IP++
@@ -25044,9 +23331,7 @@ func (c *Comp) varOrExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.Outer.
 							Binds[index]
-						lhs.SetInt(lhs.Int() | int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() | int64(fun(env)))
 					}
 
 					env.IP++
@@ -25076,9 +23361,7 @@ func (c *Comp) varOrExpr(va *Var, fun I) {
 						lhs :=
 
 							o.Binds[index]
-						lhs.SetInt(lhs.Int() | int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() | int64(fun(env)))
 					}
 
 					env.IP++
@@ -25099,9 +23382,7 @@ func (c *Comp) varOrExpr(va *Var, fun I) {
 					{
 						lhs := env.ThreadGlobals.FileEnv.
 							Binds[index]
-						lhs.SetInt(lhs.Int() | int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() | int64(fun(env)))
 					}
 
 					env.IP++
@@ -25125,9 +23406,7 @@ func (c *Comp) varOrExpr(va *Var, fun I) {
 					{
 						lhs := env.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() | uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() | uint64(fun(env)))
 					}
 
 					env.IP++
@@ -25150,9 +23429,7 @@ func (c *Comp) varOrExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() | uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() | uint64(fun(env)))
 					}
 
 					env.IP++
@@ -25175,9 +23452,7 @@ func (c *Comp) varOrExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.Outer.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() | uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() | uint64(fun(env)))
 					}
 
 					env.IP++
@@ -25207,9 +23482,7 @@ func (c *Comp) varOrExpr(va *Var, fun I) {
 					{
 						lhs := o.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() | uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() | uint64(fun(env)))
 					}
 
 					env.IP++
@@ -25230,9 +23503,7 @@ func (c *Comp) varOrExpr(va *Var, fun I) {
 					{
 						lhs := env.ThreadGlobals.FileEnv.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() | uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() | uint64(fun(env)))
 					}
 
 					env.IP++
@@ -25256,9 +23527,7 @@ func (c *Comp) varOrExpr(va *Var, fun I) {
 					{
 						lhs := env.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() | uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() | uint64(fun(env)))
 					}
 
 					env.IP++
@@ -25281,9 +23550,7 @@ func (c *Comp) varOrExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() | uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() | uint64(fun(env)))
 					}
 
 					env.IP++
@@ -25306,9 +23573,7 @@ func (c *Comp) varOrExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.Outer.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() | uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() | uint64(fun(env)))
 					}
 
 					env.IP++
@@ -25338,9 +23603,7 @@ func (c *Comp) varOrExpr(va *Var, fun I) {
 					{
 						lhs := o.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() | uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() | uint64(fun(env)))
 					}
 
 					env.IP++
@@ -25361,9 +23624,7 @@ func (c *Comp) varOrExpr(va *Var, fun I) {
 					{
 						lhs := env.ThreadGlobals.FileEnv.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() | uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() | uint64(fun(env)))
 					}
 
 					env.IP++
@@ -25387,9 +23648,7 @@ func (c *Comp) varOrExpr(va *Var, fun I) {
 					{
 						lhs := env.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() | uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() | uint64(fun(env)))
 					}
 
 					env.IP++
@@ -25412,9 +23671,7 @@ func (c *Comp) varOrExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() | uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() | uint64(fun(env)))
 					}
 
 					env.IP++
@@ -25437,9 +23694,7 @@ func (c *Comp) varOrExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.Outer.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() | uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() | uint64(fun(env)))
 					}
 
 					env.IP++
@@ -25469,9 +23724,7 @@ func (c *Comp) varOrExpr(va *Var, fun I) {
 					{
 						lhs := o.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() | uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() | uint64(fun(env)))
 					}
 
 					env.IP++
@@ -25492,9 +23745,7 @@ func (c *Comp) varOrExpr(va *Var, fun I) {
 					{
 						lhs := env.ThreadGlobals.FileEnv.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() | uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() | uint64(fun(env)))
 					}
 
 					env.IP++
@@ -25518,9 +23769,7 @@ func (c *Comp) varOrExpr(va *Var, fun I) {
 					{
 						lhs := env.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() | uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() | uint64(fun(env)))
 					}
 
 					env.IP++
@@ -25543,9 +23792,7 @@ func (c *Comp) varOrExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() | uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() | uint64(fun(env)))
 					}
 
 					env.IP++
@@ -25568,9 +23815,7 @@ func (c *Comp) varOrExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.Outer.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() | uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() | uint64(fun(env)))
 					}
 
 					env.IP++
@@ -25600,9 +23845,7 @@ func (c *Comp) varOrExpr(va *Var, fun I) {
 					{
 						lhs := o.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() | uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() | uint64(fun(env)))
 					}
 
 					env.IP++
@@ -25623,9 +23866,7 @@ func (c *Comp) varOrExpr(va *Var, fun I) {
 					{
 						lhs := env.ThreadGlobals.FileEnv.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() | uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() | uint64(fun(env)))
 					}
 
 					env.IP++
@@ -25650,9 +23891,7 @@ func (c *Comp) varOrExpr(va *Var, fun I) {
 					{
 						lhs := env.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() | uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() | uint64(fun(env)))
 					}
 
 					env.IP++
@@ -25676,9 +23915,7 @@ func (c *Comp) varOrExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() | uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() | uint64(fun(env)))
 					}
 
 					env.IP++
@@ -25702,9 +23939,7 @@ func (c *Comp) varOrExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.Outer.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() | uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() | uint64(fun(env)))
 					}
 
 					env.IP++
@@ -25736,9 +23971,7 @@ func (c *Comp) varOrExpr(va *Var, fun I) {
 					{
 						lhs := o.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() | uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() | uint64(fun(env)))
 					}
 
 					env.IP++
@@ -25760,9 +23993,7 @@ func (c *Comp) varOrExpr(va *Var, fun I) {
 					{
 						lhs := env.ThreadGlobals.FileEnv.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() | uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() | uint64(fun(env)))
 					}
 
 					env.IP++
@@ -25786,9 +24017,7 @@ func (c *Comp) varOrExpr(va *Var, fun I) {
 					{
 						lhs := env.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() | uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() | uint64(fun(env)))
 					}
 
 					env.IP++
@@ -25811,9 +24040,7 @@ func (c *Comp) varOrExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() | uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() | uint64(fun(env)))
 					}
 
 					env.IP++
@@ -25836,9 +24063,7 @@ func (c *Comp) varOrExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.Outer.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() | uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() | uint64(fun(env)))
 					}
 
 					env.IP++
@@ -25868,9 +24093,7 @@ func (c *Comp) varOrExpr(va *Var, fun I) {
 					{
 						lhs := o.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() | uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() | uint64(fun(env)))
 					}
 
 					env.IP++
@@ -25891,9 +24114,7 @@ func (c *Comp) varOrExpr(va *Var, fun I) {
 					{
 						lhs := env.ThreadGlobals.FileEnv.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() | uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() | uint64(fun(env)))
 					}
 
 					env.IP++
@@ -25937,9 +24158,7 @@ func (c *Comp) varXorConst(va *Var, val I) {
 						{
 							lhs := env.
 								Binds[index]
-							lhs.SetInt(lhs.Int() ^ int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() ^ int64(val))
 						}
 
 						env.IP++
@@ -25962,9 +24181,7 @@ func (c *Comp) varXorConst(va *Var, val I) {
 							lhs := env.
 								Outer.
 								Binds[index]
-							lhs.SetInt(lhs.Int() ^ int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() ^ int64(val))
 						}
 
 						env.IP++
@@ -25987,9 +24204,7 @@ func (c *Comp) varXorConst(va *Var, val I) {
 							lhs := env.
 								Outer.Outer.
 								Binds[index]
-							lhs.SetInt(lhs.Int() ^ int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() ^ int64(val))
 						}
 
 						env.IP++
@@ -26019,9 +24234,7 @@ func (c *Comp) varXorConst(va *Var, val I) {
 							lhs :=
 
 								o.Binds[index]
-							lhs.SetInt(lhs.Int() ^ int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() ^ int64(val))
 						}
 
 						env.IP++
@@ -26042,9 +24255,7 @@ func (c *Comp) varXorConst(va *Var, val I) {
 						{
 							lhs := env.ThreadGlobals.FileEnv.
 								Binds[index]
-							lhs.SetInt(lhs.Int() ^ int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() ^ int64(val))
 						}
 
 						env.IP++
@@ -26069,9 +24280,7 @@ func (c *Comp) varXorConst(va *Var, val I) {
 						{
 							lhs := env.
 								Binds[index]
-							lhs.SetInt(lhs.Int() ^ int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() ^ int64(val))
 						}
 
 						env.IP++
@@ -26094,9 +24303,7 @@ func (c *Comp) varXorConst(va *Var, val I) {
 							lhs := env.
 								Outer.
 								Binds[index]
-							lhs.SetInt(lhs.Int() ^ int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() ^ int64(val))
 						}
 
 						env.IP++
@@ -26119,9 +24326,7 @@ func (c *Comp) varXorConst(va *Var, val I) {
 							lhs := env.
 								Outer.Outer.
 								Binds[index]
-							lhs.SetInt(lhs.Int() ^ int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() ^ int64(val))
 						}
 
 						env.IP++
@@ -26151,9 +24356,7 @@ func (c *Comp) varXorConst(va *Var, val I) {
 							lhs :=
 
 								o.Binds[index]
-							lhs.SetInt(lhs.Int() ^ int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() ^ int64(val))
 						}
 
 						env.IP++
@@ -26174,9 +24377,7 @@ func (c *Comp) varXorConst(va *Var, val I) {
 						{
 							lhs := env.ThreadGlobals.FileEnv.
 								Binds[index]
-							lhs.SetInt(lhs.Int() ^ int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() ^ int64(val))
 						}
 
 						env.IP++
@@ -26201,9 +24402,7 @@ func (c *Comp) varXorConst(va *Var, val I) {
 						{
 							lhs := env.
 								Binds[index]
-							lhs.SetInt(lhs.Int() ^ int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() ^ int64(val))
 						}
 
 						env.IP++
@@ -26226,9 +24425,7 @@ func (c *Comp) varXorConst(va *Var, val I) {
 							lhs := env.
 								Outer.
 								Binds[index]
-							lhs.SetInt(lhs.Int() ^ int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() ^ int64(val))
 						}
 
 						env.IP++
@@ -26251,9 +24448,7 @@ func (c *Comp) varXorConst(va *Var, val I) {
 							lhs := env.
 								Outer.Outer.
 								Binds[index]
-							lhs.SetInt(lhs.Int() ^ int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() ^ int64(val))
 						}
 
 						env.IP++
@@ -26283,9 +24478,7 @@ func (c *Comp) varXorConst(va *Var, val I) {
 							lhs :=
 
 								o.Binds[index]
-							lhs.SetInt(lhs.Int() ^ int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() ^ int64(val))
 						}
 
 						env.IP++
@@ -26306,9 +24499,7 @@ func (c *Comp) varXorConst(va *Var, val I) {
 						{
 							lhs := env.ThreadGlobals.FileEnv.
 								Binds[index]
-							lhs.SetInt(lhs.Int() ^ int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() ^ int64(val))
 						}
 
 						env.IP++
@@ -26333,9 +24524,7 @@ func (c *Comp) varXorConst(va *Var, val I) {
 						{
 							lhs := env.
 								Binds[index]
-							lhs.SetInt(lhs.Int() ^ int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() ^ int64(val))
 						}
 
 						env.IP++
@@ -26358,9 +24547,7 @@ func (c *Comp) varXorConst(va *Var, val I) {
 							lhs := env.
 								Outer.
 								Binds[index]
-							lhs.SetInt(lhs.Int() ^ int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() ^ int64(val))
 						}
 
 						env.IP++
@@ -26383,9 +24570,7 @@ func (c *Comp) varXorConst(va *Var, val I) {
 							lhs := env.
 								Outer.Outer.
 								Binds[index]
-							lhs.SetInt(lhs.Int() ^ int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() ^ int64(val))
 						}
 
 						env.IP++
@@ -26415,9 +24600,7 @@ func (c *Comp) varXorConst(va *Var, val I) {
 							lhs :=
 
 								o.Binds[index]
-							lhs.SetInt(lhs.Int() ^ int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() ^ int64(val))
 						}
 
 						env.IP++
@@ -26438,9 +24621,7 @@ func (c *Comp) varXorConst(va *Var, val I) {
 						{
 							lhs := env.ThreadGlobals.FileEnv.
 								Binds[index]
-							lhs.SetInt(lhs.Int() ^ int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() ^ int64(val))
 						}
 
 						env.IP++
@@ -26465,9 +24646,7 @@ func (c *Comp) varXorConst(va *Var, val I) {
 						{
 							lhs := env.
 								Binds[index]
-							lhs.SetInt(lhs.Int() ^ int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() ^ int64(val))
 						}
 
 						env.IP++
@@ -26490,9 +24669,7 @@ func (c *Comp) varXorConst(va *Var, val I) {
 							lhs := env.
 								Outer.
 								Binds[index]
-							lhs.SetInt(lhs.Int() ^ int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() ^ int64(val))
 						}
 
 						env.IP++
@@ -26515,9 +24692,7 @@ func (c *Comp) varXorConst(va *Var, val I) {
 							lhs := env.
 								Outer.Outer.
 								Binds[index]
-							lhs.SetInt(lhs.Int() ^ int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() ^ int64(val))
 						}
 
 						env.IP++
@@ -26547,9 +24722,7 @@ func (c *Comp) varXorConst(va *Var, val I) {
 							lhs :=
 
 								o.Binds[index]
-							lhs.SetInt(lhs.Int() ^ int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() ^ int64(val))
 						}
 
 						env.IP++
@@ -26570,9 +24743,7 @@ func (c *Comp) varXorConst(va *Var, val I) {
 						{
 							lhs := env.ThreadGlobals.FileEnv.
 								Binds[index]
-							lhs.SetInt(lhs.Int() ^ int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() ^ int64(val))
 						}
 
 						env.IP++
@@ -26597,9 +24768,7 @@ func (c *Comp) varXorConst(va *Var, val I) {
 						{
 							lhs := env.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() ^ uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() ^ uint64(val))
 						}
 
 						env.IP++
@@ -26622,9 +24791,7 @@ func (c *Comp) varXorConst(va *Var, val I) {
 							lhs := env.
 								Outer.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() ^ uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() ^ uint64(val))
 						}
 
 						env.IP++
@@ -26647,9 +24814,7 @@ func (c *Comp) varXorConst(va *Var, val I) {
 							lhs := env.
 								Outer.Outer.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() ^ uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() ^ uint64(val))
 						}
 
 						env.IP++
@@ -26679,9 +24844,7 @@ func (c *Comp) varXorConst(va *Var, val I) {
 						{
 							lhs := o.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() ^ uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() ^ uint64(val))
 						}
 
 						env.IP++
@@ -26702,9 +24865,7 @@ func (c *Comp) varXorConst(va *Var, val I) {
 						{
 							lhs := env.ThreadGlobals.FileEnv.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() ^ uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() ^ uint64(val))
 						}
 
 						env.IP++
@@ -26729,9 +24890,7 @@ func (c *Comp) varXorConst(va *Var, val I) {
 						{
 							lhs := env.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() ^ uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() ^ uint64(val))
 						}
 
 						env.IP++
@@ -26754,9 +24913,7 @@ func (c *Comp) varXorConst(va *Var, val I) {
 							lhs := env.
 								Outer.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() ^ uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() ^ uint64(val))
 						}
 
 						env.IP++
@@ -26779,9 +24936,7 @@ func (c *Comp) varXorConst(va *Var, val I) {
 							lhs := env.
 								Outer.Outer.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() ^ uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() ^ uint64(val))
 						}
 
 						env.IP++
@@ -26811,9 +24966,7 @@ func (c *Comp) varXorConst(va *Var, val I) {
 						{
 							lhs := o.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() ^ uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() ^ uint64(val))
 						}
 
 						env.IP++
@@ -26834,9 +24987,7 @@ func (c *Comp) varXorConst(va *Var, val I) {
 						{
 							lhs := env.ThreadGlobals.FileEnv.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() ^ uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() ^ uint64(val))
 						}
 
 						env.IP++
@@ -26861,9 +25012,7 @@ func (c *Comp) varXorConst(va *Var, val I) {
 						{
 							lhs := env.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() ^ uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() ^ uint64(val))
 						}
 
 						env.IP++
@@ -26886,9 +25035,7 @@ func (c *Comp) varXorConst(va *Var, val I) {
 							lhs := env.
 								Outer.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() ^ uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() ^ uint64(val))
 						}
 
 						env.IP++
@@ -26911,9 +25058,7 @@ func (c *Comp) varXorConst(va *Var, val I) {
 							lhs := env.
 								Outer.Outer.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() ^ uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() ^ uint64(val))
 						}
 
 						env.IP++
@@ -26943,9 +25088,7 @@ func (c *Comp) varXorConst(va *Var, val I) {
 						{
 							lhs := o.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() ^ uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() ^ uint64(val))
 						}
 
 						env.IP++
@@ -26966,9 +25109,7 @@ func (c *Comp) varXorConst(va *Var, val I) {
 						{
 							lhs := env.ThreadGlobals.FileEnv.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() ^ uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() ^ uint64(val))
 						}
 
 						env.IP++
@@ -26993,9 +25134,7 @@ func (c *Comp) varXorConst(va *Var, val I) {
 						{
 							lhs := env.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() ^ uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() ^ uint64(val))
 						}
 
 						env.IP++
@@ -27018,9 +25157,7 @@ func (c *Comp) varXorConst(va *Var, val I) {
 							lhs := env.
 								Outer.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() ^ uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() ^ uint64(val))
 						}
 
 						env.IP++
@@ -27043,9 +25180,7 @@ func (c *Comp) varXorConst(va *Var, val I) {
 							lhs := env.
 								Outer.Outer.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() ^ uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() ^ uint64(val))
 						}
 
 						env.IP++
@@ -27075,9 +25210,7 @@ func (c *Comp) varXorConst(va *Var, val I) {
 						{
 							lhs := o.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() ^ uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() ^ uint64(val))
 						}
 
 						env.IP++
@@ -27098,9 +25231,7 @@ func (c *Comp) varXorConst(va *Var, val I) {
 						{
 							lhs := env.ThreadGlobals.FileEnv.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() ^ uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() ^ uint64(val))
 						}
 
 						env.IP++
@@ -27126,9 +25257,7 @@ func (c *Comp) varXorConst(va *Var, val I) {
 						{
 							lhs := env.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() ^ uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() ^ uint64(val))
 						}
 
 						env.IP++
@@ -27152,9 +25281,7 @@ func (c *Comp) varXorConst(va *Var, val I) {
 							lhs := env.
 								Outer.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() ^ uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() ^ uint64(val))
 						}
 
 						env.IP++
@@ -27178,9 +25305,7 @@ func (c *Comp) varXorConst(va *Var, val I) {
 							lhs := env.
 								Outer.Outer.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() ^ uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() ^ uint64(val))
 						}
 
 						env.IP++
@@ -27212,9 +25337,7 @@ func (c *Comp) varXorConst(va *Var, val I) {
 						{
 							lhs := o.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() ^ uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() ^ uint64(val))
 						}
 
 						env.IP++
@@ -27236,9 +25359,7 @@ func (c *Comp) varXorConst(va *Var, val I) {
 						{
 							lhs := env.ThreadGlobals.FileEnv.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() ^ uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() ^ uint64(val))
 						}
 
 						env.IP++
@@ -27263,9 +25384,7 @@ func (c *Comp) varXorConst(va *Var, val I) {
 						{
 							lhs := env.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() ^ uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() ^ uint64(val))
 						}
 
 						env.IP++
@@ -27288,9 +25407,7 @@ func (c *Comp) varXorConst(va *Var, val I) {
 							lhs := env.
 								Outer.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() ^ uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() ^ uint64(val))
 						}
 
 						env.IP++
@@ -27313,9 +25430,7 @@ func (c *Comp) varXorConst(va *Var, val I) {
 							lhs := env.
 								Outer.Outer.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() ^ uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() ^ uint64(val))
 						}
 
 						env.IP++
@@ -27345,9 +25460,7 @@ func (c *Comp) varXorConst(va *Var, val I) {
 						{
 							lhs := o.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() ^ uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() ^ uint64(val))
 						}
 
 						env.IP++
@@ -27368,9 +25481,7 @@ func (c *Comp) varXorConst(va *Var, val I) {
 						{
 							lhs := env.ThreadGlobals.FileEnv.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() ^ uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() ^ uint64(val))
 						}
 
 						env.IP++
@@ -27408,9 +25519,7 @@ func (c *Comp) varXorExpr(va *Var, fun I) {
 					{
 						lhs := env.
 							Binds[index]
-						lhs.SetInt(lhs.Int() ^ int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() ^ int64(fun(env)))
 					}
 
 					env.IP++
@@ -27433,9 +25542,7 @@ func (c *Comp) varXorExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.
 							Binds[index]
-						lhs.SetInt(lhs.Int() ^ int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() ^ int64(fun(env)))
 					}
 
 					env.IP++
@@ -27458,9 +25565,7 @@ func (c *Comp) varXorExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.Outer.
 							Binds[index]
-						lhs.SetInt(lhs.Int() ^ int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() ^ int64(fun(env)))
 					}
 
 					env.IP++
@@ -27490,9 +25595,7 @@ func (c *Comp) varXorExpr(va *Var, fun I) {
 						lhs :=
 
 							o.Binds[index]
-						lhs.SetInt(lhs.Int() ^ int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() ^ int64(fun(env)))
 					}
 
 					env.IP++
@@ -27513,9 +25616,7 @@ func (c *Comp) varXorExpr(va *Var, fun I) {
 					{
 						lhs := env.ThreadGlobals.FileEnv.
 							Binds[index]
-						lhs.SetInt(lhs.Int() ^ int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() ^ int64(fun(env)))
 					}
 
 					env.IP++
@@ -27539,9 +25640,7 @@ func (c *Comp) varXorExpr(va *Var, fun I) {
 					{
 						lhs := env.
 							Binds[index]
-						lhs.SetInt(lhs.Int() ^ int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() ^ int64(fun(env)))
 					}
 
 					env.IP++
@@ -27564,9 +25663,7 @@ func (c *Comp) varXorExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.
 							Binds[index]
-						lhs.SetInt(lhs.Int() ^ int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() ^ int64(fun(env)))
 					}
 
 					env.IP++
@@ -27589,9 +25686,7 @@ func (c *Comp) varXorExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.Outer.
 							Binds[index]
-						lhs.SetInt(lhs.Int() ^ int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() ^ int64(fun(env)))
 					}
 
 					env.IP++
@@ -27621,9 +25716,7 @@ func (c *Comp) varXorExpr(va *Var, fun I) {
 						lhs :=
 
 							o.Binds[index]
-						lhs.SetInt(lhs.Int() ^ int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() ^ int64(fun(env)))
 					}
 
 					env.IP++
@@ -27644,9 +25737,7 @@ func (c *Comp) varXorExpr(va *Var, fun I) {
 					{
 						lhs := env.ThreadGlobals.FileEnv.
 							Binds[index]
-						lhs.SetInt(lhs.Int() ^ int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() ^ int64(fun(env)))
 					}
 
 					env.IP++
@@ -27670,9 +25761,7 @@ func (c *Comp) varXorExpr(va *Var, fun I) {
 					{
 						lhs := env.
 							Binds[index]
-						lhs.SetInt(lhs.Int() ^ int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() ^ int64(fun(env)))
 					}
 
 					env.IP++
@@ -27695,9 +25784,7 @@ func (c *Comp) varXorExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.
 							Binds[index]
-						lhs.SetInt(lhs.Int() ^ int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() ^ int64(fun(env)))
 					}
 
 					env.IP++
@@ -27720,9 +25807,7 @@ func (c *Comp) varXorExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.Outer.
 							Binds[index]
-						lhs.SetInt(lhs.Int() ^ int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() ^ int64(fun(env)))
 					}
 
 					env.IP++
@@ -27752,9 +25837,7 @@ func (c *Comp) varXorExpr(va *Var, fun I) {
 						lhs :=
 
 							o.Binds[index]
-						lhs.SetInt(lhs.Int() ^ int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() ^ int64(fun(env)))
 					}
 
 					env.IP++
@@ -27775,9 +25858,7 @@ func (c *Comp) varXorExpr(va *Var, fun I) {
 					{
 						lhs := env.ThreadGlobals.FileEnv.
 							Binds[index]
-						lhs.SetInt(lhs.Int() ^ int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() ^ int64(fun(env)))
 					}
 
 					env.IP++
@@ -27801,9 +25882,7 @@ func (c *Comp) varXorExpr(va *Var, fun I) {
 					{
 						lhs := env.
 							Binds[index]
-						lhs.SetInt(lhs.Int() ^ int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() ^ int64(fun(env)))
 					}
 
 					env.IP++
@@ -27826,9 +25905,7 @@ func (c *Comp) varXorExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.
 							Binds[index]
-						lhs.SetInt(lhs.Int() ^ int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() ^ int64(fun(env)))
 					}
 
 					env.IP++
@@ -27851,9 +25928,7 @@ func (c *Comp) varXorExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.Outer.
 							Binds[index]
-						lhs.SetInt(lhs.Int() ^ int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() ^ int64(fun(env)))
 					}
 
 					env.IP++
@@ -27883,9 +25958,7 @@ func (c *Comp) varXorExpr(va *Var, fun I) {
 						lhs :=
 
 							o.Binds[index]
-						lhs.SetInt(lhs.Int() ^ int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() ^ int64(fun(env)))
 					}
 
 					env.IP++
@@ -27906,9 +25979,7 @@ func (c *Comp) varXorExpr(va *Var, fun I) {
 					{
 						lhs := env.ThreadGlobals.FileEnv.
 							Binds[index]
-						lhs.SetInt(lhs.Int() ^ int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() ^ int64(fun(env)))
 					}
 
 					env.IP++
@@ -27932,9 +26003,7 @@ func (c *Comp) varXorExpr(va *Var, fun I) {
 					{
 						lhs := env.
 							Binds[index]
-						lhs.SetInt(lhs.Int() ^ int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() ^ int64(fun(env)))
 					}
 
 					env.IP++
@@ -27957,9 +26026,7 @@ func (c *Comp) varXorExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.
 							Binds[index]
-						lhs.SetInt(lhs.Int() ^ int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() ^ int64(fun(env)))
 					}
 
 					env.IP++
@@ -27982,9 +26049,7 @@ func (c *Comp) varXorExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.Outer.
 							Binds[index]
-						lhs.SetInt(lhs.Int() ^ int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() ^ int64(fun(env)))
 					}
 
 					env.IP++
@@ -28014,9 +26079,7 @@ func (c *Comp) varXorExpr(va *Var, fun I) {
 						lhs :=
 
 							o.Binds[index]
-						lhs.SetInt(lhs.Int() ^ int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() ^ int64(fun(env)))
 					}
 
 					env.IP++
@@ -28037,9 +26100,7 @@ func (c *Comp) varXorExpr(va *Var, fun I) {
 					{
 						lhs := env.ThreadGlobals.FileEnv.
 							Binds[index]
-						lhs.SetInt(lhs.Int() ^ int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() ^ int64(fun(env)))
 					}
 
 					env.IP++
@@ -28063,9 +26124,7 @@ func (c *Comp) varXorExpr(va *Var, fun I) {
 					{
 						lhs := env.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() ^ uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() ^ uint64(fun(env)))
 					}
 
 					env.IP++
@@ -28088,9 +26147,7 @@ func (c *Comp) varXorExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() ^ uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() ^ uint64(fun(env)))
 					}
 
 					env.IP++
@@ -28113,9 +26170,7 @@ func (c *Comp) varXorExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.Outer.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() ^ uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() ^ uint64(fun(env)))
 					}
 
 					env.IP++
@@ -28145,9 +26200,7 @@ func (c *Comp) varXorExpr(va *Var, fun I) {
 					{
 						lhs := o.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() ^ uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() ^ uint64(fun(env)))
 					}
 
 					env.IP++
@@ -28168,9 +26221,7 @@ func (c *Comp) varXorExpr(va *Var, fun I) {
 					{
 						lhs := env.ThreadGlobals.FileEnv.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() ^ uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() ^ uint64(fun(env)))
 					}
 
 					env.IP++
@@ -28194,9 +26245,7 @@ func (c *Comp) varXorExpr(va *Var, fun I) {
 					{
 						lhs := env.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() ^ uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() ^ uint64(fun(env)))
 					}
 
 					env.IP++
@@ -28219,9 +26268,7 @@ func (c *Comp) varXorExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() ^ uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() ^ uint64(fun(env)))
 					}
 
 					env.IP++
@@ -28244,9 +26291,7 @@ func (c *Comp) varXorExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.Outer.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() ^ uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() ^ uint64(fun(env)))
 					}
 
 					env.IP++
@@ -28276,9 +26321,7 @@ func (c *Comp) varXorExpr(va *Var, fun I) {
 					{
 						lhs := o.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() ^ uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() ^ uint64(fun(env)))
 					}
 
 					env.IP++
@@ -28299,9 +26342,7 @@ func (c *Comp) varXorExpr(va *Var, fun I) {
 					{
 						lhs := env.ThreadGlobals.FileEnv.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() ^ uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() ^ uint64(fun(env)))
 					}
 
 					env.IP++
@@ -28325,9 +26366,7 @@ func (c *Comp) varXorExpr(va *Var, fun I) {
 					{
 						lhs := env.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() ^ uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() ^ uint64(fun(env)))
 					}
 
 					env.IP++
@@ -28350,9 +26389,7 @@ func (c *Comp) varXorExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() ^ uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() ^ uint64(fun(env)))
 					}
 
 					env.IP++
@@ -28375,9 +26412,7 @@ func (c *Comp) varXorExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.Outer.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() ^ uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() ^ uint64(fun(env)))
 					}
 
 					env.IP++
@@ -28407,9 +26442,7 @@ func (c *Comp) varXorExpr(va *Var, fun I) {
 					{
 						lhs := o.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() ^ uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() ^ uint64(fun(env)))
 					}
 
 					env.IP++
@@ -28430,9 +26463,7 @@ func (c *Comp) varXorExpr(va *Var, fun I) {
 					{
 						lhs := env.ThreadGlobals.FileEnv.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() ^ uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() ^ uint64(fun(env)))
 					}
 
 					env.IP++
@@ -28456,9 +26487,7 @@ func (c *Comp) varXorExpr(va *Var, fun I) {
 					{
 						lhs := env.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() ^ uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() ^ uint64(fun(env)))
 					}
 
 					env.IP++
@@ -28481,9 +26510,7 @@ func (c *Comp) varXorExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() ^ uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() ^ uint64(fun(env)))
 					}
 
 					env.IP++
@@ -28506,9 +26533,7 @@ func (c *Comp) varXorExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.Outer.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() ^ uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() ^ uint64(fun(env)))
 					}
 
 					env.IP++
@@ -28538,9 +26563,7 @@ func (c *Comp) varXorExpr(va *Var, fun I) {
 					{
 						lhs := o.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() ^ uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() ^ uint64(fun(env)))
 					}
 
 					env.IP++
@@ -28561,9 +26584,7 @@ func (c *Comp) varXorExpr(va *Var, fun I) {
 					{
 						lhs := env.ThreadGlobals.FileEnv.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() ^ uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() ^ uint64(fun(env)))
 					}
 
 					env.IP++
@@ -28588,9 +26609,7 @@ func (c *Comp) varXorExpr(va *Var, fun I) {
 					{
 						lhs := env.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() ^ uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() ^ uint64(fun(env)))
 					}
 
 					env.IP++
@@ -28614,9 +26633,7 @@ func (c *Comp) varXorExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() ^ uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() ^ uint64(fun(env)))
 					}
 
 					env.IP++
@@ -28640,9 +26657,7 @@ func (c *Comp) varXorExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.Outer.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() ^ uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() ^ uint64(fun(env)))
 					}
 
 					env.IP++
@@ -28674,9 +26689,7 @@ func (c *Comp) varXorExpr(va *Var, fun I) {
 					{
 						lhs := o.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() ^ uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() ^ uint64(fun(env)))
 					}
 
 					env.IP++
@@ -28698,9 +26711,7 @@ func (c *Comp) varXorExpr(va *Var, fun I) {
 					{
 						lhs := env.ThreadGlobals.FileEnv.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() ^ uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() ^ uint64(fun(env)))
 					}
 
 					env.IP++
@@ -28724,9 +26735,7 @@ func (c *Comp) varXorExpr(va *Var, fun I) {
 					{
 						lhs := env.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() ^ uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() ^ uint64(fun(env)))
 					}
 
 					env.IP++
@@ -28749,9 +26758,7 @@ func (c *Comp) varXorExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() ^ uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() ^ uint64(fun(env)))
 					}
 
 					env.IP++
@@ -28774,9 +26781,7 @@ func (c *Comp) varXorExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.Outer.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() ^ uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() ^ uint64(fun(env)))
 					}
 
 					env.IP++
@@ -28806,9 +26811,7 @@ func (c *Comp) varXorExpr(va *Var, fun I) {
 					{
 						lhs := o.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() ^ uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() ^ uint64(fun(env)))
 					}
 
 					env.IP++
@@ -28829,9 +26832,7 @@ func (c *Comp) varXorExpr(va *Var, fun I) {
 					{
 						lhs := env.ThreadGlobals.FileEnv.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() ^ uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() ^ uint64(fun(env)))
 					}
 
 					env.IP++
@@ -28881,9 +26882,7 @@ func (c *Comp) varAndnotConst(va *Var, val I) {
 						{
 							lhs := env.
 								Binds[index]
-							lhs.SetInt(lhs.Int() &^ int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() &^ int64(val))
 						}
 
 						env.IP++
@@ -28906,9 +26905,7 @@ func (c *Comp) varAndnotConst(va *Var, val I) {
 							lhs := env.
 								Outer.
 								Binds[index]
-							lhs.SetInt(lhs.Int() &^ int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() &^ int64(val))
 						}
 
 						env.IP++
@@ -28931,9 +26928,7 @@ func (c *Comp) varAndnotConst(va *Var, val I) {
 							lhs := env.
 								Outer.Outer.
 								Binds[index]
-							lhs.SetInt(lhs.Int() &^ int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() &^ int64(val))
 						}
 
 						env.IP++
@@ -28963,9 +26958,7 @@ func (c *Comp) varAndnotConst(va *Var, val I) {
 							lhs :=
 
 								o.Binds[index]
-							lhs.SetInt(lhs.Int() &^ int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() &^ int64(val))
 						}
 
 						env.IP++
@@ -28986,9 +26979,7 @@ func (c *Comp) varAndnotConst(va *Var, val I) {
 						{
 							lhs := env.ThreadGlobals.FileEnv.
 								Binds[index]
-							lhs.SetInt(lhs.Int() &^ int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() &^ int64(val))
 						}
 
 						env.IP++
@@ -29013,9 +27004,7 @@ func (c *Comp) varAndnotConst(va *Var, val I) {
 						{
 							lhs := env.
 								Binds[index]
-							lhs.SetInt(lhs.Int() &^ int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() &^ int64(val))
 						}
 
 						env.IP++
@@ -29038,9 +27027,7 @@ func (c *Comp) varAndnotConst(va *Var, val I) {
 							lhs := env.
 								Outer.
 								Binds[index]
-							lhs.SetInt(lhs.Int() &^ int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() &^ int64(val))
 						}
 
 						env.IP++
@@ -29063,9 +27050,7 @@ func (c *Comp) varAndnotConst(va *Var, val I) {
 							lhs := env.
 								Outer.Outer.
 								Binds[index]
-							lhs.SetInt(lhs.Int() &^ int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() &^ int64(val))
 						}
 
 						env.IP++
@@ -29095,9 +27080,7 @@ func (c *Comp) varAndnotConst(va *Var, val I) {
 							lhs :=
 
 								o.Binds[index]
-							lhs.SetInt(lhs.Int() &^ int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() &^ int64(val))
 						}
 
 						env.IP++
@@ -29118,9 +27101,7 @@ func (c *Comp) varAndnotConst(va *Var, val I) {
 						{
 							lhs := env.ThreadGlobals.FileEnv.
 								Binds[index]
-							lhs.SetInt(lhs.Int() &^ int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() &^ int64(val))
 						}
 
 						env.IP++
@@ -29145,9 +27126,7 @@ func (c *Comp) varAndnotConst(va *Var, val I) {
 						{
 							lhs := env.
 								Binds[index]
-							lhs.SetInt(lhs.Int() &^ int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() &^ int64(val))
 						}
 
 						env.IP++
@@ -29170,9 +27149,7 @@ func (c *Comp) varAndnotConst(va *Var, val I) {
 							lhs := env.
 								Outer.
 								Binds[index]
-							lhs.SetInt(lhs.Int() &^ int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() &^ int64(val))
 						}
 
 						env.IP++
@@ -29195,9 +27172,7 @@ func (c *Comp) varAndnotConst(va *Var, val I) {
 							lhs := env.
 								Outer.Outer.
 								Binds[index]
-							lhs.SetInt(lhs.Int() &^ int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() &^ int64(val))
 						}
 
 						env.IP++
@@ -29227,9 +27202,7 @@ func (c *Comp) varAndnotConst(va *Var, val I) {
 							lhs :=
 
 								o.Binds[index]
-							lhs.SetInt(lhs.Int() &^ int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() &^ int64(val))
 						}
 
 						env.IP++
@@ -29250,9 +27223,7 @@ func (c *Comp) varAndnotConst(va *Var, val I) {
 						{
 							lhs := env.ThreadGlobals.FileEnv.
 								Binds[index]
-							lhs.SetInt(lhs.Int() &^ int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() &^ int64(val))
 						}
 
 						env.IP++
@@ -29277,9 +27248,7 @@ func (c *Comp) varAndnotConst(va *Var, val I) {
 						{
 							lhs := env.
 								Binds[index]
-							lhs.SetInt(lhs.Int() &^ int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() &^ int64(val))
 						}
 
 						env.IP++
@@ -29302,9 +27271,7 @@ func (c *Comp) varAndnotConst(va *Var, val I) {
 							lhs := env.
 								Outer.
 								Binds[index]
-							lhs.SetInt(lhs.Int() &^ int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() &^ int64(val))
 						}
 
 						env.IP++
@@ -29327,9 +27294,7 @@ func (c *Comp) varAndnotConst(va *Var, val I) {
 							lhs := env.
 								Outer.Outer.
 								Binds[index]
-							lhs.SetInt(lhs.Int() &^ int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() &^ int64(val))
 						}
 
 						env.IP++
@@ -29359,9 +27324,7 @@ func (c *Comp) varAndnotConst(va *Var, val I) {
 							lhs :=
 
 								o.Binds[index]
-							lhs.SetInt(lhs.Int() &^ int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() &^ int64(val))
 						}
 
 						env.IP++
@@ -29382,9 +27345,7 @@ func (c *Comp) varAndnotConst(va *Var, val I) {
 						{
 							lhs := env.ThreadGlobals.FileEnv.
 								Binds[index]
-							lhs.SetInt(lhs.Int() &^ int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() &^ int64(val))
 						}
 
 						env.IP++
@@ -29409,9 +27370,7 @@ func (c *Comp) varAndnotConst(va *Var, val I) {
 						{
 							lhs := env.
 								Binds[index]
-							lhs.SetInt(lhs.Int() &^ int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() &^ int64(val))
 						}
 
 						env.IP++
@@ -29434,9 +27393,7 @@ func (c *Comp) varAndnotConst(va *Var, val I) {
 							lhs := env.
 								Outer.
 								Binds[index]
-							lhs.SetInt(lhs.Int() &^ int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() &^ int64(val))
 						}
 
 						env.IP++
@@ -29459,9 +27416,7 @@ func (c *Comp) varAndnotConst(va *Var, val I) {
 							lhs := env.
 								Outer.Outer.
 								Binds[index]
-							lhs.SetInt(lhs.Int() &^ int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() &^ int64(val))
 						}
 
 						env.IP++
@@ -29491,9 +27446,7 @@ func (c *Comp) varAndnotConst(va *Var, val I) {
 							lhs :=
 
 								o.Binds[index]
-							lhs.SetInt(lhs.Int() &^ int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() &^ int64(val))
 						}
 
 						env.IP++
@@ -29514,9 +27467,7 @@ func (c *Comp) varAndnotConst(va *Var, val I) {
 						{
 							lhs := env.ThreadGlobals.FileEnv.
 								Binds[index]
-							lhs.SetInt(lhs.Int() &^ int64(val,
-							),
-							)
+							lhs.SetInt(lhs.Int() &^ int64(val))
 						}
 
 						env.IP++
@@ -29541,9 +27492,7 @@ func (c *Comp) varAndnotConst(va *Var, val I) {
 						{
 							lhs := env.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() &^ uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() &^ uint64(val))
 						}
 
 						env.IP++
@@ -29566,9 +27515,7 @@ func (c *Comp) varAndnotConst(va *Var, val I) {
 							lhs := env.
 								Outer.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() &^ uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() &^ uint64(val))
 						}
 
 						env.IP++
@@ -29591,9 +27538,7 @@ func (c *Comp) varAndnotConst(va *Var, val I) {
 							lhs := env.
 								Outer.Outer.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() &^ uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() &^ uint64(val))
 						}
 
 						env.IP++
@@ -29623,9 +27568,7 @@ func (c *Comp) varAndnotConst(va *Var, val I) {
 						{
 							lhs := o.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() &^ uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() &^ uint64(val))
 						}
 
 						env.IP++
@@ -29646,9 +27589,7 @@ func (c *Comp) varAndnotConst(va *Var, val I) {
 						{
 							lhs := env.ThreadGlobals.FileEnv.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() &^ uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() &^ uint64(val))
 						}
 
 						env.IP++
@@ -29673,9 +27614,7 @@ func (c *Comp) varAndnotConst(va *Var, val I) {
 						{
 							lhs := env.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() &^ uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() &^ uint64(val))
 						}
 
 						env.IP++
@@ -29698,9 +27637,7 @@ func (c *Comp) varAndnotConst(va *Var, val I) {
 							lhs := env.
 								Outer.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() &^ uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() &^ uint64(val))
 						}
 
 						env.IP++
@@ -29723,9 +27660,7 @@ func (c *Comp) varAndnotConst(va *Var, val I) {
 							lhs := env.
 								Outer.Outer.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() &^ uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() &^ uint64(val))
 						}
 
 						env.IP++
@@ -29755,9 +27690,7 @@ func (c *Comp) varAndnotConst(va *Var, val I) {
 						{
 							lhs := o.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() &^ uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() &^ uint64(val))
 						}
 
 						env.IP++
@@ -29778,9 +27711,7 @@ func (c *Comp) varAndnotConst(va *Var, val I) {
 						{
 							lhs := env.ThreadGlobals.FileEnv.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() &^ uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() &^ uint64(val))
 						}
 
 						env.IP++
@@ -29805,9 +27736,7 @@ func (c *Comp) varAndnotConst(va *Var, val I) {
 						{
 							lhs := env.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() &^ uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() &^ uint64(val))
 						}
 
 						env.IP++
@@ -29830,9 +27759,7 @@ func (c *Comp) varAndnotConst(va *Var, val I) {
 							lhs := env.
 								Outer.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() &^ uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() &^ uint64(val))
 						}
 
 						env.IP++
@@ -29855,9 +27782,7 @@ func (c *Comp) varAndnotConst(va *Var, val I) {
 							lhs := env.
 								Outer.Outer.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() &^ uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() &^ uint64(val))
 						}
 
 						env.IP++
@@ -29887,9 +27812,7 @@ func (c *Comp) varAndnotConst(va *Var, val I) {
 						{
 							lhs := o.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() &^ uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() &^ uint64(val))
 						}
 
 						env.IP++
@@ -29910,9 +27833,7 @@ func (c *Comp) varAndnotConst(va *Var, val I) {
 						{
 							lhs := env.ThreadGlobals.FileEnv.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() &^ uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() &^ uint64(val))
 						}
 
 						env.IP++
@@ -29937,9 +27858,7 @@ func (c *Comp) varAndnotConst(va *Var, val I) {
 						{
 							lhs := env.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() &^ uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() &^ uint64(val))
 						}
 
 						env.IP++
@@ -29962,9 +27881,7 @@ func (c *Comp) varAndnotConst(va *Var, val I) {
 							lhs := env.
 								Outer.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() &^ uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() &^ uint64(val))
 						}
 
 						env.IP++
@@ -29987,9 +27904,7 @@ func (c *Comp) varAndnotConst(va *Var, val I) {
 							lhs := env.
 								Outer.Outer.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() &^ uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() &^ uint64(val))
 						}
 
 						env.IP++
@@ -30019,9 +27934,7 @@ func (c *Comp) varAndnotConst(va *Var, val I) {
 						{
 							lhs := o.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() &^ uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() &^ uint64(val))
 						}
 
 						env.IP++
@@ -30042,9 +27955,7 @@ func (c *Comp) varAndnotConst(va *Var, val I) {
 						{
 							lhs := env.ThreadGlobals.FileEnv.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() &^ uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() &^ uint64(val))
 						}
 
 						env.IP++
@@ -30070,9 +27981,7 @@ func (c *Comp) varAndnotConst(va *Var, val I) {
 						{
 							lhs := env.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() &^ uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() &^ uint64(val))
 						}
 
 						env.IP++
@@ -30096,9 +28005,7 @@ func (c *Comp) varAndnotConst(va *Var, val I) {
 							lhs := env.
 								Outer.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() &^ uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() &^ uint64(val))
 						}
 
 						env.IP++
@@ -30122,9 +28029,7 @@ func (c *Comp) varAndnotConst(va *Var, val I) {
 							lhs := env.
 								Outer.Outer.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() &^ uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() &^ uint64(val))
 						}
 
 						env.IP++
@@ -30156,9 +28061,7 @@ func (c *Comp) varAndnotConst(va *Var, val I) {
 						{
 							lhs := o.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() &^ uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() &^ uint64(val))
 						}
 
 						env.IP++
@@ -30180,9 +28083,7 @@ func (c *Comp) varAndnotConst(va *Var, val I) {
 						{
 							lhs := env.ThreadGlobals.FileEnv.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() &^ uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() &^ uint64(val))
 						}
 
 						env.IP++
@@ -30207,9 +28108,7 @@ func (c *Comp) varAndnotConst(va *Var, val I) {
 						{
 							lhs := env.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() &^ uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() &^ uint64(val))
 						}
 
 						env.IP++
@@ -30232,9 +28131,7 @@ func (c *Comp) varAndnotConst(va *Var, val I) {
 							lhs := env.
 								Outer.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() &^ uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() &^ uint64(val))
 						}
 
 						env.IP++
@@ -30257,9 +28154,7 @@ func (c *Comp) varAndnotConst(va *Var, val I) {
 							lhs := env.
 								Outer.Outer.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() &^ uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() &^ uint64(val))
 						}
 
 						env.IP++
@@ -30289,9 +28184,7 @@ func (c *Comp) varAndnotConst(va *Var, val I) {
 						{
 							lhs := o.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() &^ uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() &^ uint64(val))
 						}
 
 						env.IP++
@@ -30312,9 +28205,7 @@ func (c *Comp) varAndnotConst(va *Var, val I) {
 						{
 							lhs := env.ThreadGlobals.FileEnv.
 								Binds[index]
-							lhs.SetUint(lhs.Uint() &^ uint64(val,
-							),
-							)
+							lhs.SetUint(lhs.Uint() &^ uint64(val))
 						}
 
 						env.IP++
@@ -30352,9 +28243,7 @@ func (c *Comp) varAndnotExpr(va *Var, fun I) {
 					{
 						lhs := env.
 							Binds[index]
-						lhs.SetInt(lhs.Int() &^ int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() &^ int64(fun(env)))
 					}
 
 					env.IP++
@@ -30377,9 +28266,7 @@ func (c *Comp) varAndnotExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.
 							Binds[index]
-						lhs.SetInt(lhs.Int() &^ int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() &^ int64(fun(env)))
 					}
 
 					env.IP++
@@ -30402,9 +28289,7 @@ func (c *Comp) varAndnotExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.Outer.
 							Binds[index]
-						lhs.SetInt(lhs.Int() &^ int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() &^ int64(fun(env)))
 					}
 
 					env.IP++
@@ -30434,9 +28319,7 @@ func (c *Comp) varAndnotExpr(va *Var, fun I) {
 						lhs :=
 
 							o.Binds[index]
-						lhs.SetInt(lhs.Int() &^ int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() &^ int64(fun(env)))
 					}
 
 					env.IP++
@@ -30457,9 +28340,7 @@ func (c *Comp) varAndnotExpr(va *Var, fun I) {
 					{
 						lhs := env.ThreadGlobals.FileEnv.
 							Binds[index]
-						lhs.SetInt(lhs.Int() &^ int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() &^ int64(fun(env)))
 					}
 
 					env.IP++
@@ -30483,9 +28364,7 @@ func (c *Comp) varAndnotExpr(va *Var, fun I) {
 					{
 						lhs := env.
 							Binds[index]
-						lhs.SetInt(lhs.Int() &^ int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() &^ int64(fun(env)))
 					}
 
 					env.IP++
@@ -30508,9 +28387,7 @@ func (c *Comp) varAndnotExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.
 							Binds[index]
-						lhs.SetInt(lhs.Int() &^ int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() &^ int64(fun(env)))
 					}
 
 					env.IP++
@@ -30533,9 +28410,7 @@ func (c *Comp) varAndnotExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.Outer.
 							Binds[index]
-						lhs.SetInt(lhs.Int() &^ int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() &^ int64(fun(env)))
 					}
 
 					env.IP++
@@ -30565,9 +28440,7 @@ func (c *Comp) varAndnotExpr(va *Var, fun I) {
 						lhs :=
 
 							o.Binds[index]
-						lhs.SetInt(lhs.Int() &^ int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() &^ int64(fun(env)))
 					}
 
 					env.IP++
@@ -30588,9 +28461,7 @@ func (c *Comp) varAndnotExpr(va *Var, fun I) {
 					{
 						lhs := env.ThreadGlobals.FileEnv.
 							Binds[index]
-						lhs.SetInt(lhs.Int() &^ int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() &^ int64(fun(env)))
 					}
 
 					env.IP++
@@ -30614,9 +28485,7 @@ func (c *Comp) varAndnotExpr(va *Var, fun I) {
 					{
 						lhs := env.
 							Binds[index]
-						lhs.SetInt(lhs.Int() &^ int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() &^ int64(fun(env)))
 					}
 
 					env.IP++
@@ -30639,9 +28508,7 @@ func (c *Comp) varAndnotExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.
 							Binds[index]
-						lhs.SetInt(lhs.Int() &^ int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() &^ int64(fun(env)))
 					}
 
 					env.IP++
@@ -30664,9 +28531,7 @@ func (c *Comp) varAndnotExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.Outer.
 							Binds[index]
-						lhs.SetInt(lhs.Int() &^ int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() &^ int64(fun(env)))
 					}
 
 					env.IP++
@@ -30696,9 +28561,7 @@ func (c *Comp) varAndnotExpr(va *Var, fun I) {
 						lhs :=
 
 							o.Binds[index]
-						lhs.SetInt(lhs.Int() &^ int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() &^ int64(fun(env)))
 					}
 
 					env.IP++
@@ -30719,9 +28582,7 @@ func (c *Comp) varAndnotExpr(va *Var, fun I) {
 					{
 						lhs := env.ThreadGlobals.FileEnv.
 							Binds[index]
-						lhs.SetInt(lhs.Int() &^ int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() &^ int64(fun(env)))
 					}
 
 					env.IP++
@@ -30745,9 +28606,7 @@ func (c *Comp) varAndnotExpr(va *Var, fun I) {
 					{
 						lhs := env.
 							Binds[index]
-						lhs.SetInt(lhs.Int() &^ int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() &^ int64(fun(env)))
 					}
 
 					env.IP++
@@ -30770,9 +28629,7 @@ func (c *Comp) varAndnotExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.
 							Binds[index]
-						lhs.SetInt(lhs.Int() &^ int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() &^ int64(fun(env)))
 					}
 
 					env.IP++
@@ -30795,9 +28652,7 @@ func (c *Comp) varAndnotExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.Outer.
 							Binds[index]
-						lhs.SetInt(lhs.Int() &^ int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() &^ int64(fun(env)))
 					}
 
 					env.IP++
@@ -30827,9 +28682,7 @@ func (c *Comp) varAndnotExpr(va *Var, fun I) {
 						lhs :=
 
 							o.Binds[index]
-						lhs.SetInt(lhs.Int() &^ int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() &^ int64(fun(env)))
 					}
 
 					env.IP++
@@ -30850,9 +28703,7 @@ func (c *Comp) varAndnotExpr(va *Var, fun I) {
 					{
 						lhs := env.ThreadGlobals.FileEnv.
 							Binds[index]
-						lhs.SetInt(lhs.Int() &^ int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() &^ int64(fun(env)))
 					}
 
 					env.IP++
@@ -30876,9 +28727,7 @@ func (c *Comp) varAndnotExpr(va *Var, fun I) {
 					{
 						lhs := env.
 							Binds[index]
-						lhs.SetInt(lhs.Int() &^ int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() &^ int64(fun(env)))
 					}
 
 					env.IP++
@@ -30901,9 +28750,7 @@ func (c *Comp) varAndnotExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.
 							Binds[index]
-						lhs.SetInt(lhs.Int() &^ int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() &^ int64(fun(env)))
 					}
 
 					env.IP++
@@ -30926,9 +28773,7 @@ func (c *Comp) varAndnotExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.Outer.
 							Binds[index]
-						lhs.SetInt(lhs.Int() &^ int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() &^ int64(fun(env)))
 					}
 
 					env.IP++
@@ -30958,9 +28803,7 @@ func (c *Comp) varAndnotExpr(va *Var, fun I) {
 						lhs :=
 
 							o.Binds[index]
-						lhs.SetInt(lhs.Int() &^ int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() &^ int64(fun(env)))
 					}
 
 					env.IP++
@@ -30981,9 +28824,7 @@ func (c *Comp) varAndnotExpr(va *Var, fun I) {
 					{
 						lhs := env.ThreadGlobals.FileEnv.
 							Binds[index]
-						lhs.SetInt(lhs.Int() &^ int64(fun(env),
-						),
-						)
+						lhs.SetInt(lhs.Int() &^ int64(fun(env)))
 					}
 
 					env.IP++
@@ -31007,9 +28848,7 @@ func (c *Comp) varAndnotExpr(va *Var, fun I) {
 					{
 						lhs := env.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() &^ uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() &^ uint64(fun(env)))
 					}
 
 					env.IP++
@@ -31032,9 +28871,7 @@ func (c *Comp) varAndnotExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() &^ uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() &^ uint64(fun(env)))
 					}
 
 					env.IP++
@@ -31057,9 +28894,7 @@ func (c *Comp) varAndnotExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.Outer.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() &^ uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() &^ uint64(fun(env)))
 					}
 
 					env.IP++
@@ -31089,9 +28924,7 @@ func (c *Comp) varAndnotExpr(va *Var, fun I) {
 					{
 						lhs := o.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() &^ uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() &^ uint64(fun(env)))
 					}
 
 					env.IP++
@@ -31112,9 +28945,7 @@ func (c *Comp) varAndnotExpr(va *Var, fun I) {
 					{
 						lhs := env.ThreadGlobals.FileEnv.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() &^ uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() &^ uint64(fun(env)))
 					}
 
 					env.IP++
@@ -31138,9 +28969,7 @@ func (c *Comp) varAndnotExpr(va *Var, fun I) {
 					{
 						lhs := env.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() &^ uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() &^ uint64(fun(env)))
 					}
 
 					env.IP++
@@ -31163,9 +28992,7 @@ func (c *Comp) varAndnotExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() &^ uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() &^ uint64(fun(env)))
 					}
 
 					env.IP++
@@ -31188,9 +29015,7 @@ func (c *Comp) varAndnotExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.Outer.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() &^ uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() &^ uint64(fun(env)))
 					}
 
 					env.IP++
@@ -31220,9 +29045,7 @@ func (c *Comp) varAndnotExpr(va *Var, fun I) {
 					{
 						lhs := o.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() &^ uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() &^ uint64(fun(env)))
 					}
 
 					env.IP++
@@ -31243,9 +29066,7 @@ func (c *Comp) varAndnotExpr(va *Var, fun I) {
 					{
 						lhs := env.ThreadGlobals.FileEnv.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() &^ uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() &^ uint64(fun(env)))
 					}
 
 					env.IP++
@@ -31269,9 +29090,7 @@ func (c *Comp) varAndnotExpr(va *Var, fun I) {
 					{
 						lhs := env.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() &^ uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() &^ uint64(fun(env)))
 					}
 
 					env.IP++
@@ -31294,9 +29113,7 @@ func (c *Comp) varAndnotExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() &^ uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() &^ uint64(fun(env)))
 					}
 
 					env.IP++
@@ -31319,9 +29136,7 @@ func (c *Comp) varAndnotExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.Outer.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() &^ uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() &^ uint64(fun(env)))
 					}
 
 					env.IP++
@@ -31351,9 +29166,7 @@ func (c *Comp) varAndnotExpr(va *Var, fun I) {
 					{
 						lhs := o.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() &^ uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() &^ uint64(fun(env)))
 					}
 
 					env.IP++
@@ -31374,9 +29187,7 @@ func (c *Comp) varAndnotExpr(va *Var, fun I) {
 					{
 						lhs := env.ThreadGlobals.FileEnv.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() &^ uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() &^ uint64(fun(env)))
 					}
 
 					env.IP++
@@ -31400,9 +29211,7 @@ func (c *Comp) varAndnotExpr(va *Var, fun I) {
 					{
 						lhs := env.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() &^ uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() &^ uint64(fun(env)))
 					}
 
 					env.IP++
@@ -31425,9 +29234,7 @@ func (c *Comp) varAndnotExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() &^ uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() &^ uint64(fun(env)))
 					}
 
 					env.IP++
@@ -31450,9 +29257,7 @@ func (c *Comp) varAndnotExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.Outer.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() &^ uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() &^ uint64(fun(env)))
 					}
 
 					env.IP++
@@ -31482,9 +29287,7 @@ func (c *Comp) varAndnotExpr(va *Var, fun I) {
 					{
 						lhs := o.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() &^ uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() &^ uint64(fun(env)))
 					}
 
 					env.IP++
@@ -31505,9 +29308,7 @@ func (c *Comp) varAndnotExpr(va *Var, fun I) {
 					{
 						lhs := env.ThreadGlobals.FileEnv.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() &^ uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() &^ uint64(fun(env)))
 					}
 
 					env.IP++
@@ -31532,9 +29333,7 @@ func (c *Comp) varAndnotExpr(va *Var, fun I) {
 					{
 						lhs := env.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() &^ uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() &^ uint64(fun(env)))
 					}
 
 					env.IP++
@@ -31558,9 +29357,7 @@ func (c *Comp) varAndnotExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() &^ uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() &^ uint64(fun(env)))
 					}
 
 					env.IP++
@@ -31584,9 +29381,7 @@ func (c *Comp) varAndnotExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.Outer.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() &^ uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() &^ uint64(fun(env)))
 					}
 
 					env.IP++
@@ -31618,9 +29413,7 @@ func (c *Comp) varAndnotExpr(va *Var, fun I) {
 					{
 						lhs := o.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() &^ uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() &^ uint64(fun(env)))
 					}
 
 					env.IP++
@@ -31642,9 +29435,7 @@ func (c *Comp) varAndnotExpr(va *Var, fun I) {
 					{
 						lhs := env.ThreadGlobals.FileEnv.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() &^ uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() &^ uint64(fun(env)))
 					}
 
 					env.IP++
@@ -31668,9 +29459,7 @@ func (c *Comp) varAndnotExpr(va *Var, fun I) {
 					{
 						lhs := env.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() &^ uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() &^ uint64(fun(env)))
 					}
 
 					env.IP++
@@ -31693,9 +29482,7 @@ func (c *Comp) varAndnotExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() &^ uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() &^ uint64(fun(env)))
 					}
 
 					env.IP++
@@ -31718,9 +29505,7 @@ func (c *Comp) varAndnotExpr(va *Var, fun I) {
 						lhs := env.
 							Outer.Outer.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() &^ uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() &^ uint64(fun(env)))
 					}
 
 					env.IP++
@@ -31750,9 +29535,7 @@ func (c *Comp) varAndnotExpr(va *Var, fun I) {
 					{
 						lhs := o.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() &^ uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() &^ uint64(fun(env)))
 					}
 
 					env.IP++
@@ -31773,9 +29556,7 @@ func (c *Comp) varAndnotExpr(va *Var, fun I) {
 					{
 						lhs := env.ThreadGlobals.FileEnv.
 							Binds[index]
-						lhs.SetUint(lhs.Uint() &^ uint64(fun(env),
-						),
-						)
+						lhs.SetUint(lhs.Uint() &^ uint64(fun(env)))
 					}
 
 					env.IP++
@@ -31791,30 +29572,39 @@ func (c *Comp) varAndnotExpr(va *Var, fun I) {
 }
 func (c *Comp) SetVar(va *Var, op token.Token, init *Expr) {
 	t := va.Type
-	var ok, shift bool
+	var shift bool
+	var err interface{} = ""
 	switch op {
 	case token.SHL, token.SHL_ASSIGN, token.SHR, token.SHR_ASSIGN:
 		shift = true
 		if init.Untyped() {
 			init.ConstTo(c.TypeOfUint64())
-			ok = true
+			err = nil
+		} else if init.Type == nil || KindToCategory(init.Type.Kind()) != r.Uint {
+			err = fmt.Sprintf("\n\treason: type %v is %v, expecting unsigned integer", init.Type, init.Type.Kind())
 		} else {
-			ok = init.Type != nil && KindToCategory(init.Type.Kind()) == r.Uint
+			err = nil
 		}
 
 	default:
 		if init.Const() {
 			init.ConstTo(t)
-			ok = true
+			err = nil
 		} else if init.Type == nil {
-			ok = op == token.ASSIGN && IsNillableKind(t.Kind())
+			if op != token.ASSIGN {
+				err = fmt.Sprintf("\n\treason: invalid operation %s nil", op)
+			} else if !IsNillableKind(t.Kind()) {
+				err = fmt.Sprintf("\n\treason: cannot assign nil to %v", t)
+			}
+		} else if !init.Type.AssignableTo(t) {
+			err = interfaceMissingMethod(init.Type, t)
 		} else {
-			ok = init.Type.AssignableTo(t)
+			err = nil
 		}
 
 	}
-	if !ok {
-		c.Errorf("incompatible types in assignment: %v %s %v", t, op, init.Type)
+	if err != nil {
+		c.Errorf("incompatible types in assignment: %v %s %v%v", t, op, init.Type, err)
 		return
 	}
 	class := va.Desc.Class()

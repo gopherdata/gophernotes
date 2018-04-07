@@ -129,7 +129,7 @@ func (c *Comp) FuncDecl(funcdecl *ast.FuncDecl) {
 			return env.Code[env.IP], env
 		}
 	}
-	c.Code.Append(stmt, funcdecl.Pos())
+	c.Append(stmt, funcdecl.Pos())
 	panicking = false
 }
 
@@ -148,9 +148,9 @@ func (c *Comp) methodAdd(funcdecl *ast.FuncDecl, t xr.Type) (methodindex int, me
 			c.Errorf("error adding method %s <%v> to type <%v>\n\t%v", name, t, trecv, rec)
 		}
 	}()
-	n1 := trecv.NumMethod()
+	n1 := trecv.NumExplicitMethod()
 	methodindex = trecv.AddMethod(name, t)
-	n2 := trecv.NumMethod()
+	n2 := trecv.NumExplicitMethod()
 	if n1 == n2 {
 		c.Warnf("redefined method: %s.%s", trecv.Name(), name)
 	}
@@ -214,7 +214,7 @@ func (c *Comp) methodDecl(funcdecl *ast.FuncDecl) {
 			return env.Code[env.IP], env
 		}
 	}
-	c.Code.Append(stmt, funcdecl.Pos())
+	c.Append(stmt, funcdecl.Pos())
 }
 
 // FuncLit compiles a function literal, i.e. a closure.
@@ -406,7 +406,7 @@ func (c *Comp) funcGeneric(t xr.Type, m *funcMaker) func(*Env) r.Value {
 		// function is closed over the env used to DECLARE it
 		env.MarkUsedByClosure()
 		return r.MakeFunc(rtype, func(args []r.Value) []r.Value {
-			env := NewEnv4Func(env, nbinds, nintbinds)
+			env := newEnv4Func(env, nbinds, nintbinds)
 
 			if funcbody != nil {
 				// copy runtime arguments into allocated binds
@@ -453,7 +453,7 @@ func (c *Comp) macroCreate(t xr.Type, info *FuncInfo, resultfuns []I, funcbody f
 		// macro is closed over the env used to DECLARE it
 		env.MarkUsedByClosure()
 		return func(args []r.Value) []r.Value {
-			env := NewEnv4Func(env, nbinds, nintbinds)
+			env := newEnv4Func(env, nbinds, nintbinds)
 
 			if funcbody != nil {
 				// copy runtime arguments into allocated binds

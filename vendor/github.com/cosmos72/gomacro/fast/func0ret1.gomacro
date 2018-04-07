@@ -58,7 +58,7 @@ import (
 			// function is closed over the env used to DECLARE it
 			env.MarkUsedByClosure()
 			return r.ValueOf(func() (ret0 ~,ret0typ) {
-				env := NewEnv4Func(env, nbinds, nintbinds)
+				env := newEnv4Func(env, nbinds, nintbinds)
 
 				// execute the body
 				funcbody(env)

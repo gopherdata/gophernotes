@@ -2120,8 +2120,9 @@ func init() {
 		"Wait4":	ValueOf(syscall.Wait4),
 		"Write":	ValueOf(syscall.Write),
 		"XCASE":	ValueOf(syscall.XCASE),
-	},Types: map[string]Type{
+	}, Types: map[string]Type{
 		"Cmsghdr":	TypeOf((*syscall.Cmsghdr)(nil)).Elem(),
+		"Conn":	TypeOf((*syscall.Conn)(nil)).Elem(),
 		"Credential":	TypeOf((*syscall.Credential)(nil)).Elem(),
 		"Dirent":	TypeOf((*syscall.Dirent)(nil)).Elem(),
 		"EpollEvent":	TypeOf((*syscall.EpollEvent)(nil)).Elem(),
@@ -2150,6 +2151,7 @@ func init() {
 		"NlMsghdr":	TypeOf((*syscall.NlMsghdr)(nil)).Elem(),
 		"ProcAttr":	TypeOf((*syscall.ProcAttr)(nil)).Elem(),
 		"PtraceRegs":	TypeOf((*syscall.PtraceRegs)(nil)).Elem(),
+		"RawConn":	TypeOf((*syscall.RawConn)(nil)).Elem(),
 		"RawSockaddr":	TypeOf((*syscall.RawSockaddr)(nil)).Elem(),
 		"RawSockaddrAny":	TypeOf((*syscall.RawSockaddrAny)(nil)).Elem(),
 		"RawSockaddrInet4":	TypeOf((*syscall.RawSockaddrInet4)(nil)).Elem(),
@@ -2190,7 +2192,10 @@ func init() {
 		"Utimbuf":	TypeOf((*syscall.Utimbuf)(nil)).Elem(),
 		"Utsname":	TypeOf((*syscall.Utsname)(nil)).Elem(),
 		"WaitStatus":	TypeOf((*syscall.WaitStatus)(nil)).Elem(),
-	},Untypeds: map[string]string{
+	}, Proxies: map[string]Type{
+		"Conn":	TypeOf((*Conn_syscall)(nil)).Elem(),
+		"RawConn":	TypeOf((*RawConn_syscall)(nil)).Elem(),
+	}, Untypeds: map[string]string{
 		"AF_ALG":	"int:38",
 		"AF_APPLETALK":	"int:5",
 		"AF_ASH":	"int:18",
@@ -3897,6 +3902,32 @@ func init() {
 		"WSTOPPED":	"int:2",
 		"WUNTRACED":	"int:2",
 		"XCASE":	"int:4",
-	},
+	}, 
 	}
+}
+
+// --------------- proxy for syscall.Conn ---------------
+type Conn_syscall struct {
+	Object	interface{}
+	SyscallConn_	func(interface{}) (syscall.RawConn, error)
+}
+func (Proxy *Conn_syscall) SyscallConn() (syscall.RawConn, error) {
+	return Proxy.SyscallConn_(Proxy.Object)
+}
+
+// --------------- proxy for syscall.RawConn ---------------
+type RawConn_syscall struct {
+	Object	interface{}
+	Control_	func(_proxy_obj_ interface{}, f func(fd uintptr)) error
+	Read_	func(_proxy_obj_ interface{}, f func(fd uintptr) (done bool)) error
+	Write_	func(_proxy_obj_ interface{}, f func(fd uintptr) (done bool)) error
+}
+func (Proxy *RawConn_syscall) Control(f func(fd uintptr)) error {
+	return Proxy.Control_(Proxy.Object, f)
+}
+func (Proxy *RawConn_syscall) Read(f func(fd uintptr) (done bool)) error {
+	return Proxy.Read_(Proxy.Object, f)
+}
+func (Proxy *RawConn_syscall) Write(f func(fd uintptr) (done bool)) error {
+	return Proxy.Write_(Proxy.Object, f)
 }

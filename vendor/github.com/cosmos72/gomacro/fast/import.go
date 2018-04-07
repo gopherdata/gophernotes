@@ -50,7 +50,7 @@ func (c *Comp) Import(node ast.Spec) {
 		if node.Name != nil {
 			name = node.Name.Name
 		} else {
-			name = path[1+strings.LastIndexByte(path, '/'):]
+			name = FileName(path)
 		}
 		// yes, we support local imports
 		// i.e. a function or block can import packages
@@ -60,7 +60,7 @@ func (c *Comp) Import(node ast.Spec) {
 	}
 }
 
-func (g *CompThreadGlobals) sanitizeImportPath(path string) string {
+func (g *CompGlobals) sanitizeImportPath(path string) string {
 	path = strings.Replace(path, "\\", "/", -1)
 	l := len(path)
 	if path == ".." || l >= 3 && (path[:3] == "../" || path[l-3:] == "/..") || strings.Contains(path, "/../") {
@@ -72,11 +72,11 @@ func (g *CompThreadGlobals) sanitizeImportPath(path string) string {
 	return path
 }
 
-// Import imports a package. Usually invoked as Comp.FileComp().ImportPackage(name, path)
+// ImportPackage imports a package. Usually invoked as Comp.FileComp().ImportPackage(name, path)
 // because imports are usually top-level statements in a source file.
 // But we also support local imports, i.e. import statements inside a function or block.
 func (c *Comp) ImportPackage(name, path string) *Import {
-	g := c.CompThreadGlobals
+	g := c.CompGlobals
 	pkgref := g.ImportPackage(name, path)
 	if pkgref == nil {
 		return nil
@@ -108,7 +108,7 @@ func (c *Comp) declImport0(name string, imp Import) {
 	bind.Value = imp // cfile.Binds[] is a map[string]*Bind => changes to *Bind propagate to the map
 }
 
-func (g *CompThreadGlobals) parseImportBinds(binds map[string]r.Value, untypeds map[string]string) (map[string]r.Value, map[string]xr.Type) {
+func (g *CompGlobals) parseImportBinds(binds map[string]r.Value, untypeds map[string]string) (map[string]r.Value, map[string]xr.Type) {
 	retbinds := make(map[string]r.Value)
 	rettypes := make(map[string]xr.Type)
 	for name, bind := range binds {
@@ -126,16 +126,16 @@ func (g *CompThreadGlobals) parseImportBinds(binds map[string]r.Value, untypeds 
 	return retbinds, rettypes
 }
 
-func (g *CompThreadGlobals) parseImportUntyped(untyped string) (r.Value, xr.Type, bool) {
+func (g *CompGlobals) parseImportUntyped(untyped string) (r.Value, xr.Type, bool) {
 	gkind, value := UnmarshalUntyped(untyped)
 	if gkind == types.Invalid {
 		return Nil, nil, false
 	}
-	lit := UntypedLit{Kind: xr.ToReflectKind(gkind), Obj: value, Universe: g.Universe}
+	lit := UntypedLit{Kind: xr.ToReflectKind(gkind), Obj: value, BasicTypes: &g.Universe.BasicTypes}
 	return r.ValueOf(lit), g.TypeOfUntypedLit(), true
 }
 
-func (g *CompThreadGlobals) parseImportTypes(rtypes map[string]r.Type, wrappers map[string][]string) map[string]xr.Type {
+func (g *CompGlobals) parseImportTypes(rtypes map[string]r.Type, wrappers map[string][]string) map[string]xr.Type {
 	v := g.Universe
 	xtypes := make(map[string]xr.Type)
 	for name, rtype := range rtypes {
@@ -150,7 +150,7 @@ func (g *CompThreadGlobals) parseImportTypes(rtypes map[string]r.Type, wrappers 
 }
 
 // loadProxies adds to thread-global maps the proxies found in import
-func (g *CompThreadGlobals) loadProxies(proxies map[string]r.Type, xtypes map[string]xr.Type) {
+func (g *CompGlobals) loadProxies(proxies map[string]r.Type, xtypes map[string]xr.Type) {
 	for name, proxy := range proxies {
 		xtype := xtypes[name]
 		if xtype == nil {

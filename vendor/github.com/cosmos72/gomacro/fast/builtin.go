@@ -84,12 +84,12 @@ func (top *Comp) incrementIota() {
 // ============================== initialization ===============================
 
 func (ce *Interp) addBuiltins() {
-	universe := ce.Comp.Universe
+	basicTypes := &ce.Comp.Universe.BasicTypes
 
 	// https://golang.org/ref/spec#Constants
 	// "Literal constants, true, false, iota, and certain constant expressions containing only untyped constant operands are untyped."
-	ce.DeclConst("false", nil, UntypedLit{r.Bool, constant.MakeBool(false), universe})
-	ce.DeclConst("true", nil, UntypedLit{r.Bool, constant.MakeBool(true), universe})
+	ce.DeclConst("false", nil, UntypedLit{r.Bool, constant.MakeBool(false), basicTypes})
+	ce.DeclConst("true", nil, UntypedLit{r.Bool, constant.MakeBool(true), basicTypes})
 
 	// https://golang.org/ref/spec#Variables : "[...] the predeclared identifier nil, which has no type"
 	ce.DeclConst("nil", nil, nil)
@@ -113,7 +113,7 @@ func (ce *Interp) addBuiltins() {
 
 	tfunI2_Nb := ce.Comp.TypeOf(funI2_Nb)
 
-	ce.DeclEnvFunc("Env", Function{callIdentity, ce.Comp.TypeOf(funI_I)})
+	ce.DeclEnvFunc("Interp", Function{callIdentity, ce.Comp.TypeOf(funI_I)})
 	ce.DeclEnvFunc("Eval", Function{callEval, ce.Comp.TypeOf(funI2_I)})
 	ce.DeclEnvFunc("EvalType", Function{callEvalType, ce.Comp.TypeOf(funI2_T)})
 	ce.DeclEnvFunc("MacroExpand", Function{callMacroExpand, tfunI2_Nb})
@@ -184,7 +184,7 @@ func compileAppend(c *Comp, sym Symbol, node *ast.CallExpr) *Call {
 		}
 		args[i] = argi
 	}
-	t := xr.FuncOf([]xr.Type{t0, t0}, []xr.Type{t0}, true) // compile as reflect.Append(), which is variadic
+	t := c.Universe.FuncOf([]xr.Type{t0, t0}, []xr.Type{t0}, true) // compile as reflect.Append(), which is variadic
 	sym.Type = t
 	fun := exprLit(Lit{Type: t, Value: r.Append}, &sym)
 	return &Call{
@@ -224,7 +224,7 @@ func compileCap(c *Comp, sym Symbol, node *ast.CallExpr) *Call {
 	default:
 		return c.badBuiltinCallArgType(sym.Name, node.Args[0], tin, "array, channel, slice, pointer to array")
 	}
-	t := xr.FuncOf([]xr.Type{tin}, []xr.Type{tout}, false)
+	t := c.Universe.FuncOf([]xr.Type{tin}, []xr.Type{tout}, false)
 	sym.Type = t
 	fun := exprLit(Lit{Type: t, Value: callCap}, &sym)
 	// capacity of arrays is part of their type: cannot change at runtime, we could optimize it.
@@ -245,7 +245,7 @@ func compileClose(c *Comp, sym Symbol, node *ast.CallExpr) *Call {
 	if tin.Kind() != r.Chan {
 		return c.badBuiltinCallArgType(sym.Name, node.Args[0], tin, "channel")
 	}
-	t := xr.FuncOf([]xr.Type{tin}, zeroTypes, false)
+	t := c.Universe.FuncOf([]xr.Type{tin}, zeroTypes, false)
 	sym.Type = t
 	fun := exprLit(Lit{Type: t, Value: callClose}, &sym)
 	return newCall1(fun, arg, false)
@@ -308,7 +308,7 @@ func compileComplex(c *Comp, sym Symbol, node *ast.CallExpr) *Call {
 		return c.badBuiltinCallArgType(sym.Name, node.Args[0], tin, "floating point")
 	}
 	touts := []xr.Type{tout}
-	t := xr.FuncOf([]xr.Type{tin}, touts, false)
+	t := c.Universe.FuncOf([]xr.Type{tin}, touts, false)
 	sym.Type = t
 	fun := exprLit(Lit{Type: t, Value: call}, &sym)
 	// complex() of two constants is constant: it can be computed at compile time
@@ -333,7 +333,7 @@ func compileCopy(c *Comp, sym Symbol, node *ast.CallExpr) *Call {
 	}
 	t0, t1 := args[0].Type, args[1].Type
 	var funCopy I = r.Copy
-	if t0 == nil || t0.Kind() != r.Slice || !t0.AssignableTo(xr.SliceOf(t0.Elem())) {
+	if t0 == nil || t0.Kind() != r.Slice || !t0.AssignableTo(c.Universe.SliceOf(t0.Elem())) {
 		// https://golang.org/ref/spec#Appending_and_copying_slices
 		// copy [...] arguments must have identical element type T and must be assignable to a slice of type []T.
 		c.Errorf("first argument to copy should be slice; have %v <%v>", node.Args[0], t0)
@@ -342,14 +342,14 @@ func compileCopy(c *Comp, sym Symbol, node *ast.CallExpr) *Call {
 		// [...] As a special case, copy also accepts a destination argument assignable to type []byte
 		// with a source argument of a string type. This form copies the bytes from the string into the byte slice.
 		funCopy = copyStringToBytes
-	} else if t1 == nil || t1.Kind() != r.Slice || !t1.AssignableTo(xr.SliceOf(t1.Elem())) {
+	} else if t1 == nil || t1.Kind() != r.Slice || !t1.AssignableTo(c.Universe.SliceOf(t1.Elem())) {
 		c.Errorf("second argument to copy should be slice or string; have %v <%v>", node.Args[1], t1)
 		return nil
-	} else if !xr.SameType(t0.Elem(), t1.Elem()) {
+	} else if !t0.Elem().IdenticalTo(t1.Elem()) {
 		c.Errorf("arguments to copy have different element types: <%v> and <%v>", t0.Elem(), t1.Elem())
 	}
 	outtypes := []xr.Type{c.TypeOfInt()}
-	t := xr.FuncOf([]xr.Type{t0, t1}, outtypes, false)
+	t := c.Universe.FuncOf([]xr.Type{t0, t1}, outtypes, false)
 	sym.Type = t
 	fun := exprLit(Lit{Type: t, Value: funCopy}, &sym)
 	return &Call{Fun: fun, Args: args, OutTypes: outtypes, Const: false}
@@ -377,7 +377,7 @@ func compileDelete(c *Comp, sym Symbol, node *ast.CallExpr) *Call {
 	} else if ekey.Type == nil || !ekey.Type.AssignableTo(tkey) {
 		c.Errorf("cannot use %v <%v> as type <%v> in delete", node.Args[1], ekey.Type, tkey)
 	}
-	t := xr.FuncOf([]xr.Type{tmap, tkey}, zeroTypes, false)
+	t := c.Universe.FuncOf([]xr.Type{tmap, tkey}, zeroTypes, false)
 	sym.Type = t
 	fun := exprLit(Lit{Type: t, Value: callDelete}, &sym)
 	return &Call{Fun: fun, Args: []*Expr{emap, ekey}, OutTypes: zeroTypes, Const: false}
@@ -465,7 +465,7 @@ func compileLen(c *Comp, sym Symbol, node *ast.CallExpr) *Call {
 	default:
 		return c.badBuiltinCallArgType(sym.Name, node.Args[0], tin, "array, channel, map, slice, string, pointer to array")
 	}
-	t := xr.FuncOf([]xr.Type{tin}, []xr.Type{tout}, false)
+	t := c.Universe.FuncOf([]xr.Type{tin}, []xr.Type{tout}, false)
 	sym.Type = t
 	fun := exprLit(Lit{Type: t, Value: callLenValue}, &sym)
 	if tin.Kind() == r.String {
@@ -568,14 +568,14 @@ func compileMake(c *Comp, sym Symbol, node *ast.CallExpr) *Call {
 		argi := c.Expr1(node.Args[i])
 		if argi.Const() {
 			argi.ConstTo(te)
-		} else if ti := argi.Type; ti == nil || (!xr.SameType(ti, te) && !ti.AssignableTo(te)) {
+		} else if ti := argi.Type; ti == nil || (!ti.IdenticalTo(te) && !ti.AssignableTo(te)) {
 			return c.badBuiltinCallArgType(sym.Name, node.Args[i], ti, te)
 		}
 		args[i] = argi
 		argtypes[i] = te
 	}
 	outtypes := []xr.Type{tin}
-	t := xr.FuncOf(argtypes, outtypes, false)
+	t := c.Universe.FuncOf(argtypes, outtypes, false)
 	sym.Type = t
 	funMake := funMakes[nargs]
 	if funMake == nil {
@@ -590,8 +590,8 @@ func compileMake(c *Comp, sym Symbol, node *ast.CallExpr) *Call {
 
 func compileNew(c *Comp, sym Symbol, node *ast.CallExpr) *Call {
 	tin := c.Type(node.Args[0])
-	tout := xr.PtrTo(tin)
-	t := xr.FuncOf([]xr.Type{c.TypeOfInterface()}, []xr.Type{tout}, false) // no need to build TypeOfReflectType
+	tout := c.Universe.PtrTo(tin)
+	t := c.Universe.FuncOf([]xr.Type{c.TypeOfInterface()}, []xr.Type{tout}, false) // no need to build TypeOfReflectType
 	sym.Type = t
 	fun := exprLit(Lit{Type: t, Value: r.New}, &sym)
 	arg := c.exprValue(c.TypeOfInterface(), tin.ReflectType())
@@ -689,7 +689,7 @@ func compileRealImag(c *Comp, sym Symbol, node *ast.CallExpr) *Call {
 	default:
 		return c.badBuiltinCallArgType(sym.Name, node.Args[0], tin, "complex")
 	}
-	t := xr.FuncOf([]xr.Type{tin}, []xr.Type{tout}, false)
+	t := c.Universe.FuncOf([]xr.Type{tin}, []xr.Type{tout}, false)
 	sym.Type = t
 	fun := exprLit(Lit{Type: t, Value: call}, &sym)
 	// real() and imag() of a constant are constants: they can be computed at compile time
@@ -745,7 +745,7 @@ func argEnv(env *Env) r.Value {
 
 func compileRecover(c *Comp, sym Symbol, node *ast.CallExpr) *Call {
 	ti := c.TypeOfInterface()
-	t := xr.FuncOf([]xr.Type{ti}, []xr.Type{ti}, false)
+	t := c.Universe.FuncOf([]xr.Type{ti}, []xr.Type{ti}, false)
 	sym.Type = t
 	fun := exprLit(Lit{Type: t, Value: callRecover}, &sym)
 	arg := exprX1(ti, argEnv)
@@ -969,7 +969,7 @@ func (c *Comp) call_builtin(call *Call) I {
 		}
 	case func(r.Value) r.Value: // Env()
 		argfun := call.MakeArgfunsX1()[0]
-		if name == "Env" {
+		if name == "Interp" {
 			ret = func(env *Env) r.Value {
 				return argfun(env)
 			}

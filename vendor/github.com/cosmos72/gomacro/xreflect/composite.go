@@ -50,7 +50,7 @@ func (t *xtype) Elem() Type {
 }
 
 func (t *xtype) elem() Type {
-	gtype := t.underlying()
+	gtype := t.gunderlying()
 	rtype := t.rtype
 	switch gtype := gtype.(type) {
 	case *types.Array:
@@ -75,7 +75,7 @@ func (t *xtype) Key() Type {
 	if t.Kind() != reflect.Map {
 		xerrorf(t, "Key of non-map type %v", t)
 	}
-	gtype := t.underlying().(*types.Map)
+	gtype := t.gunderlying().(*types.Map)
 	return t.universe.MakeType(gtype.Key(), t.rtype.Key())
 }
 
@@ -117,24 +117,4 @@ func (v *Universe) SliceOf(elem Type) Type {
 	return v.MakeType(
 		types.NewSlice(elem.GoType()),
 		reflect.SliceOf(elem.ReflectType()))
-}
-
-func ArrayOf(count int, elem Type) Type {
-	return elem.Universe().ArrayOf(count, elem)
-}
-
-func ChanOf(dir reflect.ChanDir, elem Type) Type {
-	return elem.Universe().ChanOf(dir, elem)
-}
-
-func MapOf(key, elem Type) Type {
-	return key.Universe().MapOf(key, elem)
-}
-
-func PtrTo(elem Type) Type {
-	return elem.Universe().PtrTo(elem)
-}
-
-func SliceOf(elem Type) Type {
-	return elem.Universe().SliceOf(elem)
 }

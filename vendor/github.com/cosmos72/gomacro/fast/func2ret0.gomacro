@@ -106,7 +106,7 @@ import (
 				// function is closed over the env used to DECLARE it
 				env.MarkUsedByClosure()
 				return r.ValueOf(func(arg0 ~,arg0typ, arg1 ~,arg1typ) {
-					env := NewEnv4Func(env, nbinds, nintbinds)
+					env := newEnv4Func(env, nbinds, nintbinds)
 					// copy arg0, arg1 into allocated binds
 					~,arg0bind
 					~,arg1bind
@@ -132,7 +132,7 @@ import (
 				// function is closed over the env used to DECLARE it
 				env.MarkUsedByClosure()
 				return r.MakeFunc(rtype, func(args []r.Value) []r.Value {
-					env := NewEnv4Func(env, nbinds, nintbinds)
+					env := newEnv4Func(env, nbinds, nintbinds)
 
 					// copy args into allocated binds
 					for i := range rtargs {

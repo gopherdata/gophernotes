@@ -54,33 +54,29 @@ type Globals struct {
 	SpecialChar  rune
 }
 
-func (g *Globals) Init() {
-	g.Output = Output{
-		Stringer: Stringer{
-			Fileset:    mt.NewFileSet(),
-			NamedTypes: make(map[r.Type]string),
-		},
-		// using both os.Stdout and os.Stderr can interleave impredictably
-		// normal output and diagnostic messages - ugly in interactive use
-		Stdout: os.Stdout,
-		Stderr: os.Stdout,
-	}
-	g.Options = OptTrapPanic // set by default
-	g.PackagePath = "main"
-	g.Filename = "repl.go"
-	g.GensymN = 0
-	g.Importer = DefaultImporter()
-	g.Imports = nil
-	g.Declarations = nil
-	g.Statements = nil
-	g.ParserMode = 0
-	g.SpecialChar = '~'
-}
-
 func NewGlobals() *Globals {
-	g := &Globals{}
-	g.Init()
-	return g
+	return &Globals{
+		Output: Output{
+			Stringer: Stringer{
+				Fileset:    mt.NewFileSet(),
+				NamedTypes: make(map[r.Type]string),
+			},
+			// using both os.Stdout and os.Stderr can interleave impredictably
+			// normal output and diagnostic messages - ugly in interactive use
+			Stdout: os.Stdout,
+			Stderr: os.Stdout,
+		},
+		Options:      OptTrapPanic, // set by default
+		PackagePath:  "main",
+		Filename:     "repl.go",
+		GensymN:      0,
+		Importer:     DefaultImporter(),
+		Imports:      nil,
+		Declarations: nil,
+		Statements:   nil,
+		ParserMode:   0,
+		SpecialChar:  '~',
+	}
 }
 
 func (g *Globals) Gensym() string {

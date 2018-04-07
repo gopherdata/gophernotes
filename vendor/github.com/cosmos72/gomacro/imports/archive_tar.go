@@ -33,11 +33,11 @@ func init() {
 		"TypeSymlink":	ValueOf(tar.TypeSymlink),
 		"TypeXGlobalHeader":	ValueOf(tar.TypeXGlobalHeader),
 		"TypeXHeader":	ValueOf(tar.TypeXHeader),
-	},Types: map[string]Type{
+	}, Types: map[string]Type{
 		"Header":	TypeOf((*tar.Header)(nil)).Elem(),
 		"Reader":	TypeOf((*tar.Reader)(nil)).Elem(),
 		"Writer":	TypeOf((*tar.Writer)(nil)).Elem(),
-	},Untypeds: map[string]string{
+	}, Untypeds: map[string]string{
 		"TypeBlock":	"rune:52",
 		"TypeChar":	"rune:51",
 		"TypeCont":	"rune:55",
@@ -52,6 +52,6 @@ func init() {
 		"TypeSymlink":	"rune:50",
 		"TypeXGlobalHeader":	"rune:103",
 		"TypeXHeader":	"rune:120",
-	},
+	}, 
 	}
 }

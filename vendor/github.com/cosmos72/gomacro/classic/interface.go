@@ -32,9 +32,6 @@ import (
 	. "github.com/cosmos72/gomacro/base"
 )
 
-// "\u0080" is Unicode codepoint: Padding Character.
-// reflect.StructOf() allows it as field name, while go/scanner forbids it in Go source code
-const nameOfInterfaceObject = "\u0080"
 
 func (env *Env) evalTypeInterface(node *ast.InterfaceType) r.Type {
 	if node.Methods == nil || len(node.Methods.List) == 0 {
@@ -43,7 +40,7 @@ func (env *Env) evalTypeInterface(node *ast.InterfaceType) r.Type {
 	types, names := env.evalTypeFields(node.Methods)
 
 	types = append([]r.Type{TypeOfInterface}, types...)
-	names = append([]string{nameOfInterfaceObject}, names...)
+	names = append([]string{StrGensymInterface}, names...)
 
 	fields := makeStructFields(env.FileEnv().Path, names, types)
 	return r.StructOf(fields)
@@ -52,7 +49,7 @@ func (env *Env) evalTypeInterface(node *ast.InterfaceType) r.Type {
 func isInterfaceType(t r.Type) bool {
 	if t.Kind() == r.Struct && t.NumField() > 0 {
 		field := t.Field(0)
-		return field.Name == nameOfInterfaceObject && field.Type == TypeOfInterface
+		return field.Name == StrGensymInterface && field.Type == TypeOfInterface
 	}
 	return false
 }

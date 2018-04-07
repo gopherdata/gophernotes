@@ -40,11 +40,6 @@ func concat(a, b []int) []int {
 	return c
 }
 
-func debugf(format string, args ...interface{}) {
-	str := fmt.Sprintf(format, args...)
-	fmt.Printf("// debug: %s\n", str)
-}
-
 type Error struct {
 	Type   Type
 	format string

@@ -1,5 +1,3 @@
-// +build !go1.8 !linux android gccgo
-
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
@@ -19,33 +17,46 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/lgpl>.
  *
  *
- * plugin_dummy.go
+ * debug.go
  *
- *  Created on Mar 21, 2017
+ *  Created on Apr 04, 2018
  *      Author Massimiliano Ghilardi
  */
 
-package base
+package xreflect
 
-import (
-	"io"
-	"os"
-)
+import "fmt"
 
-func getGoPath() string {
-	return os.Getenv("GOPATH")
+func debugf(format string, args ...interface{}) {
+	str := fmt.Sprintf(format, args...)
+	fmt.Printf("// debug: %s\n", str)
 }
 
-func getGoSrcPath() string {
-	return getGoPath() + "/src"
+func (v *Universe) debugf(format string, args ...interface{}) {
+	depth := v.DebugDepth
+	if depth == 0 {
+		return
+	}
+	depth = depth*2 - 2
+	const dots = ". . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . "
+	pad := make([]byte, depth)
+	for i := 0; i < depth; i += depth {
+		copy(pad[i:], dots)
+	}
+	format = "// debug: %s" + format + "\n"
+	args = append([]interface{}{pad}, args...)
+	fmt.Printf(format, args...)
 }
 
-func (g *Globals) compilePlugin(filename string, stdout io.Writer, stderr io.Writer) string {
-	g.Errorf("gomacro compiled without support to load plugins - requires Go 1.8+ and Linux - cannot import packages at runtime")
-	return ""
+func (v *Universe) debug() bool {
+	return v.DebugDepth != 0
 }
 
-func (g *Globals) loadPlugin(soname string, symbolName string) interface{} {
-	g.Errorf("gomacro compiled without support to load plugins - requires Go 1.8+ and Linux - cannot import packages at runtime")
-	return nil
+func de(v *Universe) {
+	v.DebugDepth--
+}
+
+func bug(v *Universe) *Universe {
+	v.DebugDepth++
+	return v
 }

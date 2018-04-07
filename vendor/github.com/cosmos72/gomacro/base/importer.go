@@ -34,7 +34,6 @@ import (
 	"io/ioutil"
 	"os"
 	r "reflect"
-	"strings"
 
 	"github.com/cosmos72/gomacro/imports"
 )
@@ -42,16 +41,31 @@ import (
 type ImportMode int
 
 const (
-	ImSharedLib ImportMode = iota
+	// ImPlugin import mechanism is:
+	// 1. write a file $GOPATH/src/gomacro_imports/$PKGPATH/$PKGNAME.go containing a single func Exports() (...multiple values...)
+	// 2. invoke "go build -buildmode=plugin" on the file to create a shared library
+	// 3. load such shared library with plugin.Open().Lookup("Export").Call()
+	ImPlugin ImportMode = iota
+
+	// ImBuiltin import mechanism is:
+	// 1. write a file $GOPATH/src/github.com/cosmos72/gomacro/$PKGPATH.go containing a single func init()
+	//    i.e. *inside* gomacro sources
+	// 2. tell the user to recompile gomacro
 	ImBuiltin
+
+	// ImInception import mechanism is:
+	// 1. write a file $GOPATH/src/$PKGPATH/x_package.go containing a single func init()
+	//    i.e. *inside* the package to be imported
+	// 2. tell the user to recompile $PKGPATH
 	ImInception
 )
 
 type Importer struct {
-	from   types.ImporterFrom
-	compat types.Importer
-	srcDir string
-	mode   types.ImportMode
+	from       types.ImporterFrom
+	compat     types.Importer
+	srcDir     string
+	mode       types.ImportMode
+	PluginOpen r.Value // = reflect.ValueOf(plugin.Open)
 }
 
 func DefaultImporter() *Importer {
@@ -105,7 +119,7 @@ func (g *Globals) ImportPackage(name, path string) *PackageRef {
 		mode = ImInception
 	}
 	file := g.createImportFile(path, gpkg, mode)
-	if mode != ImSharedLib {
+	if mode != ImPlugin {
 		return nil
 	}
 	ref = &PackageRef{Name: name, Path: path}
@@ -144,7 +158,7 @@ func (g *Globals) createImportFile(path string, pkg *types.Package, mode ImportM
 	if err != nil {
 		g.Errorf("error writing file %q: %v", file, err)
 	}
-	if mode != ImSharedLib {
+	if mode != ImPlugin {
 		g.Warnf("created file %q, recompile gomacro to use it", file)
 	} else {
 		g.Debugf("created file %q...", file)
@@ -180,9 +194,9 @@ func computeImportFilename(path string, mode ImportMode) string {
 		return fmt.Sprintf("%s/%s/x_package.go", srcdir, path)
 	}
 
-	file := path[1+strings.LastIndexByte(path, '/'):]
+	file := FileName(path)
 	file = fmt.Sprintf("%s/gomacro_imports/%s/%s.go", srcdir, path, file)
-	dir := file[0 : 1+strings.LastIndexByte(file, '/')]
+	dir := DirName(file)
 	err := os.MkdirAll(dir, 0700)
 	if err != nil {
 		Errorf("error creating directory %q: %v", dir, err)

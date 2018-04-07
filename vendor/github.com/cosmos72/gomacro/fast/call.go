@@ -85,9 +85,9 @@ func (c *Comp) prepareCall(node *ast.CallExpr, fun *Expr) *Call {
 	t := fun.Type
 	var builtin bool
 	var lastarg *Expr
-	if xr.SameType(t, c.TypeOfBuiltin()) {
+	if t.IdenticalTo(c.TypeOfBuiltin()) {
 		return c.callBuiltin(node, fun)
-	} else if xr.SameType(t, c.TypeOfFunction()) {
+	} else if t.IdenticalTo(c.TypeOfFunction()) {
 		fun, lastarg = c.callFunction(node, fun)
 		t = fun.Type
 		builtin = true
@@ -187,13 +187,11 @@ func (c *Comp) checkCallArgs(node *ast.CallExpr, t xr.Type, args []*Expr, ellips
 	if variadic {
 		tlast = t.In(n - 1).Elem()
 	}
-	var convs []func(r.Value, r.Type) r.Value
-	var rtypes []r.Type
+	var convs []func(r.Value) r.Value
 	needconvs := false
 	multivalue := len(args) != narg
 	if multivalue {
-		convs = make([]func(r.Value, r.Type) r.Value, narg)
-		rtypes = make([]r.Type, narg)
+		convs = make([]func(r.Value) r.Value, narg)
 	}
 	for i := 0; i < narg; i++ {
 		if variadic && i >= n-1 {
@@ -208,7 +206,6 @@ func (c *Comp) checkCallArgs(node *ast.CallExpr, t xr.Type, args []*Expr, ellips
 				c.Errorf("cannot use <%v> as <%v> in argument to %v", targ, ti, node.Fun)
 			} else if conv := c.Converter(targ, ti); conv != nil {
 				convs[i] = conv
-				rtypes[i] = ti.ReflectType()
 				args[0].Types[i] = ti
 				needconvs = true
 			}
@@ -232,7 +229,7 @@ func (c *Comp) checkCallArgs(node *ast.CallExpr, t xr.Type, args []*Expr, ellips
 		_, vs := f(env)
 		for i, conv := range convs {
 			if conv != nil {
-				vs[i] = conv(vs[i], rtypes[i])
+				vs[i] = conv(vs[i])
 			}
 		}
 		return vs[0], vs

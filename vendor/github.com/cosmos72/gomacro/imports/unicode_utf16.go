@@ -17,6 +17,6 @@ func init() {
 		"Encode":	ValueOf(utf16.Encode),
 		"EncodeRune":	ValueOf(utf16.EncodeRune),
 		"IsSurrogate":	ValueOf(utf16.IsSurrogate),
-	},
+	}, 
 	}
 }

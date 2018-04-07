@@ -62,7 +62,7 @@ func (c *Comp) compositeLitArray(t xr.Type, ellipsis bool, node *ast.CompositeLi
 	size, keys, funvals := c.compositeLitElements(t, ellipsis, node)
 	if ellipsis {
 		// rebuild type with correct length
-		t = xr.ArrayOf(size, t.Elem())
+		t = c.Universe.ArrayOf(size, t.Elem())
 		rtype = t.ReflectType()
 	}
 

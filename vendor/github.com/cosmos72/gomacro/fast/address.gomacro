@@ -31,7 +31,6 @@ import (
 	"unsafe"
 
 	"github.com/cosmos72/gomacro/base"
-	xr "github.com/cosmos72/gomacro/xreflect"
 )
 
 :import (
@@ -198,5 +197,6 @@ func (va *Var) Address(maxdepth int) *Expr {
 	case maxdepth-1: addresses; -2
 	case maxdepth:   addresses; -3
 	}
-	return &Expr{Lit: Lit{Type: xr.PtrTo(va.Type)}, Fun: ret}
+	u := va.Type.Universe()
+	return &Expr{Lit: Lit{Type: u.PtrTo(va.Type)}, Fun: ret}
 }

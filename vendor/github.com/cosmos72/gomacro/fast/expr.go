@@ -101,12 +101,10 @@ func (c *Comp) Expr1(in ast.Expr) *Expr {
 	case 0:
 		c.Errorf("expression returns no values, expecting one: %v", in)
 		return nil
-	default:
-		c.Warnf("expression returns %d values %v, using only the first one: %v",
-			len(e.Types), e.Types, in)
-		fallthrough
 	case 1:
 		return e
+	default:
+		return e.exprXVAsI()
 	}
 }
 

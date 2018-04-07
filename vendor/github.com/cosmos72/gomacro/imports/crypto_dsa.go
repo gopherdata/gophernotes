@@ -21,11 +21,11 @@ func init() {
 		"L3072N256":	ValueOf(dsa.L3072N256),
 		"Sign":	ValueOf(dsa.Sign),
 		"Verify":	ValueOf(dsa.Verify),
-	},Types: map[string]Type{
+	}, Types: map[string]Type{
 		"ParameterSizes":	TypeOf((*dsa.ParameterSizes)(nil)).Elem(),
 		"Parameters":	TypeOf((*dsa.Parameters)(nil)).Elem(),
 		"PrivateKey":	TypeOf((*dsa.PrivateKey)(nil)).Elem(),
 		"PublicKey":	TypeOf((*dsa.PublicKey)(nil)).Elem(),
-	},
+	}, 
 	}
 }

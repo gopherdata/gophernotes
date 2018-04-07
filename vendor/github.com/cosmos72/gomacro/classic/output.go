@@ -33,6 +33,7 @@ import (
 	"sort"
 
 	. "github.com/cosmos72/gomacro/base"
+	"github.com/cosmos72/gomacro/imports"
 )
 
 var (
@@ -75,31 +76,37 @@ func (env *Env) showStack() {
 }
 
 func (env *Env) ShowPackage(packageName string) {
-	out := env.Stdout
-	e := env
-	path := env.Path
-	pkg := env.AsPackage()
-	if len(packageName) != 0 {
-		bind := env.evalIdentifier(&ast.Ident{Name: packageName})
-		if bind == None || bind == Nil {
-			env.Warnf("not an imported package: %q", packageName)
-			return
+	if len(packageName) == 0 {
+		stack := make([]*Env, 0)
+		for e := env; e != nil; e = e.Outer {
+			stack = append(stack, e)
 		}
-		switch val := bind.Interface().(type) {
-		case *PackageRef:
-			e = nil
-			pkg = val.Package
-			path = packageName
-		default:
-			env.Warnf("not an imported package: %q = %v <%v>", packageName, val, typeOf(bind))
-			return
+		for i := len(stack) - 1; i >= 0; i-- {
+			e := stack[i]
+			pkg := e.AsPackage()
+			env.showPackage(e.Name, &pkg)
 		}
+		return
 	}
-	spaces15 := "               "
-Loop:
+	bind, ok := env.resolveIdentifier(&ast.Ident{Name: packageName})
+	if !ok {
+		env.Warnf("not an imported package: %q", packageName)
+		return
+	}
+	val, ok := bind.Interface().(*PackageRef)
+	if !ok {
+		env.Warnf("not an imported package: %q = %v <%v>", packageName, val, typeOf(bind))
+		return
+	}
+	env.showPackage(val.Name, &val.Package)
+}
+
+func (env *Env) showPackage(name string, pkg *imports.Package) {
+	const spaces15 = "               "
+	out := env.Stdout
 	binds := pkg.Binds
 	if len(binds) > 0 {
-		fmt.Fprintf(out, "// ----- %s binds -----\n", path)
+		fmt.Fprintf(out, "// ----- %s binds -----\n", name)
 
 		keys := make([]string, len(binds))
 		i := 0
@@ -125,7 +132,7 @@ Loop:
 	}
 	types := pkg.Types
 	if len(types) > 0 {
-		fmt.Fprintf(out, "// ----- %s types -----\n", path)
+		fmt.Fprintf(out, "// ----- %s types -----\n", name)
 
 		keys := make([]string, len(types))
 		i := 0
@@ -137,15 +144,8 @@ Loop:
 		for _, k := range keys {
 			n := len(k) & 15
 			t := types[k]
-			fmt.Fprintf(out, "%s%s %v <%v>\n", k, spaces15[n:], t.Kind(), t)
+			fmt.Fprintf(out, "%s%s = %v\t// %v\n", k, spaces15[n:], t, t.Kind())
 		}
 		fmt.Fprintln(out)
-	}
-	if e != nil {
-		if e = e.Outer; e != nil {
-			path = e.Path
-			pkg = e.AsPackage()
-			goto Loop
-		}
 	}
 }

@@ -73,7 +73,7 @@ func (t *xtype) NumField() int {
 	if t.kind != reflect.Struct {
 		xerrorf(t, "NumField of non-struct type %v", t)
 	}
-	gtype := t.underlying().(*types.Struct)
+	gtype := t.gunderlying().(*types.Struct)
 	return gtype.NumFields()
 }
 
@@ -147,7 +147,7 @@ func toTags(fields []StructField) []string {
 }
 
 func toExportedFieldName(name string, t Type, anonymous bool) string {
-	if len(name) == 0 && t != nil {
+	if len(name) == 0 && unwrap(t) != nil {
 		if name = t.Name(); len(name) == 0 && t.Kind() == reflect.Ptr {
 			name = t.elem().Name()
 		}
@@ -170,12 +170,4 @@ func (v *Universe) StructOf(fields []StructField) Type {
 		types.NewStruct(vars, tags),
 		reflect.StructOf(rfields),
 	)
-}
-
-func StructOf(fields []StructField) Type {
-	v := universe
-	if len(fields) != 0 && fields[0].Type != nil {
-		v = fields[0].Type.Universe()
-	}
-	return v.StructOf(fields)
 }

@@ -26,10 +26,8 @@
 package base
 
 import (
-	"bytes"
 	"fmt"
 	"go/types"
-	"strings"
 )
 
 type writeTypeOpts int
@@ -40,24 +38,24 @@ const (
 	writeIncludeParamTypes
 )
 
-func writeInterfaceProxy(out *bytes.Buffer, pkgPath string, pkgSuffix string, name string, t *types.Interface) {
-	fmt.Fprintf(out, "\n// --------------- proxy for %s.%s ---------------\ntype %s%s struct {", pkgPath, name, name, pkgSuffix)
-	writeInterfaceMethods(out, pkgSuffix, name, t, writeMethodsAsFields)
-	out.WriteString("\n}\n")
-	writeInterfaceMethods(out, pkgSuffix, name, t, writeForceParamNames)
+func (gen *genimport) writeInterfaceProxy(pkgPath string, name string, t *types.Interface) {
+	fmt.Fprintf(gen.out, "\n// --------------- proxy for %s.%s ---------------\ntype %s%s struct {", pkgPath, name, gen.proxyprefix, name)
+	gen.writeInterfaceMethods(name, t, writeMethodsAsFields)
+	gen.out.WriteString("\n}\n")
+	gen.writeInterfaceMethods(name, t, writeForceParamNames)
 }
 
-func writeInterfaceMethods(out *bytes.Buffer, pkgSuffix string, name string, t *types.Interface, opts writeTypeOpts) {
+func (gen *genimport) writeInterfaceMethods(name string, t *types.Interface, opts writeTypeOpts) {
 	if opts&writeMethodsAsFields != 0 {
-		fmt.Fprint(out, "\n\tObject\tinterface{}") // will be used to retrieve object wrapped in the proxy
+		fmt.Fprint(gen.out, "\n\tObject\tinterface{}") // will be used to retrieve object wrapped in the proxy
 	}
 	n := t.NumMethods()
 	for i := 0; i < n; i++ {
-		writeInterfaceMethod(out, pkgSuffix, name, t.Method(i), opts)
+		gen.writeInterfaceMethod(name, t.Method(i), opts)
 	}
 }
 
-func writeInterfaceMethod(out *bytes.Buffer, pkgSuffix string, interfaceName string, method *types.Func, opts writeTypeOpts) {
+func (gen *genimport) writeInterfaceMethod(interfaceName string, method *types.Func, opts writeTypeOpts) {
 	if !method.Exported() {
 		return
 	}
@@ -65,6 +63,7 @@ func writeInterfaceMethod(out *bytes.Buffer, pkgSuffix string, interfaceName str
 	if !ok {
 		return
 	}
+	out := gen.out
 	params := sig.Params()
 	if opts&writeMethodsAsFields != 0 {
 		var param0 string
@@ -76,12 +75,12 @@ func writeInterfaceMethod(out *bytes.Buffer, pkgSuffix string, interfaceName str
 			out.WriteString(", ")
 		}
 	} else {
-		fmt.Fprintf(out, "func (Proxy *%s%s) %s(", interfaceName, pkgSuffix, method.Name())
+		fmt.Fprintf(out, "func (P *%s%s) %s(", gen.proxyprefix, interfaceName, method.Name())
 	}
 	results := sig.Results()
-	writeTypeTuple(out, params, opts|writeIncludeParamTypes)
+	gen.writeTypeTuple(params, opts|writeIncludeParamTypes)
 	out.WriteString(") ")
-	writeTypeTupleOut(out, results)
+	gen.writeTypeTupleOut(results)
 	if opts&writeMethodsAsFields != 0 {
 		return
 	}
@@ -89,11 +88,11 @@ func writeInterfaceMethod(out *bytes.Buffer, pkgSuffix string, interfaceName str
 	if results != nil && results.Len() > 0 {
 		out.WriteString("return ")
 	}
-	fmt.Fprintf(out, "Proxy.%s_(Proxy.Object", method.Name())
+	fmt.Fprintf(out, "P.%s_(P.Object", method.Name())
 	if params != nil && params.Len() != 0 {
 		out.WriteString(", ")
 	}
-	writeTypeTuple(out, params, writeForceParamNames)
+	gen.writeTypeTuple(params, writeForceParamNames)
 	out.WriteString(")\n}\n")
 }
 
@@ -109,45 +108,51 @@ func isNamedTypeTuple(tuple *types.Tuple) bool {
 	return false
 }
 
-func writeTypeTupleOut(out *bytes.Buffer, tuple *types.Tuple) {
+func (gen *genimport) writeTypeTupleOut(tuple *types.Tuple) {
 	if tuple == nil || tuple.Len() == 0 {
 		return
 	}
+	out := gen.out
 	ret0 := tuple.At(0)
 	if tuple.Len() > 1 || len(ret0.Name()) > 0 {
 		out.WriteString("(")
-		writeTypeTuple(out, tuple, writeIncludeParamTypes)
+		gen.writeTypeTuple(tuple, writeIncludeParamTypes)
 		out.WriteString(")")
 	} else {
-		types.WriteType(out, ret0.Type(), packageNameQualifier)
+		types.WriteType(out, ret0.Type(), gen.packageNameQualifier)
 	}
 }
 
-func writeTypeTuple(out *bytes.Buffer, tuple *types.Tuple, opts writeTypeOpts) {
+func (gen *genimport) writeTypeTuple(tuple *types.Tuple, opts writeTypeOpts) {
 	n := tuple.Len()
 	for i := 0; i < n; i++ {
 		if i != 0 {
-			out.WriteString(", ")
+			gen.out.WriteString(", ")
 		}
-		writeTypeVar(out, tuple.At(i), i, opts)
+		gen.writeTypeVar(tuple.At(i), i, opts)
 	}
 }
 
-func writeTypeVar(out *bytes.Buffer, v *types.Var, index int, opts writeTypeOpts) {
+func (gen *genimport) writeTypeVar(v *types.Var, index int, opts writeTypeOpts) {
 	name := v.Name()
 	if len(name) == 0 && opts&writeForceParamNames != 0 {
 		name = fmt.Sprintf("unnamed%d", index)
 	}
+	out := gen.out
 	out.WriteString(name)
 	if opts&writeIncludeParamTypes != 0 {
 		if len(name) != 0 {
 			out.WriteString(" ")
 		}
-		types.WriteType(out, v.Type(), packageNameQualifier)
+		types.WriteType(out, v.Type(), gen.packageNameQualifier)
 	}
 }
 
-func packageNameQualifier(pkg *types.Package) string {
+func (gen *genimport) packageNameQualifier(pkg *types.Package) string {
 	path := pkg.Path()
-	return path[1+strings.LastIndexByte(path, '/'):]
+	name, ok := gen.pkgrenames[path]
+	if !ok {
+		name = FileName(path)
+	}
+	return name
 }

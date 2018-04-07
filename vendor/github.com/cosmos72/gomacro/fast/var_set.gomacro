@@ -182,7 +182,7 @@ import (
 :macro setplace_expr(depth, typ ast.Node) ast.Node {
 	if EvalType(typ) == nil {
 		ret0 := fsetplace(depth, typ, ~'{fun(env)}, ~'{fun(env)})
-		ret := fsetplace(depth, typ, ~'{fun(env)}, ~'{conv(fun(env), rt)})
+		ret := fsetplace(depth, typ, ~'{fun(env)}, ~'{conv(fun(env))})
 		return ~"{
 			fun := e.AsX1() // we need the exact type!
 			if conv := c.Converter(e.Type, t); conv == nil {
@@ -286,7 +286,6 @@ func (c *Comp) varSetExpr(va *Var, e *Expr) {
 	upn := va.Upn
 	index := va.Desc.Index()
 
-	rt := t.ReflectType()
 	fun := e.Fun
 	var ret func(env *Env) (Stmt, *Env)
 	intbinds := va.Desc.Class() == IntBind

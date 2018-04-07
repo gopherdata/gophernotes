@@ -45,7 +45,7 @@ func (c *Comp) Decl(node ast.Decl) {
 	case *ast.FuncDecl:
 		c.FuncDecl(node)
 	default:
-		c.Errorf("Compile: unsupported declaration, expecting <*ast.GenDecl> or <*ast.FuncDecl>, found: %v <%v>", node, r.TypeOf(node))
+		c.Errorf("unsupported declaration, expecting <*ast.GenDecl> or <*ast.FuncDecl>, found: %v <%v>", node, r.TypeOf(node))
 	}
 }
 
@@ -56,13 +56,6 @@ func (c *Comp) GenDecl(node *ast.GenDecl) {
 		for _, decl := range node.Specs {
 			c.Import(decl)
 		}
-	/*
-		case token.PACKAGE:
-			// modified parser converts 'package foo' to ast.GenDecl{Tok: token.Package}
-			for _, decl := range node.Specs {
-				c.changePackage(decl)
-			}
-	*/
 	case token.CONST:
 		var defaultType ast.Expr
 		var defaultExprs []ast.Expr
@@ -85,8 +78,23 @@ func (c *Comp) GenDecl(node *ast.GenDecl) {
 		for _, decl := range node.Specs {
 			c.DeclVars(decl)
 		}
+	case token.PACKAGE:
+		// modified parser converts 'package foo' to ast.GenDecl{Tok: token.Package}
+		if len(node.Specs) == 1 {
+			if decl, ok := node.Specs[0].(*ast.ValueSpec); ok {
+				if len(decl.Names) == 1 {
+					name := decl.Names[0]
+					if name.Name == "main" {
+						break
+					}
+					// c.changePackage(name)
+					c.Errorf("switching package not yet implemented, found: %v <%v>", node, r.TypeOf(node))
+				}
+			}
+		}
+		c.Errorf("unsupported package syntax, expecting a single package name, found: %v <%v>", node, r.TypeOf(node))
 	default:
-		c.Errorf("Compile: unsupported declaration kind, expecting token.IMPORT, token.CONST, token.TYPE or token.VAR, found %v: %v <%v>",
+		c.Errorf("unsupported declaration kind, expecting token.IMPORT, token.PACKAGE, token.CONST, token.TYPE or token.VAR, found %v: %v <%v>",
 			node.Tok, node, r.TypeOf(node))
 	}
 }
@@ -103,7 +111,7 @@ func (c *Comp) DeclConsts(node ast.Spec, defaultType ast.Expr, defaultExprs []as
 		names, t, inits := c.prepareDeclConstsOrVars(tostrings(node.Names), defaultType, defaultExprs)
 		c.DeclConsts0(names, t, inits)
 	default:
-		c.Errorf("Compile: unsupported constant declaration: expecting <*ast.ValueSpec>, found: %v <%v>", node, r.TypeOf(node))
+		c.Errorf("unsupported constant declaration: expecting <*ast.ValueSpec>, found: %v <%v>", node, r.TypeOf(node))
 	}
 }
 
@@ -115,7 +123,7 @@ func (c *Comp) DeclVars(node ast.Spec) {
 		names, t, inits := c.prepareDeclConstsOrVars(tostrings(node.Names), node.Type, node.Values)
 		c.DeclVars0(names, t, inits)
 	default:
-		c.Errorf("Compile: unsupported variable declaration: expecting <*ast.ValueSpec>, found: %v <%v>", node, r.TypeOf(node))
+		c.Errorf("unsupported variable declaration: expecting <*ast.ValueSpec>, found: %v <%v>", node, r.TypeOf(node))
 	}
 }
 
@@ -291,13 +299,12 @@ func (c *Comp) declUnnamedBind(init *Expr, o *Comp, upn int) *Symbol {
 		index := bind.Desc.Index()
 		f := init.AsX1()
 		conv := c.Converter(init.Type, t)
-		rtype := t.ReflectType()
 		switch upn {
 		case 0:
 			c.append(func(env *Env) (Stmt, *Env) {
 				v := f(env)
 				if conv != nil {
-					v = conv(v, rtype)
+					v = conv(v)
 				}
 				// no need to create a settable reflect.Value
 				env.Binds[index] = v
@@ -308,7 +315,7 @@ func (c *Comp) declUnnamedBind(init *Expr, o *Comp, upn int) *Symbol {
 			c.append(func(env *Env) (Stmt, *Env) {
 				v := f(env)
 				if conv != nil {
-					v = conv(v, rtype)
+					v = conv(v)
 				}
 				// no need to create a settable reflect.Value
 				env.Outer.Binds[index] = v
@@ -323,7 +330,7 @@ func (c *Comp) declUnnamedBind(init *Expr, o *Comp, upn int) *Symbol {
 				}
 				v := f(env)
 				if conv != nil {
-					v = conv(v, rtype)
+					v = conv(v)
 				}
 				// no need to create a settable reflect.Value
 				o.Binds[index] = v
@@ -377,6 +384,7 @@ func (c *Comp) DeclVar0(name string, t xr.Type, init *Expr) *Bind {
 			// assigning a constant or expression to _
 			// only keep the expression side effects
 			c.append(init.AsStmt())
+			return bind
 		}
 		// declaring a variable in Env.Binds[], we must create a settable and addressable reflect.Value
 		if init == nil {
@@ -395,8 +403,8 @@ func (c *Comp) DeclVar0(name string, t xr.Type, init *Expr) *Bind {
 		}
 		fun := init.AsX1() // AsX1() panics if init.NumOut() == 0, warns if init.NumOut() > 1
 		tfun := init.Out(0)
-		if tfun == nil || (!xr.SameType(tfun, t) && !tfun.AssignableTo(t)) {
-			c.Errorf("cannot assign <%v> to <%v> in variable declaration: %v <%v>", tfun, t, name, t)
+		if tfun == nil || (!tfun.IdenticalTo(t) && !tfun.AssignableTo(t)) {
+			c.Errorf("cannot assign <%v> to <%v> in variable declaration: %v <%v>%s", tfun, t, name, t, interfaceMissingMethod(tfun, t))
 			return bind
 		}
 		var ret func(env *Env) (Stmt, *Env)
@@ -408,7 +416,7 @@ func (c *Comp) DeclVar0(name string, t xr.Type, init *Expr) *Bind {
 				ret = func(env *Env) (Stmt, *Env) {
 					ret, _ := f(env)
 					place := r.New(rtype).Elem()
-					place.Set(conv(ret, rtype))
+					place.Set(conv(ret))
 					env.Binds[index] = place
 					env.IP++
 					return env.Code[env.IP], env
@@ -428,7 +436,7 @@ func (c *Comp) DeclVar0(name string, t xr.Type, init *Expr) *Bind {
 				ret = func(env *Env) (Stmt, *Env) {
 					ret := fun(env)
 					place := r.New(rtype).Elem()
-					place.Set(conv(ret, rtype))
+					place.Set(conv(ret))
 					env.Binds[index] = place
 					env.IP++
 					return env.Code[env.IP], env
@@ -504,7 +512,7 @@ func (c *Comp) DeclMultiVar0(names []string, t xr.Type, init *Expr) {
 	decls := make([]func(*Env, r.Value), n)
 	for i, name := range names {
 		ti := init.Out(i)
-		if t != nil && !xr.SameType(t, ti) {
+		if t != nil && !t.IdenticalTo(ti) {
 			if ti != nil && !ti.AssignableTo(t) {
 				c.Errorf("cannot assign <%v> to <%v> in variable declaration: %v", ti, t, names)
 				return

@@ -29,7 +29,7 @@ func init() {
 		"ServeCodec":	ValueOf(rpc.ServeCodec),
 		"ServeConn":	ValueOf(rpc.ServeConn),
 		"ServeRequest":	ValueOf(rpc.ServeRequest),
-	},Types: map[string]Type{
+	}, Types: map[string]Type{
 		"Call":	TypeOf((*rpc.Call)(nil)).Elem(),
 		"Client":	TypeOf((*rpc.Client)(nil)).Elem(),
 		"ClientCodec":	TypeOf((*rpc.ClientCodec)(nil)).Elem(),
@@ -38,54 +38,54 @@ func init() {
 		"Server":	TypeOf((*rpc.Server)(nil)).Elem(),
 		"ServerCodec":	TypeOf((*rpc.ServerCodec)(nil)).Elem(),
 		"ServerError":	TypeOf((*rpc.ServerError)(nil)).Elem(),
-	},Proxies: map[string]Type{
-		"ClientCodec":	TypeOf((*ClientCodec_net_rpc)(nil)).Elem(),
-		"ServerCodec":	TypeOf((*ServerCodec_net_rpc)(nil)).Elem(),
-	},Untypeds: map[string]string{
+	}, Proxies: map[string]Type{
+		"ClientCodec":	TypeOf((*P_net_rpc_ClientCodec)(nil)).Elem(),
+		"ServerCodec":	TypeOf((*P_net_rpc_ServerCodec)(nil)).Elem(),
+	}, Untypeds: map[string]string{
 		"DefaultDebugPath":	"string:/debug/rpc",
 		"DefaultRPCPath":	"string:/_goRPC_",
-	},
+	}, 
 	}
 }
 
 // --------------- proxy for net/rpc.ClientCodec ---------------
-type ClientCodec_net_rpc struct {
+type P_net_rpc_ClientCodec struct {
 	Object	interface{}
 	Close_	func(interface{}) error
 	ReadResponseBody_	func(interface{}, interface{}) error
 	ReadResponseHeader_	func(interface{}, *rpc.Response) error
 	WriteRequest_	func(interface{}, *rpc.Request, interface{}) error
 }
-func (Proxy *ClientCodec_net_rpc) Close() error {
-	return Proxy.Close_(Proxy.Object)
+func (P *P_net_rpc_ClientCodec) Close() error {
+	return P.Close_(P.Object)
 }
-func (Proxy *ClientCodec_net_rpc) ReadResponseBody(unnamed0 interface{}) error {
-	return Proxy.ReadResponseBody_(Proxy.Object, unnamed0)
+func (P *P_net_rpc_ClientCodec) ReadResponseBody(unnamed0 interface{}) error {
+	return P.ReadResponseBody_(P.Object, unnamed0)
 }
-func (Proxy *ClientCodec_net_rpc) ReadResponseHeader(unnamed0 *rpc.Response) error {
-	return Proxy.ReadResponseHeader_(Proxy.Object, unnamed0)
+func (P *P_net_rpc_ClientCodec) ReadResponseHeader(unnamed0 *rpc.Response) error {
+	return P.ReadResponseHeader_(P.Object, unnamed0)
 }
-func (Proxy *ClientCodec_net_rpc) WriteRequest(unnamed0 *rpc.Request, unnamed1 interface{}) error {
-	return Proxy.WriteRequest_(Proxy.Object, unnamed0, unnamed1)
+func (P *P_net_rpc_ClientCodec) WriteRequest(unnamed0 *rpc.Request, unnamed1 interface{}) error {
+	return P.WriteRequest_(P.Object, unnamed0, unnamed1)
 }
 
 // --------------- proxy for net/rpc.ServerCodec ---------------
-type ServerCodec_net_rpc struct {
+type P_net_rpc_ServerCodec struct {
 	Object	interface{}
 	Close_	func(interface{}) error
 	ReadRequestBody_	func(interface{}, interface{}) error
 	ReadRequestHeader_	func(interface{}, *rpc.Request) error
 	WriteResponse_	func(interface{}, *rpc.Response, interface{}) error
 }
-func (Proxy *ServerCodec_net_rpc) Close() error {
-	return Proxy.Close_(Proxy.Object)
+func (P *P_net_rpc_ServerCodec) Close() error {
+	return P.Close_(P.Object)
 }
-func (Proxy *ServerCodec_net_rpc) ReadRequestBody(unnamed0 interface{}) error {
-	return Proxy.ReadRequestBody_(Proxy.Object, unnamed0)
+func (P *P_net_rpc_ServerCodec) ReadRequestBody(unnamed0 interface{}) error {
+	return P.ReadRequestBody_(P.Object, unnamed0)
 }
-func (Proxy *ServerCodec_net_rpc) ReadRequestHeader(unnamed0 *rpc.Request) error {
-	return Proxy.ReadRequestHeader_(Proxy.Object, unnamed0)
+func (P *P_net_rpc_ServerCodec) ReadRequestHeader(unnamed0 *rpc.Request) error {
+	return P.ReadRequestHeader_(P.Object, unnamed0)
 }
-func (Proxy *ServerCodec_net_rpc) WriteResponse(unnamed0 *rpc.Response, unnamed1 interface{}) error {
-	return Proxy.WriteResponse_(Proxy.Object, unnamed0, unnamed1)
+func (P *P_net_rpc_ServerCodec) WriteResponse(unnamed0 *rpc.Response, unnamed1 interface{}) error {
+	return P.WriteResponse_(P.Object, unnamed0, unnamed1)
 }

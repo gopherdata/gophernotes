@@ -26,6 +26,7 @@
 package fast
 
 import (
+	"fmt"
 	"go/token"
 	r "reflect"
 	"unsafe"
@@ -620,28 +621,37 @@ func (c *Comp) varAndnotExpr(va *Var, fun I) {
 // 'variable op constant' and 'variable op expression'
 func (c *Comp) SetVar(va *Var, op token.Token, init *Expr) {
 	t := va.Type
-	var ok, shift bool
+	var shift bool
+	var err interface{} = ""
 	switch op {
 	case token.SHL, token.SHL_ASSIGN, token.SHR, token.SHR_ASSIGN:
 		shift = true
 		if init.Untyped() {
 			init.ConstTo(c.TypeOfUint64())
-			ok = true
+			err = nil
+		} else if init.Type == nil || KindToCategory(init.Type.Kind()) != r.Uint {
+			err = fmt.Sprintf("\n\treason: type %v is %v, expecting unsigned integer", init.Type, init.Type.Kind())
 		} else {
-			ok = init.Type != nil && KindToCategory(init.Type.Kind()) == r.Uint
+			err = nil
 		}
 	default:
 		if init.Const() {
 			init.ConstTo(t)
-			ok = true
+			err = nil
 		} else if init.Type == nil {
-			ok = op == token.ASSIGN && IsNillableKind(t.Kind())
+			if op != token.ASSIGN {
+				err = fmt.Sprintf("\n\treason: invalid operation %s nil", op)
+			} else if !IsNillableKind(t.Kind()) {
+				err = fmt.Sprintf("\n\treason: cannot assign nil to %v", t)
+			}
+		} else if !init.Type.AssignableTo(t) {
+			err = interfaceMissingMethod(init.Type, t)
 		} else {
-			ok = init.Type.AssignableTo(t)
+			err = nil
 		}
 	}
-	if !ok {
-		c.Errorf("incompatible types in assignment: %v %s %v", t, op, init.Type)
+	if err != nil {
+		c.Errorf("incompatible types in assignment: %v %s %v%v", t, op, init.Type, err)
 		return
 	}
 	class := va.Desc.Class()
@@ -654,11 +664,11 @@ func (c *Comp) SetVar(va *Var, op token.Token, init *Expr) {
 		if op != token.ASSIGN {
 			c.Errorf("invalid operator %s on _", op)
 		}
+
 		if !init.Const() {
-			// assigning an expression to _
-			// only keep the expression side effects
 			c.append(init.AsStmt())
 		}
+
 		return
 	}
 	if init.Const() {
@@ -732,5 +742,3 @@ func (c *Comp) SetVar(va *Var, op token.Token, init *Expr) {
 		}
 	}
 }
-
-

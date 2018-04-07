@@ -21,8 +21,8 @@ func init() {
 		"EncodeToString":	ValueOf(hex.EncodeToString),
 		"EncodedLen":	ValueOf(hex.EncodedLen),
 		"ErrLength":	ValueOf(&hex.ErrLength).Elem(),
-	},Types: map[string]Type{
+	}, Types: map[string]Type{
 		"InvalidByteError":	TypeOf((*hex.InvalidByteError)(nil)).Elem(),
-	},
+	}, 
 	}
 }

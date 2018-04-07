@@ -2,16 +2,14 @@
 
 gomacro is a fairly complete Go interpreter, implemented in pure Go. It offers both
 an interactive REPL and a scripting mode, and does not require a Go toolchain at runtime
-(except in one very specific case: import of a non-standard package).
+(except in one very specific case: import of a 3d-party package).
 
-It has very few dependencies: go/ast, go/types, reflect and,
-for goroutines support, golang.org/x/sync/syncmap.
+It has very few dependencies: go/ast, go/types, reflect, github.com/peterh/liner and,
+for legacy reasons (no longer used by the default interpreter), golang.org/sync/syncmap.
 
 Gomacro can be used as:
-* a standalone executable with interactive Go REPL:  
-  just run `gomacro` from your command line or, better, `rlwrap gomacro`
-  (rlwrap is a wrapper that adds history and line editing to terminal-based
-  programs - available on many platforms)
+* a standalone executable with interactive Go REPL:
+  just run `gomacro` from your command line.
   Available options:
     ```
     -c,   --collect          collect declarations and statements, to print them later
@@ -40,7 +38,7 @@ Gomacro can be used as:
     Collected declarations and statements can be also written to standard output
     or to a file with the REPL command :write
 
-* an interactive tool to make science more productive and more fun.  
+* an interactive tool to make science more productive and more fun.
   If you use compiled Go with scientific libraries (physics, bioinformatics, statistics...)
   you can import the same libraries from gomacro REPL (requires Go 1.8+ and Linux),
   call them interactively, inspect the results, feed them to other functions/libraries,
@@ -48,23 +46,52 @@ Gomacro can be used as:
   The imported libraries will be **compiled**, not interpreted,
   so they will be as fast as in compiled Go.
 
-* a library that adds Eval() and scripting capabilities
-  to your Go programs - provided you comply with its LGPL license
+  For a graphical user interface on top of gomacro, see [Gophernotes](https://github.com/gopherdata/gophernotes).
+  It is a Go kernel for Jupyter notebooks and nteract, and uses gomacro for Go code evaluation.
 
-* a way to execute Go source code on-the-fly without a Go compiler:  
+* a library that adds Eval() and scripting capabilities to your Go programs in few lines
+  of code:
+	```
+	package main
+	import (
+		"fmt"
+		"reflect"
+		"github.com/cosmos72/gomacro/fast"
+	)
+	func RunGomacro(toeval string) reflect.Value {
+		interp := fast.New()
+		// for simplicity, only collect the first returned value
+		val, _ := interp.Eval(toeval)
+		return val
+	}
+	func main() {
+		fmt.Println(RunGomacro("1+1"))
+	}
+	```
+  Also, [github issue #13](https://github.com/cosmos72/gomacro/issues/13) explains
+  how to have your application's functions, variable, constants and types
+  available in the interpreter.
+
+  Note: gomacro is currently [LGPL](LICENSE), which imposes some restrictions
+  on programs that use gomacro. The author is currently looking for a license
+  that has fewer (but not zero) restrictions. If you are sufficiently expert with licenses,
+  you can help by reading [issue #14](https://github.com/cosmos72/gomacro/issues/14)
+  and indicating a license that satisfies the requirements listed in it.
+
+* a way to execute Go source code on-the-fly without a Go compiler:
   you can either run `gomacro FILENAME.go` (works on every supported platform)
 
   or you can insert a line `#!/usr/bin/env gomacro` at the beginning of a Go source file,
   then mark the file as executable with `chmod +x FILENAME.go` and finally execute it
   with `./FILENAME.go` (works only on Unix-like systems: Linux, *BSD, Mac OS X ...)
 
-* a Go code generation tool:  
+* a Go code generation tool:
   gomacro was started as an experiment to add Lisp-like macros to Go, and they are
   extremely useful (in the author's opinion) to simplify code generation.
   Macros are normal Go functions, they are special only in one aspect:
   they are executed **before** compiling code, and their input and output **is** code
   (abstract syntax trees, in the form of go/ast.Node)
-  
+
   Don't confuse them with C preprocessor macros: in Lisp, Scheme and now in Go,
   macros are regular functions written in the same programming language
   as the rest of the source code. They can perform arbitrary computations
@@ -78,70 +105,44 @@ Gomacro can be used as:
 
   To parse and macroexpand all *.gomacro files in a directory, run `gomacro -m -w DIRECTORY`
 
+## Installation
+
+### Prerequites
+
+- [Go 1.9+](https://golang.org/doc/install)
+
+### Supported platforms
+
+Gomacro is pure Go, and in theory it should work on any platform supported by the Go compiler.  
+The following combinations are tested and known to work:
+
+- Linux: amd64, 386, arm64, arm (on Linux it can also import 3rd party libraries at runtime)
+- Mac OS X: amd64, 386
+- Windows: amd64, 386
+- FreeBSD: amd64, 386
+
+### How to install
+
+  The command
+  ```
+  go get -u github.com/cosmos72/gomacro
+  ```
+  downloads, compiles and installs gomacro
+
 ## Current Status
 
-Fairly complete.
+Almost complete.
 
-The intepreter supports:
-* multiline input
-* line comments starting with #! in addition to //
-* basic types: booleans, integers, floats, complex numbers, strings (and iota)
-* the empty interface, i.e. interface{} - other interfaces not implemented yet
-* constant, variable and type declarations (untyped constants are emulated with typed constants)
-* Go 1.9 type aliases (experimental)
-* unary and binary operators
-* assignment, i.e. operators = += -= *= /= %= &= |= ^= &^= <<= >>=
-* composite types: arrays, channels, maps, pointers, slices, strings, structs
-* composite literals
-* type assertions
-* function declarations (including variadic functions)
-* method declarations (including variadic methods and methods with pointer receiver)
-* seamless invocation of compiled functions from interpreter, and vice-versa
-* channel send and receive
-* goroutines, i.e. go function(args)
-* function and method calls, including multiple return values
-* if, for, for-range, break, continue, fallthrough, return (unimplemented: goto)
-* select, switch, type switch, fallthrough
-* all builtins: append, cap, close, comples, defer, delete, imag, len, make, new, panic, print, println, real, recover
-* imports: Go standard packages "just work", importing other packages requires the "plugin" package (available only for Go 1.8+ on Linux)
-* switching to a different package
-* macro declarations, for example `macro foo(a, b, c interface{}) interface{} { return b }`
-* macro calls, for example `foo; x; y; z`
-* macroexpansion: code walker, MacroExpand and MacroExpand1
-* ~quote and ~quasiquote. they take any number of arguments in curly braces, for example:
-  `~quote { x; y; z }`
-* ~unquote and ~unquote_splice
-* ~func, ~lambda: specializations of "func".
-  * ~lambda always starts a closure (lambda) or a function type
-  * ~func always starts a function or method declaration
-  useful to resolve a limitation in Go syntax that becomes significant for ~quote and ~quasiquote:
-  * in declarations, "func" always declares a function or method - there is no way to declare a closure (lambda) or function type
-  * in statements and expressions, including the body of ~quote and ~quasiquote,
-    "func" always declares a closure (lambda) or a function type - there is no way to declare a function or method
-* nesting macros, quotes and unquotes
+The main missing features are:
 
-Some features are still missing:
-* interfaces. They can be declared, but nothing more: there is no way to implement them or call their methods
-* extracting methods from types. For example `time.Duration.String` should return a `func(time.Duration) string`
-  but currently gives an error.
-  Instead extracting methods from objects is supported: `time.Duration(1s).String` correctly returns a func() string
-* goto
-* named return values
-* history/readline (rlwrap does the job in most cases)
+* importing 3rd party libraries on non-Linux systems. Gomacro uses the Go 'plugin' package for this, and it currently works only on Linux.
+* some corner cases using interpreted interfaces, as interface -> interface type assertions and type switches, are not implemented yet.
+* out-of-order code. Types, constants, variables and functions must be declared **before** using them.
+* switching to a different package (if you absolutely need it, the older and slower `gomacro.classic.Interp` supports switching to a different package)
+* goto is partially implemented - can only jump back, not forward
+* type inference in composite literals - see [github issue #9](https://github.com/cosmos72/gomacro/issues/9)
 
-Limitations:
-* no distinction between named and unnamed types created by interpreted code.
-  For the interpreter, `struct { A, B int }` and `type Pair struct { A, B int }`
-  are exactly the same type. This has subtle consequences, including the risk
-  that two different packages define the same type and overwrite each other's methods.
-
-  The reason for such limitation is simple: the interpreter uses `reflect.StructOf()`
-  to define new types, which can only create unnamed types.
-  The interpreter then defines named types as aliases for the underlying unnamed types.
-
-* cannot create recursive types, as for example `type List struct { First interface{}; Rest *List}`
-  The reason is the same as above: the interpreter uses `reflect.StructOf()` to define new types,
-  which cannot create recursive types
+The [documentation](doc/) also contains the [full list of features and limitations](doc/features-and-limitations.md)
 
 
 ## Why it was created

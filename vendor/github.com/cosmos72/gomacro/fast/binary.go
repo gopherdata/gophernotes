@@ -36,13 +36,8 @@ import (
 )
 
 func (c *Comp) BinaryExpr(node *ast.BinaryExpr) *Expr {
-	x := c.Expr(node.X)
-	y := c.Expr(node.Y)
-	if x.NumOut() == 0 {
-		c.Errorf("operand returns no values, cannot use in binary expression: %v", node.X)
-	} else if y.NumOut() == 0 {
-		c.Errorf("operand returns no values, cannot use in binary expression: %v", node.Y)
-	}
+	x := c.Expr1(node.X)
+	y := c.Expr1(node.Y)
 	return c.BinaryExpr1(node, x, y)
 }
 
@@ -233,7 +228,7 @@ func (c *Comp) prepareShift(node *ast.BinaryExpr, xe *Expr, ye *Expr) *Expr {
 		xuntyp := xe.Value.(UntypedLit)
 		if ye.Const() {
 			// untyped << typed
-			yuntyp := UntypedLit{r.Int, constant.MakeUint64(r.ValueOf(ye.Value).Uint()), c.Universe}
+			yuntyp := UntypedLit{r.Int, constant.MakeUint64(r.ValueOf(ye.Value).Uint()), &c.Universe.BasicTypes}
 			return c.ShiftUntyped(node, node.Op, xuntyp, yuntyp)
 		}
 		// untyped << expression
@@ -355,7 +350,7 @@ func (c *Comp) toSameFuncType(node ast.Expr, xe *Expr, ye *Expr) {
 		}
 	} else if xconst {
 		xe.ConstTo(ye.Type)
-	} else if xe.Type.ReflectType() != ye.Type.ReflectType() {
+	} else if !xe.Type.IdenticalTo(ye.Type) {
 		c.mismatchedTypes(node, xe, ye)
 	}
 }

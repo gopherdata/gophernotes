@@ -11,7 +11,34 @@ import (
 )
 
 func main() {
-	conv()
+	// run_for_nested()
+	run_interface_method_to_closure()
+	run_struct_method_to_closure()
+}
+
+type stringer interface{ String() string }
+type Box struct{ value int }
+
+func (b *Box) Value() int {
+	return b.value
+}
+
+func run_struct_method_to_closure() {
+	var b *Box
+	fmt.Printf("%v %T\n", b, b)
+	function := (*Box).Value
+	fmt.Printf("%v %T\n", function, function)
+	closure := b.Value
+	fmt.Printf("%v %T\n", closure, closure)
+}
+
+func run_interface_method_to_closure() {
+	var s stringer
+	fmt.Printf("%v %T\n", s, s)
+	function := stringer.String
+	fmt.Printf("%v %T\n", function, function)
+	closure := s.String
+	fmt.Printf("%v %T\n", closure, closure)
 }
 
 func main2() {

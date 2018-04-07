@@ -28,7 +28,6 @@ package fast
 import (
 	"go/ast"
 	r "reflect"
-	"strings"
 
 	"github.com/cosmos72/gomacro/ast2"
 	. "github.com/cosmos72/gomacro/base"
@@ -89,7 +88,7 @@ func (ir *Interp) ChangePackage(name, path string) {
 	if len(path) == 0 {
 		path = name
 	} else {
-		name = path[1+strings.LastIndexByte(path, '/'):]
+		name = FileName(path)
 	}
 	c := ir.Comp
 	currpath := c.Path

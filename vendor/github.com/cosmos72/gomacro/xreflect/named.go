@@ -26,7 +26,6 @@
 package xreflect
 
 import (
-	"go/ast"
 	"go/token"
 	"go/types"
 	"reflect"
@@ -34,174 +33,41 @@ import (
 	"unsafe"
 )
 
-// NumMethod returns the number of explicitly declared methods of named type or interface t.
-// Wrapper methods for embedded fields or embedded interfaces are not counted.
-func (t *xtype) NumMethod() int {
-	num := 0
-	if gtype, ok := t.gtype.Underlying().(*types.Interface); ok {
-		num = gtype.NumExplicitMethods()
-	} else if gtype, ok := t.gtype.(*types.Named); ok {
-		num = gtype.NumMethods()
-	}
-	return num
-}
-
-// Method return the i-th explicitly declared method of named type or interface t.
-// Wrapper methods for embedded fields are not counted
-func (t *xtype) Method(i int) Method {
-	v := t.universe
+// NamedOf returns a new named type for the given type name and package.
+// Initially, the underlying type may be set to interface{} - use SetUnderlying to change it.
+// These two steps are separate to allow creating self-referencing types,
+// as for example type List struct { Elem int; Rest *List }
+func (v *Universe) NamedOf(name, pkgpath string, kind reflect.Kind) Type {
 	if v.ThreadSafe {
 		defer un(lock(v))
 	}
-	return t.method(i)
+	return v.namedOf(name, pkgpath, kind)
 }
 
-func (t *xtype) method(i int) Method {
-	gfunc := t.gmethod(i)
-	name := gfunc.Name()
-	resizemethodvalues(t)
-
-	rtype := t.rtype
-	var rfunctype reflect.Type
-	rfuncs := &t.methodvalues
-	rfunc := t.methodvalues[i]
-	if rfunc.Kind() == reflect.Func {
-		// easy, method is cached already
-		rfunctype = rfunc.Type()
-	} else if gtype, ok := t.gtype.Underlying().(*types.Interface); ok {
-		if rtype.Kind() == reflect.Ptr && isReflectInterfaceStruct(rtype.Elem()) {
-			// rtype is our emulated interface type.
-			// it's a pointer to a struct containing: InterfaceHeader, embeddeds, methods (without receiver)
-			skip := gtype.NumEmbeddeds() + 1
-			rfield := rtype.Elem().Field(i + skip)
-			rfunctype = addreceiver(rtype, rfield.Type)
-		} else if rtype.Kind() != reflect.Interface {
-			xerrorf(t, "inconsistent interface type <%v>: expecting interface reflect.Type, found <%v>", t, rtype)
-		} else if ast.IsExported(name) {
-			// rtype is an interface type, and reflect only returns exported methods
-			// rtype.MethodByName returns a Method with the following caveats
-			// 1) Type == method signature, without a receiver
-			// 2) Func == nil.
-			rmethod, _ := rtype.MethodByName(name)
-			if rmethod.Type == nil {
-				xerrorf(t, "interface type <%v>: reflect method %q not found", t, name)
-			} else if rmethod.Index != i {
-				xerrorf(t, "inconsistent interface type <%v>: method %q has go/types.Func index=%d but reflect.Method index=%d",
-					t, name, i, rmethod.Index)
-			}
-			rfunctype = addreceiver(rtype, rmethod.Type)
-		}
-	} else {
-		rmethod, _ := rtype.MethodByName(gfunc.Name())
-		rfunc = rmethod.Func
-		if rfunc.Kind() != reflect.Func {
-			if rtype.Kind() != reflect.Ptr {
-				// also search in the method set of pointer-to-t
-				rmethod, _ = reflect.PtrTo(rtype).MethodByName(gfunc.Name())
-				rfunc = rmethod.Func
-			}
-		}
-		if rfunc.Kind() != reflect.Func {
-			if ast.IsExported(name) {
-				xerrorf(t, "type <%v>: reflect method %q not found", t, gfunc.Name())
-			}
-		} else {
-			t.methodvalues[i] = rfunc
-			rfunctype = rmethod.Type
-		}
+func (v *Universe) namedOf(name, pkgpath string, kind reflect.Kind) Type {
+	underlying := v.BasicTypes[kind]
+	if underlying == nil {
+		underlying = v.TypeOfInterface
 	}
-	return t.makemethod(i, gfunc, rfuncs, rfunctype) // lock already held
+	return v.reflectNamedOf(name, pkgpath, kind, underlying.ReflectType())
 }
 
-func addreceiver(recv reflect.Type, rtype reflect.Type) reflect.Type {
-	nin := rtype.NumIn()
-	rin := make([]reflect.Type, nin+1)
-	rin[0] = recv
-	for i := 0; i < nin; i++ {
-		rin[i+1] = rtype.In(i)
+// alternate version of namedOf(), to be used when reflect.Type is known
+func (v *Universe) reflectNamedOf(name, pkgpath string, kind reflect.Kind, rtype reflect.Type) Type {
+	underlying := v.BasicTypes[kind]
+	if underlying == nil {
+		underlying = v.TypeOfInterface
 	}
-	nout := rtype.NumOut()
-	rout := make([]reflect.Type, nout)
-	for i := 0; i < nout; i++ {
-		rout[i] = rtype.Out(i)
-	}
-	return reflect.FuncOf(rin, rout, rtype.IsVariadic())
-}
-
-func (t *xtype) gmethod(i int) *types.Func {
-	var gfun *types.Func
-	if gtype, ok := t.gtype.Underlying().(*types.Interface); ok {
-		gfun = gtype.ExplicitMethod(i)
-	} else if gtype, ok := t.gtype.(*types.Named); ok {
-		gfun = gtype.Method(i)
-	} else {
-		xerrorf(t, "Method on invalid type %v", t)
-	}
-	return gfun
-}
-
-func (t *xtype) makemethod(index int, gfun *types.Func, rfuns *[]reflect.Value, rfunctype reflect.Type) Method {
-	// sanity checks
-	name := gfun.Name()
-	gsig := gfun.Type().Underlying().(*types.Signature)
-	if rfunctype != nil {
-		nparams := 0
-		if gsig.Params() != nil {
-			nparams = gsig.Params().Len()
-		}
-		if gsig.Recv() != nil {
-			if nparams+1 != rfunctype.NumIn() {
-				xerrorf(t, `type <%v>: inconsistent %d-th method signature:
-	go/types.Type has receiver <%v> and %d parameters: %v
-	reflect.Type has %d parameters: %v`, t, index, gsig.Recv(), nparams, gsig, rfunctype.NumIn(), rfunctype)
-			}
-		} else if nparams != rfunctype.NumIn() {
-			xerrorf(t, `type <%v>: inconsistent %d-th method signature:
-	go/types.Type has no receiver and %d parameters: %v
-	reflect.Type has %d parameters: %v`, t, index, nparams, gsig, rfunctype.NumIn(), rfunctype)
-		}
-	}
-	var tmethod Type
-	if rfunctype != nil {
-		tmethod = t.universe.maketype(gsig, rfunctype) // lock already held
-	}
-	return Method{
-		Name:  name,
-		Pkg:   (*Package)(gfun.Pkg()),
-		Type:  tmethod,
-		Funs:  rfuns,
-		Index: index,
-		GoFun: gfun,
-	}
-}
-
-func resizemethodvalues(t *xtype) {
-	n := t.NumMethod()
-	if cap(t.methodvalues) < n {
-		slice := make([]reflect.Value, n, n+n/2+4)
-		copy(slice, t.methodvalues)
-		t.methodvalues = slice
-	} else if len(t.methodvalues) < n {
-		t.methodvalues = t.methodvalues[0:n]
-	}
-}
-
-func (v *Universe) NamedOf(name, pkgpath string) Type {
-	if v.ThreadSafe {
-		defer un(lock(v))
-	}
-	return v.namedOf(name, pkgpath)
-}
-
-func (v *Universe) namedOf(name, pkgpath string) Type {
-	underlying := v.TypeOfInterface
 	pkg := v.loadPackage(pkgpath)
-	// typename := types.NewTypeName(token.NoPos, (*types.Package)(pkg), name, underlying.GoType())
 	typename := types.NewTypeName(token.NoPos, (*types.Package)(pkg), name, nil)
 	return v.maketype3(
-		reflect.Invalid, // incomplete type! will be fixed by SetUnderlying
+		// kind may be inaccurate or reflect.Invalid;
+		// underlying.GoType() will often be inaccurate and equal to interface{};
+		// rtype will often be inaccurate and equal to interface{}.
+		// All these issues will be fixed by Type.SetUnderlying()
+		kind,
 		types.NewNamed(typename, underlying.GoType(), nil),
-		underlying.ReflectType(),
+		rtype,
 	)
 }
 
@@ -217,10 +83,17 @@ func (t *xtype) SetUnderlying(underlying Type) {
 			v.InvalidateCache()
 			// xerrorf(t, "SetUnderlying invoked multiple times on named type %v", t)
 		}
-		gunderlying := underlying.GoType().Underlying() // in case underlying is named
+		tunderlying := unwrap(underlying)
+		gunderlying := tunderlying.gtype.Underlying() // in case underlying is named
 		t.kind = gtypeToKind(t, gunderlying)
 		gtype.SetUnderlying(gunderlying)
 		t.rtype = underlying.ReflectType()
+		if t.kind == reflect.Interface {
+			// propagate methodvalues from underlying interface to named type
+			t.methodvalues = tunderlying.methodvalues
+			t.methodcache = nil
+			t.fieldcache = nil
+		}
 	default:
 		xerrorf(t, "SetUnderlying of unnamed type %v", t)
 	}
@@ -241,7 +114,7 @@ func (t *xtype) AddMethod(name string, signature Type) int {
 	if signature.Kind() != reflect.Func {
 		xerrorf(t, "AddMethod on <%v> of non-function: %v", t, signature)
 	}
-	gsig := signature.underlying().(*types.Signature)
+	gsig := signature.gunderlying().(*types.Signature)
 	// accept both signatures "non-nil receiver" and "nil receiver, use the first parameter as receiver"
 	grecv := gsig.Recv()
 	if grecv == nil && gsig.Params().Len() != 0 {

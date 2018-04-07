@@ -23,7 +23,7 @@
  *      Author: Massimiliano Ghilardi
  */
 
-package main
+package cmd
 
 import (
 	"bufio"
@@ -40,14 +40,21 @@ import (
 )
 
 type Cmd struct {
-	*classic.Interp
+	Interp                                   *classic.Interp
 	WriteDeclsAndStmtsToFile, OverwriteFiles bool
 }
 
+func New() *Cmd {
+	cmd := Cmd{}
+	cmd.Init()
+	return &cmd
+}
+
 func (cmd *Cmd) Init() {
-	cmd.Interp = classic.New()
-	cmd.ParserMode = 0
-	cmd.Options = OptTrapPanic | OptShowPrompt | OptShowEval | OptShowEvalType // | OptShowAfterMacroExpansion // | OptDebugMacroExpand // |  OptDebugQuasiquote  // | OptShowEvalDuration // | OptShowAfterParse
+	ir := classic.New()
+	ir.ParserMode = 0
+	ir.Options = OptFastInterpreter | OptTrapPanic | OptShowPrompt | OptShowEval | OptShowEvalType // | OptShowAfterMacroExpansion // | OptDebugMacroExpand // |  OptDebugQuasiquote  // | OptShowEvalDuration // | OptShowAfterParse
+	cmd.Interp = ir
 	cmd.WriteDeclsAndStmtsToFile = false
 	cmd.OverwriteFiles = false
 }
@@ -57,24 +64,24 @@ func (cmd *Cmd) Main(args []string) (err error) {
 		cmd.Init()
 	}
 	ir := cmd.Interp
-	env := cmd.Env
+	g := ir.Globals
 
 	var set, clear Options
-	var repl = true
+	var repl, forcerepl = true, false
 	cmd.WriteDeclsAndStmtsToFile = false
 	cmd.OverwriteFiles = false
 
 	for len(args) > 0 {
 		switch args[0] {
 		case "-c", "--collect":
-			env.Options |= OptCollectDeclarations | OptCollectStatements
+			g.Options |= OptCollectDeclarations | OptCollectStatements
 		case "-e", "--expr":
 			if len(args) > 1 {
 				repl = false
 				buf := bytes.NewBufferString(args[1])
-				buf.WriteByte('\n')        // because ReadMultiLine() needs a final '\n'
-				env.Options |= OptShowEval // set by default, overridden by -s, -v and -vv
-				env.Options = (env.Options | set) &^ clear
+				buf.WriteByte('\n')      // because ReadMultiLine() needs a final '\n'
+				g.Options |= OptShowEval // set by default, overridden by -s, -v and -vv
+				g.Options = (g.Options | set) &^ clear
 				_, err := cmd.EvalReader(buf)
 				if err != nil {
 					return err
@@ -86,11 +93,7 @@ func (cmd *Cmd) Main(args []string) (err error) {
 		case "-h", "--help":
 			return cmd.Usage()
 		case "-i", "--repl":
-			repl = false
-			env.Options |= OptShowPrompt | OptShowEval | OptShowEvalType // set by default, overridden by -s, -v and -vv
-			env.Options = (env.Options | set) &^ clear
-			ir.ReplStdin()
-
+			forcerepl = true
 		case "-m", "--macro-only":
 			set |= OptMacroExpandOnly
 			clear &^= OptMacroExpandOnly
@@ -117,31 +120,31 @@ func (cmd *Cmd) Main(args []string) (err error) {
 		default:
 			arg := args[0]
 			if len(arg) > 0 && arg[0] == '-' {
-				fmt.Fprintf(env.Stderr, "gomacro: unrecognized option '%s'.\nTry 'gomacro --help' for more information\n", arg)
+				fmt.Fprintf(g.Stderr, "gomacro: unrecognized option '%s'.\nTry 'gomacro --help' for more information\n", arg)
 				return nil
 			}
 			repl = false
 			if cmd.WriteDeclsAndStmtsToFile {
-				env.Options |= OptCollectDeclarations | OptCollectStatements
+				g.Options |= OptCollectDeclarations | OptCollectStatements
 			}
-			env.Options &^= OptShowPrompt | OptShowEval | OptShowEvalType // cleared by default, overridden by -s, -v and -vv
-			env.Options = (env.Options | set) &^ clear
+			g.Options &^= OptShowPrompt | OptShowEval | OptShowEvalType // cleared by default, overridden by -s, -v and -vv
+			g.Options = (g.Options | set) &^ clear
 			cmd.EvalFileOrDir(arg)
 
-			env.Imports, env.Declarations, env.Statements = nil, nil, nil
+			g.Imports, g.Declarations, g.Statements = nil, nil, nil
 		}
 		args = args[1:]
 	}
-	if repl {
-		env.Options |= OptShowPrompt | OptShowEval | OptShowEvalType // set by default, overridden by -s, -v and -vv
-		env.Options = (env.Options | set) &^ clear
+	if repl || forcerepl {
+		g.Options |= OptShowPrompt | OptShowEval | OptShowEvalType // set by default, overridden by -s, -v and -vv
+		g.Options = (g.Options | set) &^ clear
 		ir.ReplStdin()
 	}
 	return nil
 }
 
 func (cmd *Cmd) Usage() error {
-	fmt.Fprint(cmd.Env.Stdout, `usage: gomacro [OPTIONS] [files-and-dirs]
+	fmt.Fprint(cmd.Interp.Stdout, `usage: gomacro [OPTIONS] [files-and-dirs]
 
   Recognized options:
     -c,   --collect          collect declarations and statements, to print them later
@@ -221,10 +224,10 @@ const disclaimer = `// ---------------------------------------------------------
 `
 
 func (cmd *Cmd) EvalFile(filename string) (err error) {
-	env := cmd.Env
-	env.Declarations = nil
-	env.Statements = nil
-	saveFilename := env.Filename
+	g := cmd.Interp.Globals
+	g.Declarations = nil
+	g.Statements = nil
+	saveFilename := g.Filename
 
 	f, err := os.Open(filename)
 	if err != nil {
@@ -232,9 +235,9 @@ func (cmd *Cmd) EvalFile(filename string) (err error) {
 	}
 	defer func() {
 		f.Close()
-		env.Filename = saveFilename
+		g.Filename = saveFilename
 	}()
-	env.Filename = filename
+	g.Filename = filename
 	var comments string
 	comments, err = cmd.EvalReader(f)
 	if err != nil {
@@ -253,14 +256,14 @@ func (cmd *Cmd) EvalFile(filename string) (err error) {
 		if !cmd.OverwriteFiles {
 			_, err := os.Stat(outname)
 			if err == nil {
-				env.Warnf("file exists already, use -f to force overwriting: %v", outname)
+				g.Warnf("file exists already, use -f to force overwriting: %v", outname)
 				return nil
 			}
 		}
-		env.WriteDeclsToFile(outname, disclaimer, comments)
+		g.WriteDeclsToFile(outname, disclaimer, comments)
 
-		if env.Options&OptShowEval != 0 {
-			fmt.Fprintf(env.Stdout, "// processed file: %v\t-> %v\n", filename, outname)
+		if g.Options&OptShowEval != 0 {
+			fmt.Fprintf(g.Stdout, "// processed file: %v\t-> %v\n", filename, outname)
 		}
 	}
 	return nil
@@ -277,7 +280,7 @@ func (cmd *Cmd) EvalReader(src io.Reader) (comments string, err error) {
 			}
 		}
 	}()
-	in := bufio.NewReader(src)
+	in := MakeBufReadline(bufio.NewReader(src), cmd.Interp.Stdout)
 	ir := cmd.Interp
 	env := ir.Env
 	env.Options &^= OptShowPrompt // parsing a file: suppress prompt
