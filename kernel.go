@@ -356,8 +356,6 @@ func handleExecuteRequest(ir *interp.Interp, receipt msgReceipt) error {
 
 	vals, executionErr := doEval(ir, code)
 
-	//TODO if value is a certain type like image then display it instead
-
 	// Close and restore the streams.
 	wOut.Close()
 	os.Stdout = oldStdout
@@ -373,8 +371,17 @@ func handleExecuteRequest(ir *interp.Interp, receipt msgReceipt) error {
 		content["user_expressions"] = make(map[string]string)
 
 		if !silent && vals != nil {
+
+			// Render the result of the execution.
+			var data jupyterRuntime.DisplayData
+			if len(vals) == 1 {
+				data = jupyterRuntime.Render(vals[0])
+			} else {
+				data = jupyterRuntime.Render(fmt.Sprint(vals...))
+			}
+
 			// Publish the result of the execution.
-			if err := receipt.PublishExecutionResult(ExecCounter, fmt.Sprint(vals...)); err != nil {
+			if err := receipt.PublishExecutionResult(ExecCounter, data.Data, data.Metadata); err != nil {
 				log.Printf("Error publishing execution result: %v\n", err)
 			}
 		}

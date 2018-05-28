@@ -253,8 +253,11 @@ func (receipt *msgReceipt) PublishExecutionInput(execCount int, code string) err
 	)
 }
 
-// PublishExecuteResult publishes the result of the `execCount` execution as a string.
-func (receipt *msgReceipt) PublishExecutionResult(execCount int, output string) error {
+// PublishExecuteResult publishes the result of the `execCount` execution.
+func (receipt *msgReceipt) PublishExecutionResult(execCount int, data bundledMIMEData, metadata bundledMIMEData) error {
+	if metadata == nil {
+		metadata = make(bundledMIMEData)
+	}
 	return receipt.Publish("execute_result",
 		struct {
 			ExecCount int             `json:"execution_count"`
@@ -262,8 +265,8 @@ func (receipt *msgReceipt) PublishExecutionResult(execCount int, output string) 
 			Metadata  bundledMIMEData `json:"metadata"`
 		}{
 			ExecCount: execCount,
-			Data:      newTextBundledMIMEData(output),
-			Metadata:  make(bundledMIMEData),
+			Data:      data,
+			Metadata:  metadata,
 		},
 	)
 }
