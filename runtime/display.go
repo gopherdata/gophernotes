@@ -1,4 +1,4 @@
-package main
+package runtime
 
 import (
 	"fmt"
@@ -13,7 +13,7 @@ import (
 // representations.
 
 type HTMLRenderable interface {
-	// RenderAsHTML renders the data as an HTML string. The representaiton should **not** include the
+	// RenderAsHTML renders the data as an HTML string. The representation should **not** include the
 	// `<html>` or `<body>` tags.
 	RenderAsHTML() string
 }
@@ -24,7 +24,7 @@ type MarkdownRenderable interface {
 }
 
 type SVGRenderable interface {
-	// RenderAsSVG renders the data as an svg string (xml) **without the `<svg></svg>` tag.
+	// RenderAsSVG renders the data as an svg string (xml) **without** the `<svg></svg>` tag.
 	RenderAsSVG() string
 }
 
@@ -95,7 +95,9 @@ const (
 
 func Text(data interface{}) DisplayData {
 	return DisplayData{
-		Data: newTextBundledMIMEData(fmt.Sprint(data)),
+		Data: map[string]interface{}{
+			"text/plain": fmt.Sprint(data),
+		},
 	}
 }
 
@@ -164,14 +166,17 @@ func JavaScript(javascript JavaScriptRenderable) DisplayData {
 
 //TODO the above functions need to handle the metadata
 
-func (receipt *msgReceipt) display(data interface{}) error {
+func Render(data interface{}) DisplayData {
 	if dispData, ok := data.(DisplayData); ok {
-		return receipt.PublishDisplayData(dispData.Data, dispData.Metadata, dispData.Transient)
+		return dispData
 	} else if bundleRenderer, ok := data.(MIMEBundleRenderable); ok {
 		data, metadata := bundleRenderer.RenderAsMIMEBundle()
-		return receipt.PublishDisplayData(data, metadata, map[string]interface{}{})
+		return DisplayData{
+			Data:      data,
+			Metadata:  metadata,
+			Transient: make(map[string]interface{}),
+		}
 	} else {
-		dispData := Text(data)
-		return receipt.PublishDisplayData(dispData.Data, dispData.Metadata, dispData.Transient)
+		return Text(data)
 	}
 }

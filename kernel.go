@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"go/ast"
-	"io"
+		"io"
 	"io/ioutil"
 	"log"
 	"os"
@@ -17,6 +17,7 @@ import (
 	"github.com/cosmos72/gomacro/ast2"
 	"github.com/cosmos72/gomacro/base"
 	"github.com/cosmos72/gomacro/classic"
+		jupyterRuntime "github.com/gopherdata/gophernotes/runtime"
 	zmq "github.com/pebbe/zmq4"
 )
 
@@ -347,7 +348,10 @@ func handleExecuteRequest(ir *classic.Interp, receipt msgReceipt) error {
 	}()
 
 	// Inject the display function into the environment
-	ir.Binds.Ensure().Set("Display", reflect.ValueOf(receipt.display))
+	ir.Binds.Ensure().Set("Display", reflect.ValueOf(func(data interface{}) error {
+		dispData := jupyterRuntime.Render(data)
+		return receipt.PublishDisplayData(dispData.Data, dispData.Metadata, dispData.Transient)
+	}))
 	//TODO include the runtime.go in the kernel space somehow. Get all exported members?
 
 	vals, executionErr := doEval(ir, code)
