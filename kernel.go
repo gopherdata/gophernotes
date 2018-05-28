@@ -1,24 +1,25 @@
 package main
 
 import (
+	"bufio"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"go/ast"
-		"io"
+	"io"
 	"io/ioutil"
 	"log"
 	"os"
-		"runtime"
+	"reflect"
+	"runtime"
+	"strings"
 	"sync"
 	"time"
 
-
-"github.com/cosmos72/gomacro/ast2"
-"github.com/cosmos72/gomacro/base"
-interp "github.com/cosmos72/gomacro/fast"
-jupyterRuntime "github.com/gopherdata/gophernotes/runtime"
-zmq "github.com/pebbe/zmq4"
+	"github.com/cosmos72/gomacro/ast2"
+	"github.com/cosmos72/gomacro/base"
+	interp "github.com/cosmos72/gomacro/fast"
+	jupyterRuntime "github.com/gopherdata/gophernotes/runtime"
+	zmq "github.com/pebbe/zmq4"
 )
 
 // ExecCounter is incremented each time we run user code in the notebook.
@@ -418,59 +419,53 @@ func doEval(ir *interp.Interp, code string) (val []interface{}, err error) {
 	// Reset the error line so that error messages correspond to the lines from the cell.
 	compiler.Line = 0
 
-	// Parse the input code (and don't preform gomacro's macroexpansion).
-	// These may panic but this will be recovered by the deferred recover() above so that the error
-	// may be returned instead.
-	nodes := compiler.ParseBytes([]byte(code))
-	srcAst := ast2.AnyToAst(nodes, "doEval")
+	// Manually preform the iteration that gomacro's Repl does as it actually produces different results then a
+	// single Eval with respect to (at least) method resolution.
 
-	// If there is no srcAst then we must be evaluating nothing. The result must be nil then.
-	if srcAst == nil {
-		return nil, nil
-	}
+	// Read from the cell source code string.
+	ir.Comp.CompGlobals.Readline = base.MakeBufReadline(bufio.NewReader(strings.NewReader(code)), ioutil.Discard)
 
-	// Check if the last node is an expression. If the last node is not an expression then nothing
-	// is returned as a value. For example evaluating a function declaration shouldn't return a value but
-	// just have the side effect of declaring the function.
-	var srcEndsWithExpr bool
-	if len(nodes) > 0 {
-		_, srcEndsWithExpr = nodes[len(nodes)-1].(ast.Expr)
-	}
+	// Save the most recent eval results.
+	var results []reflect.Value
 
-	// Compile the ast.
-	compiledSrc := ir.CompileAst(srcAst)
-
-	// Evaluate the code.
-	result, results := ir.RunExpr(compiledSrc)
-
-	// If the source ends with an expression, then the result of the execution is the value of the expression. In the
-	// event that all return values are nil, the result is also nil.
-	if srcEndsWithExpr {
-		// `len(results) == 0` implies a single result stored in `result`.
-		if len(results) == 0 {
-			if val := base.ValueInterface(result); val != nil {
-				return []interface{}{val}, nil
-			}
-			return nil, nil
+	// Read the entire string one statement at a time.
+	for src, firstToken := ir.Read(); len(src) != 0; src, firstToken = ir.Read() {
+		if firstToken < 0 {
+			continue
 		}
 
-		// Count the number of non-nil values in the output. If they are all nil then the output is skipped.
-		nonNilCount := 0
-		var values []interface{}
-		for _, result := range results {
-			val := base.ValueInterface(result)
-			if val != nil {
-				nonNilCount++
-			}
-			values = append(values, val)
+		// Parse the input code (and don't preform gomacro's macroexpansion).
+		// These may panic but this will be recovered by the deferred recover() above so that the error
+		// may be returned instead.
+		nodes := compiler.ParseBytes([]byte(src))
+		srcAst := ast2.AnyToAst(nodes, "doEval")
+
+		// If there is no srcAst then we must be evaluating nothing. The result must be nil then.
+		if srcAst == nil {
+			continue
 		}
 
-		if nonNilCount > 0 {
-			return values, nil
-		}
-		return nil, nil
+		// Compile the ast.
+		compiledSrc := ir.CompileAst(srcAst)
+
+		// Evaluate the code and save the results.
+		results, _ = ir.RunExpr(compiledSrc)
 	}
 
+	// Count the number of non-nil values in the output. If they are all nil then the output is skipped.
+	nonNilCount := 0
+	var values []interface{}
+	for _, result := range results {
+		val := base.ValueInterface(result)
+		if val != nil {
+			nonNilCount++
+		}
+		values = append(values, val)
+	}
+
+	if nonNilCount > 0 {
+		return values, nil
+	}
 	return nil, nil
 }
 
