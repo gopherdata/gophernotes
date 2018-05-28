@@ -1,20 +1,11 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017 Massimiliano Ghilardi
+ * Copyright (C) 2017-2018 Massimiliano Ghilardi
  *
- *     This program is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU Lesser General Public License as published
- *     by the Free Software Foundation, either version 3 of the License, or
- *     (at your option) any later version.
- *
- *     This program is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU Lesser General Public License for more details.
- *
- *     You should have received a copy of the GNU Lesser General Public License
- *     along with this program.  If not, see <https://www.gnu.org/licenses/lgpl>.
+ *     This Source Code Form is subject to the terms of the Mozilla Public
+ *     License, v. 2.0. If a copy of the MPL was not distributed with this
+ *     file, You can obtain one at http://mozilla.org/MPL/2.0/.
  *
  *
  * import_scanner.go
@@ -30,6 +21,7 @@ import (
 	"go/types"
 	r "reflect"
 	"sort"
+	"strings"
 )
 
 type TypeVisitor func(name string, t types.Type) bool
@@ -172,7 +164,9 @@ func extractInterface(obj types.Object, requireAllMethodsExported bool) *types.I
 	case *types.TypeName:
 		u := obj.Type().Underlying()
 		if u, ok := u.(*types.Interface); ok {
-			if !requireAllMethodsExported || allMethodsExported(u) {
+			// do not export proxies for empty interfaces:
+			// using reflect.Value.Convert() at runtime is enough
+			if u.NumMethods() != 0 && (!requireAllMethodsExported || allMethodsExported(u)) {
 				return u
 			}
 		}
@@ -190,9 +184,31 @@ func allMethodsExported(intf *types.Interface) bool {
 	return true
 }
 
+// return the string after last '/' in path
+func FileName(path string) string {
+	return path[1+strings.LastIndexByte(path, '/'):]
+}
+
+// return the string up to (and including) last '/' in path
+func DirName(path string) string {
+	return path[0 : 1+strings.LastIndexByte(path, '/')]
+}
+
+// remove last byte from string
+func RemoveLastByte(s string) string {
+	if n := len(s); n != 0 {
+		s = s[:n-1]
+	}
+	return s
+}
+
 // we need to collect only the imports that actually appear in package's interfaces methods
-// because Go rejects programs with unused imports
-func (o *Output) CollectPackageImports(pkg *types.Package, requireAllInterfaceMethodsExported bool) []string {
+// because Go rejects programs with unused imports.
+//
+// To avoid naming conflicts when importing two different packages
+// that end with the same name, as for example image/draw and golang.org/x/image/draw,
+// we rename conflicting packages and return a map[path]renamed
+func (o *Output) CollectPackageImportsWithRename(pkg *types.Package, requireAllInterfaceMethodsExported bool) map[string]string {
 	ie := importExtractor{
 		// we always need to import the package itself
 		imports: map[string]bool{pkg.Path(): true},
@@ -200,12 +216,80 @@ func (o *Output) CollectPackageImports(pkg *types.Package, requireAllInterfaceMe
 	}
 	ie.visitPackage(pkg, requireAllInterfaceMethodsExported)
 
-	strings := make([]string, len(ie.imports))
+	// for deterministic renaming, use a sorted []string instead of a map[string]bool
+	paths := getKeys(ie.imports)
+	sort.Strings(paths)
+
+	nametopath := renamePackages(paths)
+	pathtoname := transposeKeyValue(nametopath)
+
+	// do NOT rename the package we are scanning!
+	path := pkg.Path()
+	name := FileName(path)
+	if name2 := pathtoname[path]; name2 != name {
+		// some *other* path may be associated to name.
+		// in case, swap the names of the two packages
+		if path2, ok := nametopath[name]; ok {
+			pathtoname[path2] = name2
+		}
+		pathtoname[path] = name
+	}
+	return pathtoname
+}
+
+// given a slice []path, return a map[name]path where all paths
+// that end in the same name have been assigned unique names
+func renamePackages(in []string) map[string]string {
+	out := make(map[string]string)
+	for _, path := range in {
+		name := renamePackage(path, out)
+		out[name] = path
+	}
+	return out
+}
+
+// given a path and a map[name]path, extract the path last name.
+// Change it (if needed) to a value that is NOT in map and return it.
+func renamePackage(path string, out map[string]string) string {
+	name := FileName(path)
+	if _, exists := out[name]; !exists {
+		return name
+	}
+	n := len(name)
+	for n != 0 && isDigit(name[n-1]) {
+		n--
+	}
+	name = name[:n]
+	for i := uint64(0); i < ^uint64(0); i++ {
+		namei := fmt.Sprintf("%s%d", name, i)
+		if _, exists := out[namei]; !exists {
+			return namei
+		}
+	}
+	Errorf("failed to find a non-conflicting rename for package %q", path)
+	return "???"
+}
+
+func isDigit(b byte) bool {
+	return b >= '0' && b <= '9'
+}
+
+// given a map k -> v, return an *unsorted* slice of its keys
+func getKeys(in map[string]bool) []string {
+	keys := make([]string, len(in))
 	i := 0
-	for str := range ie.imports {
-		strings[i] = str
+	for key := range in {
+		keys[i] = key
 		i++
 	}
-	sort.Strings(strings)
-	return strings
+	return keys
+}
+
+// given a map k -> v, return a map v -> k
+func transposeKeyValue(in map[string]string) map[string]string {
+	out := make(map[string]string, len(in))
+	for k, v := range in {
+		out[v] = k
+	}
+	return out
 }

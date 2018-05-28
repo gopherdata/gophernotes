@@ -19,12 +19,12 @@ func init() {
 		"New":	ValueOf(crc64.New),
 		"Size":	ValueOf(crc64.Size),
 		"Update":	ValueOf(crc64.Update),
-	},Types: map[string]Type{
+	}, Types: map[string]Type{
 		"Table":	TypeOf((*crc64.Table)(nil)).Elem(),
-	},Untypeds: map[string]string{
+	}, Untypeds: map[string]string{
 		"ECMA":	"int:14514072000185962306",
 		"ISO":	"int:15564440312192434176",
 		"Size":	"int:8",
-	},
+	}, 
 	}
 }

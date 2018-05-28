@@ -13,6 +13,10 @@ import (
 func init() {
 	Packages["crypto"] = Package{
 	Binds: map[string]Value{
+		"BLAKE2b_256":	ValueOf(crypto.BLAKE2b_256),
+		"BLAKE2b_384":	ValueOf(crypto.BLAKE2b_384),
+		"BLAKE2b_512":	ValueOf(crypto.BLAKE2b_512),
+		"BLAKE2s_256":	ValueOf(crypto.BLAKE2s_256),
 		"MD4":	ValueOf(crypto.MD4),
 		"MD5":	ValueOf(crypto.MD5),
 		"MD5SHA1":	ValueOf(crypto.MD5SHA1),
@@ -29,7 +33,7 @@ func init() {
 		"SHA512":	ValueOf(crypto.SHA512),
 		"SHA512_224":	ValueOf(crypto.SHA512_224),
 		"SHA512_256":	ValueOf(crypto.SHA512_256),
-	},Types: map[string]Type{
+	}, Types: map[string]Type{
 		"Decrypter":	TypeOf((*crypto.Decrypter)(nil)).Elem(),
 		"DecrypterOpts":	TypeOf((*crypto.DecrypterOpts)(nil)).Elem(),
 		"Hash":	TypeOf((*crypto.Hash)(nil)).Elem(),
@@ -37,63 +41,45 @@ func init() {
 		"PublicKey":	TypeOf((*crypto.PublicKey)(nil)).Elem(),
 		"Signer":	TypeOf((*crypto.Signer)(nil)).Elem(),
 		"SignerOpts":	TypeOf((*crypto.SignerOpts)(nil)).Elem(),
-	},Proxies: map[string]Type{
-		"Decrypter":	TypeOf((*Decrypter_crypto)(nil)).Elem(),
-		"DecrypterOpts":	TypeOf((*DecrypterOpts_crypto)(nil)).Elem(),
-		"PrivateKey":	TypeOf((*PrivateKey_crypto)(nil)).Elem(),
-		"PublicKey":	TypeOf((*PublicKey_crypto)(nil)).Elem(),
-		"Signer":	TypeOf((*Signer_crypto)(nil)).Elem(),
-		"SignerOpts":	TypeOf((*SignerOpts_crypto)(nil)).Elem(),
-	},
+	}, Proxies: map[string]Type{
+		"Decrypter":	TypeOf((*P_crypto_Decrypter)(nil)).Elem(),
+		"Signer":	TypeOf((*P_crypto_Signer)(nil)).Elem(),
+		"SignerOpts":	TypeOf((*P_crypto_SignerOpts)(nil)).Elem(),
+	}, 
 	}
 }
 
 // --------------- proxy for crypto.Decrypter ---------------
-type Decrypter_crypto struct {
+type P_crypto_Decrypter struct {
 	Object	interface{}
 	Decrypt_	func(_proxy_obj_ interface{}, rand io.Reader, msg []byte, opts crypto.DecrypterOpts) (plaintext []byte, err error)
 	Public_	func(interface{}) crypto.PublicKey
 }
-func (Proxy *Decrypter_crypto) Decrypt(rand io.Reader, msg []byte, opts crypto.DecrypterOpts) (plaintext []byte, err error) {
-	return Proxy.Decrypt_(Proxy.Object, rand, msg, opts)
+func (P *P_crypto_Decrypter) Decrypt(rand io.Reader, msg []byte, opts crypto.DecrypterOpts) (plaintext []byte, err error) {
+	return P.Decrypt_(P.Object, rand, msg, opts)
 }
-func (Proxy *Decrypter_crypto) Public() crypto.PublicKey {
-	return Proxy.Public_(Proxy.Object)
-}
-
-// --------------- proxy for crypto.DecrypterOpts ---------------
-type DecrypterOpts_crypto struct {
-	Object	interface{}
-}
-
-// --------------- proxy for crypto.PrivateKey ---------------
-type PrivateKey_crypto struct {
-	Object	interface{}
-}
-
-// --------------- proxy for crypto.PublicKey ---------------
-type PublicKey_crypto struct {
-	Object	interface{}
+func (P *P_crypto_Decrypter) Public() crypto.PublicKey {
+	return P.Public_(P.Object)
 }
 
 // --------------- proxy for crypto.Signer ---------------
-type Signer_crypto struct {
+type P_crypto_Signer struct {
 	Object	interface{}
 	Public_	func(interface{}) crypto.PublicKey
 	Sign_	func(_proxy_obj_ interface{}, rand io.Reader, digest []byte, opts crypto.SignerOpts) (signature []byte, err error)
 }
-func (Proxy *Signer_crypto) Public() crypto.PublicKey {
-	return Proxy.Public_(Proxy.Object)
+func (P *P_crypto_Signer) Public() crypto.PublicKey {
+	return P.Public_(P.Object)
 }
-func (Proxy *Signer_crypto) Sign(rand io.Reader, digest []byte, opts crypto.SignerOpts) (signature []byte, err error) {
-	return Proxy.Sign_(Proxy.Object, rand, digest, opts)
+func (P *P_crypto_Signer) Sign(rand io.Reader, digest []byte, opts crypto.SignerOpts) (signature []byte, err error) {
+	return P.Sign_(P.Object, rand, digest, opts)
 }
 
 // --------------- proxy for crypto.SignerOpts ---------------
-type SignerOpts_crypto struct {
+type P_crypto_SignerOpts struct {
 	Object	interface{}
 	HashFunc_	func(interface{}) crypto.Hash
 }
-func (Proxy *SignerOpts_crypto) HashFunc() crypto.Hash {
-	return Proxy.HashFunc_(Proxy.Object)
+func (P *P_crypto_SignerOpts) HashFunc() crypto.Hash {
+	return P.HashFunc_(P.Object)
 }

@@ -30,7 +30,7 @@ func init() {
 		"ToNegativeInf":	ValueOf(big.ToNegativeInf),
 		"ToPositiveInf":	ValueOf(big.ToPositiveInf),
 		"ToZero":	ValueOf(big.ToZero),
-	},Types: map[string]Type{
+	}, Types: map[string]Type{
 		"Accuracy":	TypeOf((*big.Accuracy)(nil)).Elem(),
 		"ErrNaN":	TypeOf((*big.ErrNaN)(nil)).Elem(),
 		"Float":	TypeOf((*big.Float)(nil)).Elem(),
@@ -38,11 +38,11 @@ func init() {
 		"Rat":	TypeOf((*big.Rat)(nil)).Elem(),
 		"RoundingMode":	TypeOf((*big.RoundingMode)(nil)).Elem(),
 		"Word":	TypeOf((*big.Word)(nil)).Elem(),
-	},Untypeds: map[string]string{
+	}, Untypeds: map[string]string{
 		"MaxBase":	"rune:36",
 		"MaxExp":	"int:2147483647",
 		"MaxPrec":	"int:4294967295",
 		"MinExp":	"int:-2147483648",
-	},
+	}, 
 	}
 }

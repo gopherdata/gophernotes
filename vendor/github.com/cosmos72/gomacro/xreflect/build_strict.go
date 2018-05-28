@@ -1,25 +1,13 @@
-// +build !gomacro_xreflect_easy
+// +build gomacro_xreflect_strict
 
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017 Massimiliano Ghilardi
+ * Copyright (C) 2017-2018 Massimiliano Ghilardi
  *
- *     This program is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU Lesser General Public License as published
- *     by the Free Software Foundation, either version 3 of the License, or
- *     (at your option) any later version.
- *
- *     This program is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU Lesser General Public License for more details.
- *
- *     You should have received a copy of the GNU Lesser General Public License
- *     along with this program.  If not, see <https://www.gnu.org/licenses/lgpl>.
- *
- *     You should have received a copy of the GNU General Public License
- *     along with this program.  If not, see <http//www.gnu.org/licenses/>.
+ *     This Source Code Form is subject to the terms of the Mozilla Public
+ *     License, v. 2.0. If a copy of the MPL was not distributed with this
+ *     file, You can obtain one at http://mozilla.org/MPL/2.0/.
  *
  * build_strict.go
  *
@@ -34,7 +22,9 @@ import (
 	"reflect"
 )
 
-type Type []xtype
+// Type:s must be compared with IdenticalTo, not with ==
+// produce compile-time error on == between Type:s
+type Type []*xtype
 
 // Align returns the alignment in bytes of a value of
 // this type when allocated in memory.
@@ -46,6 +36,11 @@ func (t Type) Align() int {
 // this type when used as a field in a struct.
 func (t Type) FieldAlign() int {
 	return t[0].FieldAlign()
+}
+
+// Identical reports whether the type is identical to type u.
+func (t Type) IdenticalTo(u Type) bool {
+	return identicalType(t, u)
 }
 
 // AssignableTo reports whether a value of the type is assignable to type u.
@@ -180,8 +175,7 @@ func (t Type) ChanDir() reflect.ChanDir {
 // and before using the interface type in any way other than to form other types.
 // Complete returns the receiver.
 func (t Type) Complete() Type {
-	t[0].Complete()
-	return t
+	return t[0].Complete()
 }
 
 // Elem returns a type's element type.
@@ -249,9 +243,9 @@ func (t Type) In(i int) Type {
 	return t[0].In(i)
 }
 
-// Method return the i-th explicitly declared method of named type or interface t.
-// Wrapper methods for embedded fields or embedded interfaces are not returned.
-// It panics if the type is unnamed, or if the type's Kind is not Interface
+// For interfaces, Method returns the i-th method, including methods from embedded interfaces.
+// For all other named types, Method returns the i-th explicitly declared method, ignoring wrapper methods for embedded fields.
+// It panics if i is outside the range 0 .. NumMethod()-1
 func (t Type) Method(i int) Method {
 	return t[0].Method(i)
 }
@@ -263,10 +257,29 @@ func (t Type) MethodByName(name, pkgpath string) (method Method, count int) {
 	return t[0].MethodByName(name, pkgpath)
 }
 
-// NumMethod returns the number of explicitly declared methods of named type or interface t.
-// Wrapper methods for embedded fields or embedded interfaces are not counted.
+// For interfaces, NumMethod returns *total* number of methods for interface t,
+// including wrapper methods for embedded interfaces.
+// For all other named types, NumMethod returns the number of explicitly declared methods,
+// ignoring wrapper methods for embedded fields.
+// Returns 0 for other unnamed types.
 func (t Type) NumMethod() int {
 	return t[0].NumMethod()
+}
+
+// NumExplicitMethod returns the number of explicitly declared methods of named type or interface t.
+// Wrapper methods for embedded fields or embedded interfaces are not counted.
+func (t Type) NumExplicitMethod() int {
+	return t[0].NumExplicitMethod()
+}
+
+// NumMethod returns the *total* number of methods for interface or named type t,
+// including wrapper methods for embedded fields or embedded interfaces.
+// Note: it has slightly different semantics from go/types.(*Named).NumMethods(),
+//       since the latter returns 0 for named interfaces, and callers need to manually invoke
+//       goNamedType.Underlying().NumMethods() to retrieve the number of methods
+//       of a named interface
+func (t Type) NumAllMethod() int {
+	return t[0].NumAllMethod()
 }
 
 // NumField returns a struct type's field count.
@@ -307,12 +320,12 @@ func (t Type) SetUnderlying(underlying Type) {
 	t[0].SetUnderlying(underlying)
 }
 
-// underlying returns the underlying types.Type of a type.
+// gunderlying returns the underlying types.Type of a type.
 // TODO implement Underlying() Type ?
 // Synthetizing the underlying reflect.Type is not possible for interface types,
 // or for struct types with embedded or unexported fields.
-func (t Type) underlying() types.Type {
-	return t[0].underlying()
+func (t Type) gunderlying() types.Type {
+	return t[0].gunderlying()
 }
 
 func (t Type) Universe() *Universe {
@@ -325,21 +338,16 @@ func (t Type) GetMethods() *[]reflect.Value {
 	return t[0].GetMethods()
 }
 
-// Complete marks an interface type as complete and computes wrapper methods for embedded fields.
-// It must be called by users of InterfaceOf after the interface's embedded types are fully defined
-// and before using the interface type in any way other than to form other types.
-func (t *xtype) Complete() {
-	if t.kind != reflect.Interface {
-		xerrorf(t, "Complete of non-interface %v", t)
-	}
-	gtype := t.gtype.Underlying().(*types.Interface)
-	gtype.Complete()
-}
-
 func wrap(t *xtype) Type {
-	return Type{*t}
+	if t != nil {
+		return Type{t}
+	}
+	return nil
 }
 
 func unwrap(t Type) *xtype {
-	return &t[0]
+	if len(t) != 0 {
+		return t[0]
+	}
+	return nil
 }

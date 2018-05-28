@@ -1,20 +1,11 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017 Massimiliano Ghilardi
+ * Copyright (C) 2017-2018 Massimiliano Ghilardi
  *
- *     This program is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU Lesser General Public License as published
- *     by the Free Software Foundation, either version 3 of the License, or
- *     (at your option) any later version.
- *
- *     This program is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU Lesser General Public License for more details.
- *
- *     You should have received a copy of the GNU Lesser General Public License
- *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *     This Source Code Form is subject to the terms of the Mozilla Public
+ *     License, v. 2.0. If a copy of the MPL was not distributed with this
+ *     file, You can obtain one at http://mozilla.org/MPL/2.0/.
  *
  *
  * func2ret0.go
@@ -47,11 +38,83 @@ import (
 	return str
 }
 
-// convert a well-known reflect.Type into one of the constants TypeOf*
-:func maketypeident(t r.Type) *ast.Ident {
-	name := "TypeOf" + upcasefirstbyte(t.Name())
+:func makeprefixtypeident(prefix string, t r.Type) *ast.Ident {
+	name := prefix + upcasefirstbyte(t.Name())
 	return &ast.Ident{Name: name}
 }
+
+// convert a well-known reflect.Type into one of the constants TypeOf*
+:func maketypeident(t r.Type) *ast.Ident {
+	return makeprefixtypeident("TypeOf", t)
+}
+
+:macro mcallfuncy2ret0(typ ast.Node) ast.Node {
+	var t r.Type = EvalType(typ)
+	ident := makeprefixtypeident("func2ret0", t)
+	return ~"{
+		ret = ~,ident (m, indexes, karg1, debugC)
+	}
+}
+:macro mfuncxy2ret0(dummy ast.Node) ast.Node {
+	return ~"{
+		/* not used
+		argdecls := &[2]func(*Env, r.Value){nil, nil}
+		for i, bind := range m.Param {
+			argdecls[i] = c.DeclBindRuntimeValue(bind)
+			if argdecls[i] == nil {
+				argdecls[i] = declBindRuntimeValueNop
+			}
+		}
+		*/
+		switch karg0 {
+		case r.Bool:      {mcallfuncy2ret0; bool}
+		case r.Int:       {mcallfuncy2ret0; int}
+		case r.Int8:      {mcallfuncy2ret0; int8}
+		case r.Int16:     {mcallfuncy2ret0; int16}
+		case r.Int32:     {mcallfuncy2ret0; int32}
+		case r.Int64:     {mcallfuncy2ret0; int64}
+		case r.Uint:      {mcallfuncy2ret0; uint}
+		case r.Uint8:     {mcallfuncy2ret0; uint8}
+		case r.Uint16:    {mcallfuncy2ret0; uint16}
+		case r.Uint32:    {mcallfuncy2ret0; uint32}
+		case r.Uint64:    {mcallfuncy2ret0; uint64}
+		case r.Uintptr:   {mcallfuncy2ret0; uintptr}
+		case r.Float32:   {mcallfuncy2ret0; float32}
+		case r.Float64:   {mcallfuncy2ret0; float64}
+		case r.Complex64: {mcallfuncy2ret0; complex64}
+		case r.Complex128:{mcallfuncy2ret0; complex128}
+		case r.String:    {mcallfuncy2ret0; string}
+		}
+	}
+}
+
+// ==================================== func2ret0 ========================================
+
+func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
+	karg0 := t.In(0).Kind()
+	karg1 := t.In(1).Kind()
+
+	if !IsOptimizedKind(karg0) || !IsOptimizedKind(karg1) {
+		return nil
+	}
+	// do not keep a reference to funcMaker
+	indexes := &[2]int{
+		m.Param[0].Desc.Index(),
+		m.Param[1].Desc.Index(),
+	}
+	var debugC *Comp
+	if c.Globals.Options&OptDebugger != 0 {
+		// keep a reference to c only if needed
+		debugC = c
+	}
+	var ret func(*Env) r.Value
+
+	mfuncxy2ret0; nil
+
+	return ret
+}
+
+// ==================================== func2ret0{Bool,Int,...} ========================================
 
 :func fsetarg(typ, tident, name, index ast.Node) ast.Node {
 	var t r.Type = EvalType(typ)
@@ -60,27 +123,21 @@ import (
 		bind = ~"{
 			place := r.New(~,tident).Elem()
 			place.Set(r.ValueOf(~,name))
-			env.Binds[~,index] = place
+			env.Vals[~,index] = place
 		}
 	} else {
 		typeident := maketypeident(t)
 		switch t.Kind() {
-			case r.Complex128:
-				bind = ~"{
-					place := r.New(~,typeident).Elem()
-					place.SetComplex(~,name)
-					env.Binds[~,index] = place
-				}
 			case r.String:
 				bind = ~"{
 					place := r.New(~,typeident).Elem()
 					place.SetString(~,name)
-					env.Binds[~,index] = place
+					env.Vals[~,index] = place
 				}
 			case r.Uint64:
-				bind = ~"{env.IntBinds[~,index] = ~,name}
+				bind = ~"{env.Ints[~,index] = ~,name}
 			default:
-				bind = ~"{*(*~,typ)(unsafe.Pointer(&env.IntBinds[~,index])) = ~,name}
+				bind = ~"{*(*~,typ)(unsafe.Pointer(&env.Ints[~,index])) = ~,name}
 		}
 	}
 	return bind
@@ -97,59 +154,60 @@ import (
 		arg1bind := fsetarg(arg1typ, ~'targ1, ~'arg1, ~'{indexes[1]})
 		return ~"{
 			if funcbody == nil {
-				return func(env *Env) r.Value {
-					return r.ValueOf(func(~,arg0typ, ~,arg1typ) {
-					})
+				funv := r.ValueOf(func(~,arg0typ, ~,arg1typ) {})
+				ret = func(env *Env) r.Value {
+					return funv
 				}
+				break
 			}
-			return func(env *Env) r.Value {
+			ret = func(env *Env) r.Value {
 				// function is closed over the env used to DECLARE it
 				env.MarkUsedByClosure()
 				return r.ValueOf(func(arg0 ~,arg0typ, arg1 ~,arg1typ) {
-					env := NewEnv4Func(env, nbinds, nintbinds)
+					env := newEnv4Func(env, nbind, nintbind, debugC)
 					// copy arg0, arg1 into allocated binds
 					~,arg0bind
 					~,arg1bind
 					// execute the body
 					funcbody(env)
 
-					env.FreeEnv()
+					env.freeEnv4Func()
 				})
 			}
 		}
 	}
-	// not well-known types... use reflect.MakeFunc()
 	return ~"{
 		rtype := t.ReflectType()
 		if funcbody == nil {
-			return func(env *Env) r.Value {
-				return r.MakeFunc(rtype, func([]r.Value) []r.Value {
-					return ZeroValues
-				})
+			funv := r.MakeFunc(rtype, func([]r.Value) []r.Value {
+				return nil
+			})
+			ret = func(env *Env) r.Value {
+				return funv
 			}
-		} else {
-			return func(env *Env) r.Value {
-				// function is closed over the env used to DECLARE it
-				env.MarkUsedByClosure()
-				return r.MakeFunc(rtype, func(args []r.Value) []r.Value {
-					env := NewEnv4Func(env, nbinds, nintbinds)
+			break
+		}
+		ret = func(env *Env) r.Value {
+			// function is closed over the env used to DECLARE it
+			env.MarkUsedByClosure()
+			return r.MakeFunc(rtype, func(args []r.Value) []r.Value {
+				env := newEnv4Func(env, nbind, nintbind)
 
-					// copy args into allocated binds
-					for i := range rtargs {
-						if idx := indexes[i]; idx != NoIndex {
-							place := r.New(rtargs[i]).Elem()
-							if arg := args[i]; arg != Nil && arg != None {
-								place.Set(arg.Convert(rtargs[i]))
-							}
-							env.Binds[idx] = place
+				// copy args into allocated binds
+				for i := range rtargs {
+					if idx := indexes[i]; idx != NoIndex {
+						place := r.New(rtargs[i]).Elem()
+						if arg := args[i]; arg != Nil && arg != None {
+							place.Set(arg.Convert(rtargs[i]))
 						}
+						env.Vals[idx] = place
 					}
-					// execute the body
-					funcbody(env)
+				}
+				// execute the body
+				funcbody(env)
 
-					return ZeroValues
-				})
-			}
+				return ZeroValues
+			})
 		}
 	}
 }
@@ -179,54 +237,39 @@ import (
 	}
 }
 
-:macro mfuncxy2ret0(dummy ast.Node) ast.Node {
-	return ~"{
-		argdecls := [2]func(*Env, r.Value){nil, nil}
-		for i, bind := range m.parambinds {
-			argdecls[i] = c.DeclBindRuntimeValue(bind)
-			if argdecls[i] == nil {
-				argdecls[i] = declBindRuntimeValueNop
-			}
-		}
-		switch karg0 {
-		case r.Bool:      {mfuncy2ret0; bool}
-		case r.Int:       {mfuncy2ret0; int}
-		case r.Int8:      {mfuncy2ret0; int8}
-		case r.Int16:     {mfuncy2ret0; int16}
-		case r.Int32:     {mfuncy2ret0; int32}
-		case r.Int64:     {mfuncy2ret0; int64}
-		case r.Uint:      {mfuncy2ret0; uint}
-		case r.Uint8:     {mfuncy2ret0; uint8}
-		case r.Uint16:    {mfuncy2ret0; uint16}
-		case r.Uint32:    {mfuncy2ret0; uint32}
-		case r.Uint64:    {mfuncy2ret0; uint64}
-		case r.Uintptr:   {mfuncy2ret0; uintptr}
-		case r.Float32:   {mfuncy2ret0; float32}
-		case r.Float64:   {mfuncy2ret0; float64}
-		case r.Complex64: {mfuncy2ret0; complex64}
-		case r.Complex128:{mfuncy2ret0; complex128}
-		case r.String:    {mfuncy2ret0; string}
+:macro mdeclfuncy2ret0(arg0typ ast.Node) ast.Node {
+	decl := ~"{
+		~func foo (m *funcMaker, indexes *[2]int, karg1 r.Kind, debugC *Comp) func(*Env) r.Value {
+			// do NOT keep a reference to funcMaker
+			nbind := m.nbind
+			nintbind := m.nintbind
+			funcbody := m.funcbody
+			var ret func(*Env) r.Value
+
+			mfuncy2ret0; ~,arg0typ
+
+			return ret
 		}
 	}
+	var t r.Type = EvalType(arg0typ)
+	decl.Name = makeprefixtypeident("func2ret0", t)
+	return decl
 }
 
-
-func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
-	karg0 := t.In(0).Kind()
-	karg1 := t.In(1).Kind()
-
-	if !IsOptimizedKind(karg0) || !IsOptimizedKind(karg1) {
-		return nil
-	}
-	indexes := [2]int{
-		m.parambinds[0].Desc.Index(),
-		m.parambinds[1].Desc.Index(),
-	}
-	nbinds := m.nbinds
-	nintbinds := m.nintbinds
-	funcbody := m.funcbody
-
-	mfuncxy2ret0; nil
-
-	return nil
-}
+mdeclfuncy2ret0; bool
+mdeclfuncy2ret0; int
+mdeclfuncy2ret0; int8
+mdeclfuncy2ret0; int16
+mdeclfuncy2ret0; int32
+mdeclfuncy2ret0; int64
+mdeclfuncy2ret0; uint
+mdeclfuncy2ret0; uint8
+mdeclfuncy2ret0; uint16
+mdeclfuncy2ret0; uint32
+mdeclfuncy2ret0; uint64
+mdeclfuncy2ret0; uintptr
+mdeclfuncy2ret0; float32
+mdeclfuncy2ret0; float64
+mdeclfuncy2ret0; complex64
+mdeclfuncy2ret0; complex128
+mdeclfuncy2ret0; string

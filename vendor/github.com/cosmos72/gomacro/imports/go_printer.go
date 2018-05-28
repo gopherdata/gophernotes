@@ -17,10 +17,10 @@ func init() {
 		"SourcePos":	ValueOf(printer.SourcePos),
 		"TabIndent":	ValueOf(printer.TabIndent),
 		"UseSpaces":	ValueOf(printer.UseSpaces),
-	},Types: map[string]Type{
+	}, Types: map[string]Type{
 		"CommentedNode":	TypeOf((*printer.CommentedNode)(nil)).Elem(),
 		"Config":	TypeOf((*printer.Config)(nil)).Elem(),
 		"Mode":	TypeOf((*printer.Mode)(nil)).Elem(),
-	},
+	}, 
 	}
 }

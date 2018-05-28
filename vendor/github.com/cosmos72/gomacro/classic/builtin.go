@@ -1,20 +1,11 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017 Massimiliano Ghilardi
+ * Copyright (C) 2017-2018 Massimiliano Ghilardi
  *
- *     This program is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU Lesser General Public License as published
- *     by the Free Software Foundation, either version 3 of the License, or
- *     (at your option) any later version.
- *
- *     This program is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU Lesser General Public License for more details.
- *
- *     You should have received a copy of the GNU Lesser General Public License
- *     along with this program.  If not, see <https://www.gnu.org/licenses/lgpl>.
+ *     This Source Code Form is subject to the terms of the Mozilla Public
+ *     License, v. 2.0. If a copy of the MPL was not distributed with this
+ *     file, You can obtain one at http://mozilla.org/MPL/2.0/.
  *
  *
  * builtin.go
@@ -304,7 +295,7 @@ func funcRecover(env *Env, args []r.Value) (r.Value, []r.Value) {
 	// thus recover() is invoked inside deferred functions: find their caller's env
 	ret := Nil
 
-	trace := env.Options&OptDebugPanicRecover != 0
+	trace := env.Options&OptDebugRecover != 0
 	caller := env.CallerFrame()
 	if trace {
 		env.Debugf("recover(): env = %v, stack is:", env.Name)

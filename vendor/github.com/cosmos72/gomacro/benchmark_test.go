@@ -1,20 +1,11 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017 Massimiliano Ghilardi
+ * Copyright (C) 2017-2018 Massimiliano Ghilardi
  *
- *     This program is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU Lesser General Public License as published
- *     by the Free Software Foundation, either version 3 of the License, or
- *     (at your option) any later version.
- *
- *     This program is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU Lesser General Public License for more details.
- *
- *     You should have received a copy of the GNU Lesser General Public License
- *     along with this program.  If not, see <https://www.gnu.org/licenses/lgpl>.
+ *     This Source Code Form is subject to the terms of the Mozilla Public
+ *     License, v. 2.0. If a copy of the MPL was not distributed with this
+ *     file, You can obtain one at http://mozilla.org/MPL/2.0/.
  *
  *
  * expr_test.go
@@ -26,27 +17,31 @@ package main
 
 import (
 	"fmt"
+	"os"
 	r "reflect"
 	"testing"
+	"unsafe"
 
-	// . "github.com/cosmos72/gomacro/base"
 	"github.com/cosmos72/gomacro/classic"
 	"github.com/cosmos72/gomacro/experiments/bytecode_interfaces"
 	"github.com/cosmos72/gomacro/experiments/bytecode_values"
 	"github.com/cosmos72/gomacro/experiments/closure_interfaces"
+	"github.com/cosmos72/gomacro/experiments/closure_ints"
 	"github.com/cosmos72/gomacro/experiments/closure_maps"
 	"github.com/cosmos72/gomacro/experiments/closure_values"
+	"github.com/cosmos72/gomacro/experiments/jit"
 	"github.com/cosmos72/gomacro/fast"
 )
 
-const (
-	collatz_n   = 837799 // sequence climbs to 1487492288, which also fits 32-bit ints
-	sum_n       = 1000
-	fib_n       = 12
-	bigswitch_n = 100
-)
+var (
+	collatz_arg     = uint(837799) // sequence climbs to 1487492288, which also fits 32-bit ints
+	collatz_arg_int = int(837799)
+	sum_arg         = 1000
+	fib_arg         = 12
+	bigswitch_arg   = 100
 
-var verbose = false
+	verbose = len(os.Args) == 0
+)
 
 /*
 	--------- 2017-05-21: results on Intel Core i7 4770 ---------------
@@ -100,7 +95,7 @@ func fibonacci(n int) int {
 
 func BenchmarkFibonacciCompiler(b *testing.B) {
 	var total int
-	n := fib_n
+	n := fib_arg
 	for i := 0; i < b.N; i++ {
 		total += fibonacci(n)
 	}
@@ -114,7 +109,7 @@ func BenchmarkFibonacciFast(b *testing.B) {
 	ir.Eval(fibonacci_source_string)
 
 	// compile the call to fibonacci(fib_n)
-	expr := ir.Compile(fmt.Sprintf("fibonacci(%d)", fib_n))
+	expr := ir.Compile(fmt.Sprintf("fibonacci(%d)", fib_arg))
 	fun := expr.Fun.(func(*fast.Env) int)
 	env := ir.PrepareEnv()
 
@@ -138,12 +133,12 @@ func BenchmarkFibonacciFast2(b *testing.B) {
 	// dereferencing the address returned by AddressOfVar is faster)
 	fun := ir.ValueOf("fibonacci").Interface().(func(int) int)
 
-	fun(fib_n) // warm up
+	fun(fib_arg) // warm up
 
 	b.ResetTimer()
 	var total int
 	for i := 0; i < b.N; i++ {
-		total += fun(fib_n)
+		total += fun(fib_arg)
 	}
 }
 
@@ -152,7 +147,7 @@ func BenchmarkFibonacciClassic(b *testing.B) {
 	ir.Eval(fibonacci_source_string)
 
 	// compile the call to fibonacci(fib_n)
-	form := ir.Parse(fmt.Sprintf("fibonacci(%d)", fib_n))
+	form := ir.Parse(fmt.Sprintf("fibonacci(%d)", fib_arg))
 
 	b.ResetTimer()
 	var total int
@@ -168,19 +163,41 @@ func BenchmarkFibonacciClassic2(b *testing.B) {
 	// alternative: extract the function fibonacci, and call it ourselves
 	fun := ir.ValueOf("fibonacci").Interface().(func(int) int)
 
-	fun(fib_n) // warm up
+	fun(fib_arg) // warm up
 
 	b.ResetTimer()
 	var total int
 	for i := 0; i < b.N; i++ {
-		total += fun(fib_n)
+		total += fun(fib_arg)
+	}
+}
+
+func off_TestFibonacciClosureInts(t *testing.T) {
+	env := closure_ints.NewEnv(nil)
+	f := closure_ints.DeclFibonacci(env)
+
+	expected := fibonacci(fib_arg)
+	actual := f(fib_arg)
+	if actual != expected {
+		t.Errorf("expecting %v, found %v\n", expected, actual)
+	}
+}
+
+func BenchmarkFibonacciClosureInts(b *testing.B) {
+	env := closure_ints.NewEnv(nil)
+	fib := closure_ints.DeclFibonacci(env)
+
+	b.ResetTimer()
+	var total int
+	for i := 0; i < b.N; i++ {
+		total += fib(fib_arg)
 	}
 }
 
 func BenchmarkFibonacciClosureValues(b *testing.B) {
 	env := closure_values.NewEnv(nil)
 	fib := closure_values.DeclFibonacci(env, 0)
-	n := r.ValueOf(fib_n)
+	n := r.ValueOf(fib_arg)
 
 	b.ResetTimer()
 	var total int
@@ -192,7 +209,7 @@ func BenchmarkFibonacciClosureValues(b *testing.B) {
 func BenchmarkFibonacciClosureInterfaces(b *testing.B) {
 	env := closure_interfaces.NewEnv(nil)
 	fib := closure_interfaces.DeclFibonacci(env, 0)
-	var n interface{} = fib_n
+	var n interface{} = fib_arg
 
 	b.ResetTimer()
 	var total int
@@ -204,7 +221,7 @@ func BenchmarkFibonacciClosureInterfaces(b *testing.B) {
 func BenchmarkFibonacciClosureMaps(b *testing.B) {
 	env := closure_maps.NewEnv(nil)
 	fib := closure_maps.DeclFibonacci(env, "fib")
-	n := r.ValueOf(fib_n)
+	n := r.ValueOf(fib_arg)
 
 	b.ResetTimer()
 	var total int
@@ -331,7 +348,7 @@ func bigswitch(n int) int {
 func BenchmarkSwitchCompiler(b *testing.B) {
 	var total int
 	for i := 0; i < b.N; i++ {
-		total += bigswitch(bigswitch_n)
+		total += bigswitch(bigswitch_arg)
 	}
 	if verbose {
 		println(total)
@@ -343,12 +360,12 @@ func BenchmarkSwitchFast(b *testing.B) {
 	ir.Eval(switch_source_string)
 
 	fun := ir.ValueOf("bigswitch").Interface().(func(int) int)
-	fun(bigswitch_n)
+	fun(bigswitch_arg)
 
 	b.ResetTimer()
 	var total int
 	for i := 0; i < b.N; i++ {
-		total += fun(bigswitch_n)
+		total += fun(bigswitch_arg)
 	}
 }
 
@@ -357,26 +374,29 @@ func BenchmarkSwitchClassic(b *testing.B) {
 	ir.Eval(switch_source_string)
 
 	fun := ir.ValueOf("bigswitch").Interface().(func(int) int)
-	fun(bigswitch_n)
+	fun(bigswitch_arg)
 
 	b.ResetTimer()
 	var total int
 	for i := 0; i < b.N; i++ {
-		total += fun(bigswitch_n)
+		total += fun(bigswitch_arg)
 	}
 }
 
 // ---------------- simple arithmetic ------------------
 
+//go:noinline
 func arith(n int) int {
-	return ((n*2+3)&4 | 5 ^ 6) / (n | 1)
+	return ((((n*2 + 3) | 4) &^ 5) ^ 6) / ((n & 2) | 1)
 }
+
+const arith_source = "((((n*2+3)|4) &^ 5) ^ 6) / ((n & 2) | 1)"
 
 func BenchmarkArithCompiler1(b *testing.B) {
 	total := 0
 	for i := 0; i < b.N; i++ {
 		n := b.N
-		total += ((n*2+3)&4 | 5 ^ 6) / (n | 1)
+		total += ((((n*2 + 3) | 4) &^ 5) ^ 6) / ((n & 2) | 1)
 	}
 	if verbose {
 		println(total)
@@ -393,13 +413,54 @@ func BenchmarkArithCompiler2(b *testing.B) {
 	}
 }
 
+func arithJitEmulate(uenv *uint64) {
+	env := (*[3]int64)(unsafe.Pointer(uenv))
+	a := env[0]
+	a *= 2
+	a += 3
+	a |= 4
+	a &^= 5
+	a ^= 6
+	b := env[0]
+	b &= 2
+	b |= 1
+	a /= b
+	env[1] = a
+}
+
+func BenchmarkArithJitEmul(b *testing.B) {
+	benchArithJit(b, arithJitEmulate)
+}
+
+func BenchmarkArithJit(b *testing.B) {
+	if !jit.SUPPORTED {
+		b.SkipNow()
+		return
+	}
+	benchArithJit(b, jit.DeclArith(5))
+}
+
+func benchArithJit(b *testing.B, f func(*uint64)) {
+	total := 0
+	var env [5]uint64
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		env[0] = uint64(b.N)
+		f(&env[0])
+		total += int(env[1])
+	}
+	if verbose {
+		println(total)
+	}
+}
+
 func BenchmarkArithFast(b *testing.B) {
 	ir := fast.New()
 	ir.DeclVar("n", nil, int(0))
 
 	addr := ir.AddressOfVar("n").Interface().(*int)
 
-	expr := ir.Compile("((n*2+3)&4 | 5 ^ 6) / (n|1)")
+	expr := ir.Compile(arith_source)
 	fun := expr.Fun.(func(*fast.Env) int)
 	env := ir.PrepareEnv()
 	fun(env)
@@ -424,7 +485,7 @@ func BenchmarkArithFast2(b *testing.B) {
 	total := ir.AddressOfVar("total").Interface().(*int)
 
 	// interpreted code performs iteration and arithmetic
-	fun := ir.Compile("for i = 0; i < n; i++ { total += ((n*2+3)&4 | 5 ^ 6) / (n|1) }").AsX()
+	fun := ir.Compile("for i = 0; i < n; i++ { total += " + arith_source + " }").AsX()
 	env := ir.PrepareEnv()
 	fun(env)
 
@@ -445,7 +506,7 @@ func BenchmarkArithFastConst(b *testing.B) {
 	ir.DeclConst("n", nil, b.N)
 
 	// interpreted code performs only arithmetic - iteration performed here
-	expr := ir.Compile("((n*2+3)&4 | 5 ^ 6) / (n|1)")
+	expr := ir.Compile(arith_source)
 	fun := expr.WithFun().(func(*fast.Env) int)
 	env := ir.PrepareEnv()
 	fun(env)
@@ -460,7 +521,6 @@ func BenchmarkArithFastConst(b *testing.B) {
 	}
 }
 
-
 func BenchmarkArithFastConst2(b *testing.B) {
 	ir := fast.New()
 	ir.Eval("var i, total int")
@@ -469,7 +529,7 @@ func BenchmarkArithFastConst2(b *testing.B) {
 	total := ir.AddressOfVar("total").Interface().(*int)
 
 	// interpreted code performs iteration and arithmetic
-	fun := ir.Compile("for i = 0; i < n; i++ { total += ((n*2+3)&4 | 5 ^ 6) / (n|1) }").AsX()
+	fun := ir.Compile("for i = 0; i < n; i++ { total += " + arith_source + " }").AsX()
 	env := ir.PrepareEnv()
 	fun(env)
 
@@ -489,7 +549,7 @@ func BenchmarkArithFastCompileLoop(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		ir.Compile("total = 0; for i = 0; i < n; i++ { total += ((n*2+3)&4 | 5 ^ 6) / (n|1) }; total")
+		ir.Compile("total = 0; for i = 0; i < n; i++ { total += " + arith_source + " }; total")
 	}
 }
 
@@ -497,7 +557,7 @@ func BenchmarkArithClassic(b *testing.B) {
 	ir := classic.New()
 	ir.Eval("n:=0")
 
-	form := ir.Parse("((n*2+3)&4 | 5 ^ 6) / (n|1)")
+	form := ir.Parse(arith_source)
 
 	value := ir.ValueOf("n")
 	var ret r.Value
@@ -521,7 +581,7 @@ func BenchmarkArithClassic2(b *testing.B) {
 	ir.Eval("var n, total int")
 
 	// interpreted code performs iteration and arithmetic
-	form := ir.Parse("total = 0; for i:= 0; i < n; i++ { total += ((n*2+3)&4 | 5 ^ 6) / (n|1) }; total")
+	form := ir.Parse("total = 0; for i:= 0; i < n; i++ { total += " + arith_source + " }; total")
 
 	value := ir.ValueOf("n")
 	ir.EvalAst(form)
@@ -537,7 +597,7 @@ func BenchmarkArithClassic2(b *testing.B) {
 
 // ---------------- collatz conjecture --------------------
 
-func collatz(n uint) {
+func collatz(n uint) uint {
 	for n > 1 {
 		if n&1 != 0 {
 			n = ((n * 3) + 1) >> 1
@@ -545,10 +605,11 @@ func collatz(n uint) {
 			n >>= 1
 		}
 	}
+	return n
 }
 
 func BenchmarkCollatzCompiler(b *testing.B) {
-	var n uint = collatz_n
+	var n uint = collatz_arg
 	for i := 0; i < b.N; i++ {
 		collatz(n)
 	}
@@ -565,7 +626,7 @@ func BenchmarkCollatzFast(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		*addr = collatz_n
+		*addr = collatz_arg
 		fun(env)
 	}
 }
@@ -580,7 +641,7 @@ func BenchmarkCollatzClassic(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		*addr = collatz_n
+		*addr = collatz_arg
 		ir.EvalAst(form)
 	}
 }
@@ -590,15 +651,37 @@ func BenchmarkCollatzBytecodeInterfaces(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		coll.Vars[0] = collatz_n
+		coll.Vars[0] = collatz_arg_int
 		coll.Exec(0)
+	}
+}
+
+func off_TestCollatzClosureInts(t *testing.T) {
+	env := closure_ints.NewEnv(nil)
+	f := closure_ints.DeclCollatz(env)
+
+	expected := int(collatz(collatz_arg))
+	actual := f(collatz_arg_int)
+	if actual != expected {
+		t.Errorf("expecting %v, found %v\n", expected, actual)
+	}
+}
+
+func BenchmarkCollatzClosureInts(b *testing.B) {
+	env := closure_ints.NewEnv(nil)
+	coll := closure_ints.DeclCollatz(env)
+
+	b.ResetTimer()
+	var total int
+	for i := 0; i < b.N; i++ {
+		total += coll(collatz_arg_int)
 	}
 }
 
 func BenchmarkCollatzClosureValues(b *testing.B) {
 	env := closure_values.NewEnv(nil)
 	coll := closure_values.DeclCollatz(env, 0)
-	n := r.ValueOf(collatz_n)
+	n := r.ValueOf(collatz_arg_int)
 
 	b.ResetTimer()
 	var total int
@@ -620,17 +703,30 @@ func sum(n int) int {
 func BenchmarkSumCompiler(b *testing.B) {
 	var total int
 	for i := 0; i < b.N; i++ {
-		total += sum(sum_n)
+		total += sum(sum_arg)
 	}
 	if verbose {
 		println(total)
 	}
 }
 
+func BenchmarkSumJit(b *testing.B) {
+	if !jit.SUPPORTED {
+		b.SkipNow()
+		return
+	}
+	sum := jit.DeclSum()
+	b.ResetTimer()
+	var total int
+	for i := 0; i < b.N; i++ {
+		total += sum(sum_arg)
+	}
+}
+
 func BenchmarkSumFast(b *testing.B) {
 	ir := fast.New()
 	ir.Eval("var i, total uint")
-	ir.DeclConst("n", nil, uint(sum_n))
+	ir.DeclConst("n", nil, uint(sum_arg))
 
 	expr := ir.Compile("total = 0; for i = 1; i <= n; i++ { total += i }; total")
 	fun := expr.Fun.(func(*fast.Env) uint)
@@ -650,7 +746,7 @@ func BenchmarkSumFast(b *testing.B) {
 func BenchmarkSumFast2(b *testing.B) {
 	ir := fast.New()
 	ir.Eval("var i, total uint")
-	ir.DeclConst("n", nil, uint(sum_n))
+	ir.DeclConst("n", nil, uint(sum_arg))
 
 	fun := ir.Compile("for i = 1; i <= n; i++ { total += i }").AsX()
 	env := ir.PrepareEnv()
@@ -670,7 +766,7 @@ func BenchmarkSumFast2(b *testing.B) {
 func BenchmarkSumClassic(b *testing.B) {
 	ir := classic.New()
 	ir.Eval("var i, n, total int")
-	ir.ValueOf("n").SetInt(sum_n)
+	ir.ValueOf("n").SetInt(int64(sum_arg))
 	form := ir.Parse("total = 0; for i = 1; i <= n; i++ { total += i }; total")
 
 	b.ResetTimer()
@@ -681,7 +777,7 @@ func BenchmarkSumClassic(b *testing.B) {
 }
 
 func BenchmarkSumBytecodeValues(b *testing.B) {
-	sum := bytecode_values.BytecodeSum(sum_n)
+	sum := bytecode_values.BytecodeSum(sum_arg)
 	b.ResetTimer()
 	var total int
 	for i := 0; i < b.N; i++ {
@@ -690,7 +786,7 @@ func BenchmarkSumBytecodeValues(b *testing.B) {
 }
 
 func BenchmarkSumBytecodeInterfaces(b *testing.B) {
-	p := bytecode_interfaces.BytecodeSum(sum_n)
+	p := bytecode_interfaces.BytecodeSum(sum_arg)
 	b.ResetTimer()
 	var total int
 	for i := 0; i < b.N; i++ {
@@ -698,10 +794,32 @@ func BenchmarkSumBytecodeInterfaces(b *testing.B) {
 	}
 }
 
+func off_TestSumClosureInts(t *testing.T) {
+	env := closure_ints.NewEnv(nil)
+	f := closure_ints.DeclSum(env)
+
+	expected := sum(sum_arg)
+	actual := f(sum_arg)
+	if actual != expected {
+		t.Errorf("expecting %v, found %v\n", expected, actual)
+	}
+}
+
+func BenchmarkSumClosureInts(b *testing.B) {
+	env := closure_ints.NewEnv(nil)
+	sum := closure_ints.DeclSum(env)
+
+	b.ResetTimer()
+	var total int
+	for i := 0; i < b.N; i++ {
+		total += sum(sum_arg)
+	}
+}
+
 func BenchmarkSumClosureValues(b *testing.B) {
 	env := closure_values.NewEnv(nil)
 	sum := closure_values.DeclSum(env, 0)
-	n := r.ValueOf(sum_n)
+	n := r.ValueOf(sum_arg)
 
 	b.ResetTimer()
 	var total int
@@ -713,7 +831,7 @@ func BenchmarkSumClosureValues(b *testing.B) {
 func BenchmarkSumClosureInterfaces(b *testing.B) {
 	env := closure_interfaces.NewEnv(nil)
 	sum := closure_interfaces.DeclSum(env, 0)
-	var n interface{} = sum_n
+	var n interface{} = sum_arg
 
 	b.ResetTimer()
 	var total int
@@ -725,7 +843,7 @@ func BenchmarkSumClosureInterfaces(b *testing.B) {
 func BenchmarkSumClosureMaps(b *testing.B) {
 	env := closure_maps.NewEnv(nil)
 	sum := closure_maps.DeclSum(env, "sum")
-	n := r.ValueOf(sum_n)
+	n := r.ValueOf(sum_arg)
 
 	b.ResetTimer()
 	var total int

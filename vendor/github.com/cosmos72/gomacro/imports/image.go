@@ -44,7 +44,7 @@ func init() {
 		"YCbCrSubsampleRatio444":	ValueOf(image.YCbCrSubsampleRatio444),
 		"ZP":	ValueOf(&image.ZP).Elem(),
 		"ZR":	ValueOf(&image.ZR).Elem(),
-	},Types: map[string]Type{
+	}, Types: map[string]Type{
 		"Alpha":	TypeOf((*image.Alpha)(nil)).Elem(),
 		"Alpha16":	TypeOf((*image.Alpha16)(nil)).Elem(),
 		"CMYK":	TypeOf((*image.CMYK)(nil)).Elem(),
@@ -64,49 +64,49 @@ func init() {
 		"Uniform":	TypeOf((*image.Uniform)(nil)).Elem(),
 		"YCbCr":	TypeOf((*image.YCbCr)(nil)).Elem(),
 		"YCbCrSubsampleRatio":	TypeOf((*image.YCbCrSubsampleRatio)(nil)).Elem(),
-	},Proxies: map[string]Type{
-		"Image":	TypeOf((*Image_image)(nil)).Elem(),
-		"PalettedImage":	TypeOf((*PalettedImage_image)(nil)).Elem(),
-	},Wrappers: map[string][]string{
+	}, Proxies: map[string]Type{
+		"Image":	TypeOf((*P_image_Image)(nil)).Elem(),
+		"PalettedImage":	TypeOf((*P_image_PalettedImage)(nil)).Elem(),
+	}, Wrappers: map[string][]string{
 		"NYCbCrA":	[]string{"Bounds","COffset","YCbCrAt","YOffset",},
-	},
+	}, 
 	}
 }
 
 // --------------- proxy for image.Image ---------------
-type Image_image struct {
+type P_image_Image struct {
 	Object	interface{}
 	At_	func(_proxy_obj_ interface{}, x int, y int) color.Color
 	Bounds_	func(interface{}) image.Rectangle
 	ColorModel_	func(interface{}) color.Model
 }
-func (Proxy *Image_image) At(x int, y int) color.Color {
-	return Proxy.At_(Proxy.Object, x, y)
+func (P *P_image_Image) At(x int, y int) color.Color {
+	return P.At_(P.Object, x, y)
 }
-func (Proxy *Image_image) Bounds() image.Rectangle {
-	return Proxy.Bounds_(Proxy.Object)
+func (P *P_image_Image) Bounds() image.Rectangle {
+	return P.Bounds_(P.Object)
 }
-func (Proxy *Image_image) ColorModel() color.Model {
-	return Proxy.ColorModel_(Proxy.Object)
+func (P *P_image_Image) ColorModel() color.Model {
+	return P.ColorModel_(P.Object)
 }
 
 // --------------- proxy for image.PalettedImage ---------------
-type PalettedImage_image struct {
+type P_image_PalettedImage struct {
 	Object	interface{}
 	At_	func(_proxy_obj_ interface{}, x int, y int) color.Color
 	Bounds_	func(interface{}) image.Rectangle
 	ColorIndexAt_	func(_proxy_obj_ interface{}, x int, y int) uint8
 	ColorModel_	func(interface{}) color.Model
 }
-func (Proxy *PalettedImage_image) At(x int, y int) color.Color {
-	return Proxy.At_(Proxy.Object, x, y)
+func (P *P_image_PalettedImage) At(x int, y int) color.Color {
+	return P.At_(P.Object, x, y)
 }
-func (Proxy *PalettedImage_image) Bounds() image.Rectangle {
-	return Proxy.Bounds_(Proxy.Object)
+func (P *P_image_PalettedImage) Bounds() image.Rectangle {
+	return P.Bounds_(P.Object)
 }
-func (Proxy *PalettedImage_image) ColorIndexAt(x int, y int) uint8 {
-	return Proxy.ColorIndexAt_(Proxy.Object, x, y)
+func (P *P_image_PalettedImage) ColorIndexAt(x int, y int) uint8 {
+	return P.ColorIndexAt_(P.Object, x, y)
 }
-func (Proxy *PalettedImage_image) ColorModel() color.Model {
-	return Proxy.ColorModel_(Proxy.Object)
+func (P *P_image_PalettedImage) ColorModel() color.Model {
+	return P.ColorModel_(P.Object)
 }

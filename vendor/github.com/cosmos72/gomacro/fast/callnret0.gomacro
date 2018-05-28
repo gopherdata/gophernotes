@@ -1,22 +1,11 @@
-// +build !gomacro_fast_compact
-
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017 Massimiliano Ghilardi
+ * Copyright (C) 2017-2018 Massimiliano Ghilardi
  *
- *     This program is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU Lesser General Public License as published
- *     by the Free Software Foundation, either version 3 of the License, or
- *     (at your option) any later version.
- *
- *     This program is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU Lesser General Public License for more details.
- *
- *     You should have received a copy of the GNU Lesser General Public License
- *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *     This Source Code Form is subject to the terms of the Mozilla Public
+ *     License, v. 2.0. If a copy of the MPL was not distributed with this
+ *     file, You can obtain one at http://mozilla.org/MPL/2.0/.
  *
  *
  * callnret0.go
@@ -109,7 +98,7 @@ func (c *Comp) call0ret0(call *Call, maxdepth int) func(env *Env) {
 	switch funupn {
 	case maxdepth - 1:
 		return func(env *Env) {
-			funv := env.ThreadGlobals.FileEnv.Binds[funindex]
+			funv := env.FileEnv.Vals[funindex]
 			if cachedfunv != funv {
 				cachedfunv = funv
 				cachedfun = funv.Interface().(func())
@@ -118,17 +107,17 @@ func (c *Comp) call0ret0(call *Call, maxdepth int) func(env *Env) {
 		}
 	case 0:
 		return func(env *Env) {
-			fun := env.Binds[funindex].Interface().(func())
+			fun := env.Vals[funindex].Interface().(func())
 			fun()
 		}
 	case 1:
 		return func(env *Env) {
-			fun := env.Outer.Binds[funindex].Interface().(func())
+			fun := env.Outer.Vals[funindex].Interface().(func())
 			fun()
 		}
 	case 2:
 		return func(env *Env) {
-			fun := env.Outer.Outer.Binds[funindex].Interface().(func())
+			fun := env.Outer.Outer.Vals[funindex].Interface().(func())
 			fun()
 		}
 	default:
@@ -137,7 +126,7 @@ func (c *Comp) call0ret0(call *Call, maxdepth int) func(env *Env) {
 			for i := 3; i < funupn; i++ {
 				env = env.Outer
 			}
-			fun := env.Binds[funindex].Interface().(func())
+			fun := env.Vals[funindex].Interface().(func())
 			fun()
 		}
 	}
@@ -173,7 +162,7 @@ func (c *Comp) call0ret0(call *Call, maxdepth int) func(env *Env) {
 			if funsym != nil && funupn == maxdepth - 1 {
 				var cachedfun func(~,argtyp)
 				ret = func(env *Env) {
-					funv := env.ThreadGlobals.FileEnv.Binds[funindex]
+					funv := env.FileEnv.Vals[funindex]
 					~,cachefun
 					// Debugf("calling %v with args [%v]", r.TypeOf(cachedfun), argconst)
 					cachedfun(argconst)
@@ -190,7 +179,7 @@ func (c *Comp) call0ret0(call *Call, maxdepth int) func(env *Env) {
 			if funsym != nil && funupn == maxdepth - 1 {
 				var cachedfun func(~,argtyp)
 				ret = func(env *Env) {
-					funv := env.ThreadGlobals.FileEnv.Binds[funindex]
+					funv := env.FileEnv.Vals[funindex]
 					~,cachefun
 					arg := argfun(env)
 					// Debugf("calling %v with args [%v]", r.TypeOf(cachedfun), arg)
@@ -287,7 +276,7 @@ func (c *Comp) call1ret0(call *Call, maxdepth int) func(env *Env) {
 		if funsym != nil && funupn == maxdepth - 1 {
 			var cachedfun func(~,arg0typ, ~,arg1typ)
 			ret = func(env *Env) {
-				funv := env.ThreadGlobals.FileEnv.Binds[funindex]
+				funv := env.FileEnv.Vals[funindex]
 				~,cachefun
 				arg0 := arg0fun(env)
 				arg1 := arg1fun(env)

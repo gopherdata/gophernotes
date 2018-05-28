@@ -23,7 +23,7 @@ func init() {
 		"NewDecoder":	ValueOf(xml.NewDecoder),
 		"NewEncoder":	ValueOf(xml.NewEncoder),
 		"Unmarshal":	ValueOf(xml.Unmarshal),
-	},Types: map[string]Type{
+	}, Types: map[string]Type{
 		"Attr":	TypeOf((*xml.Attr)(nil)).Elem(),
 		"CharData":	TypeOf((*xml.CharData)(nil)).Elem(),
 		"Comment":	TypeOf((*xml.Comment)(nil)).Elem(),
@@ -43,55 +43,49 @@ func init() {
 		"Unmarshaler":	TypeOf((*xml.Unmarshaler)(nil)).Elem(),
 		"UnmarshalerAttr":	TypeOf((*xml.UnmarshalerAttr)(nil)).Elem(),
 		"UnsupportedTypeError":	TypeOf((*xml.UnsupportedTypeError)(nil)).Elem(),
-	},Proxies: map[string]Type{
-		"Marshaler":	TypeOf((*Marshaler_encoding_xml)(nil)).Elem(),
-		"MarshalerAttr":	TypeOf((*MarshalerAttr_encoding_xml)(nil)).Elem(),
-		"Token":	TypeOf((*Token_encoding_xml)(nil)).Elem(),
-		"Unmarshaler":	TypeOf((*Unmarshaler_encoding_xml)(nil)).Elem(),
-		"UnmarshalerAttr":	TypeOf((*UnmarshalerAttr_encoding_xml)(nil)).Elem(),
-	},Untypeds: map[string]string{
+	}, Proxies: map[string]Type{
+		"Marshaler":	TypeOf((*P_encoding_xml_Marshaler)(nil)).Elem(),
+		"MarshalerAttr":	TypeOf((*P_encoding_xml_MarshalerAttr)(nil)).Elem(),
+		"Unmarshaler":	TypeOf((*P_encoding_xml_Unmarshaler)(nil)).Elem(),
+		"UnmarshalerAttr":	TypeOf((*P_encoding_xml_UnmarshalerAttr)(nil)).Elem(),
+	}, Untypeds: map[string]string{
 		"Header":	"string:<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n",
-	},
+	}, 
 	}
 }
 
 // --------------- proxy for encoding/xml.Marshaler ---------------
-type Marshaler_encoding_xml struct {
+type P_encoding_xml_Marshaler struct {
 	Object	interface{}
 	MarshalXML_	func(_proxy_obj_ interface{}, e *xml.Encoder, start xml.StartElement) error
 }
-func (Proxy *Marshaler_encoding_xml) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
-	return Proxy.MarshalXML_(Proxy.Object, e, start)
+func (P *P_encoding_xml_Marshaler) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
+	return P.MarshalXML_(P.Object, e, start)
 }
 
 // --------------- proxy for encoding/xml.MarshalerAttr ---------------
-type MarshalerAttr_encoding_xml struct {
+type P_encoding_xml_MarshalerAttr struct {
 	Object	interface{}
 	MarshalXMLAttr_	func(_proxy_obj_ interface{}, name xml.Name) (xml.Attr, error)
 }
-func (Proxy *MarshalerAttr_encoding_xml) MarshalXMLAttr(name xml.Name) (xml.Attr, error) {
-	return Proxy.MarshalXMLAttr_(Proxy.Object, name)
-}
-
-// --------------- proxy for encoding/xml.Token ---------------
-type Token_encoding_xml struct {
-	Object	interface{}
+func (P *P_encoding_xml_MarshalerAttr) MarshalXMLAttr(name xml.Name) (xml.Attr, error) {
+	return P.MarshalXMLAttr_(P.Object, name)
 }
 
 // --------------- proxy for encoding/xml.Unmarshaler ---------------
-type Unmarshaler_encoding_xml struct {
+type P_encoding_xml_Unmarshaler struct {
 	Object	interface{}
 	UnmarshalXML_	func(_proxy_obj_ interface{}, d *xml.Decoder, start xml.StartElement) error
 }
-func (Proxy *Unmarshaler_encoding_xml) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
-	return Proxy.UnmarshalXML_(Proxy.Object, d, start)
+func (P *P_encoding_xml_Unmarshaler) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
+	return P.UnmarshalXML_(P.Object, d, start)
 }
 
 // --------------- proxy for encoding/xml.UnmarshalerAttr ---------------
-type UnmarshalerAttr_encoding_xml struct {
+type P_encoding_xml_UnmarshalerAttr struct {
 	Object	interface{}
 	UnmarshalXMLAttr_	func(_proxy_obj_ interface{}, attr xml.Attr) error
 }
-func (Proxy *UnmarshalerAttr_encoding_xml) UnmarshalXMLAttr(attr xml.Attr) error {
-	return Proxy.UnmarshalXMLAttr_(Proxy.Object, attr)
+func (P *P_encoding_xml_UnmarshalerAttr) UnmarshalXMLAttr(attr xml.Attr) error {
+	return P.UnmarshalXMLAttr_(P.Object, attr)
 }

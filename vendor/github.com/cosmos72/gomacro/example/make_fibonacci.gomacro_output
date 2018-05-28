@@ -1,0 +1,47 @@
+// -------------------------------------------------------------
+// DO NOT EDIT! this file was generated automatically by gomacro
+// Any change will be lost when the file is re-generated
+// -------------------------------------------------------------
+
+
+// run "gomacro -m -w make_fibonacci.gomacro"
+// to preprocess this file and generate make_fibonacci.go
+
+package main
+
+func fibonacci_int(n int) int {
+	if n <= 2 {
+		return 1
+	}
+	return fibonacci_int(n-1) + fibonacci_int(n-2)
+}
+func fibonacci_int32(n int32) int32 {
+	if n <= 2 {
+		return 1
+	}
+	return fibonacci_int32(n-1) + fibonacci_int32(n-2)
+}
+func fibonacci_int64(n int64) int64 {
+	if n <= 2 {
+		return 1
+	}
+	return fibonacci_int64(n-1) + fibonacci_int64(n-2)
+}
+func fibonacci_uint(n uint) uint {
+	if n <= 2 {
+		return 1
+	}
+	return fibonacci_uint(n-1) + fibonacci_uint(n-2)
+}
+func fibonacci_uint32(n uint32) uint32 {
+	if n <= 2 {
+		return 1
+	}
+	return fibonacci_uint32(n-1) + fibonacci_uint32(n-2)
+}
+func fibonacci_uint64(n uint64) uint64 {
+	if n <= 2 {
+		return 1
+	}
+	return fibonacci_uint64(n-1) + fibonacci_uint64(n-2)
+}

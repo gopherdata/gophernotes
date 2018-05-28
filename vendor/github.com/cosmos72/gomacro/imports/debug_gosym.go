@@ -14,7 +14,7 @@ func init() {
 	Binds: map[string]Value{
 		"NewLineTable":	ValueOf(gosym.NewLineTable),
 		"NewTable":	ValueOf(gosym.NewTable),
-	},Types: map[string]Type{
+	}, Types: map[string]Type{
 		"DecodingError":	TypeOf((*gosym.DecodingError)(nil)).Elem(),
 		"Func":	TypeOf((*gosym.Func)(nil)).Elem(),
 		"LineTable":	TypeOf((*gosym.LineTable)(nil)).Elem(),
@@ -23,8 +23,8 @@ func init() {
 		"Table":	TypeOf((*gosym.Table)(nil)).Elem(),
 		"UnknownFileError":	TypeOf((*gosym.UnknownFileError)(nil)).Elem(),
 		"UnknownLineError":	TypeOf((*gosym.UnknownLineError)(nil)).Elem(),
-	},Wrappers: map[string][]string{
+	}, Wrappers: map[string][]string{
 		"Func":	[]string{"BaseName","PackageName","ReceiverName","Static",},
-	},
+	}, 
 	}
 }

@@ -1,20 +1,11 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017 Massimiliano Ghilardi
+ * Copyright (C) 2017-2018 Massimiliano Ghilardi
  *
- *     This program is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU Lesser General Public License as published
- *     by the Free Software Foundation, either version 3 of the License, or
- *     (at your option) any later version.
- *
- *     This program is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU Lesser General Public License for more details.
- *
- *     You should have received a copy of the GNU Lesser General Public License
- *     along with this program.  If not, see <https://www.gnu.org/licenses/lgpl>.
+ *     This Source Code Form is subject to the terms of the Mozilla Public
+ *     License, v. 2.0. If a copy of the MPL was not distributed with this
+ *     file, You can obtain one at http://mozilla.org/MPL/2.0/.
  *
  *
  * ast_slice.go
@@ -125,7 +116,9 @@ func (x GenDecl) Op() token.Token    { return x.X.Tok }
 func (x ReturnStmt) Op() token.Token { return token.RETURN }
 
 func (x BlockStmt) New() Ast { return BlockStmt{&ast.BlockStmt{Lbrace: x.X.Lbrace, Rbrace: x.X.Rbrace}} }
-func (x FieldList) New() Ast { return FieldList{&ast.FieldList{}} }
+func (x FieldList) New() Ast {
+	return FieldList{&ast.FieldList{Opening: x.X.Opening, Closing: x.X.Closing}}
+}
 func (x File) New() Ast {
 	return File{&ast.File{Doc: x.X.Doc, Package: x.X.Package, Name: x.X.Name, Scope: x.X.Scope, Imports: x.X.Imports, Comments: x.X.Comments}}
 }

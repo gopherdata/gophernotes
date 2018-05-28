@@ -16,10 +16,12 @@ func init() {
 		"NewDecoder":	ValueOf(base32.NewDecoder),
 		"NewEncoder":	ValueOf(base32.NewEncoder),
 		"NewEncoding":	ValueOf(base32.NewEncoding),
+		"NoPadding":	ValueOf(base32.NoPadding),
 		"StdEncoding":	ValueOf(&base32.StdEncoding).Elem(),
-	},Types: map[string]Type{
+		"StdPadding":	ValueOf(base32.StdPadding),
+	}, Types: map[string]Type{
 		"CorruptInputError":	TypeOf((*base32.CorruptInputError)(nil)).Elem(),
 		"Encoding":	TypeOf((*base32.Encoding)(nil)).Elem(),
-	},
+	}, 
 	}
 }

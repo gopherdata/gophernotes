@@ -271,13 +271,13 @@ func init() {
 		"Zl":	ValueOf(&unicode.Zl).Elem(),
 		"Zp":	ValueOf(&unicode.Zp).Elem(),
 		"Zs":	ValueOf(&unicode.Zs).Elem(),
-	},Types: map[string]Type{
+	}, Types: map[string]Type{
 		"CaseRange":	TypeOf((*unicode.CaseRange)(nil)).Elem(),
 		"Range16":	TypeOf((*unicode.Range16)(nil)).Elem(),
 		"Range32":	TypeOf((*unicode.Range32)(nil)).Elem(),
 		"RangeTable":	TypeOf((*unicode.RangeTable)(nil)).Elem(),
 		"SpecialCase":	TypeOf((*unicode.SpecialCase)(nil)).Elem(),
-	},Untypeds: map[string]string{
+	}, Untypeds: map[string]string{
 		"LowerCase":	"int:1",
 		"MaxASCII":	"rune:127",
 		"MaxCase":	"int:3",
@@ -288,6 +288,6 @@ func init() {
 		"UpperCase":	"int:0",
 		"UpperLower":	"rune:1114112",
 		"Version":	"string:9.0.0",
-	},
+	}, 
 	}
 }

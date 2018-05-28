@@ -23,8 +23,8 @@ func init() {
 		"ParseFile":	ValueOf(parser.ParseFile),
 		"SpuriousErrors":	ValueOf(parser.SpuriousErrors),
 		"Trace":	ValueOf(parser.Trace),
-	},Types: map[string]Type{
+	}, Types: map[string]Type{
 		"Mode":	TypeOf((*parser.Mode)(nil)).Elem(),
-	},
+	}, 
 	}
 }

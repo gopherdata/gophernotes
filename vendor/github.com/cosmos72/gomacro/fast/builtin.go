@@ -1,20 +1,11 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017 Massimiliano Ghilardi
+ * Copyright (C) 2017-2018 Massimiliano Ghilardi
  *
- *     This program is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU Lesser General Public License as published
- *     by the Free Software Foundation, either version 3 of the License, or
- *     (at your option) any later version.
- *
- *     This program is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU Lesser General Public License for more details.
- *
- *     You should have received a copy of the GNU Lesser General Public License
- *     along with this program.  If not, see <https://www.gnu.org/licenses/lgpl>.
+ *     This Source Code Form is subject to the terms of the Mozilla Public
+ *     License, v. 2.0. If a copy of the MPL was not distributed with this
+ *     file, You can obtain one at http://mozilla.org/MPL/2.0/.
  *
  *
  * builtin.go
@@ -35,61 +26,47 @@ import (
 
 	"github.com/cosmos72/gomacro/ast2"
 	"github.com/cosmos72/gomacro/base"
+	"github.com/cosmos72/gomacro/base/untyped"
 	xr "github.com/cosmos72/gomacro/xreflect"
 )
 
 var (
 	zeroTypes          = []xr.Type{}
 	rtypeOfSliceOfByte = r.TypeOf([]byte{})
-
-/*
-	typeOfPtrBool       = xr.PtrTo(xr.TypeOfBool)
-	typeOfPtrInt        = xr.PtrTo(xr.TypeOfInt)
-	typeOfPtrInt8       = xr.PtrTo(xr.TypeOfInt)
-	typeOfPtrInt16      = xr.PtrTo(xr.TypeOfInt16)
-	typeOfPtrInt32      = xr.PtrTo(xr.TypeOfInt32)
-	typeOfPtrInt64      = xr.PtrTo(xr.TypeOfInt64)
-	typeOfPtrUint       = xr.PtrTo(xr.TypeOfUint)
-	typeOfPtrUint8      = xr.PtrTo(xr.TypeOfUint)
-	typeOfPtrUint16     = xr.PtrTo(xr.TypeOfUint16)
-	typeOfPtrUint32     = xr.PtrTo(xr.TypeOfUint32)
-	typeOfPtrUint64     = xr.PtrTo(xr.TypeOfUint64)
-	typeOfPtrUintptr    = xr.PtrTo(xr.TypeOfUintptr)
-	typeOfPtrFloat32    = xr.PtrTo(xr.TypeOfFloat32)
-	typeOfPtrFloat64    = xr.PtrTo(xr.TypeOfFloat64)
-	typeOfPtrComplex64  = xr.PtrTo(xr.TypeOfComplex64)
-	typeOfPtrComplex128 = xr.PtrTo(xr.TypeOfComplex128)
-	typeOfPtrString     = xr.PtrTo(xr.TypeOfString)
-*/
 )
 
 // =================================== iota ===================================
 
-func (top *Comp) addIota() {
+// returns the previous definition of iota - to be restored by Comp.endIota() below
+func (top *Comp) beginIota() *Bind {
+	return top.Binds["iota"]
+}
+
+func (top *Comp) endIota(orig *Bind) {
+	if orig == nil {
+		delete(top.Binds, "iota")
+	} else {
+		top.Binds["iota"] = orig
+	}
+}
+
+func (top *Comp) setIota(iota int) {
 	// https://golang.org/ref/spec#Constants
 	// "Literal constants, true, false, iota, and certain constant expressions containing only untyped constant operands are untyped."
-	top.Binds["iota"] = top.BindUntyped(untypedZero)
-}
 
-func (top *Comp) removeIota() {
-	delete(top.Binds, "iota")
-}
-
-func (top *Comp) incrementIota() {
-	iota := top.Binds["iota"].Lit.Value.(UntypedLit).Obj
-	iota = constant.BinaryOp(iota, token.ADD, untypedOne.Obj)
-	top.Binds["iota"] = top.BindUntyped(UntypedLit{Kind: r.Int, Obj: iota})
+	// Binds are supposed to be immutable. to avoid issues, create a new Bind every time
+	top.Binds["iota"] = top.BindUntyped(r.Int, constant.MakeInt64(int64(iota)))
 }
 
 // ============================== initialization ===============================
 
 func (ce *Interp) addBuiltins() {
-	universe := ce.Comp.Universe
+	basicTypes := &ce.Comp.Universe.BasicTypes
 
 	// https://golang.org/ref/spec#Constants
 	// "Literal constants, true, false, iota, and certain constant expressions containing only untyped constant operands are untyped."
-	ce.DeclConst("false", nil, UntypedLit{r.Bool, constant.MakeBool(false), universe})
-	ce.DeclConst("true", nil, UntypedLit{r.Bool, constant.MakeBool(true), universe})
+	ce.DeclConst("false", nil, MakeUntypedLit(r.Bool, constant.MakeBool(false), basicTypes))
+	ce.DeclConst("true", nil, MakeUntypedLit(r.Bool, constant.MakeBool(true), basicTypes))
 
 	// https://golang.org/ref/spec#Variables : "[...] the predeclared identifier nil, which has no type"
 	ce.DeclConst("nil", nil, nil)
@@ -113,14 +90,15 @@ func (ce *Interp) addBuiltins() {
 
 	tfunI2_Nb := ce.Comp.TypeOf(funI2_Nb)
 
-	ce.DeclEnvFunc("Env", Function{callIdentity, ce.Comp.TypeOf(funI_I)})
+	ce.DeclEnvFunc("Interp", Function{callIdentity, ce.Comp.TypeOf(funI_I)})
 	ce.DeclEnvFunc("Eval", Function{callEval, ce.Comp.TypeOf(funI2_I)})
+	ce.DeclEnvFunc("EvalKeepUntyped", Function{callEvalKeepUntyped, ce.Comp.TypeOf(funI2_I)})
 	ce.DeclEnvFunc("EvalType", Function{callEvalType, ce.Comp.TypeOf(funI2_T)})
 	ce.DeclEnvFunc("MacroExpand", Function{callMacroExpand, tfunI2_Nb})
 	ce.DeclEnvFunc("MacroExpand1", Function{callMacroExpand1, tfunI2_Nb})
 	ce.DeclEnvFunc("MacroExpandCodeWalk", Function{callMacroExpandCodeWalk, tfunI2_Nb})
+	ce.DeclEnvFunc("Parse", Function{callParse, ce.Comp.TypeOf(funSI_I)})
 	/*
-		binds["Parse"] = r.ValueOf(Function{funcParse, 1})
 		binds["Read"] = r.ValueOf(ReadString)
 		binds["ReadDir"] = r.ValueOf(callReadDir)
 		binds["ReadFile"] = r.ValueOf(callReadFile)
@@ -161,7 +139,7 @@ func compileAppend(c *Comp, sym Symbol, node *ast.CallExpr) *Call {
 	n := len(node.Args)
 	args := make([]*Expr, n)
 
-	args[0] = c.Expr1(node.Args[0])
+	args[0] = c.Expr1(node.Args[0], nil)
 	t0 := args[0].Type
 	if t0.Kind() != r.Slice {
 		c.Errorf("first argument to %s must be slice; have <%s>", sym.Name, t0)
@@ -176,7 +154,7 @@ func compileAppend(c *Comp, sym Symbol, node *ast.CallExpr) *Call {
 		telem = t0 // second argument is a slice too
 	}
 	for i := 1; i < n; i++ {
-		argi := c.Expr1(node.Args[i])
+		argi := c.Expr1(node.Args[i], nil)
 		if argi.Const() {
 			argi.ConstTo(telem)
 		} else if ti := argi.Type; ti == nil || !ti.AssignableTo(telem) {
@@ -184,7 +162,7 @@ func compileAppend(c *Comp, sym Symbol, node *ast.CallExpr) *Call {
 		}
 		args[i] = argi
 	}
-	t := xr.FuncOf([]xr.Type{t0, t0}, []xr.Type{t0}, true) // compile as reflect.Append(), which is variadic
+	t := c.Universe.FuncOf([]xr.Type{t0, t0}, []xr.Type{t0}, true) // compile as reflect.Append(), which is variadic
 	sym.Type = t
 	fun := exprLit(Lit{Type: t, Value: r.Append}, &sym)
 	return &Call{
@@ -204,7 +182,7 @@ func callCap(val r.Value) int {
 
 func compileCap(c *Comp, sym Symbol, node *ast.CallExpr) *Call {
 	// argument of builtin cap() cannot be a literal
-	arg := c.Expr1(node.Args[0])
+	arg := c.Expr1(node.Args[0], nil)
 	tin := arg.Type
 	tout := c.TypeOfInt()
 	switch tin.Kind() {
@@ -224,7 +202,7 @@ func compileCap(c *Comp, sym Symbol, node *ast.CallExpr) *Call {
 	default:
 		return c.badBuiltinCallArgType(sym.Name, node.Args[0], tin, "array, channel, slice, pointer to array")
 	}
-	t := xr.FuncOf([]xr.Type{tin}, []xr.Type{tout}, false)
+	t := c.Universe.FuncOf([]xr.Type{tin}, []xr.Type{tout}, false)
 	sym.Type = t
 	fun := exprLit(Lit{Type: t, Value: callCap}, &sym)
 	// capacity of arrays is part of their type: cannot change at runtime, we could optimize it.
@@ -240,12 +218,12 @@ func callClose(val r.Value) {
 }
 
 func compileClose(c *Comp, sym Symbol, node *ast.CallExpr) *Call {
-	arg := c.Expr1(node.Args[0])
+	arg := c.Expr1(node.Args[0], nil)
 	tin := arg.Type
 	if tin.Kind() != r.Chan {
 		return c.badBuiltinCallArgType(sym.Name, node.Args[0], tin, "channel")
 	}
-	t := xr.FuncOf([]xr.Type{tin}, zeroTypes, false)
+	t := c.Universe.FuncOf([]xr.Type{tin}, zeroTypes, false)
 	sym.Type = t
 	fun := exprLit(Lit{Type: t, Value: callClose}, &sym)
 	return newCall1(fun, arg, false)
@@ -262,12 +240,11 @@ func callComplex128(re float64, im float64) complex128 {
 }
 
 func compileComplex(c *Comp, sym Symbol, node *ast.CallExpr) *Call {
-	re := c.Expr1(node.Args[0])
-	im := c.Expr1(node.Args[1])
+	re := c.Expr1(node.Args[0], nil)
+	im := c.Expr1(node.Args[1], nil)
 	if re.Untyped() {
 		if im.Untyped() {
-			re.ConstTo(c.TypeOfFloat64())
-			im.ConstTo(c.TypeOfFloat64())
+			return compileComplexUntyped(c, sym, node, re.Value.(UntypedLit), im.Value.(UntypedLit))
 		} else {
 			re.ConstTo(im.Type)
 		}
@@ -286,11 +263,11 @@ func compileComplex(c *Comp, sym Symbol, node *ast.CallExpr) *Call {
 		kim = r.Float64
 	}
 	if kre != r.Float64 {
-		c.Errorf("invalid operation: %v (arguments have type %v, expected floating-point)",
+		c.Errorf("invalid operation: %v (arguments have type %v, expected integer or floating-point)",
 			node, re.Type)
 	}
 	if kim != r.Float64 {
-		c.Errorf("invalid operation: %v (arguments have type %v, expected floating-point)",
+		c.Errorf("invalid operation: %v (arguments have type %v, expected integer or floating-point)",
 			node, im.Type)
 	}
 	tin := re.Type
@@ -308,11 +285,48 @@ func compileComplex(c *Comp, sym Symbol, node *ast.CallExpr) *Call {
 		return c.badBuiltinCallArgType(sym.Name, node.Args[0], tin, "floating point")
 	}
 	touts := []xr.Type{tout}
-	t := xr.FuncOf([]xr.Type{tin}, touts, false)
-	sym.Type = t
-	fun := exprLit(Lit{Type: t, Value: call}, &sym)
+	tfun := c.Universe.FuncOf([]xr.Type{tin}, touts, false)
+	sym.Type = tfun
+	fun := exprLit(Lit{Type: tfun, Value: call}, &sym)
 	// complex() of two constants is constant: it can be computed at compile time
-	return &Call{Fun: fun, Args: []*Expr{re, im}, Const: re.Const() && im.Const(), OutTypes: touts}
+	return &Call{Fun: fun, Args: []*Expr{re, im}, OutTypes: touts, Const: re.Const() && im.Const()}
+}
+
+var complexImagOne = constant.MakeFromLiteral("1i", token.IMAG, 0)
+
+func compileComplexUntyped(c *Comp, sym Symbol, node *ast.CallExpr, re UntypedLit, im UntypedLit) *Call {
+	checkComplexUntypedArg(c, node, re, "first")
+	checkComplexUntypedArg(c, node, im, "second")
+	rev := re.Val
+	imv := constant.BinaryOp(im.Val, token.MUL, complexImagOne)
+	val := MakeUntypedLit(r.Complex128, constant.BinaryOp(rev, token.ADD, imv), &c.Universe.BasicTypes)
+	touts := []xr.Type{c.TypeOfUntypedLit()}
+	tfun := c.Universe.FuncOf(nil, touts, false)
+	sym.Type = tfun
+	fun := exprLit(Lit{Type: tfun, Value: val}, &sym)
+	// complex() of two untyped constants is both untyped and constant: it can be computed at compile time
+	return &Call{Fun: fun, Args: nil, OutTypes: touts, Const: true}
+}
+
+func checkComplexUntypedArg(c *Comp, node *ast.CallExpr, arg UntypedLit, label string) {
+	switch arg.Kind {
+	case r.Int, r.Int32 /*rune*/, r.Float64:
+		return
+	case r.Complex128:
+		im := constant.Imag(arg.Val)
+		switch im.Kind() {
+		case constant.Int:
+			if x, exact := constant.Int64Val(im); x == 0 && exact {
+				return
+			}
+		case constant.Float:
+			if x, exact := constant.Float64Val(im); x == 0.0 && exact {
+				return
+			}
+		}
+	}
+	c.Errorf("invalid operation: %v (first argument is untyped %v, expected untyped integer, untyped float, or untyped complex with zero imaginary part)",
+		node, arg)
 }
 
 // --- copy() ---
@@ -324,8 +338,8 @@ func copyStringToBytes(dst []byte, src string) int {
 
 func compileCopy(c *Comp, sym Symbol, node *ast.CallExpr) *Call {
 	args := []*Expr{
-		c.Expr1(node.Args[0]),
-		c.Expr1(node.Args[1]),
+		c.Expr1(node.Args[0], nil),
+		c.Expr1(node.Args[1], nil),
 	}
 	if args[1].Const() {
 		// we also accept a string literal as second argument
@@ -333,7 +347,7 @@ func compileCopy(c *Comp, sym Symbol, node *ast.CallExpr) *Call {
 	}
 	t0, t1 := args[0].Type, args[1].Type
 	var funCopy I = r.Copy
-	if t0 == nil || t0.Kind() != r.Slice || !t0.AssignableTo(xr.SliceOf(t0.Elem())) {
+	if t0 == nil || t0.Kind() != r.Slice || !t0.AssignableTo(c.Universe.SliceOf(t0.Elem())) {
 		// https://golang.org/ref/spec#Appending_and_copying_slices
 		// copy [...] arguments must have identical element type T and must be assignable to a slice of type []T.
 		c.Errorf("first argument to copy should be slice; have %v <%v>", node.Args[0], t0)
@@ -342,14 +356,14 @@ func compileCopy(c *Comp, sym Symbol, node *ast.CallExpr) *Call {
 		// [...] As a special case, copy also accepts a destination argument assignable to type []byte
 		// with a source argument of a string type. This form copies the bytes from the string into the byte slice.
 		funCopy = copyStringToBytes
-	} else if t1 == nil || t1.Kind() != r.Slice || !t1.AssignableTo(xr.SliceOf(t1.Elem())) {
+	} else if t1 == nil || t1.Kind() != r.Slice || !t1.AssignableTo(c.Universe.SliceOf(t1.Elem())) {
 		c.Errorf("second argument to copy should be slice or string; have %v <%v>", node.Args[1], t1)
 		return nil
-	} else if !xr.SameType(t0.Elem(), t1.Elem()) {
+	} else if !t0.Elem().IdenticalTo(t1.Elem()) {
 		c.Errorf("arguments to copy have different element types: <%v> and <%v>", t0.Elem(), t1.Elem())
 	}
 	outtypes := []xr.Type{c.TypeOfInt()}
-	t := xr.FuncOf([]xr.Type{t0, t1}, outtypes, false)
+	t := c.Universe.FuncOf([]xr.Type{t0, t1}, outtypes, false)
 	sym.Type = t
 	fun := exprLit(Lit{Type: t, Value: funCopy}, &sym)
 	return &Call{Fun: fun, Args: args, OutTypes: outtypes, Const: false}
@@ -364,8 +378,8 @@ func callDelete(vmap r.Value, vkey r.Value) {
 }
 
 func compileDelete(c *Comp, sym Symbol, node *ast.CallExpr) *Call {
-	emap := c.Expr1(node.Args[0])
-	ekey := c.Expr1(node.Args[1])
+	emap := c.Expr1(node.Args[0], nil)
+	ekey := c.Expr1(node.Args[1], nil)
 	tmap := emap.Type
 	if tmap.Kind() != r.Map {
 		c.Errorf("first argument to delete must be map; have %v", tmap)
@@ -377,7 +391,7 @@ func compileDelete(c *Comp, sym Symbol, node *ast.CallExpr) *Call {
 	} else if ekey.Type == nil || !ekey.Type.AssignableTo(tkey) {
 		c.Errorf("cannot use %v <%v> as type <%v> in delete", node.Args[1], ekey.Type, tkey)
 	}
-	t := xr.FuncOf([]xr.Type{tmap, tkey}, zeroTypes, false)
+	t := c.Universe.FuncOf([]xr.Type{tmap, tkey}, zeroTypes, false)
 	sym.Type = t
 	fun := exprLit(Lit{Type: t, Value: callDelete}, &sym)
 	return &Call{Fun: fun, Args: []*Expr{emap, ekey}, OutTypes: zeroTypes, Const: false}
@@ -401,15 +415,45 @@ func funI2_I(interface{}, interface{}) interface{} {
 }
 
 func callEval(argv r.Value, interpv r.Value) r.Value {
+	// always convert untyped constants to their default type.
+	// To retrieve untyped constants, use EvalKeepUntyped()
+	return callEval3(argv, interpv, COptDefaults)
+}
+
+func callEvalKeepUntyped(argv r.Value, interpv r.Value) r.Value {
+	return callEval3(argv, interpv, COptKeepUntyped)
+}
+
+func callEval3(argv r.Value, interpv r.Value, opt CompileOptions) r.Value {
 	if !argv.IsValid() {
 		return argv
 	}
-	form := ast2.AnyToAst(argv.Interface(), "Eval")
+	form := anyToAst(argv.Interface(), "Eval")
 	form = base.SimplifyAstForQuote(form, true)
 
-	interp := interpv.Interface().(*Interp)
-	e := interp.CompileAst(form)
-	return interp.RunExpr1(e)
+	ir := interpv.Interface().(*Interp)
+
+	// use Comp.Compile(), which always compiles, instead of Interp.CompileAst():
+	// the latter compiles only if option MacroExpandOnly is unset
+	e := ir.Comp.Compile(form)
+
+	if e == nil {
+		return base.None
+	}
+	e.CheckX1()
+
+	if opt&COptKeepUntyped == 0 && e.Untyped() {
+		e.ConstTo(e.DefaultType())
+	}
+
+	// do not use Interp.RunExpr() or Interp.RunExpr1()
+	// because they convert untyped constants to their default type
+	// if Interp.Comp.Globals.Options&OptKeepUntyped == 0
+	env := ir.PrepareEnv()
+
+	fun := e.AsXV(COptKeepUntyped)
+	v, _ := fun(env)
+	return v
 }
 
 // --- EvalType() ---
@@ -422,7 +466,7 @@ func callEvalType(argv r.Value, interpv r.Value) r.Value {
 	if !argv.IsValid() {
 		return zeroOfReflectType
 	}
-	form := ast2.AnyToAst(argv.Interface(), "EvalType")
+	form := anyToAst(argv.Interface(), "EvalType")
 	form = base.UnwrapTrivialAst(form)
 	node := form.Interface().(ast.Expr)
 
@@ -445,7 +489,7 @@ func callLenString(val string) int {
 }
 
 func compileLen(c *Comp, sym Symbol, node *ast.CallExpr) *Call {
-	arg := c.Expr1(node.Args[0])
+	arg := c.Expr1(node.Args[0], nil)
 	if arg.Const() {
 		arg.ConstTo(arg.DefaultType())
 	}
@@ -465,7 +509,7 @@ func compileLen(c *Comp, sym Symbol, node *ast.CallExpr) *Call {
 	default:
 		return c.badBuiltinCallArgType(sym.Name, node.Args[0], tin, "array, channel, map, slice, string, pointer to array")
 	}
-	t := xr.FuncOf([]xr.Type{tin}, []xr.Type{tout}, false)
+	t := c.Universe.FuncOf([]xr.Type{tin}, []xr.Type{tout}, false)
 	sym.Type = t
 	fun := exprLit(Lit{Type: t, Value: callLenValue}, &sym)
 	if tin.Kind() == r.String {
@@ -499,7 +543,7 @@ func callMacroExpandDispatch(argv r.Value, interpv r.Value, caller string) (r.Va
 	if !argv.IsValid() {
 		return r.Zero(rtypeOfNode), base.False
 	}
-	form := ast2.AnyToAst(argv.Interface(), caller)
+	form := anyToAst(argv.Interface(), caller)
 	form = base.SimplifyAstForQuote(form, true)
 
 	interp := interpv.Interface().(*Interp)
@@ -565,17 +609,17 @@ func compileMake(c *Comp, sym Symbol, node *ast.CallExpr) *Call {
 	args[0] = c.exprValue(argtypes[0], tin.ReflectType()) // no need to build TypeOfReflectType
 	te := c.TypeOfInt()
 	for i := 1; i < nargs; i++ {
-		argi := c.Expr1(node.Args[i])
+		argi := c.Expr1(node.Args[i], nil)
 		if argi.Const() {
 			argi.ConstTo(te)
-		} else if ti := argi.Type; ti == nil || (!xr.SameType(ti, te) && !ti.AssignableTo(te)) {
+		} else if ti := argi.Type; ti == nil || (!ti.IdenticalTo(te) && !ti.AssignableTo(te)) {
 			return c.badBuiltinCallArgType(sym.Name, node.Args[i], ti, te)
 		}
 		args[i] = argi
 		argtypes[i] = te
 	}
 	outtypes := []xr.Type{tin}
-	t := xr.FuncOf(argtypes, outtypes, false)
+	t := c.Universe.FuncOf(argtypes, outtypes, false)
 	sym.Type = t
 	funMake := funMakes[nargs]
 	if funMake == nil {
@@ -590,8 +634,8 @@ func compileMake(c *Comp, sym Symbol, node *ast.CallExpr) *Call {
 
 func compileNew(c *Comp, sym Symbol, node *ast.CallExpr) *Call {
 	tin := c.Type(node.Args[0])
-	tout := xr.PtrTo(tin)
-	t := xr.FuncOf([]xr.Type{c.TypeOfInterface()}, []xr.Type{tout}, false) // no need to build TypeOfReflectType
+	tout := c.Universe.PtrTo(tin)
+	t := c.Universe.FuncOf([]xr.Type{c.TypeOfInterface()}, []xr.Type{tout}, false) // no need to build TypeOfReflectType
 	sym.Type = t
 	fun := exprLit(Lit{Type: t, Value: r.New}, &sym)
 	arg := c.exprValue(c.TypeOfInterface(), tin.ReflectType())
@@ -605,12 +649,35 @@ func callPanic(arg interface{}) {
 }
 
 func compilePanic(c *Comp, sym Symbol, node *ast.CallExpr) *Call {
-	arg := c.Expr1(node.Args[0])
+	arg := c.Expr1(node.Args[0], nil)
 	arg.To(c, c.TypeOfInterface())
 	t := c.TypeOf(callPanic)
 	sym.Type = t
 	fun := exprLit(Lit{Type: t, Value: callPanic}, &sym)
 	return newCall1(fun, arg, false)
+}
+
+// --- Parse() ---
+
+func funSI_I(string, interface{}) interface{} {
+	return nil
+}
+
+func callParse(argv r.Value, interpv r.Value) r.Value {
+	if !argv.IsValid() {
+		return argv
+	}
+	ir := interpv.Interface().(*Interp)
+
+	if argv.Kind() == r.Interface {
+		argv = argv.Elem()
+	}
+	if argv.Kind() != r.String {
+		ir.Comp.Errorf("cannot convert %v to string: %v", argv.Type(), argv)
+	}
+
+	form := ir.Comp.Parse(argv.String())
+	return r.ValueOf(&form).Elem() // always return type ast2.Ast
 }
 
 // --- print(), println() ---
@@ -624,7 +691,7 @@ func callPrintln(out interface{}, args ...interface{}) {
 }
 
 func getStdout(env *Env) r.Value {
-	return r.ValueOf(env.ThreadGlobals.Stdout)
+	return r.ValueOf(env.Run.Stdout)
 }
 
 func compilePrint(c *Comp, sym Symbol, node *ast.CallExpr) *Call {
@@ -664,8 +731,11 @@ func callImag64(val complex128) float64 {
 }
 
 func compileRealImag(c *Comp, sym Symbol, node *ast.CallExpr) *Call {
-	arg := c.Expr1(node.Args[0])
+	arg := c.Expr1(node.Args[0], nil)
 	if arg.Const() {
+		if arg.Untyped() {
+			return compileRealImagUntyped(c, sym, node, arg.Value.(UntypedLit))
+		}
 		arg.ConstTo(arg.DefaultType())
 	}
 	tin := arg.Type
@@ -689,11 +759,31 @@ func compileRealImag(c *Comp, sym Symbol, node *ast.CallExpr) *Call {
 	default:
 		return c.badBuiltinCallArgType(sym.Name, node.Args[0], tin, "complex")
 	}
-	t := xr.FuncOf([]xr.Type{tin}, []xr.Type{tout}, false)
+	t := c.Universe.FuncOf([]xr.Type{tin}, []xr.Type{tout}, false)
 	sym.Type = t
 	fun := exprLit(Lit{Type: t, Value: call}, &sym)
 	// real() and imag() of a constant are constants: they can be computed at compile time
 	return newCall1(fun, arg, arg.Const(), tout)
+}
+
+func compileRealImagUntyped(c *Comp, sym Symbol, node *ast.CallExpr, arg UntypedLit) *Call {
+	val := arg.Val
+	if sym.Name == "real" {
+		val = constant.Real(val)
+	} else {
+		val = constant.Imag(val)
+	}
+	// convert constant.Value result to UntypedLit of appropriate kind
+	kind := untyped.ConstantKindToUntypedLitKind(val.Kind())
+	arg = MakeUntypedLit(kind, val, &c.Universe.BasicTypes)
+
+	touts := []xr.Type{c.TypeOfUntypedLit()}
+	tfun := c.Universe.FuncOf(nil, touts, false)
+	sym.Type = tfun
+
+	fun := exprLit(Lit{Type: tfun, Value: arg}, &sym)
+	// real() and imag() of untyped constant is both untyped and constant: it can be computed at compile time
+	return &Call{Fun: fun, Args: nil, OutTypes: touts, Const: true}
 }
 
 var nilInterface = r.Zero(base.TypeOfInterface)
@@ -701,9 +791,9 @@ var nilInterface = r.Zero(base.TypeOfInterface)
 // we can use whatever signature we want, as long as call_builtin supports it
 func callRecover(v r.Value) r.Value {
 	env := v.Interface().(*Env)
-	g := env.ThreadGlobals
-	debug := g.Options&base.OptDebugPanicRecover != 0
-	if !g.IsDefer {
+	g := env.Run
+	debug := g.Options&base.OptDebugRecover != 0
+	if !g.ExecFlags.IsDefer() {
 		if debug {
 			base.Debugf("recover() not directly inside a defer")
 		}
@@ -745,7 +835,7 @@ func argEnv(env *Env) r.Value {
 
 func compileRecover(c *Comp, sym Symbol, node *ast.CallExpr) *Call {
 	ti := c.TypeOfInterface()
-	t := xr.FuncOf([]xr.Type{ti}, []xr.Type{ti}, false)
+	t := c.Universe.FuncOf([]xr.Type{ti}, []xr.Type{ti}, false)
 	sym.Type = t
 	fun := exprLit(Lit{Type: t, Value: callRecover}, &sym)
 	arg := exprX1(ti, argEnv)
@@ -779,6 +869,8 @@ func (c *Comp) call_builtin(call *Call) I {
 	}
 	var ret I
 	switch fun := call.Fun.Value.(type) {
+	case UntypedLit: // complex(), real(), imag() of untyped constants
+		ret = fun
 	case func(float32, float32) complex64: // complex
 		arg0fun := argfuns[0].(func(*Env) float32)
 		arg1fun := argfuns[1].(func(*Env) float32)
@@ -969,7 +1061,7 @@ func (c *Comp) call_builtin(call *Call) I {
 		}
 	case func(r.Value) r.Value: // Env()
 		argfun := call.MakeArgfunsX1()[0]
-		if name == "Env" {
+		if name == "Interp" {
 			ret = func(env *Env) r.Value {
 				return argfun(env)
 			}
@@ -1001,7 +1093,7 @@ func (c *Comp) call_builtin(call *Call) I {
 			arg1 := argfuns[1](env)
 			return fun(arg0, arg1)
 		}
-	case func(r.Value, r.Value) r.Value: // Eval(), EvalType()
+	case func(r.Value, r.Value) r.Value: // Eval(), EvalType(), Parse()
 		argfunsX1 := call.MakeArgfunsX1()
 		argfuns := [2]func(env *Env) r.Value{
 			argfunsX1[0],
@@ -1170,4 +1262,11 @@ func (c *Comp) badBuiltinCallArgNum(name interface{}, nmin uint16, nmax uint16, 
 func (c *Comp) badBuiltinCallArgType(name string, arg ast.Expr, tactual xr.Type, texpected interface{}) *Call {
 	c.Errorf("cannot use %v <%v> as %v in builtin %s()", arg, tactual, texpected, name)
 	return nil
+}
+
+func anyToAst(any interface{}, caller interface{}) ast2.Ast {
+	if untyped, ok := any.(UntypedLit); ok {
+		any = untyped.Convert(untyped.DefaultType())
+	}
+	return ast2.AnyToAst(any, caller)
 }

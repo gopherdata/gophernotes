@@ -57,9 +57,9 @@ func init() {
 		"TrimRightFunc":	ValueOf(strings.TrimRightFunc),
 		"TrimSpace":	ValueOf(strings.TrimSpace),
 		"TrimSuffix":	ValueOf(strings.TrimSuffix),
-	},Types: map[string]Type{
+	}, Types: map[string]Type{
 		"Reader":	TypeOf((*strings.Reader)(nil)).Elem(),
 		"Replacer":	TypeOf((*strings.Replacer)(nil)).Elem(),
-	},
+	}, 
 	}
 }

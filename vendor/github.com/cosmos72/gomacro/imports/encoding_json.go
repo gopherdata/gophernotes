@@ -20,7 +20,8 @@ func init() {
 		"NewDecoder":	ValueOf(json.NewDecoder),
 		"NewEncoder":	ValueOf(json.NewEncoder),
 		"Unmarshal":	ValueOf(json.Unmarshal),
-	},Types: map[string]Type{
+		"Valid":	ValueOf(json.Valid),
+	}, Types: map[string]Type{
 		"Decoder":	TypeOf((*json.Decoder)(nil)).Elem(),
 		"Delim":	TypeOf((*json.Delim)(nil)).Elem(),
 		"Encoder":	TypeOf((*json.Encoder)(nil)).Elem(),
@@ -37,33 +38,27 @@ func init() {
 		"Unmarshaler":	TypeOf((*json.Unmarshaler)(nil)).Elem(),
 		"UnsupportedTypeError":	TypeOf((*json.UnsupportedTypeError)(nil)).Elem(),
 		"UnsupportedValueError":	TypeOf((*json.UnsupportedValueError)(nil)).Elem(),
-	},Proxies: map[string]Type{
-		"Marshaler":	TypeOf((*Marshaler_encoding_json)(nil)).Elem(),
-		"Token":	TypeOf((*Token_encoding_json)(nil)).Elem(),
-		"Unmarshaler":	TypeOf((*Unmarshaler_encoding_json)(nil)).Elem(),
-	},
+	}, Proxies: map[string]Type{
+		"Marshaler":	TypeOf((*P_encoding_json_Marshaler)(nil)).Elem(),
+		"Unmarshaler":	TypeOf((*P_encoding_json_Unmarshaler)(nil)).Elem(),
+	}, 
 	}
 }
 
 // --------------- proxy for encoding/json.Marshaler ---------------
-type Marshaler_encoding_json struct {
+type P_encoding_json_Marshaler struct {
 	Object	interface{}
 	MarshalJSON_	func(interface{}) ([]byte, error)
 }
-func (Proxy *Marshaler_encoding_json) MarshalJSON() ([]byte, error) {
-	return Proxy.MarshalJSON_(Proxy.Object)
-}
-
-// --------------- proxy for encoding/json.Token ---------------
-type Token_encoding_json struct {
-	Object	interface{}
+func (P *P_encoding_json_Marshaler) MarshalJSON() ([]byte, error) {
+	return P.MarshalJSON_(P.Object)
 }
 
 // --------------- proxy for encoding/json.Unmarshaler ---------------
-type Unmarshaler_encoding_json struct {
+type P_encoding_json_Unmarshaler struct {
 	Object	interface{}
 	UnmarshalJSON_	func(interface{}, []byte) error
 }
-func (Proxy *Unmarshaler_encoding_json) UnmarshalJSON(unnamed0 []byte) error {
-	return Proxy.UnmarshalJSON_(Proxy.Object, unnamed0)
+func (P *P_encoding_json_Unmarshaler) UnmarshalJSON(unnamed0 []byte) error {
+	return P.UnmarshalJSON_(P.Object, unnamed0)
 }

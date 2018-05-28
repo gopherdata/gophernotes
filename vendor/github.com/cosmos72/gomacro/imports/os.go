@@ -5,8 +5,8 @@ package imports
 
 import (
 	. "reflect"
-	"os"
 	"time"
+	"os"
 )
 
 // reflection: allow interpreted code to import "os"
@@ -102,7 +102,7 @@ func init() {
 		"TempDir":	ValueOf(os.TempDir),
 		"Truncate":	ValueOf(os.Truncate),
 		"Unsetenv":	ValueOf(os.Unsetenv),
-	},Types: map[string]Type{
+	}, Types: map[string]Type{
 		"File":	TypeOf((*os.File)(nil)).Elem(),
 		"FileInfo":	TypeOf((*os.FileInfo)(nil)).Elem(),
 		"FileMode":	TypeOf((*os.FileMode)(nil)).Elem(),
@@ -113,19 +113,19 @@ func init() {
 		"ProcessState":	TypeOf((*os.ProcessState)(nil)).Elem(),
 		"Signal":	TypeOf((*os.Signal)(nil)).Elem(),
 		"SyscallError":	TypeOf((*os.SyscallError)(nil)).Elem(),
-	},Proxies: map[string]Type{
-		"FileInfo":	TypeOf((*FileInfo_os)(nil)).Elem(),
-		"Signal":	TypeOf((*Signal_os)(nil)).Elem(),
-	},Untypeds: map[string]string{
+	}, Proxies: map[string]Type{
+		"FileInfo":	TypeOf((*P_os_FileInfo)(nil)).Elem(),
+		"Signal":	TypeOf((*P_os_Signal)(nil)).Elem(),
+	}, Untypeds: map[string]string{
 		"DevNull":	"string:/dev/null",
 		"PathListSeparator":	"rune:58",
 		"PathSeparator":	"rune:47",
-	},
+	}, 
 	}
 }
 
 // --------------- proxy for os.FileInfo ---------------
-type FileInfo_os struct {
+type P_os_FileInfo struct {
 	Object	interface{}
 	IsDir_	func(interface{}) bool
 	ModTime_	func(interface{}) time.Time
@@ -134,34 +134,34 @@ type FileInfo_os struct {
 	Size_	func(interface{}) int64
 	Sys_	func(interface{}) interface{}
 }
-func (Proxy *FileInfo_os) IsDir() bool {
-	return Proxy.IsDir_(Proxy.Object)
+func (P *P_os_FileInfo) IsDir() bool {
+	return P.IsDir_(P.Object)
 }
-func (Proxy *FileInfo_os) ModTime() time.Time {
-	return Proxy.ModTime_(Proxy.Object)
+func (P *P_os_FileInfo) ModTime() time.Time {
+	return P.ModTime_(P.Object)
 }
-func (Proxy *FileInfo_os) Mode() os.FileMode {
-	return Proxy.Mode_(Proxy.Object)
+func (P *P_os_FileInfo) Mode() os.FileMode {
+	return P.Mode_(P.Object)
 }
-func (Proxy *FileInfo_os) Name() string {
-	return Proxy.Name_(Proxy.Object)
+func (P *P_os_FileInfo) Name() string {
+	return P.Name_(P.Object)
 }
-func (Proxy *FileInfo_os) Size() int64 {
-	return Proxy.Size_(Proxy.Object)
+func (P *P_os_FileInfo) Size() int64 {
+	return P.Size_(P.Object)
 }
-func (Proxy *FileInfo_os) Sys() interface{} {
-	return Proxy.Sys_(Proxy.Object)
+func (P *P_os_FileInfo) Sys() interface{} {
+	return P.Sys_(P.Object)
 }
 
 // --------------- proxy for os.Signal ---------------
-type Signal_os struct {
+type P_os_Signal struct {
 	Object	interface{}
 	Signal_	func(interface{}) 
 	String_	func(interface{}) string
 }
-func (Proxy *Signal_os) Signal()  {
-	Proxy.Signal_(Proxy.Object)
+func (P *P_os_Signal) Signal()  {
+	P.Signal_(P.Object)
 }
-func (Proxy *Signal_os) String() string {
-	return Proxy.String_(Proxy.Object)
+func (P *P_os_Signal) String() string {
+	return P.String_(P.Object)
 }

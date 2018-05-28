@@ -1,22 +1,11 @@
-// +build !gomacro_fast_compact
-
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017 Massimiliano Ghilardi
+ * Copyright (C) 2017-2018 Massimiliano Ghilardi
  *
- *     This program is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU Lesser General Public License as published
- *     by the Free Software Foundation, either version 3 of the License, or
- *     (at your option) any later version.
- *
- *     This program is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU Lesser General Public License for more details.
- *
- *     You should have received a copy of the GNU Lesser General Public License
- *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *     This Source Code Form is subject to the terms of the Mozilla Public
+ *     License, v. 2.0. If a copy of the MPL was not distributed with this
+ *     file, You can obtain one at http://mozilla.org/MPL/2.0/.
  *
  *
  * call1ret1.go
@@ -131,7 +120,7 @@ import (
 			if arg.Const() {
 				argconst := ~,argconv
 				ret = func(env *Env) ~,rettyp {
-					funv := env.ThreadGlobals.FileEnv.Binds[funindex]
+					funv := env.FileEnv.Vals[funindex]
 					~,cachefun
 					// Debugf("calling %v with args [%v]", r.TypeOf(cachedfun), argconst)
 					return cachedfun(argconst)
@@ -139,7 +128,7 @@ import (
 			} else {
 				argfun := arg.Fun.(func(env *Env) ~,argtyp)
 				ret = func(env *Env) ~,rettyp {
-					funv := env.ThreadGlobals.FileEnv.Binds[funindex]
+					funv := env.FileEnv.Vals[funindex]
 					~,cachefun
 					arg := argfun(env)
 					// Debugf("calling %v with args [%v]", r.TypeOf(fun), arg)
@@ -150,14 +139,14 @@ import (
 			argfun := arg.WithFun().(func(env *Env) ~,argtyp)
 			if funsym != nil && funupn == 0 {
 				ret = func(env *Env) ~,rettyp {
-					fun := env.Binds[funindex].Interface().(func(~,argtyp) ~,rettyp)
+					fun := env.Vals[funindex].Interface().(func(~,argtyp) ~,rettyp)
 					arg := argfun(env)
 					// Debugf("calling %v with args [%v]", r.TypeOf(fun), arg)
 					return fun(arg)
 				}
 			} else if funsym != nil && funupn == 1 {
 				ret = func(env *Env) ~,rettyp {
-					fun := env.Outer.Binds[funindex].Interface().(func(~,argtyp) ~,rettyp)
+					fun := env.Outer.Vals[funindex].Interface().(func(~,argtyp) ~,rettyp)
 					arg := argfun(env)
 					// Debugf("calling %v with args [%v]", r.TypeOf(fun), arg)
 					return fun(arg)
@@ -241,6 +230,16 @@ import (
 	}
 }
 
+:macro mcallx1ret1minimal(rettyp ast.Node) ast.Node {
+	return ~"{
+		if karg == kret {
+			mcall1ret1; ~,rettyp; ~,rettyp
+		} else {
+		    mcall1ret1;   nil;    ~,rettyp
+		}
+    }
+}
+
 func (c *Comp) call1ret1(call *Call, maxdepth int) I {
 	expr := call.Fun
 	exprfun := expr.AsX1()
@@ -266,23 +265,23 @@ func (c *Comp) call1ret1(call *Call, maxdepth int) I {
 
 	switch kret {
 		// do NOT optimize all cases... too many combinations
-		case r.Bool:      {mcallx1ret1; bool}
-		case r.Int:       {mcallx1ret1; int}
-		case r.Int8:      if karg == kret {mcall1ret1; int8; int8}       else {mcallx1ret1compact; int8}
-		case r.Int16:     if karg == kret {mcall1ret1; int16; int16}     else {mcallx1ret1compact; int16}
-		case r.Int32:     {mcallx1ret1; int32}
-		case r.Int64:     {mcallx1ret1; int64}
-		case r.Uint:      {mcallx1ret1; uint}
-		case r.Uint8:     if karg == kret {mcall1ret1; uint8; uint8}     else {mcallx1ret1compact; uint8}
-		case r.Uint16:    if karg == kret {mcall1ret1; uint16; uint16}   else {mcallx1ret1compact; uint16}
-		case r.Uint32:    if karg == kret {mcall1ret1; uint32; uint32}   else {mcallx1ret1compact; uint32}
-		case r.Uint64:    {mcallx1ret1; uint64}
-		case r.Uintptr:   if karg == kret {mcall1ret1; uintptr; uintptr} else {mcallx1ret1compact; uintptr}
-		case r.Float32:   if karg == kret {mcall1ret1; float32; float32} else {mcallx1ret1compact; float32}
-		case r.Float64:   if karg == kret {mcall1ret1; float64; float64} else {mcallx1ret1compact; float64}
-		case r.Complex64: if karg == kret {mcall1ret1; complex64;  complex64}   else {mcallx1ret1compact; complex64}
-		case r.Complex128:if karg == kret {mcall1ret1; complex128; complex128}  else {mcallx1ret1compact; complex128}
-		case r.String:    {mcallx1ret1; string}
+		case r.Bool:      {mcallx1ret1;        bool}
+		case r.Int:       {mcallx1ret1;        int}
+		case r.Int8:      {mcallx1ret1minimal; int8}
+		case r.Int16:     {mcallx1ret1minimal; int16}
+		case r.Int32:     {mcallx1ret1minimal; int32}
+		case r.Int64:     {mcallx1ret1;        int64}
+		case r.Uint:      {mcallx1ret1;        uint}
+		case r.Uint8:     {mcallx1ret1minimal; uint8}
+		case r.Uint16:    {mcallx1ret1minimal; uint16}
+		case r.Uint32:    {mcallx1ret1minimal; uint32}
+		case r.Uint64:    {mcallx1ret1;        uint64}
+		case r.Uintptr:   {mcallx1ret1minimal; uintptr}
+		case r.Float32:   {mcallx1ret1minimal; float32}
+		case r.Float64:   {mcallx1ret1compact; float64}
+		case r.Complex64: {mcallx1ret1minimal; complex64}
+		case r.Complex128:{mcallx1ret1compact; complex128}
+		case r.String:    {mcallx1ret1;        string}
 	}
 	if ret == nil {
 		{mcall1ret1;  nil; nil} // cannot optimize more this one...

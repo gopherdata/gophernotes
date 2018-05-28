@@ -4,18 +4,35 @@
 
 package main
 
-:import "go/ast"
+:import (
+	"go/ast"
+	"reflect"
+)
 
 :macro makefib(typ ast.Node) ast.Node {
-	return ~"{
-		~func fibonacci(n ~,typ) ~,typ {
+	rtyp := EvalType(typ).(reflect.Type)
+	funcname := &ast.Ident{Name: "fibonacci_" + rtyp.Name()}
+
+	// go/ast.FuncDecl can only represent function declarations
+	// where the function name is an *ast.Ident, not a generic ast.Node
+	//
+	// Work around this limitation by using the name FOO and replacing it below
+	ret := ~"{
+		~func FOO(n ~,typ) ~,typ {
 			if n <= 2 {
 				return 1
 			}
-			return fibonacci(n-1) + fibonacci(n-2)
-                }
-        }
+			return ~,funcname(n-1) + ~,funcname(n-2)
+		}
+	}
+	ret.Name = funcname
+	return ret
 }
 
+makefib; int
+makefib; int32
 makefib; int64
 
+makefib; uint
+makefib; uint32
+makefib; uint64

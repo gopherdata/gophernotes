@@ -1,20 +1,11 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017 Massimiliano Ghilardi
+ * Copyright (C) 2017-2018 Massimiliano Ghilardi
  *
- *     This program is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU Lesser General Public License as published
- *     by the Free Software Foundation, either version 3 of the License, or
- *     (at your option) any later version.
- *
- *     This program is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU Lesser General Public License for more details.
- *
- *     You should have received a copy of the GNU Lesser General Public License
- *     along with this program.  If not, see <https://www.gnu.org/licenses/lgpl>.
+ *     This Source Code Form is subject to the terms of the Mozilla Public
+ *     License, v. 2.0. If a copy of the MPL was not distributed with this
+ *     file, You can obtain one at http://mozilla.org/MPL/2.0/.
  *
  *
  * declaration.go
@@ -52,7 +43,7 @@ func (env *Env) evalDeclGen(node *ast.GenDecl) (r.Value, []r.Value) {
 	switch tok {
 	case token.IMPORT:
 		for _, decl := range node.Specs {
-			ret, rets = env.evalImport(decl)
+			ret, rets = env.evalImportDecl(decl)
 		}
 	case token.CONST:
 		var defaultType ast.Expr
@@ -99,9 +90,9 @@ func (env *Env) evalDeclType(node ast.Spec) (r.Value, []r.Value) {
 	switch node := node.(type) {
 	case *ast.TypeSpec:
 		name := node.Name.Name
-		// PATCH: support type aliases
-		if unary, ok := node.Type.(*ast.UnaryExpr); ok && unary.Op == token.ASSIGN {
-			t := env.evalTypeAlias(name, unary.X)
+		// support type aliases
+		if node.Assign != token.NoPos {
+			t := env.evalTypeAlias(name, node.Type)
 			return r.ValueOf(&t).Elem(), nil // return a reflect.Type, not the concrete type
 		}
 

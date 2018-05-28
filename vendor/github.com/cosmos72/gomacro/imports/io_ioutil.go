@@ -20,6 +20,6 @@ func init() {
 		"TempDir":	ValueOf(ioutil.TempDir),
 		"TempFile":	ValueOf(ioutil.TempFile),
 		"WriteFile":	ValueOf(ioutil.WriteFile),
-	},
+	}, 
 	}
 }

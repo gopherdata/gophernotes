@@ -1,20 +1,11 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017 Massimiliano Ghilardi
+ * Copyright (C) 2017-2018 Massimiliano Ghilardi
  *
- *     This program is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU Lesser General Public License as published
- *     by the Free Software Foundation, either version 3 of the License, or
- *     (at your option) any later version.
- *
- *     This program is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU Lesser General Public License for more details.
- *
- *     You should have received a copy of the GNU Lesser General Public License
- *     along with this program.  If not, see <https://www.gnu.org/licenses/lgpl>.
+ *     This Source Code Form is subject to the terms of the Mozilla Public
+ *     License, v. 2.0. If a copy of the MPL was not distributed with this
+ *     file, You can obtain one at http://mozilla.org/MPL/2.0/.
  *
  *
  * output.go
@@ -77,6 +68,14 @@ func (err RuntimeError) Error() string {
 		msg = fmt.Sprintf("%s: %s", prefix, msg)
 	}
 	return msg
+}
+
+func makeRuntimeError(format string, args ...interface{}) error {
+	return RuntimeError{nil, format, args}
+}
+
+func (st *Stringer) MakeRuntimeError(format string, args ...interface{}) RuntimeError {
+	return RuntimeError{st, format, args}
 }
 
 func Error(err error) interface{} {
@@ -143,6 +142,20 @@ func (st *Stringer) Position() token.Position {
 		return token.Position{}
 	}
 	return st.Fileset.Position(st.Pos)
+}
+
+func (ref *PackageRef) String() string {
+	return fmt.Sprintf("{%s %q, %d binds, %d types}", ref.Name, ref.Path, len(ref.Binds), len(ref.Types))
+}
+
+func ShowPackageHeader(out io.Writer, name string, path string, kind string) {
+	if name == path {
+		fmt.Fprintf(out, "// ----- %s %s -----\n", name, kind)
+	} else if name == FileName(path) {
+		fmt.Fprintf(out, "// ----- %q %s -----\n", path, kind)
+	} else {
+		fmt.Fprintf(out, "// ----- %s %q %s -----\n", name, path, kind)
+	}
 }
 
 var typeOfReflectValue = r.TypeOf(r.Value{})
@@ -300,15 +313,17 @@ func (st *Stringer) nodeToPrintable(node ast.Node) interface{} {
 }
 
 func (st *Stringer) rvalueToPrintable(format string, value r.Value) interface{} {
+	var i interface{}
 	if value == None {
-		return "/*no value*/"
+		i = "/*no value*/"
 	} else if value == Nil {
-		return nil
+		i = nil
 	} else if value.CanInterface() {
-		return st.toPrintable(format, value.Interface())
+		i = st.toPrintable(format, value.Interface())
 	} else {
-		return value
+		i = value
 	}
+	return i
 }
 
 func (st *Stringer) typeToPrintable(t r.Type) interface{} {
@@ -324,8 +339,11 @@ func (st *Stringer) typeToPrintable(t r.Type) interface{} {
 }
 
 func (st *Stringer) structToPrintable(format string, v r.Value) string {
-	buf := bytes.Buffer{}
 	n := v.NumField()
+	if n == 0 {
+		return "{}"
+	}
+	var buf bytes.Buffer
 	t := v.Type()
 	ch := '{'
 	for i := 0; i < n; i++ {

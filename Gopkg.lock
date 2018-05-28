@@ -4,8 +4,30 @@
 [[projects]]
   branch = "master"
   name = "github.com/cosmos72/gomacro"
-  packages = ["ast2","base","classic","fast","imports","parser","scanner","token","typeutil","xreflect"]
-  revision = "b90dd5143957e920ac0ce87f9a3277bbc3ce1641"
+  packages = [
+    "ast2",
+    "atomic",
+    "base",
+    "base/dep",
+    "base/untyped",
+    "fast",
+    "gls",
+    "imports",
+    "imports/syscall",
+    "imports/thirdparty",
+    "parser",
+    "scanner",
+    "token",
+    "typeutil",
+    "xreflect"
+  ]
+  revision = "5800d8430f0f35fe69ef1f684b775a330d240982"
+
+[[projects]]
+  name = "github.com/mattn/go-runewidth"
+  packages = ["."]
+  revision = "9e777a8366cce605130a531d2cd6363d07ad7317"
+  version = "v0.0.2"
 
 [[projects]]
   branch = "master"
@@ -21,13 +43,13 @@
 
 [[projects]]
   branch = "master"
-  name = "golang.org/x/sync"
-  packages = ["syncmap"]
-  revision = "f52d1811a62927559de87708c8913c1650ce4f26"
+  name = "github.com/peterh/liner"
+  packages = ["."]
+  revision = "80ce870644db1b043e8dc2cf836bde5c347e2701"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "fa5d7d9ec51b9210ed3ca68de1105ddbbc070a941c737b3955518eaee951d10c"
+  inputs-digest = "278a5cfd4bdde672d425015cdbfbac9755a236e1644cfd16042e8b836a880272"
   solver-name = "gps-cdcl"
   solver-version = 1

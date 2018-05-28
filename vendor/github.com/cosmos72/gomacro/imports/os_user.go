@@ -17,13 +17,13 @@ func init() {
 		"LookupGroup":	ValueOf(user.LookupGroup),
 		"LookupGroupId":	ValueOf(user.LookupGroupId),
 		"LookupId":	ValueOf(user.LookupId),
-	},Types: map[string]Type{
+	}, Types: map[string]Type{
 		"Group":	TypeOf((*user.Group)(nil)).Elem(),
 		"UnknownGroupError":	TypeOf((*user.UnknownGroupError)(nil)).Elem(),
 		"UnknownGroupIdError":	TypeOf((*user.UnknownGroupIdError)(nil)).Elem(),
 		"UnknownUserError":	TypeOf((*user.UnknownUserError)(nil)).Elem(),
 		"UnknownUserIdError":	TypeOf((*user.UnknownUserIdError)(nil)).Elem(),
 		"User":	TypeOf((*user.User)(nil)).Elem(),
-	},
+	}, 
 	}
 }

@@ -26,8 +26,6 @@ func init() {
 			"Env":           r.TypeOf((*Env)(nil)).Elem(),
 			"Error_builtin": r.TypeOf((*Error_builtin)(nil)).Elem(),
 			"Function":      r.TypeOf((*Function)(nil)).Elem(),
-			"Inspector":     r.TypeOf((*Inspector)(nil)).Elem(),
-			"Interface":     r.TypeOf((*Interface)(nil)).Elem(),
 			"Interp":        r.TypeOf((*Interp)(nil)).Elem(),
 			"Macro":         r.TypeOf((*Macro)(nil)).Elem(),
 			"Methods":       r.TypeOf((*Methods)(nil)).Elem(),
@@ -37,9 +35,9 @@ func init() {
 		}, Untypeds: map[string]string{
 			"MultiThread": "bool:true",
 		}, Wrappers: map[string][]string{
-			"Env":           []string{"CollectAst", "CollectNode", "CollectPackageImports", "Copy", "Debugf", "Error", "Errorf", "Fprintf", "Gensym", "GensymEmbedded", "GensymPrivate", "ImportPackage", "IncLine", "IncLineBytes", "Init", "LookupPackage", "ObjMethodByName", "ParseBytes", "Position", "ShowHelp", "Sprintf", "ToString", "WarnExtraValues", "Warnf", "WriteDeclsToFile", "WriteDeclsToStream"},
-			"Interp":        []string{"AsPackage", "CallerFrame", "ChangePackage", "ClassicEval", "CollectAst", "CollectNode", "CollectPackageImports", "Copy", "CurrentFrame", "Debugf", "DefineConst", "DefineFunc", "DefineVar", "Error", "Errorf", "Eval", "Eval1", "EvalAst", "EvalAst1", "EvalNode", "EvalNode1", "FastEval", "FileEnv", "Fprintf", "Gensym", "GensymEmbedded", "GensymPrivate", "ImportPackage", "IncLine", "IncLineBytes", "Init", "Inspect", "LookupPackage", "MacroExpand", "MacroExpand1", "MacroExpandAstCodewalk", "MacroExpandCodewalk", "MergePackage", "ObjMethodByName", "Parse", "ParseBytes", "ParseOnly", "Position", "ReadMultiline", "ShowHelp", "ShowPackage", "Sprintf", "ToString", "TopEnv", "ValueOf", "WarnExtraValues", "Warnf", "WriteDeclsToFile", "WriteDeclsToStream"},
-			"ThreadGlobals": []string{"CollectAst", "CollectNode", "CollectPackageImports", "Copy", "Debugf", "Error", "Errorf", "Fprintf", "Gensym", "GensymEmbedded", "GensymPrivate", "ImportPackage", "IncLine", "IncLineBytes", "Init", "LookupPackage", "ParseBytes", "Position", "Sprintf", "ToString", "WarnExtraValues", "Warnf", "WriteDeclsToFile", "WriteDeclsToStream"},
+			"Env":           []string{"CollectAst", "CollectNode", "CollectPackageImports", "Copy", "Debugf", "Error", "Errorf", "Fprintf", "Gensym", "GensymAnonymous", "GensymPrivate", "ImportPackage", "IncLine", "IncLineBytes", "Init", "LookupPackage", "ObjMethodByName", "ParseBytes", "Position", "ShowHelp", "Sprintf", "ToString", "WarnExtraValues", "Warnf", "WriteDeclsToFile", "WriteDeclsToStream"},
+			"Interp":        []string{"AsPackage", "CallerFrame", "ChangePackage", "ClassicEval", "CollectAst", "CollectNode", "CollectPackageImports", "Copy", "CurrentFrame", "Debugf", "DefineConst", "DefineFunc", "DefineVar", "Error", "Errorf", "Eval", "Eval1", "EvalAst", "EvalAst1", "EvalNode", "EvalNode1", "FastEval", "FileEnv", "Fprintf", "Gensym", "GensymAnonymous", "GensymPrivate", "ImportPackage", "IncLine", "IncLineBytes", "Init", "Inspect", "LookupPackage", "MacroExpand", "MacroExpand1", "MacroExpandAstCodewalk", "MacroExpandCodewalk", "MergePackage", "ObjMethodByName", "Parse", "ParseBytes", "ParseOnly", "Position", "ReadMultiline", "ShowHelp", "ShowPackage", "Sprintf", "ToString", "TopEnv", "ValueOf", "WarnExtraValues", "Warnf", "WriteDeclsToFile", "WriteDeclsToStream"},
+			"ThreadGlobals": []string{"CollectAst", "CollectNode", "CollectPackageImports", "Copy", "Debugf", "Error", "Errorf", "Fprintf", "Gensym", "GensymAnonymous", "GensymPrivate", "ImportPackage", "IncLine", "IncLineBytes", "Init", "LookupPackage", "ParseBytes", "Position", "Sprintf", "ToString", "WarnExtraValues", "Warnf", "WriteDeclsToFile", "WriteDeclsToStream"},
 		},
 	}
 }

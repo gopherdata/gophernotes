@@ -1,20 +1,11 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017 Massimiliano Ghilardi
+ * Copyright (C) 2017-2018 Massimiliano Ghilardi
  *
- *     This program is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU Lesser General Public License as published
- *     by the Free Software Foundation, either version 3 of the License, or
- *     (at your option) any later version.
- *
- *     This program is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU Lesser General Public License for more details.
- *
- *     You should have received a copy of the GNU Lesser General Public License
- *     along with this program.  If not, see <https://www.gnu.org/licenses/lgpl>.
+ *     This Source Code Form is subject to the terms of the Mozilla Public
+ *     License, v. 2.0. If a copy of the MPL was not distributed with this
+ *     file, You can obtain one at http://mozilla.org/MPL/2.0/.
  *
  *
  * init.go
@@ -53,7 +44,7 @@ var rbasictypes = []reflect.Type{
 	reflect.UnsafePointer: reflect.TypeOf(unsafe.Pointer(nil)),
 }
 
-func (v *Universe) makebasictypes() []Type {
+func (v *Universe) makeBasicTypes() []Type {
 	m := make([]Type, len(rbasictypes))
 	for gkind := types.Bool; gkind <= types.UnsafePointer; gkind++ {
 		kind := ToReflectKind(gkind)
@@ -69,7 +60,7 @@ func (v *Universe) makebasictypes() []Type {
 	return m
 }
 
-func (v *Universe) makeerror() Type {
+func (v *Universe) makeError() Type {
 	t := wrap(&xtype{
 		kind:     reflect.Interface,
 		gtype:    types.Universe.Lookup("error").Type(),
@@ -80,50 +71,47 @@ func (v *Universe) makeerror() Type {
 	return t
 }
 
-func (v *Universe) makeinterface() Type {
+func (v *Universe) makeInterface() Type {
 	t := wrap(&xtype{
 		kind:     reflect.Interface,
 		gtype:    types.NewInterface(nil, nil).Complete(),
-		rtype:    reflect.TypeOf((*interface{})(nil)).Elem(),
+		rtype:    rTypeOfInterface,
 		universe: v,
 	})
 	v.add(t)
 	return t
 }
 
-func (v *Universe) Init() *Universe {
-	if v.ThreadSafe {
-		defer un(lock(v))
-	}
-	return v.init()
+func (v *Universe) makeForward() Type {
+	t := wrap(&xtype{
+		kind:     reflect.Invalid,
+		gtype:    types.NewInterface(nil, nil).Complete(),
+		rtype:    rTypeOfForward,
+		universe: v,
+	})
+	v.add(t)
+	return t
 }
 
-func (v *Universe) init() *Universe {
-	v.BasicTypes = v.makebasictypes()
-	v.TypeOfError = v.makeerror()
-	v.TypeOfInterface = v.makeinterface()
+func NewUniverse() *Universe {
+	v := &Universe{}
+	v.BasicTypes = v.makeBasicTypes()
+	v.TypeOfForward = v.makeForward()
+	v.TypeOfInterface = v.makeInterface()
+	v.TypeOfError = v.makeError()
 	// critical! trying to rebuild "error" type creates a non-indentical copy... lots of conversions would fail
 	v.cache(v.TypeOfError.ReflectType(), v.TypeOfError)
 	v.cache(v.TypeOfInterface.ReflectType(), v.TypeOfInterface)
 	return v
 }
 
-func NewUniverse() *Universe {
-	v := &Universe{}
-	return v.init()
-}
-
 const MaxDepth = int(^uint(0) >> 1)
 
 var (
-	universe = (&Universe{ThreadSafe: true}).Init()
-
-	reflectTypeOfInterfaceHeader = reflect.TypeOf(InterfaceHeader{})
+	rTypeOfInterface       = reflect.TypeOf((*interface{})(nil)).Elem()
+	rTypeOfInterfaceHeader = reflect.TypeOf(InterfaceHeader{})
+	rTypeOfForward         = reflect.TypeOf((*Forward)(nil)).Elem()
 )
-
-func DefaultUniverse() *Universe {
-	return universe
-}
 
 // Bits returns the size of the type in bits.
 // It panics if the type's Kind is not one of the
