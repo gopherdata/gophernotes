@@ -24,7 +24,7 @@ type MarkdownRenderable interface {
 }
 
 type SVGRenderable interface {
-	// RenderAsSVG renders the data as an svg string (xml) **without** the `<svg></svg>` tag.
+	// RenderAsSVG renders the data as an svg string (xml) **with** the `<svg></svg>` tag.
 	RenderAsSVG() string
 }
 
@@ -98,6 +98,7 @@ func Text(data interface{}) DisplayData {
 		Data: map[string]interface{}{
 			"text/plain": fmt.Sprint(data),
 		},
+		Metadata: make(map[string]interface{}),
 	}
 }
 
@@ -172,9 +173,8 @@ func Render(data interface{}) DisplayData {
 	} else if bundleRenderer, ok := data.(MIMEBundleRenderable); ok {
 		data, metadata := bundleRenderer.RenderAsMIMEBundle()
 		return DisplayData{
-			Data:      data,
-			Metadata:  metadata,
-			Transient: make(map[string]interface{}),
+			Data:     data,
+			Metadata: metadata,
 		}
 	} else {
 		return Text(data)
