@@ -65,7 +65,7 @@ func WireMsgToComposedMsg(msgparts [][]byte, signkey []byte) (ComposedMsg, [][]b
 	var msg ComposedMsg
 	if len(signkey) != 0 {
 		mac := hmac.New(sha256.New, signkey)
-		for _, msgpart := range msgparts[i+2: i+6] {
+		for _, msgpart := range msgparts[i+2 : i+6] {
 			mac.Write(msgpart)
 		}
 		signature := make([]byte, hex.DecodedLen(len(msgparts[i+1])))
@@ -189,7 +189,9 @@ func (receipt *msgReceipt) Publish(msgType string, content interface{}) error {
 	}
 
 	msg.Content = content
-	return receipt.SendResponse(receipt.Sockets.IOPubSocket, msg)
+	return receipt.Sockets.IOPubSocket.RunWithSocket(func(iopub *zmq.Socket) error {
+		return receipt.SendResponse(iopub, msg)
+	})
 }
 
 // Reply creates a new ComposedMsg and sends it back to the return identities over the
@@ -202,15 +204,9 @@ func (receipt *msgReceipt) Reply(msgType string, content interface{}) error {
 	}
 
 	msg.Content = content
-	return receipt.SendResponse(receipt.Sockets.ShellSocket, msg)
-}
-
-// newTextMIMEDataBundle creates a bundledMIMEData that only contains a text representation described
-// by the value parameter.
-func newTextBundledMIMEData(value string) bundledMIMEData {
-	return bundledMIMEData{
-		"text/plain": value,
-	}
+	return receipt.Sockets.ShellSocket.RunWithSocket(func(shell *zmq.Socket) error {
+		return receipt.SendResponse(shell, msg)
+	})
 }
 
 func (receipt *msgReceipt) PublishDisplayData(data bundledMIMEData, meta, transient map[string]interface{}) error {
