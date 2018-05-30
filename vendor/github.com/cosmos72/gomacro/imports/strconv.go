@@ -46,10 +46,10 @@ func init() {
 		"QuoteToGraphic":	ValueOf(strconv.QuoteToGraphic),
 		"Unquote":	ValueOf(strconv.Unquote),
 		"UnquoteChar":	ValueOf(strconv.UnquoteChar),
-	},Types: map[string]Type{
+	}, Types: map[string]Type{
 		"NumError":	TypeOf((*strconv.NumError)(nil)).Elem(),
-	},Untypeds: map[string]string{
+	}, Untypeds: map[string]string{
 		"IntSize":	"int:64",
-	},
+	}, 
 	}
 }

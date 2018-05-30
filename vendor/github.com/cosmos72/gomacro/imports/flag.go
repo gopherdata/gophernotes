@@ -48,45 +48,45 @@ func init() {
 		"Var":	ValueOf(flag.Var),
 		"Visit":	ValueOf(flag.Visit),
 		"VisitAll":	ValueOf(flag.VisitAll),
-	},Types: map[string]Type{
+	}, Types: map[string]Type{
 		"ErrorHandling":	TypeOf((*flag.ErrorHandling)(nil)).Elem(),
 		"Flag":	TypeOf((*flag.Flag)(nil)).Elem(),
 		"FlagSet":	TypeOf((*flag.FlagSet)(nil)).Elem(),
 		"Getter":	TypeOf((*flag.Getter)(nil)).Elem(),
 		"Value":	TypeOf((*flag.Value)(nil)).Elem(),
-	},Proxies: map[string]Type{
-		"Getter":	TypeOf((*Getter_flag)(nil)).Elem(),
-		"Value":	TypeOf((*Value_flag)(nil)).Elem(),
-	},
+	}, Proxies: map[string]Type{
+		"Getter":	TypeOf((*P_flag_Getter)(nil)).Elem(),
+		"Value":	TypeOf((*P_flag_Value)(nil)).Elem(),
+	}, 
 	}
 }
 
 // --------------- proxy for flag.Getter ---------------
-type Getter_flag struct {
+type P_flag_Getter struct {
 	Object	interface{}
 	Get_	func(interface{}) interface{}
 	Set_	func(interface{}, string) error
 	String_	func(interface{}) string
 }
-func (Proxy *Getter_flag) Get() interface{} {
-	return Proxy.Get_(Proxy.Object)
+func (P *P_flag_Getter) Get() interface{} {
+	return P.Get_(P.Object)
 }
-func (Proxy *Getter_flag) Set(unnamed0 string) error {
-	return Proxy.Set_(Proxy.Object, unnamed0)
+func (P *P_flag_Getter) Set(unnamed0 string) error {
+	return P.Set_(P.Object, unnamed0)
 }
-func (Proxy *Getter_flag) String() string {
-	return Proxy.String_(Proxy.Object)
+func (P *P_flag_Getter) String() string {
+	return P.String_(P.Object)
 }
 
 // --------------- proxy for flag.Value ---------------
-type Value_flag struct {
+type P_flag_Value struct {
 	Object	interface{}
 	Set_	func(interface{}, string) error
 	String_	func(interface{}) string
 }
-func (Proxy *Value_flag) Set(unnamed0 string) error {
-	return Proxy.Set_(Proxy.Object, unnamed0)
+func (P *P_flag_Value) Set(unnamed0 string) error {
+	return P.Set_(P.Object, unnamed0)
 }
-func (Proxy *Value_flag) String() string {
-	return Proxy.String_(Proxy.Object)
+func (P *P_flag_Value) String() string {
+	return P.String_(P.Object)
 }

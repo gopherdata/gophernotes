@@ -30,44 +30,44 @@ func init() {
 		"Seed":	ValueOf(rand.Seed),
 		"Uint32":	ValueOf(rand.Uint32),
 		"Uint64":	ValueOf(rand.Uint64),
-	},Types: map[string]Type{
+	}, Types: map[string]Type{
 		"Rand":	TypeOf((*rand.Rand)(nil)).Elem(),
 		"Source":	TypeOf((*rand.Source)(nil)).Elem(),
 		"Source64":	TypeOf((*rand.Source64)(nil)).Elem(),
 		"Zipf":	TypeOf((*rand.Zipf)(nil)).Elem(),
-	},Proxies: map[string]Type{
-		"Source":	TypeOf((*Source_math_rand)(nil)).Elem(),
-		"Source64":	TypeOf((*Source64_math_rand)(nil)).Elem(),
-	},
+	}, Proxies: map[string]Type{
+		"Source":	TypeOf((*P_math_rand_Source)(nil)).Elem(),
+		"Source64":	TypeOf((*P_math_rand_Source64)(nil)).Elem(),
+	}, 
 	}
 }
 
 // --------------- proxy for math/rand.Source ---------------
-type Source_math_rand struct {
+type P_math_rand_Source struct {
 	Object	interface{}
 	Int63_	func(interface{}) int64
 	Seed_	func(_proxy_obj_ interface{}, seed int64) 
 }
-func (Proxy *Source_math_rand) Int63() int64 {
-	return Proxy.Int63_(Proxy.Object)
+func (P *P_math_rand_Source) Int63() int64 {
+	return P.Int63_(P.Object)
 }
-func (Proxy *Source_math_rand) Seed(seed int64)  {
-	Proxy.Seed_(Proxy.Object, seed)
+func (P *P_math_rand_Source) Seed(seed int64)  {
+	P.Seed_(P.Object, seed)
 }
 
 // --------------- proxy for math/rand.Source64 ---------------
-type Source64_math_rand struct {
+type P_math_rand_Source64 struct {
 	Object	interface{}
 	Int63_	func(interface{}) int64
 	Seed_	func(_proxy_obj_ interface{}, seed int64) 
 	Uint64_	func(interface{}) uint64
 }
-func (Proxy *Source64_math_rand) Int63() int64 {
-	return Proxy.Int63_(Proxy.Object)
+func (P *P_math_rand_Source64) Int63() int64 {
+	return P.Int63_(P.Object)
 }
-func (Proxy *Source64_math_rand) Seed(seed int64)  {
-	Proxy.Seed_(Proxy.Object, seed)
+func (P *P_math_rand_Source64) Seed(seed int64)  {
+	P.Seed_(P.Object, seed)
 }
-func (Proxy *Source64_math_rand) Uint64() uint64 {
-	return Proxy.Uint64_(Proxy.Object)
+func (P *P_math_rand_Source64) Uint64() uint64 {
+	return P.Uint64_(P.Object)
 }

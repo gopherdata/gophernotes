@@ -189,7 +189,9 @@ func (receipt *msgReceipt) Publish(msgType string, content interface{}) error {
 	}
 
 	msg.Content = content
-	return receipt.SendResponse(receipt.Sockets.IOPubSocket, msg)
+	return receipt.Sockets.IOPubSocket.RunWithSocket(func(iopub *zmq.Socket) error {
+		return receipt.SendResponse(iopub, msg)
+	})
 }
 
 // Reply creates a new ComposedMsg and sends it back to the return identities over the
@@ -202,15 +204,23 @@ func (receipt *msgReceipt) Reply(msgType string, content interface{}) error {
 	}
 
 	msg.Content = content
-	return receipt.SendResponse(receipt.Sockets.ShellSocket, msg)
+	return receipt.Sockets.ShellSocket.RunWithSocket(func(shell *zmq.Socket) error {
+		return receipt.SendResponse(shell, msg)
+	})
 }
 
-// newTextMIMEDataBundle creates a bundledMIMEData that only contains a text representation described
-// by the value parameter.
-func newTextBundledMIMEData(value string) bundledMIMEData {
-	return bundledMIMEData{
-		"text/plain": value,
-	}
+func (receipt *msgReceipt) PublishDisplayData(data bundledMIMEData, meta, transient map[string]interface{}) error {
+	return receipt.Publish("display_data",
+		struct {
+			Data      bundledMIMEData        `json:"data"`
+			Metadata  map[string]interface{} `json:"metadata"`
+			Transient map[string]interface{} `json:"transient,omitempty"`
+		}{
+			Data:      data,
+			Metadata:  meta,
+			Transient: transient,
+		},
+	)
 }
 
 // PublishKernelStatus publishes a status message notifying front-ends of the state the kernel is in. Supports
@@ -239,8 +249,11 @@ func (receipt *msgReceipt) PublishExecutionInput(execCount int, code string) err
 	)
 }
 
-// PublishExecuteResult publishes the result of the `execCount` execution as a string.
-func (receipt *msgReceipt) PublishExecutionResult(execCount int, output string) error {
+// PublishExecuteResult publishes the result of the `execCount` execution.
+func (receipt *msgReceipt) PublishExecutionResult(execCount int, data bundledMIMEData, metadata bundledMIMEData) error {
+	if metadata == nil {
+		metadata = make(bundledMIMEData)
+	}
 	return receipt.Publish("execute_result",
 		struct {
 			ExecCount int             `json:"execution_count"`
@@ -248,8 +261,8 @@ func (receipt *msgReceipt) PublishExecutionResult(execCount int, output string) 
 			Metadata  bundledMIMEData `json:"metadata"`
 		}{
 			ExecCount: execCount,
-			Data:      newTextBundledMIMEData(output),
-			Metadata:  make(bundledMIMEData),
+			Data:      data,
+			Metadata:  metadata,
 		},
 	)
 }

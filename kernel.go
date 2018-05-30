@@ -1,21 +1,24 @@
 package main
 
 import (
+	"bufio"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"go/ast"
 	"io"
 	"io/ioutil"
 	"log"
 	"os"
+	"reflect"
 	"runtime"
+	"strings"
 	"sync"
 	"time"
 
 	"github.com/cosmos72/gomacro/ast2"
 	"github.com/cosmos72/gomacro/base"
 	interp "github.com/cosmos72/gomacro/fast"
+	jupyterRuntime "github.com/gopherdata/gophernotes/runtime"
 	zmq "github.com/pebbe/zmq4"
 )
 
@@ -36,14 +39,20 @@ type ConnectionInfo struct {
 	IP              string `json:"ip"`
 }
 
+// Socket wraps a zmq socket with a lock which should be used to control write access.
+type Socket struct {
+	Socket *zmq.Socket
+	Lock   *sync.Mutex
+}
+
 // SocketGroup holds the sockets needed to communicate with the kernel,
 // and the key for message signing.
 type SocketGroup struct {
-	ShellSocket   *zmq.Socket
-	ControlSocket *zmq.Socket
-	StdinSocket   *zmq.Socket
-	IOPubSocket   *zmq.Socket
-	HBSocket      *zmq.Socket
+	ShellSocket   Socket
+	ControlSocket Socket
+	StdinSocket   Socket
+	IOPubSocket   Socket
+	HBSocket      Socket
 	Key           []byte
 }
 
@@ -85,6 +94,13 @@ const (
 	kernelIdle     = "idle"
 )
 
+// RunWithSocket invokes the `run` function after acquiring the `Socket.Lock` and releases the lock when done.
+func (s *Socket) RunWithSocket(run func(socket *zmq.Socket) error) error {
+	s.Lock.Lock()
+	defer s.Lock.Unlock()
+	return run(s.Socket)
+}
+
 // runKernel is the main entry point to start the kernel.
 func runKernel(connectionFile string) {
 
@@ -121,9 +137,9 @@ func runKernel(connectionFile string) {
 	// TODO gracefully shutdown the heartbeat handler on kernel shutdown by closing the chan returned by startHeartbeat.
 
 	poller := zmq.NewPoller()
-	poller.Add(sockets.ShellSocket, zmq.POLLIN)
-	poller.Add(sockets.StdinSocket, zmq.POLLIN)
-	poller.Add(sockets.ControlSocket, zmq.POLLIN)
+	poller.Add(sockets.ShellSocket.Socket, zmq.POLLIN)
+	poller.Add(sockets.StdinSocket.Socket, zmq.POLLIN)
+	poller.Add(sockets.ControlSocket.Socket, zmq.POLLIN)
 
 	// msgParts will store a received multipart message.
 	var msgParts [][]byte
@@ -141,8 +157,8 @@ func runKernel(connectionFile string) {
 			switch socket := item.Socket; socket {
 
 			// Handle shell messages.
-			case sockets.ShellSocket:
-				msgParts, err = sockets.ShellSocket.RecvMessageBytes(0)
+			case sockets.ShellSocket.Socket:
+				msgParts, err = sockets.ShellSocket.Socket.RecvMessageBytes(0)
 				if err != nil {
 					log.Println(err)
 				}
@@ -156,12 +172,12 @@ func runKernel(connectionFile string) {
 				handleShellMsg(ir, msgReceipt{msg, ids, sockets})
 
 				// TODO Handle stdin socket.
-			case sockets.StdinSocket:
-				sockets.StdinSocket.RecvMessageBytes(0)
+			case sockets.StdinSocket.Socket:
+				sockets.StdinSocket.Socket.RecvMessageBytes(0)
 
 				// Handle control messages.
-			case sockets.ControlSocket:
-				msgParts, err = sockets.ControlSocket.RecvMessageBytes(0)
+			case sockets.ControlSocket.Socket:
+				msgParts, err = sockets.ControlSocket.Socket.RecvMessageBytes(0)
 				if err != nil {
 					log.Println(err)
 					return
@@ -194,46 +210,51 @@ func prepareSockets(connInfo ConnectionInfo) (SocketGroup, error) {
 
 	// Create the shell socket, a request-reply socket that may receive messages from multiple frontend for
 	// code execution, introspection, auto-completion, etc.
-	sg.ShellSocket, err = context.NewSocket(zmq.ROUTER)
+	sg.ShellSocket.Socket, err = context.NewSocket(zmq.ROUTER)
+	sg.ShellSocket.Lock = &sync.Mutex{}
 	if err != nil {
 		return sg, err
 	}
 
 	// Create the control socket. This socket is a duplicate of the shell socket where messages on this channel
 	// should jump ahead of queued messages on the shell socket.
-	sg.ControlSocket, err = context.NewSocket(zmq.ROUTER)
+	sg.ControlSocket.Socket, err = context.NewSocket(zmq.ROUTER)
+	sg.ControlSocket.Lock = &sync.Mutex{}
 	if err != nil {
 		return sg, err
 	}
 
 	// Create the stdin socket, a request-reply socket used to request user input from a front-end. This is analogous
 	// to a standard input stream.
-	sg.StdinSocket, err = context.NewSocket(zmq.ROUTER)
+	sg.StdinSocket.Socket, err = context.NewSocket(zmq.ROUTER)
+	sg.StdinSocket.Lock = &sync.Mutex{}
 	if err != nil {
 		return sg, err
 	}
 
 	// Create the iopub socket, a publisher for broadcasting data like stdout/stderr output, displaying execution
 	// results or errors, kernel status, etc. to connected subscribers.
-	sg.IOPubSocket, err = context.NewSocket(zmq.PUB)
+	sg.IOPubSocket.Socket, err = context.NewSocket(zmq.PUB)
+	sg.IOPubSocket.Lock = &sync.Mutex{}
 	if err != nil {
 		return sg, err
 	}
 
 	// Create the heartbeat socket, a request-reply socket that only allows alternating recv-send (request-reply)
 	// calls. It should echo the byte strings it receives to let the requester know the kernel is still alive.
-	sg.HBSocket, err = context.NewSocket(zmq.REP)
+	sg.HBSocket.Socket, err = context.NewSocket(zmq.REP)
+	sg.HBSocket.Lock = &sync.Mutex{}
 	if err != nil {
 		return sg, err
 	}
 
 	// Bind the sockets.
 	address := fmt.Sprintf("%v://%v:%%v", connInfo.Transport, connInfo.IP)
-	sg.ShellSocket.Bind(fmt.Sprintf(address, connInfo.ShellPort))
-	sg.ControlSocket.Bind(fmt.Sprintf(address, connInfo.ControlPort))
-	sg.StdinSocket.Bind(fmt.Sprintf(address, connInfo.StdinPort))
-	sg.IOPubSocket.Bind(fmt.Sprintf(address, connInfo.IOPubPort))
-	sg.HBSocket.Bind(fmt.Sprintf(address, connInfo.HBPort))
+	sg.ShellSocket.Socket.Bind(fmt.Sprintf(address, connInfo.ShellPort))
+	sg.ControlSocket.Socket.Bind(fmt.Sprintf(address, connInfo.ControlPort))
+	sg.StdinSocket.Socket.Bind(fmt.Sprintf(address, connInfo.StdinPort))
+	sg.IOPubSocket.Socket.Bind(fmt.Sprintf(address, connInfo.IOPubPort))
+	sg.HBSocket.Socket.Bind(fmt.Sprintf(address, connInfo.HBPort))
 
 	// Set the message signing key.
 	sg.Key = []byte(connInfo.Key)
@@ -345,9 +366,13 @@ func handleExecuteRequest(ir *interp.Interp, receipt msgReceipt) error {
 		io.Copy(&jupyterStdErr, rErr)
 	}()
 
-	vals, executionErr := doEval(ir, code)
+	// Inject the display function into the environment
+	ir.DeclFunc("Display", func(data interface{}) error {
+		dispData := jupyterRuntime.Render(data)
+		return receipt.PublishDisplayData(dispData.Data, dispData.Metadata, dispData.Transient)
+	})
 
-	//TODO if value is a certain type like image then display it instead
+	vals, executionErr := doEval(ir, code)
 
 	// Close and restore the streams.
 	wOut.Close()
@@ -364,8 +389,17 @@ func handleExecuteRequest(ir *interp.Interp, receipt msgReceipt) error {
 		content["user_expressions"] = make(map[string]string)
 
 		if !silent && vals != nil {
+
+			// Render the result of the execution.
+			var data jupyterRuntime.DisplayData
+			if len(vals) == 1 {
+				data = jupyterRuntime.Render(vals[0])
+			} else {
+				data = jupyterRuntime.Render(fmt.Sprint(vals...))
+			}
+
 			// Publish the result of the execution.
-			if err := receipt.PublishExecutionResult(ExecCounter, fmt.Sprint(vals...)); err != nil {
+			if err := receipt.PublishExecutionResult(ExecCounter, data.Data, data.Metadata); err != nil {
 				log.Printf("Error publishing execution result: %v\n", err)
 			}
 		}
@@ -410,59 +444,53 @@ func doEval(ir *interp.Interp, code string) (val []interface{}, err error) {
 	// Reset the error line so that error messages correspond to the lines from the cell.
 	compiler.Line = 0
 
-	// Parse the input code (and don't preform gomacro's macroexpansion).
-	// These may panic but this will be recovered by the deferred recover() above so that the error
-	// may be returned instead.
-	nodes := compiler.ParseBytes([]byte(code))
-	srcAst := ast2.AnyToAst(nodes, "doEval")
+	// Manually preform the iteration that gomacro's Repl does as it actually produces different results then a
+	// single Eval with respect to (at least) method resolution.
 
-	// If there is no srcAst then we must be evaluating nothing. The result must be nil then.
-	if srcAst == nil {
-		return nil, nil
-	}
+	// Read from the cell source code string.
+	ir.Comp.CompGlobals.Readline = base.MakeBufReadline(bufio.NewReader(strings.NewReader(code)), ioutil.Discard)
 
-	// Check if the last node is an expression. If the last node is not an expression then nothing
-	// is returned as a value. For example evaluating a function declaration shouldn't return a value but
-	// just have the side effect of declaring the function.
-	var srcEndsWithExpr bool
-	if len(nodes) > 0 {
-		_, srcEndsWithExpr = nodes[len(nodes)-1].(ast.Expr)
-	}
+	// Save the most recent eval results.
+	var results []reflect.Value
 
-	// Compile the ast.
-	compiledSrc := ir.CompileAst(srcAst)
-
-	// Evaluate the code.
-	result, results := ir.RunExpr(compiledSrc)
-
-	// If the source ends with an expression, then the result of the execution is the value of the expression. In the
-	// event that all return values are nil, the result is also nil.
-	if srcEndsWithExpr {
-		// `len(results) == 0` implies a single result stored in `result`.
-		if len(results) == 0 {
-			if val := base.ValueInterface(result); val != nil {
-				return []interface{}{val}, nil
-			}
-			return nil, nil
+	// Read the entire string one statement at a time.
+	for src, firstToken := ir.Read(); len(src) != 0; src, firstToken = ir.Read() {
+		if firstToken < 0 {
+			continue
 		}
 
-		// Count the number of non-nil values in the output. If they are all nil then the output is skipped.
-		nonNilCount := 0
-		var values []interface{}
-		for _, result := range results {
-			val := base.ValueInterface(result)
-			if val != nil {
-				nonNilCount++
-			}
-			values = append(values, val)
+		// Parse the input code (and don't preform gomacro's macroexpansion).
+		// These may panic but this will be recovered by the deferred recover() above so that the error
+		// may be returned instead.
+		nodes := compiler.ParseBytes([]byte(src))
+		srcAst := ast2.AnyToAst(nodes, "doEval")
+
+		// If there is no srcAst then we must be evaluating nothing. The result must be nil then.
+		if srcAst == nil {
+			continue
 		}
 
-		if nonNilCount > 0 {
-			return values, nil
-		}
-		return nil, nil
+		// Compile the ast.
+		compiledSrc := ir.CompileAst(srcAst)
+
+		// Evaluate the code and save the results.
+		results, _ = ir.RunExpr(compiledSrc)
 	}
 
+	// Count the number of non-nil values in the output. If they are all nil then the output is skipped.
+	nonNilCount := 0
+	var values []interface{}
+	for _, result := range results {
+		val := base.ValueInterface(result)
+		if val != nil {
+			nonNilCount++
+		}
+		values = append(values, val)
+	}
+
+	if nonNilCount > 0 {
+		return values, nil
+	}
 	return nil, nil
 }
 
@@ -486,7 +514,7 @@ func handleShutdownRequest(receipt msgReceipt) {
 // startHeartbeat starts a go-routine for handling heartbeat ping messages sent over the given `hbSocket`. The `wg`'s
 // `Done` method is invoked after the thread is completely shutdown. To request a shutdown the returned `shutdown` channel
 // can be closed.
-func startHeartbeat(hbSocket *zmq.Socket, wg *sync.WaitGroup) (shutdown chan struct{}) {
+func startHeartbeat(hbSocket Socket, wg *sync.WaitGroup) (shutdown chan struct{}) {
 	quit := make(chan struct{})
 
 	// Start the handler that will echo any received messages back to the sender.
@@ -496,7 +524,7 @@ func startHeartbeat(hbSocket *zmq.Socket, wg *sync.WaitGroup) (shutdown chan str
 
 		// Create a `Poller` to check for incoming messages.
 		poller := zmq.NewPoller()
-		poller.Add(hbSocket, zmq.POLLIN)
+		poller.Add(hbSocket.Socket, zmq.POLLIN)
 
 		for {
 			select {
@@ -511,16 +539,22 @@ func startHeartbeat(hbSocket *zmq.Socket, wg *sync.WaitGroup) (shutdown chan str
 
 				// If there is at least 1 message waiting then echo it.
 				if len(pingEvents) > 0 {
-					// Read a message from the heartbeat channel as a simple byte string.
-					pingMsg, err := hbSocket.RecvBytes(0)
-					if err != nil {
-						log.Fatalf("Error reading heartbeat ping bytes: %v\n", err)
-					}
+					hbSocket.RunWithSocket(func(echo *zmq.Socket) error {
+						// Read a message from the heartbeat channel as a simple byte string.
+						pingMsg, err := echo.RecvBytes(0)
+						if err != nil {
+							log.Fatalf("Error reading heartbeat ping bytes: %v\n", err)
+							return err
+						}
 
-					// Send the received byte string back to let the front-end know that the kernel is alive.
-					if _, err = hbSocket.SendBytes(pingMsg, 0); err != nil {
-						log.Printf("Error sending heartbeat pong bytes: %b\n", err)
-					}
+						// Send the received byte string back to let the front-end know that the kernel is alive.
+						if _, err = echo.SendBytes(pingMsg, 0); err != nil {
+							log.Printf("Error sending heartbeat pong bytes: %b\n", err)
+							return err
+						}
+
+						return nil
+					})
 				}
 			}
 		}

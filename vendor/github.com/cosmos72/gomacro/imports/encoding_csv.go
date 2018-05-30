@@ -18,10 +18,10 @@ func init() {
 		"ErrTrailingComma":	ValueOf(&csv.ErrTrailingComma).Elem(),
 		"NewReader":	ValueOf(csv.NewReader),
 		"NewWriter":	ValueOf(csv.NewWriter),
-	},Types: map[string]Type{
+	}, Types: map[string]Type{
 		"ParseError":	TypeOf((*csv.ParseError)(nil)).Elem(),
 		"Reader":	TypeOf((*csv.Reader)(nil)).Elem(),
 		"Writer":	TypeOf((*csv.Writer)(nil)).Elem(),
-	},
+	}, 
 	}
 }

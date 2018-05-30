@@ -14,6 +14,6 @@ func init() {
 	Binds: map[string]Value{
 		"Node":	ValueOf(format.Node),
 		"Source":	ValueOf(format.Source),
-	},
+	}, 
 	}
 }

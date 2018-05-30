@@ -104,7 +104,8 @@ func (p *parser) parseStmtListQuoted() (list []ast.Stmt) {
 	return
 }
 
-// MakeQuote creates an ast.UnaryExpr representing quote{node}.
+// MakeQuote creates an ast.UnaryExpr representing op{node}:
+// usually one of quote{node}, quasiquote{node}, unquote{node} or unquote_splice{node}.
 // Returns both the unaryexpr and the blockstmt containing its body
 func MakeQuote(p_or_nil *parser, op token.Token, pos token.Pos, node ast.Node) (*ast.UnaryExpr, *ast.BlockStmt) {
 	var body *ast.BlockStmt
@@ -139,7 +140,7 @@ func MakeQuote(p_or_nil *parser, op token.Token, pos token.Pos, node ast.Node) (
 
 	// due to go/ast strictly typed model, there is only one mechanism
 	// to insert a statement inside an expression: use a closure.
-	// so we return a unary expression: QUOTE (func() { /*block*/ })
+	// so we return a unary expression: op (func() { /*block*/ })
 	typ := &ast.FuncType{Func: token.NoPos, Params: &ast.FieldList{}}
 	fun := &ast.FuncLit{Type: typ, Body: body}
 	return &ast.UnaryExpr{OpPos: pos, Op: op, X: fun}, body

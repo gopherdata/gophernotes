@@ -14,6 +14,6 @@ func init() {
 	Binds: map[string]Value{
 		"Equal":	ValueOf(hmac.Equal),
 		"New":	ValueOf(hmac.New),
-	},
+	}, 
 	}
 }

@@ -1,23 +1,14 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017 Massimiliano Ghilardi
+ * Copyright (C) 2017-2018 Massimiliano Ghilardi
  *
- *     This program is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU Lesser General Public License as published
- *     by the Free Software Foundation, either version 3 of the License, or
- *     (at your option) any later version.
- *
- *     This program is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU Lesser General Public License for more details.
- *
- *     You should have received a copy of the GNU Lesser General Public License
- *     along with this program.  If not, see <https://www.gnu.org/licenses/lgpl>.
+ *     This Source Code Form is subject to the terms of the Mozilla Public
+ *     License, v. 2.0. If a copy of the MPL was not distributed with this
+ *     file, You can obtain one at http://mozilla.org/MPL/2.0/.
  *
  *
- * switch.go
+ * switch_type.go
  *
  *  Created on May 06, 2017
  *      Author Massimiliano Ghilardi
@@ -26,7 +17,6 @@
 package fast
 
 import (
-	"fmt"
 	"go/ast"
 	"go/token"
 	"go/types"
@@ -63,7 +53,7 @@ func (seen *typecaseHelper) add(c *Comp, t xr.Type, entry typecaseEntry) {
 	}
 	entry.Type = t
 	seen.TypeMap.Set(gtype, entry)
-	if t.Kind() == r.Interface {
+	if t != nil && t.Kind() == r.Interface {
 		seen.AllConcrete = false
 	} else if seen.AllConcrete {
 		seen.ConcreteMap.Set(gtype, entry)
@@ -92,7 +82,7 @@ func (c *Comp) TypeSwitch(node *ast.TypeSwitchStmt, labels []string) {
 	}
 
 	tagnode, varname := c.typeswitchNode(node.Assign)
-	tagexpr := c.Expr1(tagnode)
+	tagexpr := c.Expr1(tagnode, nil)
 	if tagexpr.Type.Kind() != r.Interface {
 		c.Errorf("cannot type switch on non-interface type <%v>: %v", tagexpr.Type, tagnode)
 	}
@@ -102,7 +92,7 @@ func (c *Comp) TypeSwitch(node *ast.TypeSwitchStmt, labels []string) {
 	// just like Comp.Switch, we cannot invoke tagexpr.Fun() multiple times because
 	// side effects must be applied only once!
 	// typeswitchTag saves the result of tagexpr.Fun() in a runtime bind
-	// and returns the bind
+	// and returns the bind.
 	bind := c.typeswitchTag(tagexpr)
 
 	if node.Body != nil {
@@ -194,7 +184,14 @@ func (c *Comp) typeswitchNode(stmt ast.Stmt) (ast.Expr, string) {
 // finally returns another expression that retrieves the expression value
 // with its concrete type
 func (c *Comp) typeswitchTag(e *Expr) *Bind {
-	bind := c.AddBind("", VarBind, e.Type) // e.Type must be an interface type...
+	bind := c.NewBind("", VarBind, e.Type)               // e.Type must be an interface type...
+	tbind := c.NewBind("", VarBind, c.TypeOfInterface()) // no need to store as xr.Type
+	if tbind.Desc.Index() != bind.Desc.Index()+1 {
+		c.Errorf("internal error: consecutive binds have non-consecutive indexes %d and %d",
+			bind.Desc.Index()+1, tbind.Desc.Index())
+	}
+
+	extractor := c.extractor(e.Type)
 
 	// c.Debugf("typeswitchTag: allocated bind %v", bind)
 	switch bind.Desc.Class() {
@@ -205,15 +202,16 @@ func (c *Comp) typeswitchTag(e *Expr) *Bind {
 		index := bind.Desc.Index()
 		init := e.AsX1()
 		c.append(func(env *Env) (Stmt, *Env) {
-			v := r.ValueOf(init(env).Interface()) // extract concrete type
+			v, xt := extractor(init(env)) // extract value with concrete type
 			// Debugf("typeswitchTag = %v <%v>", v, ValueType(v))
 			// no need to create a settable reflect.Value
-			env.Binds[index] = v
+			env.Vals[index] = v
+			env.Vals[index+1] = r.ValueOf(xt)
 			env.IP++
 			return env.Code[env.IP], env
 		})
 	default:
-		c.Errorf("internal error! Comp.AddBind(name=%q, class=VarBind, type=%v) returned class=%v, expecting VarBind",
+		c.Errorf("internal error! Comp.NewBind(name=%q, class=VarBind, type=%v) returned class=%v, expecting VarBind",
 			"", bind.Type, bind.Desc.Class())
 		return nil
 	}
@@ -225,17 +223,21 @@ func (c *Comp) typeswitchGotoMap(bind *Bind, seen *typecaseHelper, ip int) {
 	if seen.ConcreteMap.Len() <= 1 {
 		return
 	}
-	m := make(map[r.Type]int) // FIXME this breaks on types declared in the interpreter
+	m := make(map[r.Type]int)
 	seen.ConcreteMap.Iterate(func(k types.Type, v interface{}) {
 		entry := v.(typecaseEntry)
 		m[entry.Type.ReflectType()] = entry.IP
 	})
+	if len(m) != seen.ConcreteMap.Len() {
+		// one or more interpreted types are implemented by the same reflect.Type.
+		// cannot optimize typeswitch based on reflect.Type only.
+		return
+	}
 	idx := bind.Desc.Index()
 
 	stmt := func(env *Env) (Stmt, *Env) {
-		// FIXME this breaks on types declared in the interpreter
 		var rtype r.Type
-		if v := env.Binds[idx]; v.IsValid() {
+		if v := env.Vals[idx]; v.IsValid() {
 			rtype = v.Type() // concrete reflect.Type already extracted by typeswitchTag
 		}
 		if ip, found := m[rtype]; found {
@@ -288,40 +290,87 @@ func (c *Comp) typeswitchCase(node *ast.CaseClause, varname string, bind *Bind, 
 		t := ts[0]
 		rtype := rtypes[0]
 		if t == nil {
+			// case nil:
 			stmt = func(env *Env) (Stmt, *Env) {
-				v := env.Binds[idx]
+				v := env.Vals[idx]
 				// Debugf("typeswitchCase: comparing %v <%v> against nil type", v, ValueType(v))
 				var ip int
-				if !v.IsValid() {
-					ip = env.IP + 1
-				} else {
+				if v.IsValid() {
 					ip = iend
+				} else {
+					ip = env.IP + 1
+				}
+				env.IP = ip
+				return env.Code[ip], env
+			}
+		} else if t.Kind() == r.Interface && xr.IsEmulatedInterface(t) {
+			// case emulated_interface:
+			stmt = func(env *Env) (Stmt, *Env) {
+				v := env.Vals[idx]
+				// Debugf("typeswitchCase: comparing %v <%v> against interface type %v", v, ValueType(v), rtype)
+				ip := iend
+				if v.IsValid() {
+					// rtype may be an interpreted type:
+					// extract the concrete xr.Type and use it
+					xtv := env.Vals[idx+1]
+					if xtv.IsValid() && !xtv.IsNil() {
+						xt := xtv.Interface().(xr.Type)
+						if xt.Implements(t) {
+							ip = env.IP + 1
+							// need the compiler at run-time :(
+							conv := c.converterToEmulatedInterface(xt, t)
+							env.Vals[idx] = conv(v)
+						}
+					}
 				}
 				env.IP = ip
 				return env.Code[ip], env
 			}
 		} else if t.Kind() == r.Interface {
+			// case interface:
 			stmt = func(env *Env) (Stmt, *Env) {
-				v := env.Binds[idx]
+				v := env.Vals[idx]
 				// Debugf("typeswitchCase: comparing %v <%v> against interface type %v", v, ValueType(v), rtype)
-				var ip int
-				if v.IsValid() && v.Type().Implements(rtype) {
-					ip = env.IP + 1
-				} else {
-					ip = iend
+				ip := iend
+				if v.IsValid() {
+					if v.Type().Implements(rtype) {
+						ip = env.IP + 1
+					} else {
+						// rtype may be an interpreted type:
+						// extract the concrete xr.Type and use it
+						xtv := env.Vals[idx+1]
+						if xtv.IsValid() && !xtv.IsNil() {
+							xt := xtv.Interface().(xr.Type)
+							if xt.Implements(t) {
+								ip = env.IP + 1
+								// need the compiler at run-time :(
+								conv := c.converterToProxy(xt, t)
+								env.Vals[idx] = conv(v)
+							}
+						}
+					}
 				}
 				env.IP = ip
 				return env.Code[ip], env
 			}
 		} else {
+			// case concrete_type:
 			stmt = func(env *Env) (Stmt, *Env) {
-				v := env.Binds[idx]
-				// Debugf("typeswitchCase: comparing %v <%v> against concrete type %v", v, ValueType(v), rtype)
-				var ip int
+				v := env.Vals[idx]
+				ip := iend
 				if v.IsValid() && v.Type() == rtype {
-					ip = env.IP + 1
-				} else {
-					ip = iend
+					// rtype may be an interpreted type:
+					// extract the concrete xr.Type and use it
+					xtv := env.Vals[idx+1]
+					if xtv.IsValid() && !xtv.IsNil() {
+						xt := xtv.Interface().(xr.Type)
+						if xt.IdenticalTo(t) {
+							ip = env.IP + 1
+						}
+					} else {
+						// cannot check exactly...
+						ip = env.IP + 1
+					}
 				}
 				env.IP = ip
 				return env.Code[ip], env
@@ -329,7 +378,7 @@ func (c *Comp) typeswitchCase(node *ast.CaseClause, varname string, bind *Bind, 
 		}
 	default:
 		stmt = func(env *Env) (Stmt, *Env) {
-			v := env.Binds[idx]
+			v := env.Vals[idx]
 			var vt r.Type
 			if v.IsValid() {
 				vt = v.Type()
@@ -392,7 +441,7 @@ func (c *Comp) typeswitchBody(list []ast.Stmt, varname string, t xr.Type, bind *
 	locals := declvar || containLocalBinds(list1...)
 	var nbinds [2]int
 
-	c2, locals2 := c.pushEnvIfFlag(&nbinds, locals || c.IsCompiled())
+	c2, locals2 := c.pushEnvIfFlag(&nbinds, locals)
 	if declvar {
 		sym := bind.AsSymbol(c2.UpCost)
 		if t == nil {
@@ -410,11 +459,9 @@ func (c *Comp) typeswitchBody(list []ast.Stmt, varname string, t xr.Type, bind *
 
 // typeswitchVar compiles the tag variable declaration in a type-switch.
 func (c *Comp) typeswitchVar(varname string, t xr.Type, sym *Symbol) {
-	c.ErrorIfCompiled(fmt.Sprintf("switch %s.(type)", varname))
-
 	sidx := sym.Bind.Desc.Index()
 
-	bind := c.AddBind(varname, VarBind, t)
+	bind := c.NewBind(varname, VarBind, t)
 	idx := bind.Desc.Index()
 
 	if sym.Upn != 1 {
@@ -424,91 +471,97 @@ func (c *Comp) typeswitchVar(varname string, t xr.Type, sym *Symbol) {
 	switch t.Kind() {
 	case r.Bool:
 		stmt = func(env *Env) (Stmt, *Env) {
-			*(*bool)(unsafe.Pointer(&env.IntBinds[idx])) = env.Outer.Binds[sidx].Bool()
+			*(*bool)(unsafe.Pointer(&env.Ints[idx])) = env.Outer.Vals[sidx].Bool()
 			env.IP++
 			return env.Code[env.IP], env
 		}
 	case r.Int:
 		stmt = func(env *Env) (Stmt, *Env) {
-			*(*int)(unsafe.Pointer(&env.IntBinds[idx])) = int(env.Outer.Binds[sidx].Int())
+			*(*int)(unsafe.Pointer(&env.Ints[idx])) = int(env.Outer.Vals[sidx].Int())
 			env.IP++
 			return env.Code[env.IP], env
 		}
 	case r.Int8:
 		stmt = func(env *Env) (Stmt, *Env) {
-			*(*int8)(unsafe.Pointer(&env.IntBinds[idx])) = int8(env.Outer.Binds[sidx].Int())
+			*(*int8)(unsafe.Pointer(&env.Ints[idx])) = int8(env.Outer.Vals[sidx].Int())
 			env.IP++
 			return env.Code[env.IP], env
 		}
 	case r.Int16:
 		stmt = func(env *Env) (Stmt, *Env) {
-			*(*int16)(unsafe.Pointer(&env.IntBinds[idx])) = int16(env.Outer.Binds[sidx].Int())
+			*(*int16)(unsafe.Pointer(&env.Ints[idx])) = int16(env.Outer.Vals[sidx].Int())
 			env.IP++
 			return env.Code[env.IP], env
 		}
 	case r.Int32:
 		stmt = func(env *Env) (Stmt, *Env) {
-			*(*int32)(unsafe.Pointer(&env.IntBinds[idx])) = int32(env.Outer.Binds[sidx].Int())
+			*(*int32)(unsafe.Pointer(&env.Ints[idx])) = int32(env.Outer.Vals[sidx].Int())
 			env.IP++
 			return env.Code[env.IP], env
 		}
 	case r.Int64:
 		stmt = func(env *Env) (Stmt, *Env) {
-			*(*int64)(unsafe.Pointer(&env.IntBinds[idx])) = int64(env.Outer.Binds[sidx].Int())
+			*(*int64)(unsafe.Pointer(&env.Ints[idx])) = int64(env.Outer.Vals[sidx].Int())
 			env.IP++
 			return env.Code[env.IP], env
 		}
 	case r.Uint:
 		stmt = func(env *Env) (Stmt, *Env) {
-			*(*uint)(unsafe.Pointer(&env.IntBinds[idx])) = uint(env.Outer.Binds[sidx].Uint())
+			*(*uint)(unsafe.Pointer(&env.Ints[idx])) = uint(env.Outer.Vals[sidx].Uint())
 			env.IP++
 			return env.Code[env.IP], env
 		}
 	case r.Uint8:
 		stmt = func(env *Env) (Stmt, *Env) {
-			*(*uint8)(unsafe.Pointer(&env.IntBinds[idx])) = uint8(env.Outer.Binds[sidx].Uint())
+			*(*uint8)(unsafe.Pointer(&env.Ints[idx])) = uint8(env.Outer.Vals[sidx].Uint())
 			env.IP++
 			return env.Code[env.IP], env
 		}
 	case r.Uint16:
 		stmt = func(env *Env) (Stmt, *Env) {
-			*(*uint16)(unsafe.Pointer(&env.IntBinds[idx])) = uint16(env.Outer.Binds[sidx].Uint())
+			*(*uint16)(unsafe.Pointer(&env.Ints[idx])) = uint16(env.Outer.Vals[sidx].Uint())
 			env.IP++
 			return env.Code[env.IP], env
 		}
 	case r.Uint32:
 		stmt = func(env *Env) (Stmt, *Env) {
-			*(*uint32)(unsafe.Pointer(&env.IntBinds[idx])) = uint32(env.Outer.Binds[sidx].Uint())
+			*(*uint32)(unsafe.Pointer(&env.Ints[idx])) = uint32(env.Outer.Vals[sidx].Uint())
 			env.IP++
 			return env.Code[env.IP], env
 		}
 	case r.Uint64:
 		stmt = func(env *Env) (Stmt, *Env) {
-			env.IntBinds[idx] = env.Outer.Binds[sidx].Uint()
+			env.Ints[idx] = env.Outer.Vals[sidx].Uint()
 			env.IP++
 			return env.Code[env.IP], env
 		}
 	case r.Uintptr:
 		stmt = func(env *Env) (Stmt, *Env) {
-			*(*uintptr)(unsafe.Pointer(&env.IntBinds[idx])) = uintptr(env.Outer.Binds[sidx].Uint())
+			*(*uintptr)(unsafe.Pointer(&env.Ints[idx])) = uintptr(env.Outer.Vals[sidx].Uint())
 			env.IP++
 			return env.Code[env.IP], env
 		}
 	case r.Float32:
 		stmt = func(env *Env) (Stmt, *Env) {
-			*(*float32)(unsafe.Pointer(&env.IntBinds[idx])) = float32(env.Outer.Binds[sidx].Float())
+			*(*float32)(unsafe.Pointer(&env.Ints[idx])) = float32(env.Outer.Vals[sidx].Float())
 			env.IP++
 			return env.Code[env.IP], env
 		}
 	case r.Float64:
 		stmt = func(env *Env) (Stmt, *Env) {
-			*(*float64)(unsafe.Pointer(&env.IntBinds[idx])) = env.Outer.Binds[sidx].Float()
+			*(*float64)(unsafe.Pointer(&env.Ints[idx])) = env.Outer.Vals[sidx].Float()
 			env.IP++
 			return env.Code[env.IP], env
 		}
 	case r.Complex64:
 		stmt = func(env *Env) (Stmt, *Env) {
-			*(*complex64)(unsafe.Pointer(&env.IntBinds[idx])) = complex64(env.Outer.Binds[sidx].Complex())
+			*(*complex64)(unsafe.Pointer(&env.Ints[idx])) = complex64(env.Outer.Vals[sidx].Complex())
+			env.IP++
+			return env.Code[env.IP], env
+		}
+	case r.Complex128:
+		stmt = func(env *Env) (Stmt, *Env) {
+			*(*complex128)(unsafe.Pointer(&env.Ints[idx])) = env.Outer.Vals[sidx].Complex()
 			env.IP++
 			return env.Code[env.IP], env
 		}
@@ -516,7 +569,7 @@ func (c *Comp) typeswitchVar(varname string, t xr.Type, sym *Symbol) {
 		rtype := t.ReflectType()
 		zero := r.Zero(rtype)
 		stmt = func(env *Env) (Stmt, *Env) {
-			v := env.Outer.Binds[sidx]
+			v := env.Outer.Vals[sidx]
 			place := r.New(rtype).Elem()
 			if !v.IsValid() {
 				v = zero
@@ -524,7 +577,7 @@ func (c *Comp) typeswitchVar(varname string, t xr.Type, sym *Symbol) {
 				v = v.Convert(rtype)
 			}
 			place.Set(v)
-			env.Binds[idx] = place
+			env.Vals[idx] = place
 			env.IP++
 			return env.Code[env.IP], env
 		}

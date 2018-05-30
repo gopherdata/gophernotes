@@ -1,20 +1,11 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017 Massimiliano Ghilardi
+ * Copyright (C) 2017-2018 Massimiliano Ghilardi
  *
- *     This program is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU Lesser General Public License as published
- *     by the Free Software Foundation, either version 3 of the License, or
- *     (at your option) any later version.
- *
- *     This program is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU Lesser General Public License for more details.
- *
- *     You should have received a copy of the GNU Lesser General Public License
- *     along with this program.  If not, see <https://www.gnu.org/licenses/lgpl>.
+ *     This Source Code Form is subject to the terms of the Mozilla Public
+ *     License, v. 2.0. If a copy of the MPL was not distributed with this
+ *     file, You can obtain one at http://mozilla.org/MPL/2.0/.
  *
  *
  * ast_node.go
@@ -279,7 +270,9 @@ func (x SwitchStmt) New() Ast   { return SwitchStmt{&ast.SwitchStmt{Switch: x.X.
 func (x TypeAssertExpr) New() Ast {
 	return TypeAssertExpr{&ast.TypeAssertExpr{Lparen: x.X.Lparen, Rparen: x.X.Rparen}}
 }
-func (x TypeSpec) New() Ast       { return TypeSpec{&ast.TypeSpec{Doc: x.X.Doc, Comment: x.X.Comment}} }
+func (x TypeSpec) New() Ast {
+	return TypeSpec{&ast.TypeSpec{Doc: x.X.Doc, Assign: x.X.Assign, Comment: x.X.Comment}}
+}
 func (x TypeSwitchStmt) New() Ast { return TypeSwitchStmt{&ast.TypeSwitchStmt{Switch: x.X.Switch}} }
 func (x UnaryExpr) New() Ast      { return UnaryExpr{&ast.UnaryExpr{OpPos: x.X.OpPos, Op: x.X.Op}} }
 func (x ValueSpec) New() Ast      { return ValueSpec{&ast.ValueSpec{Doc: x.X.Doc, Comment: x.X.Comment}} }

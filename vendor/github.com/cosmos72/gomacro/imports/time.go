@@ -70,7 +70,7 @@ func init() {
 		"UnixDate":	ValueOf(time.UnixDate),
 		"Until":	ValueOf(time.Until),
 		"Wednesday":	ValueOf(time.Wednesday),
-	},Types: map[string]Type{
+	}, Types: map[string]Type{
 		"Duration":	TypeOf((*time.Duration)(nil)).Elem(),
 		"Location":	TypeOf((*time.Location)(nil)).Elem(),
 		"Month":	TypeOf((*time.Month)(nil)).Elem(),
@@ -79,7 +79,7 @@ func init() {
 		"Time":	TypeOf((*time.Time)(nil)).Elem(),
 		"Timer":	TypeOf((*time.Timer)(nil)).Elem(),
 		"Weekday":	TypeOf((*time.Weekday)(nil)).Elem(),
-	},Untypeds: map[string]string{
+	}, Untypeds: map[string]string{
 		"ANSIC":	"string:Mon Jan _2 15:04:05 2006",
 		"Kitchen":	"string:3:04PM",
 		"RFC1123":	"string:Mon, 02 Jan 2006 15:04:05 MST",
@@ -95,6 +95,6 @@ func init() {
 		"StampMilli":	"string:Jan _2 15:04:05.000",
 		"StampNano":	"string:Jan _2 15:04:05.000000000",
 		"UnixDate":	"string:Mon Jan _2 15:04:05 MST 2006",
-	},
+	}, 
 	}
 }

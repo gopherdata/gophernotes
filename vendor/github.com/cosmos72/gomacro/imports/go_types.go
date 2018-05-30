@@ -81,6 +81,7 @@ func init() {
 		"SelectionString":	ValueOf(types.SelectionString),
 		"SendOnly":	ValueOf(types.SendOnly),
 		"SendRecv":	ValueOf(types.SendRecv),
+		"SizesFor":	ValueOf(types.SizesFor),
 		"String":	ValueOf(types.String),
 		"Typ":	ValueOf(&types.Typ).Elem(),
 		"TypeString":	ValueOf(types.TypeString),
@@ -103,7 +104,7 @@ func init() {
 		"WriteExpr":	ValueOf(types.WriteExpr),
 		"WriteSignature":	ValueOf(types.WriteSignature),
 		"WriteType":	ValueOf(types.WriteType),
-	},Types: map[string]Type{
+	}, Types: map[string]Type{
 		"Array":	TypeOf((*types.Array)(nil)).Elem(),
 		"Basic":	TypeOf((*types.Basic)(nil)).Elem(),
 		"BasicInfo":	TypeOf((*types.BasicInfo)(nil)).Elem(),
@@ -145,12 +146,12 @@ func init() {
 		"TypeAndValue":	TypeOf((*types.TypeAndValue)(nil)).Elem(),
 		"TypeName":	TypeOf((*types.TypeName)(nil)).Elem(),
 		"Var":	TypeOf((*types.Var)(nil)).Elem(),
-	},Proxies: map[string]Type{
-		"Importer":	TypeOf((*Importer_go_types)(nil)).Elem(),
-		"ImporterFrom":	TypeOf((*ImporterFrom_go_types)(nil)).Elem(),
-		"Sizes":	TypeOf((*Sizes_go_types)(nil)).Elem(),
-		"Type":	TypeOf((*Type_go_types)(nil)).Elem(),
-	},Wrappers: map[string][]string{
+	}, Proxies: map[string]Type{
+		"Importer":	TypeOf((*P_go_types_Importer)(nil)).Elem(),
+		"ImporterFrom":	TypeOf((*P_go_types_ImporterFrom)(nil)).Elem(),
+		"Sizes":	TypeOf((*P_go_types_Sizes)(nil)).Elem(),
+		"Type":	TypeOf((*P_go_types_Type)(nil)).Elem(),
+	}, Wrappers: map[string][]string{
 		"Builtin":	[]string{"Exported","Id","Name","Parent","Pkg","Pos","Type",},
 		"Checker":	[]string{"ObjectOf","TypeOf",},
 		"Const":	[]string{"Exported","Id","Name","Parent","Pkg","Pos","Type",},
@@ -160,58 +161,58 @@ func init() {
 		"PkgName":	[]string{"Exported","Id","Name","Parent","Pkg","Pos","Type",},
 		"TypeName":	[]string{"Exported","Id","Name","Parent","Pkg","Pos","Type",},
 		"Var":	[]string{"Exported","Id","Name","Parent","Pkg","Pos","Type",},
-	},
+	}, 
 	}
 }
 
 // --------------- proxy for go/types.Importer ---------------
-type Importer_go_types struct {
+type P_go_types_Importer struct {
 	Object	interface{}
 	Import_	func(_proxy_obj_ interface{}, path string) (*types.Package, error)
 }
-func (Proxy *Importer_go_types) Import(path string) (*types.Package, error) {
-	return Proxy.Import_(Proxy.Object, path)
+func (P *P_go_types_Importer) Import(path string) (*types.Package, error) {
+	return P.Import_(P.Object, path)
 }
 
 // --------------- proxy for go/types.ImporterFrom ---------------
-type ImporterFrom_go_types struct {
+type P_go_types_ImporterFrom struct {
 	Object	interface{}
 	Import_	func(_proxy_obj_ interface{}, path string) (*types.Package, error)
-	ImportFrom_	func(_proxy_obj_ interface{}, path string, srcDir string, mode types.ImportMode) (*types.Package, error)
+	ImportFrom_	func(_proxy_obj_ interface{}, path string, dir string, mode types.ImportMode) (*types.Package, error)
 }
-func (Proxy *ImporterFrom_go_types) Import(path string) (*types.Package, error) {
-	return Proxy.Import_(Proxy.Object, path)
+func (P *P_go_types_ImporterFrom) Import(path string) (*types.Package, error) {
+	return P.Import_(P.Object, path)
 }
-func (Proxy *ImporterFrom_go_types) ImportFrom(path string, srcDir string, mode types.ImportMode) (*types.Package, error) {
-	return Proxy.ImportFrom_(Proxy.Object, path, srcDir, mode)
+func (P *P_go_types_ImporterFrom) ImportFrom(path string, dir string, mode types.ImportMode) (*types.Package, error) {
+	return P.ImportFrom_(P.Object, path, dir, mode)
 }
 
 // --------------- proxy for go/types.Sizes ---------------
-type Sizes_go_types struct {
+type P_go_types_Sizes struct {
 	Object	interface{}
 	Alignof_	func(_proxy_obj_ interface{}, T types.Type) int64
 	Offsetsof_	func(_proxy_obj_ interface{}, fields []*types.Var) []int64
 	Sizeof_	func(_proxy_obj_ interface{}, T types.Type) int64
 }
-func (Proxy *Sizes_go_types) Alignof(T types.Type) int64 {
-	return Proxy.Alignof_(Proxy.Object, T)
+func (P *P_go_types_Sizes) Alignof(T types.Type) int64 {
+	return P.Alignof_(P.Object, T)
 }
-func (Proxy *Sizes_go_types) Offsetsof(fields []*types.Var) []int64 {
-	return Proxy.Offsetsof_(Proxy.Object, fields)
+func (P *P_go_types_Sizes) Offsetsof(fields []*types.Var) []int64 {
+	return P.Offsetsof_(P.Object, fields)
 }
-func (Proxy *Sizes_go_types) Sizeof(T types.Type) int64 {
-	return Proxy.Sizeof_(Proxy.Object, T)
+func (P *P_go_types_Sizes) Sizeof(T types.Type) int64 {
+	return P.Sizeof_(P.Object, T)
 }
 
 // --------------- proxy for go/types.Type ---------------
-type Type_go_types struct {
+type P_go_types_Type struct {
 	Object	interface{}
 	String_	func(interface{}) string
 	Underlying_	func(interface{}) types.Type
 }
-func (Proxy *Type_go_types) String() string {
-	return Proxy.String_(Proxy.Object)
+func (P *P_go_types_Type) String() string {
+	return P.String_(P.Object)
 }
-func (Proxy *Type_go_types) Underlying() types.Type {
-	return Proxy.Underlying_(Proxy.Object)
+func (P *P_go_types_Type) Underlying() types.Type {
+	return P.Underlying_(P.Object)
 }

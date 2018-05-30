@@ -20,10 +20,10 @@ func init() {
 		"NewWriter":	ValueOf(tabwriter.NewWriter),
 		"StripEscape":	ValueOf(tabwriter.StripEscape),
 		"TabIndent":	ValueOf(tabwriter.TabIndent),
-	},Types: map[string]Type{
+	}, Types: map[string]Type{
 		"Writer":	TypeOf((*tabwriter.Writer)(nil)).Elem(),
-	},Untypeds: map[string]string{
+	}, Untypeds: map[string]string{
 		"Escape":	"rune:255",
-	},
+	}, 
 	}
 }

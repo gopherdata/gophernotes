@@ -1,20 +1,11 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017 Massimiliano Ghilardi
+ * Copyright (C) 2017-2018 Massimiliano Ghilardi
  *
- *     This program is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU Lesser General Public License as published
- *     by the Free Software Foundation, either version 3 of the License, or
- *     (at your option) any later version.
- *
- *     This program is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU Lesser General Public License for more details.
- *
- *     You should have received a copy of the GNU Lesser General Public License
- *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *     This Source Code Form is subject to the terms of the Mozilla Public
+ *     License, v. 2.0. If a copy of the MPL was not distributed with this
+ *     file, You can obtain one at http://mozilla.org/MPL/2.0/.
  *
  *
  * func1ret0.go
@@ -60,7 +51,7 @@ import (
 		bind = ~"{
 			place := r.New(~,tident).Elem()
 			place.Set(r.ValueOf(~,name))
-			env.Binds[~,index] = place
+			env.Vals[~,index] = place
 		}
 	} else {
 		typeident := maketypeident(t)
@@ -69,18 +60,18 @@ import (
 				bind = ~"{
 					place := r.New(~,typeident).Elem()
 					place.SetComplex(~,name)
-					env.Binds[~,index] = place
+					env.Vals[~,index] = place
 				}
 			case r.String:
 				bind = ~"{
 					place := r.New(~,typeident).Elem()
 					place.SetString(~,name)
-					env.Binds[~,index] = place
+					env.Vals[~,index] = place
 				}
 			case r.Uint64:
-				bind = ~"{env.IntBinds[~,index] = ~,name}
+				bind = ~"{env.Ints[~,index] = ~,name}
 			default:
-				bind = ~"{*(*~,typ)(unsafe.Pointer(&env.IntBinds[~,index])) = ~,name}
+				bind = ~"{*(*~,typ)(unsafe.Pointer(&env.Ints[~,index])) = ~,name}
 		}
 	}
 	return bind
@@ -93,22 +84,22 @@ import (
 		arg0bind := fsetarg(arg0typ, ~'targ0, ~'arg0, ~'param0index)
 		return ~"{
 			if funcbody == nil {
+				funv := r.ValueOf(func(~,arg0typ) {})
 				return func(env *Env) r.Value {
-					return r.ValueOf(func(~,arg0typ) {
-					})
+					return funv
 				}
 			}
 			return func(env *Env) r.Value {
 				// function is closed over the env used to DECLARE it
 				env.MarkUsedByClosure()
 				return r.ValueOf(func(arg0 ~,arg0typ) {
-					env := NewEnv4Func(env, nbinds, nintbinds)
+					env := newEnv4Func(env, nbind, nintbind, debugC)
 					// copy arg0 into allocated binds
 					~,arg0bind
 					// execute the body
 					funcbody(env)
 
-					env.FreeEnv()
+					env.freeEnv4Func()
 				})
 			}
 		}
@@ -117,10 +108,11 @@ import (
 	return ~"{
 		rtype := t.ReflectType()
 		if funcbody == nil {
+			funv := r.MakeFunc(rtype, func([]r.Value) []r.Value {
+					return nil
+			})
 			return func(env *Env) r.Value {
-				return r.MakeFunc(rtype, func([]r.Value) []r.Value {
-					return ZeroValues
-				})
+				return funv
 			}
 		} else {
 			return func(env *Env) r.Value {
@@ -128,7 +120,7 @@ import (
 				env.MarkUsedByClosure()
 				rtarg0 := targ0.ReflectType()
 				return r.MakeFunc(rtype, func(args []r.Value) []r.Value {
-					env := NewEnv4Func(env, nbinds, nintbinds)
+					env := newEnv4Func(env, nbind, nintbind, debugC)
 
 					// copy arg0 into allocated binds
 					if param0index != NoIndex {
@@ -136,7 +128,7 @@ import (
 						if arg0 := args[0]; arg0 != Nil && arg0 != None {
 							place.Set(arg0.Convert(rtarg0))
 						}
-						env.Binds[param0index] = place
+						env.Vals[param0index] = place
 					}
 					// execute the body
 					funcbody(env)
@@ -150,11 +142,16 @@ import (
 
 func (c *Comp) func1ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 	// do NOT keep a reference to funcMaker
-	nbinds := m.nbinds
-	nintbinds := m.nintbinds
+	nbind := m.nbind
+	nintbind := m.nintbind
 	funcbody := m.funcbody
-	param0index := m.parambinds[0].Desc.Index()
+	param0index := m.Param[0].Desc.Index()
 
+	var debugC *Comp
+	if c.Globals.Options&OptDebugger != 0 {
+		// keep a reference to c only if needed
+		debugC = c
+	}
 	targ0 := t.In(0)
 	karg0 := targ0.Kind()
 	switch karg0 {

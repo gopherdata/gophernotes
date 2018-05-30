@@ -13,6 +13,6 @@ func init() {
 	Packages["errors"] = Package{
 	Binds: map[string]Value{
 		"New":	ValueOf(errors.New),
-	},
+	}, 
 	}
 }

@@ -3,23 +3,11 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017 Massimiliano Ghilardi
+ * Copyright (C) 2017-2018 Massimiliano Ghilardi
  *
- *     This program is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU Lesser General Public License as published
- *     by the Free Software Foundation, either version 3 of the License, or
- *     (at your option) any later version.
- *
- *     This program is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU Lesser General Public License for more details.
- *
- *     You should have received a copy of the GNU Lesser General Public License
- *     along with this program.  If not, see <https://www.gnu.org/licenses/lgpl>.
- *
- *     You should have received a copy of the GNU General Public License
- *     along with this program.  If not, see <http//www.gnu.org/licenses/>.
+ *     This Source Code Form is subject to the terms of the Mozilla Public
+ *     License, v. 2.0. If a copy of the MPL was not distributed with this
+ *     file, You can obtain one at http://mozilla.org/MPL/2.0/.
  *
  * build_easy.go
  *
@@ -43,6 +31,9 @@ type Type interface {
 	// FieldAlign returns the alignment in bytes of a value of
 	// this type when used as a field in a struct.
 	FieldAlign() int
+
+	// IdenticalTo reports whether the type is identical to type u.
+	IdenticalTo(u Type) bool
 
 	// AssignableTo reports whether a value of the type is assignable to type u.
 	AssignableTo(u Type) bool
@@ -170,18 +161,33 @@ type Type interface {
 	// It panics if the type's Kind is not Func.
 	// It panics if i is not in the range [0, NumIn()).
 	In(i int) Type
-	// Method return the i-th explicitly declared method of named type or interface t.
-	// Wrapper methods for embedded fields or embedded interfaces are not returned.
-	// It panics if the type is unnamed, or if the type's Kind is not Interface
+
+	// For interfaces, Method returns the i-th method, including methods from embedded interfaces.
+	// For all other named types, Method returns the i-th explicitly declared method, ignoring wrapper methods for embedded fields.
+	// It panics if i is outside the range 0 .. NumMethod()-1
 	Method(i int) Method
 	// MethodByName returns the method with given name (including wrapper methods for embedded fields)
 	// and the number of methods found at the same (shallowest) depth: 0 if not found.
 	// Private methods are returned only if they were declared in pkgpath.
 	MethodByName(name, pkgpath string) (method Method, count int)
 
-	// NumMethod returns the number of explicitly declared methods of named type or interface t.
-	// Wrapper methods for embedded fields or embedded interfaces are not counted.
+	// For interfaces, NumMethod returns *total* number of methods for interface t,
+	// including wrapper methods for embedded interfaces.
+	// For all other named types, NumMethod returns the number of explicitly declared methods,
+	// ignoring wrapper methods for embedded fields.
+	// Returns 0 for other unnamed types.
 	NumMethod() int
+	// NumExplicitMethod returns the number of explicitly declared methods for interface or named type t.
+	// Wrapper methods for embedded fields or embedded interfaces are not counted.
+	NumExplicitMethod() int
+	// NumMethod returns the *total* number of methods for interface or named type t,
+	// including wrapper methods for embedded fields or embedded interfaces.
+	// Note: it has slightly different semantics from go/types.(*Named).NumMethods(),
+	//       since the latter returns 0 for named interfaces, and callers need to manually invoke
+	//       goNamedType.Underlying().NumMethods() to retrieve the number of methods
+	//       of a named interface
+	NumAllMethod() int
+
 	// NumField returns a struct type's field count.
 	// It panics if the type's Kind is not Struct.
 	NumField() int
@@ -212,7 +218,7 @@ type Type interface {
 	// TODO implement Underlying() Type ?
 	// Synthetizing the underlying reflect.Type is not possible for interface types,
 	// or for struct types with embedded or unexported fields.
-	underlying() types.Type
+	gunderlying() types.Type
 
 	elem() Type
 
@@ -232,73 +238,4 @@ func unwrap(t Type) *xtype {
 
 func wrap(t *xtype) Type {
 	return t
-}
-
-// Complete marks an interface type as complete and computes wrapper methods for embedded fields.
-// It must be called by users of InterfaceOf after the interface's embedded types are fully defined
-// and before using the interface type in any way other than to form other types.
-func (t *xtype) Complete() Type {
-	if t.kind != reflect.Interface {
-		xerrorf(t, "Complete of non-interface %v", t)
-	}
-	gtype := t.gtype.Underlying().(*types.Interface)
-	gtype.Complete()
-	return wrap(t)
-}
-
-var (
-	BasicTypes = universe.BasicTypes
-
-	TypeOfBool          = BasicTypes[reflect.Bool]
-	TypeOfInt           = BasicTypes[reflect.Int]
-	TypeOfInt8          = BasicTypes[reflect.Int8]
-	TypeOfInt16         = BasicTypes[reflect.Int16]
-	TypeOfInt32         = BasicTypes[reflect.Int32]
-	TypeOfInt64         = BasicTypes[reflect.Int64]
-	TypeOfUint          = BasicTypes[reflect.Uint]
-	TypeOfUint8         = BasicTypes[reflect.Uint8]
-	TypeOfUint16        = BasicTypes[reflect.Uint16]
-	TypeOfUint32        = BasicTypes[reflect.Uint32]
-	TypeOfUint64        = BasicTypes[reflect.Uint64]
-	TypeOfUintptr       = BasicTypes[reflect.Uintptr]
-	TypeOfFloat32       = BasicTypes[reflect.Float32]
-	TypeOfFloat64       = BasicTypes[reflect.Float64]
-	TypeOfComplex64     = BasicTypes[reflect.Complex64]
-	TypeOfComplex128    = BasicTypes[reflect.Complex128]
-	TypeOfString        = BasicTypes[reflect.String]
-	TypeOfUnsafePointer = BasicTypes[reflect.UnsafePointer]
-	TypeOfError         = universe.TypeOfError
-	TypeOfInterface     = universe.TypeOfInterface
-)
-
-// TypeOf creates a Type corresponding to reflect.TypeOf() of given value.
-// Note: conversions from Type to reflect.Type and back are not exact,
-// because of the reasons listed in Type.ReflectType()
-// Conversions from reflect.Type to Type and back are not exact for the same reasons.
-func TypeOf(rvalue interface{}) Type {
-	return universe.FromReflectType(reflect.TypeOf(rvalue))
-}
-
-// FromReflectType creates a Type corresponding to given reflect.Type
-// Note: conversions from Type to reflect.Type and back are not exact,
-// because of the reasons listed in Type.ReflectType()
-// Conversions from reflect.Type to Type and back are not exact for the same reasons.
-func FromReflectType(rtype reflect.Type) Type {
-	return universe.FromReflectType(rtype)
-}
-
-// NamedOf returns a new named type for the given type name and package.
-// Initially, the underlying type is set to interface{} - use SetUnderlying to change it.
-// These two steps are separate to allow creating self-referencing types,
-// as for example type List struct { Elem int; Rest *List }
-func NamedOf(name, pkgpath string) Type {
-	return universe.NamedOf(name, pkgpath)
-}
-
-func NewPackage(path, name string) *Package {
-	return universe.NewPackage(path, name)
-}
-
-func MakeType(gtype types.Type, rtype reflect.Type) Type {
-	return universe.MakeType(gtype, rtype)
 }

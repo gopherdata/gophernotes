@@ -35,9 +35,9 @@ func init() {
 		"SetFlags":	ValueOf(log.SetFlags),
 		"SetOutput":	ValueOf(log.SetOutput),
 		"SetPrefix":	ValueOf(log.SetPrefix),
-	},Types: map[string]Type{
+	}, Types: map[string]Type{
 		"Logger":	TypeOf((*log.Logger)(nil)).Elem(),
-	},Untypeds: map[string]string{
+	}, Untypeds: map[string]string{
 		"LUTC":	"int:32",
 		"Ldate":	"int:1",
 		"Llongfile":	"int:8",
@@ -45,6 +45,6 @@ func init() {
 		"Lshortfile":	"int:16",
 		"LstdFlags":	"int:3",
 		"Ltime":	"int:2",
-	},
+	}, 
 	}
 }

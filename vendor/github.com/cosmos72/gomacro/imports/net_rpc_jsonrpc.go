@@ -17,6 +17,6 @@ func init() {
 		"NewClientCodec":	ValueOf(jsonrpc.NewClientCodec),
 		"NewServerCodec":	ValueOf(jsonrpc.NewServerCodec),
 		"ServeConn":	ValueOf(jsonrpc.ServeConn),
-	},
+	}, 
 	}
 }

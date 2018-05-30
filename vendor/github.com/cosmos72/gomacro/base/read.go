@@ -1,20 +1,11 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017 Massimiliano Ghilardi
+ * Copyright (C) 2017-2018 Massimiliano Ghilardi
  *
- *     This program is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU Lesser General Public License as published
- *     by the Free Software Foundation, either version 3 of the License, or
- *     (at your option) any later version.
- *
- *     This program is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU Lesser General Public License for more details.
- *
- *     You should have received a copy of the GNU Lesser General Public License
- *     along with this program.  If not, see <https://www.gnu.org/licenses/lgpl>.
+ *     This Source Code Form is subject to the terms of the Mozilla Public
+ *     License, v. 2.0. If a copy of the MPL was not distributed with this
+ *     file, You can obtain one at http://mozilla.org/MPL/2.0/.
  *
  *
  * read.go
@@ -26,7 +17,6 @@
 package base
 
 import (
-	"bufio"
 	"bytes"
 	"errors"
 	"fmt"
@@ -40,24 +30,18 @@ import (
 func ReadBytes(src interface{}) []byte {
 	switch s := src.(type) {
 	case []byte:
-		if s != nil {
-			return s
-		}
+		return s
 	case string:
 		return []byte(s)
 	case *bytes.Buffer:
 		// is io.Reader, but src is already available in []byte form
-		if s != nil {
-			return s.Bytes()
-		}
+		return s.Bytes()
 	case io.Reader:
-		if s != nil {
-			var buf bytes.Buffer
-			if _, err := io.Copy(&buf, s); err != nil {
-				Error(err)
-			}
-			return buf.Bytes()
+		var buf bytes.Buffer
+		if _, err := io.Copy(&buf, s); err != nil {
+			Error(err)
 		}
+		return buf.Bytes()
 	}
 	Errorf("unsupported source, cannot read from: %v <%v>", src, r.TypeOf(src))
 	return nil
@@ -66,24 +50,18 @@ func ReadBytes(src interface{}) []byte {
 func ReadString(src interface{}) string {
 	switch s := src.(type) {
 	case []byte:
-		if s != nil {
-			return string(s)
-		}
+		return string(s)
 	case string:
 		return s
 	case *bytes.Buffer:
 		// is io.Reader, but src is already available in string form
-		if s != nil {
-			return s.String()
-		}
+		return s.String()
 	case io.Reader:
-		if s != nil {
-			var buf bytes.Buffer
-			if _, err := io.Copy(&buf, s); err != nil {
-				Error(err)
-			}
-			return buf.String()
+		var buf bytes.Buffer
+		if _, err := io.Copy(&buf, s); err != nil {
+			Error(err)
 		}
+		return buf.String()
 	}
 	Errorf("unsupported source, cannot read from: %v <%v>", src, r.TypeOf(src))
 	return ""
@@ -152,22 +130,21 @@ func (m mode) String() string {
 	}
 }
 
-var paragraph_separator_bytes = []byte{0xe2, 0x80, 0xa9}
-var nl_bytes = []byte{'\n'}
-
-func ReadMultiline(in *bufio.Reader, opts ReadOptions, out io.Writer, prompt string) (src string, firstToken int, err error) {
+// return read string, position of first non-comment token and error (if any)
+// on EOF, return "", -1, io.EOF
+func ReadMultiline(in Readline, opts ReadOptions, prompt string) (src string, firstToken int, err error) {
+	var line, buf []byte
 	m := mNormal
 	paren := 0
+	firstToken = -1
+	lastToken := -1
 	optPrompt := opts&ReadOptShowPrompt != 0
 	optAllComments := opts&ReadOptCollectAllComments != 0
 	ignorenl := false
-	firstToken = -1
-	lastToken := -1
-
+	var currPrompt string
 	if optPrompt {
-		fmt.Fprint(out, prompt)
+		currPrompt = prompt
 	}
-	var line, buf []byte
 
 	// comments do not reset ignorenl
 	resetnl := func(paren int, m mode) bool {
@@ -190,8 +167,7 @@ func ReadMultiline(in *bufio.Reader, opts ReadOptions, out io.Writer, prompt str
 	}
 
 	for {
-		line, err = in.ReadBytes('\n')
-		line = bytes.Replace(line, paragraph_separator_bytes, nl_bytes, -1)
+		line, err = in.Read(currPrompt)
 		for i, ch := range line {
 			if debug {
 				Debugf("ReadMultiline: found %q\tmode=%v\tparen=%d ignorenl=%t", ch, m, paren, ignorenl)
@@ -374,7 +350,7 @@ func ReadMultiline(in *bufio.Reader, opts ReadOptions, out io.Writer, prompt str
 			m = mNormal
 		}
 		if optPrompt {
-			printDots(out, 4+2*paren)
+			currPrompt = makeDots(9 + 2*paren)
 		}
 	}
 	if err != nil {
@@ -430,21 +406,25 @@ func lastIsKeywordIgnoresNl(line []byte, first, last int) bool {
 		ignorenl = true
 	}
 	if debug {
-		Debugf("lastIsKeywordIgnoresNl: found %ignorenl=%t", str, ignorenl)
+		Debugf("lastIsKeywordIgnoresNl: found %q ignorenl=%t", str, ignorenl)
 	}
 	return ignorenl
 }
 
-func printDots(out io.Writer, count int) {
+func makeDots(count int) string {
 	const (
-		dots  = ". . . . . . . . . . . . . . . . "
-		ndots = len(dots)
+		dots    = ". . . .                                                                                             "
+		spaces  = "                                                                                                    "
+		ndots   = len(dots)
+		nspaces = len(spaces)
 	)
-	for count >= ndots {
-		fmt.Fprint(out, dots)
-		count -= ndots
+	if count <= ndots {
+		return dots[0:count]
 	}
-	if count > 0 {
-		fmt.Fprint(out, dots[0:count])
+	buf := make([]byte, count)
+	copy(buf, dots)
+	for i := ndots; i < count; i += nspaces {
+		copy(buf[i:], spaces)
 	}
+	return string(buf)
 }

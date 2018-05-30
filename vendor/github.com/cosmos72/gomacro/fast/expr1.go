@@ -1,20 +1,11 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017 Massimiliano Ghilardi
+ * Copyright (C) 2017-2018 Massimiliano Ghilardi
  *
- *     This program is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU Lesser General Public License as published
- *     by the Free Software Foundation, either version 3 of the License, or
- *     (at your option) any later version.
- *
- *     This program is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU Lesser General Public License for more details.
- *
- *     You should have received a copy of the GNU Lesser General Public License
- *     along with this program.  If not, see <https://www.gnu.org/licenses/lgpl>.
+ *     This Source Code Form is subject to the terms of the Mozilla Public
+ *     License, v. 2.0. If a copy of the MPL was not distributed with this
+ *     file, You can obtain one at http://mozilla.org/MPL/2.0/.
  *
  *
  * expr1.go
@@ -34,26 +25,29 @@ import (
 )
 
 func (c *Comp) litValue(value I) Lit {
-	if untyp, ok := value.(UntypedLit); ok && untyp.Universe != c.Universe {
-		untyp.Universe = c.Universe
-		value = untyp
-	}
 	return Lit{Type: c.TypeOf(value), Value: value}
 }
 
 func (c *Comp) exprUntypedLit(kind r.Kind, obj constant.Value) *Expr {
-	return &Expr{Lit: Lit{Type: c.TypeOfUntypedLit(), Value: UntypedLit{kind, obj, c.Universe}}}
+	return &Expr{Lit: Lit{Type: c.TypeOfUntypedLit(), Value: MakeUntypedLit(kind, obj, &c.Universe.BasicTypes)}}
 }
 
 func (c *Comp) exprValue(t xr.Type, value I) *Expr {
 	if t == nil {
 		t = c.TypeOf(value)
 	}
-	return &Expr{Lit: Lit{Type: t, Value: value}, IsNil: value == nil}
+	return exprValue(t, value)
+}
+
+func exprValue(t xr.Type, value I) *Expr {
+	if t == nil {
+		base.Errorf("internal error! exprValue() value = %v invoked with type = nil", value)
+	}
+	return &Expr{Lit: Lit{Type: t, Value: value}, EFlags: EFlag4Value(value)}
 }
 
 func exprLit(lit Lit, sym *Symbol) *Expr {
-	return &Expr{Lit: lit, Sym: sym, IsNil: lit.Value == nil}
+	return &Expr{Lit: lit, Sym: sym, EFlags: EFlag4Value(lit.Value)}
 }
 
 func exprFun(t xr.Type, fun I) *Expr {
@@ -93,7 +87,7 @@ func (expr *Expr) EvalConst(opts CompileOptions) I {
 		return nil
 	}
 	if expr.Const() {
-		if opts == OptDefaults && expr.Untyped() {
+		if opts == COptDefaults && expr.Untyped() {
 			return expr.ConstTo(expr.DefaultType())
 		}
 		return expr.Value
@@ -108,7 +102,7 @@ func (expr *Expr) EvalConst(opts CompileOptions) I {
 		value = ret.Interface()
 	}
 	expr.Value = value
-	expr.IsNil = value == nil
+	expr.EFlags = EFlag4Value(value)
 	expr.Fun = nil // no longer needed, will be recreated if needed as a wrapper for the computed value
 	return value
 }

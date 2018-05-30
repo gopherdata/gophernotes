@@ -1,25 +1,11 @@
-// -------------------------------------------------------------
-// DO NOT EDIT! this file was generated automatically by gomacro
-// Any change will be lost when the file is re-generated
-// -------------------------------------------------------------
-
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017 Massimiliano Ghilardi
+ * Copyright (C) 2017-2018 Massimiliano Ghilardi
  *
- *     This program is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU Lesser General Public License as published
- *     by the Free Software Foundation, either version 3 of the License, or
- *     (at your option) any later version.
- *
- *     This program is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU Lesser General Public License for more details.
- *
- *     You should have received a copy of the GNU Lesser General Public License
- *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *     This Source Code Form is subject to the terms of the Mozilla Public
+ *     License, v. 2.0. If a copy of the MPL was not distributed with this
+ *     file, You can obtain one at http://mozilla.org/MPL/2.0/.
  *
  *
  * place_get.go
@@ -34,6 +20,7 @@ import (
 	r "reflect"
 )
 
+// compile a read operation on a place
 func (c *Comp) GetPlace(place *Place) *Expr {
 	if place.IsVar() {
 		return c.Symbol(place.Var.AsSymbol())
