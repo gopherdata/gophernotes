@@ -410,6 +410,9 @@ func (ir *Interp) CompleteWords(line string, pos int) (head string, completions 
 	// find the longest sequence of ident.ident.ident...
 
 	for i := n - 1; i >= 0; i-- {
+		// ignore spaces before and after identifiers
+		words[i] = strings.TrimSpace(words[i])
+
 		if i == n-1 && len(words[i]) == 0 {
 			// last word can be empty: it means TAB immediately after '.'
 			continue
