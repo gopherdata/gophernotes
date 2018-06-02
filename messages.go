@@ -189,7 +189,9 @@ func (receipt *msgReceipt) Publish(msgType string, content interface{}) error {
 	}
 
 	msg.Content = content
-	return receipt.SendResponse(receipt.Sockets.IOPubSocket, msg)
+	return receipt.Sockets.IOPubSocket.RunWithSocket(func(iopub *zmq.Socket) error {
+		return receipt.SendResponse(iopub, msg)
+	})
 }
 
 // Reply creates a new ComposedMsg and sends it back to the return identities over the
@@ -202,7 +204,9 @@ func (receipt *msgReceipt) Reply(msgType string, content interface{}) error {
 	}
 
 	msg.Content = content
-	return receipt.SendResponse(receipt.Sockets.ShellSocket, msg)
+	return receipt.Sockets.ShellSocket.RunWithSocket(func(shell *zmq.Socket) error {
+		return receipt.SendResponse(shell, msg)
+	})
 }
 
 // newTextMIMEDataBundle creates a bundledMIMEData that only contains a text representation described
@@ -265,6 +269,21 @@ func (receipt *msgReceipt) PublishExecutionError(err string, trace []string) err
 			Name:  "ERROR",
 			Value: err,
 			Trace: trace,
+		},
+	)
+}
+
+// PublishDisplayData publishes a single image.
+func (receipt *msgReceipt) PublishDisplayData(data, metadata bundledMIMEData) error {
+	return receipt.Publish("display_data",
+		struct {
+			Data      bundledMIMEData `json:"data"`
+			Metadata  bundledMIMEData `json:"metadata"`
+			Transient bundledMIMEData `json:"transient"`
+		}{
+			Data:      data,
+			Metadata:  metadata,
+			Transient: make(bundledMIMEData),
 		},
 	)
 }
