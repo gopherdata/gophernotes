@@ -6,20 +6,11 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017 Massimiliano Ghilardi
+ * Copyright (C) 2017-2018 Massimiliano Ghilardi
  *
- *     This program is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU Lesser General Public License as published
- *     by the Free Software Foundation, either version 3 of the License, or
- *     (at your option) any later version.
- *
- *     This program is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU Lesser General Public License for more details.
- *
- *     You should have received a copy of the GNU Lesser General Public License
- *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *     This Source Code Form is subject to the terms of the Mozilla Public
+ *     License, v. 2.0. If a copy of the MPL was not distributed with this
+ *     file, You can obtain one at http://mozilla.org/MPL/2.0/.
  *
  *
  * index.go
@@ -41,8 +32,8 @@ import (
 func (c *Comp) IndexExpr(node *ast.IndexExpr) *Expr { return c.indexExpr(node, true) }
 func (c *Comp) IndexExpr1(node *ast.IndexExpr) *Expr { return c.indexExpr(node, false) }
 func (c *Comp) indexExpr(node *ast.IndexExpr, multivalued bool) *Expr {
-	obj := c.Expr1(node.X)
-	idx := c.Expr1(node.Index)
+	obj := c.Expr1(node.X, nil)
+	idx := c.Expr1(node.Index, nil)
 	if obj.Untyped() {
 		obj.ConstTo(obj.DefaultType())
 	}
@@ -73,16 +64,19 @@ func (c *Comp) indexExpr(node *ast.IndexExpr, multivalued bool) *Expr {
 		return nil
 	}
 	if obj.Const() && idx.Const() {
-		ret.EvalConst(OptKeepUntyped)
+		ret.EvalConst(COptKeepUntyped)
 	}
 	return ret
 }
 func (c *Comp) vectorIndex(node *ast.IndexExpr, obj *Expr, idx *Expr) *Expr {
-	idxconst := idx.Const()
-	if idxconst {
-		idx.ConstTo(c.TypeOfInt())
-	} else if idx.Type == nil || !idx.Type.AssignableTo(c.TypeOfInt()) {
-		c.Errorf("non-integer %s index: %v <%v>", obj.Type.Kind(), node.Index, idx.Type)
+	k := idx.Type.Kind()
+	cat := base.KindToCategory(k)
+	if cat == r.Int || cat == r.Uint || idx.Untyped() {
+		if !c.TypeOfInt().IdenticalTo(idx.Type) {
+			idx = c.convert(idx, c.TypeOfInt(), node.Index)
+		}
+	} else {
+		c.Errorf("non-integer %s index: %v <%v>", k, node.Index, idx.Type)
 	}
 
 	t := obj.Type
@@ -93,7 +87,7 @@ func (c *Comp) vectorIndex(node *ast.IndexExpr, obj *Expr, idx *Expr) *Expr {
 	t = t.Elem()
 	objfun := obj.AsX1()
 	var fun I
-	if idxconst {
+	if idx.Const() {
 		i := idx.Value.(int)
 		switch t.Kind() {
 		case r.Bool:
@@ -363,7 +357,20 @@ func (c *Comp) stringIndex(node *ast.IndexExpr, obj *Expr, idx *Expr) *Expr {
 			return str[i]
 		}
 	}
-	return c.exprUint8(fun)
+
+	e := c.exprUint8(fun)
+	if obj.Const() && idx.Const() {
+		panicking := true
+		defer func() {
+			if panicking {
+				recover()
+				c.Errorf("string index out of range: %v", node)
+			}
+		}()
+		e.EvalConst(COptKeepUntyped)
+		panicking = false
+	}
+	return e
 }
 func (c *Comp) mapIndex(node *ast.IndexExpr, obj *Expr, idx *Expr) *Expr {
 	t := obj.Type
@@ -881,8 +888,8 @@ func (c *Comp) mapIndex1(node *ast.IndexExpr, obj *Expr, idx *Expr) *Expr {
 	return exprFun(tval, fun)
 }
 func (c *Comp) IndexPlace(node *ast.IndexExpr, opt PlaceOption) *Place {
-	obj := c.Expr1(node.X)
-	idx := c.Expr1(node.Index)
+	obj := c.Expr1(node.X, nil)
+	idx := c.Expr1(node.Index, nil)
 	if obj.Untyped() {
 		obj.ConstTo(obj.DefaultType())
 	}

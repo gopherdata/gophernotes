@@ -6,20 +6,11 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017 Massimiliano Ghilardi
+ * Copyright (C) 2017-2018 Massimiliano Ghilardi
  *
- *     This program is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU Lesser General Public License as published
- *     by the Free Software Foundation, either version 3 of the License, or
- *     (at your option) any later version.
- *
- *     This program is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU Lesser General Public License for more details.
- *
- *     You should have received a copy of the GNU Lesser General Public License
- *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *     This Source Code Form is subject to the terms of the Mozilla Public
+ *     License, v. 2.0. If a copy of the MPL was not distributed with this
+ *     file, You can obtain one at http://mozilla.org/MPL/2.0/.
  *
  *
  * func0ret1.go
@@ -32,14 +23,20 @@ package fast
 
 import (
 	r "reflect"
+	. "github.com/cosmos72/gomacro/base"
 	xr "github.com/cosmos72/gomacro/xreflect"
 )
 
 func (c *Comp) func0ret1(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
-	nbinds := m.nbinds
-	nintbinds := m.nintbinds
+	nbind := m.nbind
+	nintbind := m.nintbind
 	funcbody := m.funcbody
+
+	var debugC *Comp
+	if c.Globals.Options&OptDebugger != 0 {
+		debugC = c
+	}
 
 	tret0 := t.Out(0)
 	kret0 := tret0.Kind()
@@ -48,24 +45,24 @@ func (c *Comp) func0ret1(t xr.Type, m *funcMaker) func(*Env) r.Value {
 		{
 			if funcbody == nil {
 				return func(env *Env) r.Value {
-					return r.ValueOf(func() (ret0 bool) {
-						return
-					},
+					return r.ValueOf(func() (ret0 bool) { return },
 					)
 				}
 			}
 
-			resultfun := m.resultfuns[0].(func(*Env) bool)
+			resultfun := m.resultfun[0].(func(*Env) bool)
 			return func(env *Env) r.Value {
 
 				env.MarkUsedByClosure()
-				return r.ValueOf(func() (ret0 bool) {
-					env := NewEnv4Func(env, nbinds, nintbinds)
+				return r.ValueOf(func() (ret0 bool,
+
+				) {
+					env := newEnv4Func(env, nbind, nintbind, debugC)
 
 					funcbody(env)
 
 					ret0 = resultfun(env)
-					env.FreeEnv()
+					env.freeEnv4Func()
 					return
 
 				})
@@ -80,17 +77,19 @@ func (c *Comp) func0ret1(t xr.Type, m *funcMaker) func(*Env) r.Value {
 				}
 			}
 
-			resultfun := m.resultfuns[0].(func(*Env) int)
+			resultfun := m.resultfun[0].(func(*Env) int)
 			return func(env *Env) r.Value {
 
 				env.MarkUsedByClosure()
-				return r.ValueOf(func() (ret0 int) {
-					env := NewEnv4Func(env, nbinds, nintbinds)
+				return r.ValueOf(func() (ret0 int,
+
+				) {
+					env := newEnv4Func(env, nbind, nintbind, debugC)
 
 					funcbody(env)
 
 					ret0 = resultfun(env)
-					env.FreeEnv()
+					env.freeEnv4Func()
 					return
 
 				})
@@ -100,24 +99,24 @@ func (c *Comp) func0ret1(t xr.Type, m *funcMaker) func(*Env) r.Value {
 		{
 			if funcbody == nil {
 				return func(env *Env) r.Value {
-					return r.ValueOf(func() (ret0 int8) {
-						return
-					},
+					return r.ValueOf(func() (ret0 int8) { return },
 					)
 				}
 			}
 
-			resultfun := m.resultfuns[0].(func(*Env) int8)
+			resultfun := m.resultfun[0].(func(*Env) int8)
 			return func(env *Env) r.Value {
 
 				env.MarkUsedByClosure()
-				return r.ValueOf(func() (ret0 int8) {
-					env := NewEnv4Func(env, nbinds, nintbinds)
+				return r.ValueOf(func() (ret0 int8,
+
+				) {
+					env := newEnv4Func(env, nbind, nintbind, debugC)
 
 					funcbody(env)
 
 					ret0 = resultfun(env)
-					env.FreeEnv()
+					env.freeEnv4Func()
 					return
 
 				})
@@ -127,24 +126,24 @@ func (c *Comp) func0ret1(t xr.Type, m *funcMaker) func(*Env) r.Value {
 		{
 			if funcbody == nil {
 				return func(env *Env) r.Value {
-					return r.ValueOf(func() (ret0 int16) {
-						return
-					},
+					return r.ValueOf(func() (ret0 int16) { return },
 					)
 				}
 			}
 
-			resultfun := m.resultfuns[0].(func(*Env) int16)
+			resultfun := m.resultfun[0].(func(*Env) int16)
 			return func(env *Env) r.Value {
 
 				env.MarkUsedByClosure()
-				return r.ValueOf(func() (ret0 int16) {
-					env := NewEnv4Func(env, nbinds, nintbinds)
+				return r.ValueOf(func() (ret0 int16,
+
+				) {
+					env := newEnv4Func(env, nbind, nintbind, debugC)
 
 					funcbody(env)
 
 					ret0 = resultfun(env)
-					env.FreeEnv()
+					env.freeEnv4Func()
 					return
 
 				})
@@ -154,24 +153,23 @@ func (c *Comp) func0ret1(t xr.Type, m *funcMaker) func(*Env) r.Value {
 		{
 			if funcbody == nil {
 				return func(env *Env) r.Value {
-					return r.ValueOf(func() (ret0 int32) {
-						return
-					},
+					return r.ValueOf(func() (ret0 int32) { return },
 					)
 				}
 			}
 
-			resultfun := m.resultfuns[0].(func(*Env) int32)
+			resultfun := m.resultfun[0].(func(*Env) int32)
 			return func(env *Env) r.Value {
 
 				env.MarkUsedByClosure()
-				return r.ValueOf(func() (ret0 int32) {
-					env := NewEnv4Func(env, nbinds, nintbinds)
+				return r.ValueOf(func() (ret0 int32,
+				) {
+					env := newEnv4Func(env, nbind, nintbind, debugC)
 
 					funcbody(env)
 
 					ret0 = resultfun(env)
-					env.FreeEnv()
+					env.freeEnv4Func()
 					return
 
 				})
@@ -181,24 +179,22 @@ func (c *Comp) func0ret1(t xr.Type, m *funcMaker) func(*Env) r.Value {
 		{
 			if funcbody == nil {
 				return func(env *Env) r.Value {
-					return r.ValueOf(func() (ret0 int64) {
-						return
-					},
+					return r.ValueOf(func() (ret0 int64) { return },
 					)
 				}
 			}
 
-			resultfun := m.resultfuns[0].(func(*Env) int64)
+			resultfun := m.resultfun[0].(func(*Env) int64)
 			return func(env *Env) r.Value {
 
 				env.MarkUsedByClosure()
 				return r.ValueOf(func() (ret0 int64) {
-					env := NewEnv4Func(env, nbinds, nintbinds)
+					env := newEnv4Func(env, nbind, nintbind, debugC)
 
 					funcbody(env)
 
 					ret0 = resultfun(env)
-					env.FreeEnv()
+					env.freeEnv4Func()
 					return
 
 				})
@@ -208,24 +204,22 @@ func (c *Comp) func0ret1(t xr.Type, m *funcMaker) func(*Env) r.Value {
 		{
 			if funcbody == nil {
 				return func(env *Env) r.Value {
-					return r.ValueOf(func() (ret0 uint) {
-						return
-					},
+					return r.ValueOf(func() (ret0 uint) { return },
 					)
 				}
 			}
 
-			resultfun := m.resultfuns[0].(func(*Env) uint)
+			resultfun := m.resultfun[0].(func(*Env) uint)
 			return func(env *Env) r.Value {
 
 				env.MarkUsedByClosure()
 				return r.ValueOf(func() (ret0 uint) {
-					env := NewEnv4Func(env, nbinds, nintbinds)
+					env := newEnv4Func(env, nbind, nintbind, debugC)
 
 					funcbody(env)
 
 					ret0 = resultfun(env)
-					env.FreeEnv()
+					env.freeEnv4Func()
 					return
 
 				})
@@ -235,24 +229,22 @@ func (c *Comp) func0ret1(t xr.Type, m *funcMaker) func(*Env) r.Value {
 		{
 			if funcbody == nil {
 				return func(env *Env) r.Value {
-					return r.ValueOf(func() (ret0 uint8) {
-						return
-					},
+					return r.ValueOf(func() (ret0 uint8) { return },
 					)
 				}
 			}
 
-			resultfun := m.resultfuns[0].(func(*Env) uint8)
+			resultfun := m.resultfun[0].(func(*Env) uint8)
 			return func(env *Env) r.Value {
 
 				env.MarkUsedByClosure()
 				return r.ValueOf(func() (ret0 uint8) {
-					env := NewEnv4Func(env, nbinds, nintbinds)
+					env := newEnv4Func(env, nbind, nintbind, debugC)
 
 					funcbody(env)
 
 					ret0 = resultfun(env)
-					env.FreeEnv()
+					env.freeEnv4Func()
 					return
 
 				})
@@ -262,24 +254,22 @@ func (c *Comp) func0ret1(t xr.Type, m *funcMaker) func(*Env) r.Value {
 		{
 			if funcbody == nil {
 				return func(env *Env) r.Value {
-					return r.ValueOf(func() (ret0 uint16) {
-						return
-					},
+					return r.ValueOf(func() (ret0 uint16) { return },
 					)
 				}
 			}
 
-			resultfun := m.resultfuns[0].(func(*Env) uint16)
+			resultfun := m.resultfun[0].(func(*Env) uint16)
 			return func(env *Env) r.Value {
 
 				env.MarkUsedByClosure()
 				return r.ValueOf(func() (ret0 uint16) {
-					env := NewEnv4Func(env, nbinds, nintbinds)
+					env := newEnv4Func(env, nbind, nintbind, debugC)
 
 					funcbody(env)
 
 					ret0 = resultfun(env)
-					env.FreeEnv()
+					env.freeEnv4Func()
 					return
 
 				})
@@ -289,24 +279,22 @@ func (c *Comp) func0ret1(t xr.Type, m *funcMaker) func(*Env) r.Value {
 		{
 			if funcbody == nil {
 				return func(env *Env) r.Value {
-					return r.ValueOf(func() (ret0 uint32) {
-						return
-					},
+					return r.ValueOf(func() (ret0 uint32) { return },
 					)
 				}
 			}
 
-			resultfun := m.resultfuns[0].(func(*Env) uint32)
+			resultfun := m.resultfun[0].(func(*Env) uint32)
 			return func(env *Env) r.Value {
 
 				env.MarkUsedByClosure()
 				return r.ValueOf(func() (ret0 uint32) {
-					env := NewEnv4Func(env, nbinds, nintbinds)
+					env := newEnv4Func(env, nbind, nintbind, debugC)
 
 					funcbody(env)
 
 					ret0 = resultfun(env)
-					env.FreeEnv()
+					env.freeEnv4Func()
 					return
 
 				})
@@ -316,24 +304,22 @@ func (c *Comp) func0ret1(t xr.Type, m *funcMaker) func(*Env) r.Value {
 		{
 			if funcbody == nil {
 				return func(env *Env) r.Value {
-					return r.ValueOf(func() (ret0 uint64) {
-						return
-					},
+					return r.ValueOf(func() (ret0 uint64) { return },
 					)
 				}
 			}
 
-			resultfun := m.resultfuns[0].(func(*Env) uint64)
+			resultfun := m.resultfun[0].(func(*Env) uint64)
 			return func(env *Env) r.Value {
 
 				env.MarkUsedByClosure()
 				return r.ValueOf(func() (ret0 uint64) {
-					env := NewEnv4Func(env, nbinds, nintbinds)
+					env := newEnv4Func(env, nbind, nintbind, debugC)
 
 					funcbody(env)
 
 					ret0 = resultfun(env)
-					env.FreeEnv()
+					env.freeEnv4Func()
 					return
 
 				})
@@ -343,24 +329,22 @@ func (c *Comp) func0ret1(t xr.Type, m *funcMaker) func(*Env) r.Value {
 		{
 			if funcbody == nil {
 				return func(env *Env) r.Value {
-					return r.ValueOf(func() (ret0 uintptr) {
-						return
-					},
+					return r.ValueOf(func() (ret0 uintptr) { return },
 					)
 				}
 			}
 
-			resultfun := m.resultfuns[0].(func(*Env) uintptr)
+			resultfun := m.resultfun[0].(func(*Env) uintptr)
 			return func(env *Env) r.Value {
 
 				env.MarkUsedByClosure()
 				return r.ValueOf(func() (ret0 uintptr) {
-					env := NewEnv4Func(env, nbinds, nintbinds)
+					env := newEnv4Func(env, nbind, nintbind, debugC)
 
 					funcbody(env)
 
 					ret0 = resultfun(env)
-					env.FreeEnv()
+					env.freeEnv4Func()
 					return
 
 				})
@@ -370,24 +354,22 @@ func (c *Comp) func0ret1(t xr.Type, m *funcMaker) func(*Env) r.Value {
 		{
 			if funcbody == nil {
 				return func(env *Env) r.Value {
-					return r.ValueOf(func() (ret0 float32) {
-						return
-					},
+					return r.ValueOf(func() (ret0 float32) { return },
 					)
 				}
 			}
 
-			resultfun := m.resultfuns[0].(func(*Env) float32)
+			resultfun := m.resultfun[0].(func(*Env) float32)
 			return func(env *Env) r.Value {
 
 				env.MarkUsedByClosure()
 				return r.ValueOf(func() (ret0 float32) {
-					env := NewEnv4Func(env, nbinds, nintbinds)
+					env := newEnv4Func(env, nbind, nintbind, debugC)
 
 					funcbody(env)
 
 					ret0 = resultfun(env)
-					env.FreeEnv()
+					env.freeEnv4Func()
 					return
 
 				})
@@ -397,24 +379,22 @@ func (c *Comp) func0ret1(t xr.Type, m *funcMaker) func(*Env) r.Value {
 		{
 			if funcbody == nil {
 				return func(env *Env) r.Value {
-					return r.ValueOf(func() (ret0 float64) {
-						return
-					},
+					return r.ValueOf(func() (ret0 float64) { return },
 					)
 				}
 			}
 
-			resultfun := m.resultfuns[0].(func(*Env) float64)
+			resultfun := m.resultfun[0].(func(*Env) float64)
 			return func(env *Env) r.Value {
 
 				env.MarkUsedByClosure()
 				return r.ValueOf(func() (ret0 float64) {
-					env := NewEnv4Func(env, nbinds, nintbinds)
+					env := newEnv4Func(env, nbind, nintbind, debugC)
 
 					funcbody(env)
 
 					ret0 = resultfun(env)
-					env.FreeEnv()
+					env.freeEnv4Func()
 					return
 
 				})
@@ -424,24 +404,22 @@ func (c *Comp) func0ret1(t xr.Type, m *funcMaker) func(*Env) r.Value {
 		{
 			if funcbody == nil {
 				return func(env *Env) r.Value {
-					return r.ValueOf(func() (ret0 complex64) {
-						return
-					},
+					return r.ValueOf(func() (ret0 complex64) { return },
 					)
 				}
 			}
 
-			resultfun := m.resultfuns[0].(func(*Env) complex64)
+			resultfun := m.resultfun[0].(func(*Env) complex64)
 			return func(env *Env) r.Value {
 
 				env.MarkUsedByClosure()
 				return r.ValueOf(func() (ret0 complex64) {
-					env := NewEnv4Func(env, nbinds, nintbinds)
+					env := newEnv4Func(env, nbind, nintbind, debugC)
 
 					funcbody(env)
 
 					ret0 = resultfun(env)
-					env.FreeEnv()
+					env.freeEnv4Func()
 					return
 
 				})
@@ -451,24 +429,22 @@ func (c *Comp) func0ret1(t xr.Type, m *funcMaker) func(*Env) r.Value {
 		{
 			if funcbody == nil {
 				return func(env *Env) r.Value {
-					return r.ValueOf(func() (ret0 complex128) {
-						return
-					},
+					return r.ValueOf(func() (ret0 complex128) { return },
 					)
 				}
 			}
 
-			resultfun := m.resultfuns[0].(func(*Env) complex128)
+			resultfun := m.resultfun[0].(func(*Env) complex128)
 			return func(env *Env) r.Value {
 
 				env.MarkUsedByClosure()
 				return r.ValueOf(func() (ret0 complex128) {
-					env := NewEnv4Func(env, nbinds, nintbinds)
+					env := newEnv4Func(env, nbind, nintbind, debugC)
 
 					funcbody(env)
 
 					ret0 = resultfun(env)
-					env.FreeEnv()
+					env.freeEnv4Func()
 					return
 
 				})
@@ -478,24 +454,22 @@ func (c *Comp) func0ret1(t xr.Type, m *funcMaker) func(*Env) r.Value {
 		{
 			if funcbody == nil {
 				return func(env *Env) r.Value {
-					return r.ValueOf(func() (ret0 string) {
-						return
-					},
+					return r.ValueOf(func() (ret0 string) { return },
 					)
 				}
 			}
 
-			resultfun := m.resultfuns[0].(func(*Env) string)
+			resultfun := m.resultfun[0].(func(*Env) string)
 			return func(env *Env) r.Value {
 
 				env.MarkUsedByClosure()
 				return r.ValueOf(func() (ret0 string) {
-					env := NewEnv4Func(env, nbinds, nintbinds)
+					env := newEnv4Func(env, nbind, nintbind, debugC)
 
 					funcbody(env)
 
 					ret0 = resultfun(env)
-					env.FreeEnv()
+					env.freeEnv4Func()
 					return
 
 				})

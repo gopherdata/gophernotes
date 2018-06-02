@@ -14,12 +14,12 @@ func init() {
 	Binds: map[string]Value{
 		"ContextClientTrace":	ValueOf(httptrace.ContextClientTrace),
 		"WithClientTrace":	ValueOf(httptrace.WithClientTrace),
-	},Types: map[string]Type{
+	}, Types: map[string]Type{
 		"ClientTrace":	TypeOf((*httptrace.ClientTrace)(nil)).Elem(),
 		"DNSDoneInfo":	TypeOf((*httptrace.DNSDoneInfo)(nil)).Elem(),
 		"DNSStartInfo":	TypeOf((*httptrace.DNSStartInfo)(nil)).Elem(),
 		"GotConnInfo":	TypeOf((*httptrace.GotConnInfo)(nil)).Elem(),
 		"WroteRequestInfo":	TypeOf((*httptrace.WroteRequestInfo)(nil)).Elem(),
-	},
+	}, 
 	}
 }

@@ -37,7 +37,7 @@ func init() {
 		"TypeDylib":	ValueOf(macho.TypeDylib),
 		"TypeExec":	ValueOf(macho.TypeExec),
 		"TypeObj":	ValueOf(macho.TypeObj),
-	},Types: map[string]Type{
+	}, Types: map[string]Type{
 		"Cpu":	TypeOf((*macho.Cpu)(nil)).Elem(),
 		"Dylib":	TypeOf((*macho.Dylib)(nil)).Elem(),
 		"DylibCmd":	TypeOf((*macho.DylibCmd)(nil)).Elem(),
@@ -69,23 +69,23 @@ func init() {
 		"SymtabCmd":	TypeOf((*macho.SymtabCmd)(nil)).Elem(),
 		"Thread":	TypeOf((*macho.Thread)(nil)).Elem(),
 		"Type":	TypeOf((*macho.Type)(nil)).Elem(),
-	},Proxies: map[string]Type{
-		"Load":	TypeOf((*Load_debug_macho)(nil)).Elem(),
-	},Wrappers: map[string][]string{
+	}, Proxies: map[string]Type{
+		"Load":	TypeOf((*P_debug_macho_Load)(nil)).Elem(),
+	}, Wrappers: map[string][]string{
 		"Dylib":	[]string{"Raw",},
 		"Dysymtab":	[]string{"Raw",},
 		"FatArch":	[]string{"Close","DWARF","ImportedLibraries","ImportedSymbols","Section","Segment",},
 		"Segment":	[]string{"Raw",},
 		"Symtab":	[]string{"Raw",},
-	},
+	}, 
 	}
 }
 
 // --------------- proxy for debug/macho.Load ---------------
-type Load_debug_macho struct {
+type P_debug_macho_Load struct {
 	Object	interface{}
 	Raw_	func(interface{}) []byte
 }
-func (Proxy *Load_debug_macho) Raw() []byte {
-	return Proxy.Raw_(Proxy.Object)
+func (P *P_debug_macho_Load) Raw() []byte {
+	return P.Raw_(P.Object)
 }

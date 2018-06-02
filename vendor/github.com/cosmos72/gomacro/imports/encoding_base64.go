@@ -21,9 +21,9 @@ func init() {
 		"StdEncoding":	ValueOf(&base64.StdEncoding).Elem(),
 		"StdPadding":	ValueOf(base64.StdPadding),
 		"URLEncoding":	ValueOf(&base64.URLEncoding).Elem(),
-	},Types: map[string]Type{
+	}, Types: map[string]Type{
 		"CorruptInputError":	TypeOf((*base64.CorruptInputError)(nil)).Elem(),
 		"Encoding":	TypeOf((*base64.Encoding)(nil)).Elem(),
-	},
+	}, 
 	}
 }

@@ -82,6 +82,7 @@ func init() {
 		"Serve":	ValueOf(http.Serve),
 		"ServeContent":	ValueOf(http.ServeContent),
 		"ServeFile":	ValueOf(http.ServeFile),
+		"ServeTLS":	ValueOf(http.ServeTLS),
 		"ServerContextKey":	ValueOf(&http.ServerContextKey).Elem(),
 		"SetCookie":	ValueOf(http.SetCookie),
 		"StateActive":	ValueOf(http.StateActive),
@@ -153,7 +154,7 @@ func init() {
 		"TimeFormat":	ValueOf(http.TimeFormat),
 		"TimeoutHandler":	ValueOf(http.TimeoutHandler),
 		"TrailerPrefix":	ValueOf(http.TrailerPrefix),
-	},Types: map[string]Type{
+	}, Types: map[string]Type{
 		"Client":	TypeOf((*http.Client)(nil)).Elem(),
 		"CloseNotifier":	TypeOf((*http.CloseNotifier)(nil)).Elem(),
 		"ConnState":	TypeOf((*http.ConnState)(nil)).Elem(),
@@ -177,18 +178,18 @@ func init() {
 		"ServeMux":	TypeOf((*http.ServeMux)(nil)).Elem(),
 		"Server":	TypeOf((*http.Server)(nil)).Elem(),
 		"Transport":	TypeOf((*http.Transport)(nil)).Elem(),
-	},Proxies: map[string]Type{
-		"CloseNotifier":	TypeOf((*CloseNotifier_net_http)(nil)).Elem(),
-		"CookieJar":	TypeOf((*CookieJar_net_http)(nil)).Elem(),
-		"File":	TypeOf((*File_net_http)(nil)).Elem(),
-		"FileSystem":	TypeOf((*FileSystem_net_http)(nil)).Elem(),
-		"Flusher":	TypeOf((*Flusher_net_http)(nil)).Elem(),
-		"Handler":	TypeOf((*Handler_net_http)(nil)).Elem(),
-		"Hijacker":	TypeOf((*Hijacker_net_http)(nil)).Elem(),
-		"Pusher":	TypeOf((*Pusher_net_http)(nil)).Elem(),
-		"ResponseWriter":	TypeOf((*ResponseWriter_net_http)(nil)).Elem(),
-		"RoundTripper":	TypeOf((*RoundTripper_net_http)(nil)).Elem(),
-	},Untypeds: map[string]string{
+	}, Proxies: map[string]Type{
+		"CloseNotifier":	TypeOf((*P_net_http_CloseNotifier)(nil)).Elem(),
+		"CookieJar":	TypeOf((*P_net_http_CookieJar)(nil)).Elem(),
+		"File":	TypeOf((*P_net_http_File)(nil)).Elem(),
+		"FileSystem":	TypeOf((*P_net_http_FileSystem)(nil)).Elem(),
+		"Flusher":	TypeOf((*P_net_http_Flusher)(nil)).Elem(),
+		"Handler":	TypeOf((*P_net_http_Handler)(nil)).Elem(),
+		"Hijacker":	TypeOf((*P_net_http_Hijacker)(nil)).Elem(),
+		"Pusher":	TypeOf((*P_net_http_Pusher)(nil)).Elem(),
+		"ResponseWriter":	TypeOf((*P_net_http_ResponseWriter)(nil)).Elem(),
+		"RoundTripper":	TypeOf((*P_net_http_RoundTripper)(nil)).Elem(),
+	}, Untypeds: map[string]string{
 		"DefaultMaxHeaderBytes":	"int:1048576",
 		"DefaultMaxIdleConnsPerHost":	"int:2",
 		"MethodConnect":	"string:CONNECT",
@@ -261,34 +262,34 @@ func init() {
 		"StatusVariantAlsoNegotiates":	"int:506",
 		"TimeFormat":	"string:Mon, 02 Jan 2006 15:04:05 GMT",
 		"TrailerPrefix":	"string:Trailer:",
-	},
+	}, 
 	}
 }
 
 // --------------- proxy for net/http.CloseNotifier ---------------
-type CloseNotifier_net_http struct {
+type P_net_http_CloseNotifier struct {
 	Object	interface{}
 	CloseNotify_	func(interface{}) <-chan bool
 }
-func (Proxy *CloseNotifier_net_http) CloseNotify() <-chan bool {
-	return Proxy.CloseNotify_(Proxy.Object)
+func (P *P_net_http_CloseNotifier) CloseNotify() <-chan bool {
+	return P.CloseNotify_(P.Object)
 }
 
 // --------------- proxy for net/http.CookieJar ---------------
-type CookieJar_net_http struct {
+type P_net_http_CookieJar struct {
 	Object	interface{}
 	Cookies_	func(_proxy_obj_ interface{}, u *url.URL) []*http.Cookie
 	SetCookies_	func(_proxy_obj_ interface{}, u *url.URL, cookies []*http.Cookie) 
 }
-func (Proxy *CookieJar_net_http) Cookies(u *url.URL) []*http.Cookie {
-	return Proxy.Cookies_(Proxy.Object, u)
+func (P *P_net_http_CookieJar) Cookies(u *url.URL) []*http.Cookie {
+	return P.Cookies_(P.Object, u)
 }
-func (Proxy *CookieJar_net_http) SetCookies(u *url.URL, cookies []*http.Cookie)  {
-	Proxy.SetCookies_(Proxy.Object, u, cookies)
+func (P *P_net_http_CookieJar) SetCookies(u *url.URL, cookies []*http.Cookie)  {
+	P.SetCookies_(P.Object, u, cookies)
 }
 
 // --------------- proxy for net/http.File ---------------
-type File_net_http struct {
+type P_net_http_File struct {
 	Object	interface{}
 	Close_	func(interface{}) error
 	Read_	func(_proxy_obj_ interface{}, p []byte) (n int, err error)
@@ -296,89 +297,89 @@ type File_net_http struct {
 	Seek_	func(_proxy_obj_ interface{}, offset int64, whence int) (int64, error)
 	Stat_	func(interface{}) (os.FileInfo, error)
 }
-func (Proxy *File_net_http) Close() error {
-	return Proxy.Close_(Proxy.Object)
+func (P *P_net_http_File) Close() error {
+	return P.Close_(P.Object)
 }
-func (Proxy *File_net_http) Read(p []byte) (n int, err error) {
-	return Proxy.Read_(Proxy.Object, p)
+func (P *P_net_http_File) Read(p []byte) (n int, err error) {
+	return P.Read_(P.Object, p)
 }
-func (Proxy *File_net_http) Readdir(count int) ([]os.FileInfo, error) {
-	return Proxy.Readdir_(Proxy.Object, count)
+func (P *P_net_http_File) Readdir(count int) ([]os.FileInfo, error) {
+	return P.Readdir_(P.Object, count)
 }
-func (Proxy *File_net_http) Seek(offset int64, whence int) (int64, error) {
-	return Proxy.Seek_(Proxy.Object, offset, whence)
+func (P *P_net_http_File) Seek(offset int64, whence int) (int64, error) {
+	return P.Seek_(P.Object, offset, whence)
 }
-func (Proxy *File_net_http) Stat() (os.FileInfo, error) {
-	return Proxy.Stat_(Proxy.Object)
+func (P *P_net_http_File) Stat() (os.FileInfo, error) {
+	return P.Stat_(P.Object)
 }
 
 // --------------- proxy for net/http.FileSystem ---------------
-type FileSystem_net_http struct {
+type P_net_http_FileSystem struct {
 	Object	interface{}
 	Open_	func(_proxy_obj_ interface{}, name string) (http.File, error)
 }
-func (Proxy *FileSystem_net_http) Open(name string) (http.File, error) {
-	return Proxy.Open_(Proxy.Object, name)
+func (P *P_net_http_FileSystem) Open(name string) (http.File, error) {
+	return P.Open_(P.Object, name)
 }
 
 // --------------- proxy for net/http.Flusher ---------------
-type Flusher_net_http struct {
+type P_net_http_Flusher struct {
 	Object	interface{}
 	Flush_	func(interface{}) 
 }
-func (Proxy *Flusher_net_http) Flush()  {
-	Proxy.Flush_(Proxy.Object)
+func (P *P_net_http_Flusher) Flush()  {
+	P.Flush_(P.Object)
 }
 
 // --------------- proxy for net/http.Handler ---------------
-type Handler_net_http struct {
+type P_net_http_Handler struct {
 	Object	interface{}
 	ServeHTTP_	func(interface{}, http.ResponseWriter, *http.Request) 
 }
-func (Proxy *Handler_net_http) ServeHTTP(unnamed0 http.ResponseWriter, unnamed1 *http.Request)  {
-	Proxy.ServeHTTP_(Proxy.Object, unnamed0, unnamed1)
+func (P *P_net_http_Handler) ServeHTTP(unnamed0 http.ResponseWriter, unnamed1 *http.Request)  {
+	P.ServeHTTP_(P.Object, unnamed0, unnamed1)
 }
 
 // --------------- proxy for net/http.Hijacker ---------------
-type Hijacker_net_http struct {
+type P_net_http_Hijacker struct {
 	Object	interface{}
 	Hijack_	func(interface{}) (net.Conn, *bufio.ReadWriter, error)
 }
-func (Proxy *Hijacker_net_http) Hijack() (net.Conn, *bufio.ReadWriter, error) {
-	return Proxy.Hijack_(Proxy.Object)
+func (P *P_net_http_Hijacker) Hijack() (net.Conn, *bufio.ReadWriter, error) {
+	return P.Hijack_(P.Object)
 }
 
 // --------------- proxy for net/http.Pusher ---------------
-type Pusher_net_http struct {
+type P_net_http_Pusher struct {
 	Object	interface{}
 	Push_	func(_proxy_obj_ interface{}, target string, opts *http.PushOptions) error
 }
-func (Proxy *Pusher_net_http) Push(target string, opts *http.PushOptions) error {
-	return Proxy.Push_(Proxy.Object, target, opts)
+func (P *P_net_http_Pusher) Push(target string, opts *http.PushOptions) error {
+	return P.Push_(P.Object, target, opts)
 }
 
 // --------------- proxy for net/http.ResponseWriter ---------------
-type ResponseWriter_net_http struct {
+type P_net_http_ResponseWriter struct {
 	Object	interface{}
 	Header_	func(interface{}) http.Header
 	Write_	func(interface{}, []byte) (int, error)
 	WriteHeader_	func(interface{}, int) 
 }
-func (Proxy *ResponseWriter_net_http) Header() http.Header {
-	return Proxy.Header_(Proxy.Object)
+func (P *P_net_http_ResponseWriter) Header() http.Header {
+	return P.Header_(P.Object)
 }
-func (Proxy *ResponseWriter_net_http) Write(unnamed0 []byte) (int, error) {
-	return Proxy.Write_(Proxy.Object, unnamed0)
+func (P *P_net_http_ResponseWriter) Write(unnamed0 []byte) (int, error) {
+	return P.Write_(P.Object, unnamed0)
 }
-func (Proxy *ResponseWriter_net_http) WriteHeader(unnamed0 int)  {
-	Proxy.WriteHeader_(Proxy.Object, unnamed0)
+func (P *P_net_http_ResponseWriter) WriteHeader(unnamed0 int)  {
+	P.WriteHeader_(P.Object, unnamed0)
 }
 
 // --------------- proxy for net/http.RoundTripper ---------------
-type RoundTripper_net_http struct {
+type P_net_http_RoundTripper struct {
 	Object	interface{}
 	RoundTrip_	func(interface{}, *http.Request) (*http.Response, error)
 }
-func (Proxy *RoundTripper_net_http) RoundTrip(unnamed0 *http.Request) (*http.Response, error) {
-	return Proxy.RoundTrip_(Proxy.Object, unnamed0)
+func (P *P_net_http_RoundTripper) RoundTrip(unnamed0 *http.Request) (*http.Response, error) {
+	return P.RoundTrip_(P.Object, unnamed0)
 }

@@ -1,20 +1,11 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017 Massimiliano Ghilardi
+ * Copyright (C) 2017-2018 Massimiliano Ghilardi
  *
- *     This program is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU Lesser General Public License as published
- *     by the Free Software Foundation, either version 3 of the License, or
- *     (at your option) any later version.
- *
- *     This program is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU Lesser General Public License for more details.
- *
- *     You should have received a copy of the GNU Lesser General Public License
- *     along with this program.  If not, see <https://www.gnu.org/licenses/lgpl>.
+ *     This Source Code Form is subject to the terms of the Mozilla Public
+ *     License, v. 2.0. If a copy of the MPL was not distributed with this
+ *     file, You can obtain one at http://mozilla.org/MPL/2.0/.
  *
  *
  * declaration.go
@@ -29,6 +20,8 @@ import (
 	"go/ast"
 	"go/token"
 	r "reflect"
+
+	xr "github.com/cosmos72/gomacro/xreflect"
 )
 
 type Assign struct {
@@ -51,6 +44,7 @@ func (a *Assign) init(c *Comp, place *Place) {
 // Assign compiles an *ast.AssignStmt into an assignment to one or more place
 func (c *Comp) Assign(node *ast.AssignStmt) {
 	c.Pos = node.Pos()
+	// c.Debugf("compiling assignment at [% 3d] %s: %v // %T", c.Pos, c.Fileset.Position(c.Pos), node, node)
 
 	lhs, rhs := node.Lhs, node.Rhs
 	if node.Tok == token.DEFINE {
@@ -88,14 +82,15 @@ func (c *Comp) Assign(node *ast.AssignStmt) {
 		canreorder = canreorder && places[i].IsVar() // ach, needed. see for example i := 0; i, x[i] = 1, 2  // set i = 1, x[0] = 2
 	}
 	if rn == 1 && ln > 1 {
-		exprs[0] = c.Expr(rhs[0])
+		exprs[0] = c.Expr(rhs[0], nil)
 		canreorder = false
 	} else {
 		for i, ri := range rhs {
-			exprs[i] = c.Expr1(ri)
+			exprs[i] = c.Expr1(ri, nil)
 			canreorder = canreorder && exprs[i].Const()
 		}
 	}
+
 	if ln == rn && (ln <= 1 || canreorder) {
 		for i := range lhs {
 			c.assign1(lhs[i], node.Tok, rhs[i], places[i], exprs[i])
@@ -152,8 +147,7 @@ func (c *Comp) assignPrepareRhs(node *ast.AssignStmt, places []*Place, exprs []*
 			c.Pos = node.Pos()
 			c.Errorf("invalid assignment: expression returns %d values, cannot assign them to %d places: %v", nexpr, ln, node)
 		}
-		convs := make([]func(r.Value, r.Type) r.Value, nexpr)
-		rtypes := make([]r.Type, nexpr)
+		convs := make([]func(r.Value) r.Value, nexpr)
 		needconvs := false
 		for i := 0; i < nexpr; i++ {
 			texpr := expr.Out(i)
@@ -163,17 +157,16 @@ func (c *Comp) assignPrepareRhs(node *ast.AssignStmt, places []*Place, exprs []*
 				c.Errorf("cannot assign <%v> to %v <%v> in multiple assignment", texpr, lhs[i], tplace)
 			} else if conv := c.Converter(texpr, tplace); conv != nil {
 				convs[i] = conv
-				rtypes[i] = tplace.ReflectType()
 				needconvs = true
 			}
 		}
-		f := expr.AsXV(OptDefaults)
+		f := expr.AsXV(COptDefaults)
 		if needconvs {
 			return nil, func(env *Env) (r.Value, []r.Value) {
 				_, vs := f(env)
 				for i, conv := range convs {
 					if conv != nil {
-						vs[i] = conv(vs[i], rtypes[i])
+						vs[i] = conv(vs[i])
 					}
 				}
 				return vs[0], vs
@@ -304,6 +297,9 @@ func (c *Comp) assign1(lhs ast.Expr, op token.Token, rhs ast.Expr, place *Place,
 		node := &ast.AssignStmt{Lhs: []ast.Expr{lhs}, Tok: op, Rhs: []ast.Expr{rhs}} // for nice error messages
 		c.Errorf("error compiling assignment: %v\n\t%v", node, rec)
 	}()
+	c.Pos = lhs.Pos()
+	// c.Debugf("compiling assign1 at [% 3d] %s: %v // %T", c.Pos, c.Fileset.Position(c.Pos), lhs, lhs)
+
 	if place.IsVar() {
 		c.SetVar(&place.Var, op, init)
 	} else {
@@ -323,11 +319,12 @@ func (c *Comp) LookupVar(name string) *Var {
 
 // Place compiles the left-hand-side of an assignment
 func (c *Comp) Place(node ast.Expr) *Place {
-	return c.placeOrAddress(node, false)
+	return c.placeOrAddress(node, PlaceSettable, nil)
 }
 
 // PlaceOrAddress compiles the left-hand-side of an assignment or the location of an address-of
-func (c *Comp) placeOrAddress(in ast.Expr, opt PlaceOption) *Place {
+// t is optional, used for type inference
+func (c *Comp) placeOrAddress(in ast.Expr, opt PlaceOption, t xr.Type) *Place {
 	for {
 		if in != nil {
 			c.Pos = in.Pos()
@@ -338,7 +335,10 @@ func (c *Comp) placeOrAddress(in ast.Expr, opt PlaceOption) *Place {
 			if opt == PlaceSettable {
 				c.Errorf("%s composite literal", opt)
 			}
-			e := c.Expr1(node)
+			if t != nil {
+				t = t.Elem()
+			}
+			e := c.CompositeLit(node, t)
 			fun := e.AsX1()
 			var addr func(*Env) r.Value
 			switch e.Type.Kind() {
@@ -373,7 +373,7 @@ func (c *Comp) placeOrAddress(in ast.Expr, opt PlaceOption) *Place {
 			in = node.X
 			continue
 		case *ast.StarExpr:
-			e := c.Expr1(node.X)
+			e := c.Expr1(node.X, nil)
 			if e.Const() {
 				c.Errorf("%s a constant: %v <%v>", opt, node, e.Type)
 				return nil

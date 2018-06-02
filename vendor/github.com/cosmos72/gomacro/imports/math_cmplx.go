@@ -39,6 +39,6 @@ func init() {
 		"Sqrt":	ValueOf(cmplx.Sqrt),
 		"Tan":	ValueOf(cmplx.Tan),
 		"Tanh":	ValueOf(cmplx.Tanh),
-	},
+	}, 
 	}
 }

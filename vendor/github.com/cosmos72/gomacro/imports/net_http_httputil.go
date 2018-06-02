@@ -25,26 +25,26 @@ func init() {
 		"NewProxyClientConn":	ValueOf(httputil.NewProxyClientConn),
 		"NewServerConn":	ValueOf(httputil.NewServerConn),
 		"NewSingleHostReverseProxy":	ValueOf(httputil.NewSingleHostReverseProxy),
-	},Types: map[string]Type{
+	}, Types: map[string]Type{
 		"BufferPool":	TypeOf((*httputil.BufferPool)(nil)).Elem(),
 		"ClientConn":	TypeOf((*httputil.ClientConn)(nil)).Elem(),
 		"ReverseProxy":	TypeOf((*httputil.ReverseProxy)(nil)).Elem(),
 		"ServerConn":	TypeOf((*httputil.ServerConn)(nil)).Elem(),
-	},Proxies: map[string]Type{
-		"BufferPool":	TypeOf((*BufferPool_net_http_httputil)(nil)).Elem(),
-	},
+	}, Proxies: map[string]Type{
+		"BufferPool":	TypeOf((*P_net_http_httputil_BufferPool)(nil)).Elem(),
+	}, 
 	}
 }
 
 // --------------- proxy for net/http/httputil.BufferPool ---------------
-type BufferPool_net_http_httputil struct {
+type P_net_http_httputil_BufferPool struct {
 	Object	interface{}
 	Get_	func(interface{}) []byte
 	Put_	func(interface{}, []byte) 
 }
-func (Proxy *BufferPool_net_http_httputil) Get() []byte {
-	return Proxy.Get_(Proxy.Object)
+func (P *P_net_http_httputil_BufferPool) Get() []byte {
+	return P.Get_(P.Object)
 }
-func (Proxy *BufferPool_net_http_httputil) Put(unnamed0 []byte)  {
-	Proxy.Put_(Proxy.Object, unnamed0)
+func (P *P_net_http_httputil_BufferPool) Put(unnamed0 []byte)  {
+	P.Put_(P.Object, unnamed0)
 }

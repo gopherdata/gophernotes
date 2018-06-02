@@ -1,20 +1,11 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017 Massimiliano Ghilardi
+ * Copyright (C) 2017-2018 Massimiliano Ghilardi
  *
- *     This program is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU Lesser General Public License as published
- *     by the Free Software Foundation, either version 3 of the License, or
- *     (at your option) any later version.
- *
- *     This program is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU Lesser General Public License for more details.
- *
- *     You should have received a copy of the GNU Lesser General Public License
- *     along with this program.  If not, see <https://www.gnu.org/licenses/lgpl>.
+ *     This Source Code Form is subject to the terms of the Mozilla Public
+ *     License, v. 2.0. If a copy of the MPL was not distributed with this
+ *     file, You can obtain one at http://mozilla.org/MPL/2.0/.
  *
  *
  * statement.go
@@ -32,6 +23,7 @@ import (
 	"sort"
 
 	. "github.com/cosmos72/gomacro/base"
+	"github.com/cosmos72/gomacro/gls"
 )
 
 func stmtNop(env *Env) (Stmt, *Env) {
@@ -48,9 +40,14 @@ func popEnv(env *Env) (Stmt, *Env) {
 
 func (c *Comp) Stmt(in ast.Stmt) {
 	var labels []string
+	// DebugSource // codelen := len(c.Code.List)
 	for {
 		if in != nil {
 			c.Pos = in.Pos()
+			if isBreakpoint(in) {
+				c.append(c.breakpoint())
+				break
+			}
 		}
 		switch node := in.(type) {
 		case nil:
@@ -71,7 +68,7 @@ func (c *Comp) Stmt(in ast.Stmt) {
 		case *ast.EmptyStmt:
 			// nothing to do
 		case *ast.ExprStmt:
-			expr := c.Expr(node.X)
+			expr := c.Expr(node.X, nil)
 			if !expr.Const() {
 				c.Append(expr.AsStmt(), in.Pos())
 			}
@@ -84,7 +81,16 @@ func (c *Comp) Stmt(in ast.Stmt) {
 		case *ast.IncDecStmt:
 			c.IncDec(node)
 		case *ast.LabeledStmt:
-			labels = append(labels, node.Label.Name)
+			label := node.Label.Name
+			labels = append(labels, label)
+			ip := c.Code.Len()
+			if c.Labels == nil {
+				c.Labels = map[string]*int{label: &ip}
+			} else if addr := c.Labels[label]; addr != nil {
+				*addr = ip
+			} else {
+				c.Labels[label] = &ip
+			}
 			in = node.Stmt
 			continue
 		case *ast.RangeStmt:
@@ -100,9 +106,62 @@ func (c *Comp) Stmt(in ast.Stmt) {
 		case *ast.TypeSwitchStmt:
 			c.TypeSwitch(node, labels)
 		default:
-			c.Errorf("unimplemented statement: %v <%v>", node, r.TypeOf(node))
+			c.Errorf("unimplemented statement: %v // %T", node, node)
 		}
-		return
+		break
+	}
+	// DebugSource // c.showStatementsSource(in, codelen)
+}
+
+/* DebugSource */
+func (c *Comp) showStatementsSource(in ast.Stmt, startIP int) {
+	n1, n2 := len(c.Code.List), len(c.Code.DebugPos)
+	if n1 != n2 {
+		c.Warnf("code mismatch: len(c.Code.List) = %d differs from len(c.Code.DebugPos) = %d",
+			n1, n2)
+	}
+	g := &c.Globals
+	g.Fprintf(g.Stdout, "source for statement: %v // %T\n", in, in)
+	for ip := startIP; ip < n2; ip++ {
+		c.showStatementSource(ip)
+	}
+}
+
+/* DebugSource */
+func (c *Comp) showStatementSource(ip int) {
+	code := c.Code
+	list := code.List
+	debugp := code.DebugPos
+	g := &c.Globals
+	if ip < len(debugp) && g.Fileset != nil {
+		p := debugp[ip]
+		source, pos := g.Fileset.Source(p)
+		if ip < len(list) {
+			g.Fprintf(g.Stdout, "IP = % 3d: statement %p at [% 3d] %s\n", ip, list[ip], p, pos)
+		} else {
+			g.Fprintf(g.Stdout, "IP = % 3d: unknown statement at [% 3d] %s\n", ip, p, pos)
+		}
+		if len(source) != 0 {
+			g.Fprintf(g.Stdout, "%s\n", source)
+			c.showCaret(source, pos.Column)
+		}
+	}
+}
+
+var spaces = []byte("                                                                      ")
+
+func (c *Comp) showCaret(source string, col int) {
+	col--
+	n := len(source)
+	if col >= 0 && col < n && n >= 3 {
+		out := c.Globals.Stdout
+		chunk := len(spaces)
+		for col >= chunk {
+			out.Write(spaces)
+			col -= chunk
+		}
+		out.Write(spaces[:col])
+		out.Write([]byte("^^^\n"))
 	}
 }
 
@@ -141,10 +200,8 @@ func (c *Comp) Branch(node *ast.BranchStmt) {
 		c.Continue(node)
 	case token.FALLTHROUGH:
 		c.misplacedFallthrough()
-	/*
-		case token.GOTO:
-			c.Goto(node)
-	*/
+	case token.GOTO:
+		c.Goto(node)
 	default:
 		c.Errorf("unimplemented branch statement: %v <%v>", node, r.TypeOf(node))
 	}
@@ -200,13 +257,32 @@ func (c *Comp) Continue(node *ast.BranchStmt) {
 	}
 }
 
+// Goto compiles a "goto" statement
+func (c *Comp) Goto(node *ast.BranchStmt) {
+	if node.Label == nil {
+		c.Errorf("goto without label: %v", node)
+	}
+	label := node.Label.Name
+	upn := 0
+	// do not cross function boundaries
+	for o := c; o != nil && o.Func == nil; o = o.Outer {
+		if ip := o.Labels[label]; ip != nil {
+			// only keep a reference to the jump target, NOT TO THE WHOLE *Comp!
+			c.jumpOut(upn, ip)
+			return
+		}
+		upn += o.UpCost // count how many Env:s we must exit at runtime
+	}
+	c.Errorf("goto label not found: %v", label)
+}
+
 // Defer compiles a "defer" statement
 func (c *Comp) Defer(node *ast.DeferStmt) {
 	call := c.prepareCall(node.Call, nil)
 	fun := call.Fun.AsX1()
 	argfuns := call.MakeArgfunsX1()
 	ellipsis := call.Ellipsis
-	c.append(func(env *Env) (Stmt, *Env) {
+	c.Append(func(env *Env) (Stmt, *Env) {
 		// Go specs: arguments of a defer call are evaluated immediately.
 		// the call itself is executed when the function containing defer returns,
 		// either normally or with a panic
@@ -223,19 +299,19 @@ func (c *Comp) Defer(node *ast.DeferStmt) {
 			args[i] = v
 		}
 		env.IP++
-		g := env.ThreadGlobals
+		run := env.Run
 		if ellipsis {
-			g.InstallDefer = func() {
+			run.InstallDefer = func() {
 				f.CallSlice(args)
 			}
 		} else {
-			g.InstallDefer = func() {
+			run.InstallDefer = func() {
 				f.Call(args)
 			}
 		}
-		g.Signal = SigDefer
-		return g.Interrupt, env
-	})
+		run.Signals.Sync = SigDefer
+		return run.Interrupt, env
+	}, node.Pos())
 	c.Code.WithDefers = true
 }
 
@@ -289,7 +365,7 @@ func (c *Comp) For(node *ast.ForStmt, labels []string) {
 	}
 	flag, fun, err := true, (func(*Env) bool)(nil), false // "for { }" without a condition means "for true { }"
 	if node.Cond != nil {
-		pred := c.Expr(node.Cond)
+		pred := c.Expr(node.Cond, nil)
 		flag, fun, err = pred.TryAsPred()
 		if err {
 			c.invalidPred(node.Cond, pred)
@@ -345,7 +421,7 @@ func (c *Comp) For(node *ast.ForStmt, labels []string) {
 	if fun == nil && !flag {
 		// "for false { }" means that body, post and jump back to condition are never executed...
 		// still compiled above (to check for errors) but drop the generated code
-		c.Code.List = c.Code.List[0:jump.Cond]
+		c.Code.Truncate(jump.Cond)
 	}
 	jump.Break = c.Code.Len()
 
@@ -365,16 +441,18 @@ func (c *Comp) Go(node *ast.GoStmt) {
 	exprfun := call.Fun.AsX1()
 	argfunsX1 := call.MakeArgfunsX1()
 
+	var debugC *Comp
+	if c2.Globals.Options&OptDebugger != 0 {
+		// keep a reference to c2 only if needed
+		debugC = c2
+	}
+
 	stmt := func(env *Env) (Stmt, *Env) {
-		// create a new Env to hold the new ThreadGlobals and (initially empty) Pool
-		env2 := NewEnv4Func(env, 0, 0)
-		tg := env.ThreadGlobals
-		env2.ThreadGlobals = &ThreadGlobals{
-			FileEnv: tg.FileEnv,
-			TopEnv:  tg.TopEnv,
-			// Interrupt, Signal, PoolSize and Pool are zero-initialized, fine with that
-			Globals: tg.Globals,
-		}
+		tg := env.Run
+		// create a new Env to hold the new ThreadGlobals (created in the goroutine below) and (initially empty) Pool
+		env2 := newEnv(tg, env, 0, 0)
+		env2.DebugComp = debugC
+
 		// env2.MarkUsedByClosure() // redundant, done by exprfun(env2) below
 
 		// function and arguments are evaluated in the caller's goroutine
@@ -386,7 +464,14 @@ func (c *Comp) Go(node *ast.GoStmt) {
 		}
 		// the call is executed in a new goroutine.
 		// make it easy and do not try to optimize this call.
-		go funv.Call(argv)
+		go func() {
+			tg2 := tg.new(gls.GoID())
+			env2.Run = tg2
+			tg2.glsStore()
+			defer tg2.glsDel()
+
+			funv.Call(argv)
+		}()
 
 		env.IP++
 		return env.Code[env.IP], env
@@ -407,7 +492,7 @@ func (c *Comp) If(node *ast.IfStmt) {
 	if node.Init != nil {
 		c.Stmt(node.Init)
 	}
-	pred := c.Expr(node.Cond)
+	pred := c.Expr(node.Cond, nil)
 	flag, fun, err := pred.TryAsPred()
 	if err {
 		c.invalidPred(node.Cond, pred)
@@ -432,7 +517,7 @@ func (c *Comp) If(node *ast.IfStmt) {
 	if fun == nil && !flag {
 		// 'then' branch is never executed...
 		// still compiled above (to check for errors) but drop the generated code
-		c.Code.List = c.Code.List[0:jump.Then]
+		c.Code.Truncate(jump.Then)
 	}
 	// compile a 'goto' between 'then' and 'else' branches
 	if fun != nil && node.Else != nil {
@@ -461,7 +546,7 @@ func (c *Comp) If(node *ast.IfStmt) {
 		if fun == nil && flag {
 			// 'else' branch is never executed...
 			// still compiled above (to check for errors) but drop the generated code
-			c.Code.List = c.Code.List[0:jump.Else]
+			c.Code.Truncate(jump.Else)
 		}
 	}
 	jump.End = c.Code.Len()
@@ -478,7 +563,7 @@ func (c *Comp) IncDec(node *ast.IncDecStmt) {
 	} else {
 		op = token.ADD
 	}
-	one := c.exprUntypedLit(untypedOne.Kind, untypedOne.Obj)
+	one := c.exprUntypedLit(untypedOne.Kind, untypedOne.Val)
 	c.SetPlace(place, op, one)
 }
 
@@ -499,7 +584,7 @@ func (c *Comp) Return(node *ast.ReturnStmt) {
 		return
 	}
 
-	resultBinds := cinfo.Results
+	resultBinds := cinfo.Result
 	resultExprs := node.Results
 	n := len(resultBinds)
 	switch len(resultExprs) {
@@ -525,6 +610,7 @@ func (c *Comp) Return(node *ast.ReturnStmt) {
 
 	exprs := c.Exprs(resultExprs)
 	for i := 0; i < n; i++ {
+		c.Pos = resultExprs[i].Pos()
 		c.SetVar(resultBinds[i].AsVar(upn, PlaceSettable), token.ASSIGN, exprs[i])
 	}
 	c.Append(stmtReturn, node.Pos())
@@ -534,7 +620,7 @@ func (c *Comp) Return(node *ast.ReturnStmt) {
 func (c *Comp) returnMultiValues(node *ast.ReturnStmt, resultBinds []*Bind, upn int, exprs []ast.Expr) {
 	n := len(resultBinds)
 	e := c.ExprsMultipleValues(exprs, n)[0]
-	fun := e.AsXV(OptDefaults)
+	fun := e.AsXV(COptDefaults)
 	assigns := make([]func(*Env, r.Value), n)
 	for i := 0; i < n; i++ {
 		texpected := resultBinds[i].Type
@@ -551,16 +637,18 @@ func (c *Comp) returnMultiValues(node *ast.ReturnStmt, resultBinds []*Bind, upn 
 			assign(env, vals[i])
 		}
 		// append the return epilogue
-		common := env.ThreadGlobals
-		common.Signal = SigReturn
-		return common.Interrupt, env
+		env.IP++
+		g := env.Run
+		g.Signals.Sync = SigReturn
+		return g.Interrupt, env
 	}, node.Pos())
 }
 
 func stmtReturn(env *Env) (Stmt, *Env) {
-	common := env.ThreadGlobals
-	common.Signal = SigReturn
-	return common.Interrupt, env
+	env.IP++
+	g := env.Run
+	g.Signals.Sync = SigReturn
+	return g.Interrupt, env
 }
 
 // containLocalBinds return true if one or more of the given statements (but not their contents:
@@ -607,7 +695,7 @@ func containLocalBinds(list ...ast.Stmt) bool {
 
 // pushEnvIfLocalBinds compiles a PushEnv statement if list contains local binds
 // returns the *Comp to use to compile statement list.
-func (c *Comp) pushEnvIfLocalBinds(nbinds *[2]int, list ...ast.Stmt) (inner *Comp, locals bool) {
+func (c *Comp) pushEnvIfLocalBinds(nbind *[2]int, list ...ast.Stmt) (inner *Comp, locals bool) {
 	if len(list) == 0 {
 		inner.Errorf("internal error: pushEnvIfLocalBinds() invoked on empty statement list")
 	}
@@ -615,33 +703,40 @@ func (c *Comp) pushEnvIfLocalBinds(nbinds *[2]int, list ...ast.Stmt) (inner *Com
 	// no need to create a new *Env at runtime
 	// note: we still create a new *Comp at compile time to handle constant/type declarations
 	locals = containLocalBinds(list...)
-	return c.pushEnvIfFlag(nbinds, locals)
+	return c.pushEnvIfFlag(nbind, locals)
 }
 
 // pushEnvIfDefine compiles a PushEnv statement if tok is token.DEFINE
 // returns the *Comp to use to compile statement list.
-func (c *Comp) pushEnvIfDefine(nbinds *[2]int, tok token.Token) (inner *Comp, locals bool) {
-	return c.pushEnvIfFlag(nbinds, tok == token.DEFINE)
+func (c *Comp) pushEnvIfDefine(nbind *[2]int, tok token.Token) (inner *Comp, locals bool) {
+	return c.pushEnvIfFlag(nbind, tok == token.DEFINE)
 }
 
 // pushEnvIfFlag compiles a PushEnv statement if flag is true
 // returns the *Comp to use to compile statement list.
-func (c *Comp) pushEnvIfFlag(nbinds *[2]int, flag bool) (*Comp, bool) {
+func (c *Comp) pushEnvIfFlag(nbind *[2]int, flag bool) (*Comp, bool) {
+	var debugC *Comp
 	if flag {
 		// push new *Env at runtime. we will know # of binds in the block only later, so use a closure on them
 		c.append(func(env *Env) (Stmt, *Env) {
-			inner := NewEnv(env, nbinds[0], nbinds[1])
+			inner := NewEnv(env, nbind[0], nbind[1])
+			inner.DebugComp = debugC
 			inner.IP++
 			// Debugf("PushEnv(%p->%p), IP = %d of %d, pushed %d binds and %d intbinds", env, inner, inner.IP, nbinds[0], nbinds[1])
 			return inner.Code[inner.IP], inner
 		})
 	}
-	inner := NewComp(c, &c.Code)
-	if !flag {
-		inner.UpCost = 0
-		inner.Depth--
+	innerC := NewComp(c, &c.Code)
+	if flag {
+		if c.Globals.Options&OptDebugger != 0 {
+			// for debugger, inject the inner *Comp into the inner *Env
+			debugC = innerC
+		}
+	} else {
+		innerC.UpCost = 0
+		innerC.Depth--
 	}
-	return inner, flag
+	return innerC, flag
 }
 
 // popEnvIfLocalBinds compiles a PopEnv statement if locals is true. also sets *nbinds and *nintbinds

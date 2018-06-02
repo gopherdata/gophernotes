@@ -13,9 +13,9 @@ func init() {
 	Packages["crypto/rc4"] = Package{
 	Binds: map[string]Value{
 		"NewCipher":	ValueOf(rc4.NewCipher),
-	},Types: map[string]Type{
+	}, Types: map[string]Type{
 		"Cipher":	TypeOf((*rc4.Cipher)(nil)).Elem(),
 		"KeySizeError":	TypeOf((*rc4.KeySizeError)(nil)).Elem(),
-	},
+	}, 
 	}
 }

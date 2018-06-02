@@ -1,20 +1,11 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017 Massimiliano Ghilardi
+ * Copyright (C) 2017-2018 Massimiliano Ghilardi
  *
- *     This program is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU Lesser General Public License as published
- *     by the Free Software Foundation, either version 3 of the License, or
- *     (at your option) any later version.
- *
- *     This program is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU Lesser General Public License for more details.
- *
- *     You should have received a copy of the GNU Lesser General Public License
- *     along with this program.  If not, see <https://www.gnu.org/licenses/lgpl>.
+ *     This Source Code Form is subject to the terms of the Mozilla Public
+ *     License, v. 2.0. If a copy of the MPL was not distributed with this
+ *     file, You can obtain one at http://mozilla.org/MPL/2.0/.
  *
  *
  * binary.go
@@ -32,17 +23,13 @@ import (
 	r "reflect"
 
 	"github.com/cosmos72/gomacro/base"
+	"github.com/cosmos72/gomacro/base/untyped"
 	mt "github.com/cosmos72/gomacro/token"
 )
 
 func (c *Comp) BinaryExpr(node *ast.BinaryExpr) *Expr {
-	x := c.Expr(node.X)
-	y := c.Expr(node.Y)
-	if x.NumOut() == 0 {
-		c.Errorf("operand returns no values, cannot use in binary expression: %v", node.X)
-	} else if y.NumOut() == 0 {
-		c.Errorf("operand returns no values, cannot use in binary expression: %v", node.Y)
-	}
+	x := c.Expr1(node.X, nil)
+	y := c.Expr1(node.Y, nil)
 	return c.BinaryExpr1(node, x, y)
 }
 
@@ -97,7 +84,7 @@ func (c *Comp) BinaryExpr1(node *ast.BinaryExpr, x *Expr, y *Expr) *Expr {
 	}
 	if bothConst {
 		// constant propagation
-		z.EvalConst(OptKeepUntyped)
+		z.EvalConst(COptKeepUntyped)
 	}
 	return z
 }
@@ -106,7 +93,7 @@ func (c *Comp) BinaryExprUntyped(node *ast.BinaryExpr, x UntypedLit, y UntypedLi
 	op := node.Op
 	switch op {
 	case token.LAND, token.LOR:
-		xb, yb := x.ConstTo(c.TypeOfBool()).(bool), y.ConstTo(c.TypeOfBool()).(bool)
+		xb, yb := x.Convert(c.TypeOfBool()).(bool), y.Convert(c.TypeOfBool()).(bool)
 		var flag bool
 		if op == token.LAND {
 			flag = xb && yb
@@ -116,7 +103,7 @@ func (c *Comp) BinaryExprUntyped(node *ast.BinaryExpr, x UntypedLit, y UntypedLi
 		return c.exprUntypedLit(r.Bool, constant.MakeBool(flag))
 	case token.EQL, token.LSS, token.GTR, token.NEQ, token.LEQ, token.GEQ:
 		// comparison gives an untyped bool
-		flag := constant.Compare(x.Obj, op, y.Obj)
+		flag := constant.Compare(x.Val, op, y.Val)
 		return c.exprUntypedLit(r.Bool, constant.MakeBool(flag))
 	case token.SHL, token.SHL_ASSIGN:
 		return c.ShiftUntyped(node, token.SHL, x, y)
@@ -130,8 +117,8 @@ func (c *Comp) BinaryExprUntyped(node *ast.BinaryExpr, x UntypedLit, y UntypedLi
 			// untyped integer division
 			op2 = token.QUO_ASSIGN
 		}
-		zobj := constant.BinaryOp(x.Obj, op2, y.Obj)
-		zkind := constantKindToUntypedLitKind(zobj.Kind())
+		zobj := constant.BinaryOp(x.Val, op2, y.Val)
+		zkind := untyped.ConstantKindToUntypedLitKind(zobj.Kind())
 		// c.Debugf("untyped binary expression %v %s %v returned {%v %v}", x, op2, y, zkind, zobj)
 		// reflect.Int32 (i.e. rune) has precedence over reflect.Int
 		if zobj.Kind() == constant.Int {
@@ -142,7 +129,7 @@ func (c *Comp) BinaryExprUntyped(node *ast.BinaryExpr, x UntypedLit, y UntypedLi
 			}
 		}
 		if zkind == r.Invalid {
-			c.Errorf("invalid binary operation: %v %v %v", x.Obj, op, y.Obj)
+			c.Errorf("invalid binary operation: %v %v %v", x.Val, op, y.Val)
 		}
 		return c.exprUntypedLit(zkind, zobj)
 	}
@@ -179,15 +166,28 @@ func tokenWithoutAssign(op token.Token) token.Token {
 var warnUntypedShift, warnUntypedShift2 = true, true
 
 func (c *Comp) ShiftUntyped(node *ast.BinaryExpr, op token.Token, x UntypedLit, y UntypedLit) *Expr {
-	if y.Obj.Kind() != constant.Int {
-		c.Errorf("invalid shift: %v %v %v", x.Obj, op, y.Obj)
+	var yn64 uint64
+	var exact bool
+
+	switch y.Val.Kind() {
+	case constant.Int:
+		yn64, exact = constant.Uint64Val(y.Val)
+	case constant.Float:
+		yf, fexact := constant.Float64Val(y.Val)
+		if fexact {
+			yn64 = uint64(yf)
+			exact = float64(yn64) == yf
+		}
+		// c.Debugf("ShiftUntyped: %v %v %v, rhs converted to %v <float64> => %v <uint64> (exact = %v)", x.Val, op, y.Val, yf, yn64, exact)
 	}
-	yn64, exact := constant.Uint64Val(y.Obj)
+	if !exact {
+		c.Errorf("invalid shift: %v %v %v", x.Val.ExactString(), op, y.Val.ExactString())
+	}
 	yn := uint(yn64)
-	if !exact || uint64(yn) != yn64 {
-		c.Errorf("invalid shift: %v %v %v", x.Obj, op, y.Obj)
+	if uint64(yn) != yn64 {
+		c.Errorf("invalid shift: %v %v %v", x.Val.ExactString(), op, y.Val.ExactString())
 	}
-	xn := x.Obj
+	xn := x.Val
 	xkind := x.Kind
 	switch xkind {
 	case r.Int, r.Int32:
@@ -203,17 +203,17 @@ func (c *Comp) ShiftUntyped(node *ast.BinaryExpr, op token.Token, x UntypedLit, 
 			sign = constant.Sign(constant.Real(xn))
 		}
 		if sign >= 0 {
-			xn = constant.MakeUint64(x.ConstTo(c.TypeOfUint64()).(uint64))
+			xn = constant.MakeUint64(x.Convert(c.TypeOfUint64()).(uint64))
 		} else {
-			xn = constant.MakeInt64(x.ConstTo(c.TypeOfInt64()).(int64))
+			xn = constant.MakeInt64(x.Convert(c.TypeOfInt64()).(int64))
 		}
 		xkind = r.Int
 	default:
-		c.Errorf("invalid shift: %v %v %v", x.Obj, op, y.Obj)
+		c.Errorf("invalid shift: %v %v %v", x.Val, op, y.Val)
 	}
 	zobj := constant.Shift(xn, op, yn)
 	if zobj.Kind() == constant.Unknown {
-		c.Errorf("invalid shift: %v %v %v", x.Obj, op, y.Obj)
+		c.Errorf("invalid shift: %v %v %v", x.Val, op, y.Val)
 	}
 	return c.exprUntypedLit(xkind, zobj)
 }
@@ -232,8 +232,8 @@ func (c *Comp) prepareShift(node *ast.BinaryExpr, xe *Expr, ye *Expr) *Expr {
 	if xe.Untyped() {
 		xuntyp := xe.Value.(UntypedLit)
 		if ye.Const() {
-			// untyped << typed
-			yuntyp := UntypedLit{r.Int, constant.MakeUint64(r.ValueOf(ye.Value).Uint()), c.Universe}
+			// untyped << constant
+			yuntyp := MakeUntypedLit(r.Int, constant.MakeUint64(r.ValueOf(ye.Value).Uint()), &c.Universe.BasicTypes)
 			return c.ShiftUntyped(node, node.Op, xuntyp, yuntyp)
 		}
 		// untyped << expression
@@ -355,7 +355,7 @@ func (c *Comp) toSameFuncType(node ast.Expr, xe *Expr, ye *Expr) {
 		}
 	} else if xconst {
 		xe.ConstTo(ye.Type)
-	} else if xe.Type.ReflectType() != ye.Type.ReflectType() {
+	} else if !xe.Type.IdenticalTo(ye.Type) {
 		c.mismatchedTypes(node, xe, ye)
 	}
 }

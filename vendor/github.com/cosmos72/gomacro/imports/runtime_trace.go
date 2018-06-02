@@ -14,6 +14,6 @@ func init() {
 	Binds: map[string]Value{
 		"Start":	ValueOf(trace.Start),
 		"Stop":	ValueOf(trace.Stop),
-	},
+	}, 
 	}
 }

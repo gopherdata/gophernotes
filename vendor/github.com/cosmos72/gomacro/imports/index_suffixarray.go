@@ -13,8 +13,8 @@ func init() {
 	Packages["index/suffixarray"] = Package{
 	Binds: map[string]Value{
 		"New":	ValueOf(suffixarray.New),
-	},Types: map[string]Type{
+	}, Types: map[string]Type{
 		"Index":	TypeOf((*suffixarray.Index)(nil)).Elem(),
-	},
+	}, 
 	}
 }

@@ -21,6 +21,6 @@ func init() {
 		"Join":	ValueOf(path.Join),
 		"Match":	ValueOf(path.Match),
 		"Split":	ValueOf(path.Split),
-	},
+	}, 
 	}
 }

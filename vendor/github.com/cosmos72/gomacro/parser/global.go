@@ -27,16 +27,18 @@ const (
 	Trace                                          // print a trace of parsed productions
 	DeclarationErrors                              // report declaration errors
 	SpuriousErrors                                 // same as AllErrors, for backward-compatibility
+	CopySources                                    // copy source code to FileSet
 	AllErrors         = SpuriousErrors             // report all errors (not just the first 10 on different lines)
+
 )
 
 type Parser struct {
 	parser
 }
 
-func (p *parser) Configure(mode Mode, specialChar rune) {
+func (p *parser) Configure(mode Mode, macroChar rune) {
 	p.mode = mode
-	p.specialChar = specialChar
+	p.macroChar = macroChar
 }
 
 func (p *parser) Init(fileset *mt.FileSet, filename string, lineOffset int, src []byte) {
@@ -126,18 +128,22 @@ func (p *parser) parsePackage() ast.Node {
 	}
 	doc := p.leadComment
 	pos := p.expect(token.PACKAGE)
-
-	var names []*ast.Ident
+	var path string
 
 	switch p.tok {
-	case token.ILLEGAL, token.EOF, token.SEMICOLON, token.RPAREN, token.RBRACE, token.RBRACK:
-	default:
+	case token.IDENT:
 		ident := p.parseIdent()
-		if ident.Name == "_" && p.mode&DeclarationErrors != 0 {
-			p.error(p.pos, "invalid package name: _")
-		}
-		names = []*ast.Ident{ident}
+		path = ident.Name
+	case token.STRING:
+		path = p.lit
+		p.next()
+	default:
+		p.expect(token.IDENT)
 	}
+	if path == "_" && p.mode&DeclarationErrors != 0 {
+		p.error(p.pos, "invalid package name: _")
+	}
+	npos := p.pos
 	p.expectSemi()
 
 	return &ast.GenDecl{
@@ -145,8 +151,14 @@ func (p *parser) parsePackage() ast.Node {
 		Tok:    token.PACKAGE,
 		Specs: []ast.Spec{
 			&ast.ValueSpec{
-				Doc:   doc,
-				Names: names,
+				Doc: doc,
+				Values: []ast.Expr{
+					&ast.BasicLit{
+						ValuePos: npos,
+						Kind:     token.STRING,
+						Value:    path,
+					},
+				},
 			},
 		},
 	}

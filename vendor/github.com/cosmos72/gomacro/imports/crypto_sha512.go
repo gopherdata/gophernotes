@@ -25,12 +25,12 @@ func init() {
 		"Sum512":	ValueOf(sha512.Sum512),
 		"Sum512_224":	ValueOf(sha512.Sum512_224),
 		"Sum512_256":	ValueOf(sha512.Sum512_256),
-	},Untypeds: map[string]string{
+	}, Untypeds: map[string]string{
 		"BlockSize":	"int:128",
 		"Size":	"int:64",
 		"Size224":	"int:28",
 		"Size256":	"int:32",
 		"Size384":	"int:48",
-	},
+	}, 
 	}
 }

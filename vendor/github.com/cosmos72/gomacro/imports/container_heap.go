@@ -17,16 +17,16 @@ func init() {
 		"Pop":	ValueOf(heap.Pop),
 		"Push":	ValueOf(heap.Push),
 		"Remove":	ValueOf(heap.Remove),
-	},Types: map[string]Type{
+	}, Types: map[string]Type{
 		"Interface":	TypeOf((*heap.Interface)(nil)).Elem(),
-	},Proxies: map[string]Type{
-		"Interface":	TypeOf((*Interface_container_heap)(nil)).Elem(),
-	},
+	}, Proxies: map[string]Type{
+		"Interface":	TypeOf((*P_container_heap_Interface)(nil)).Elem(),
+	}, 
 	}
 }
 
 // --------------- proxy for container/heap.Interface ---------------
-type Interface_container_heap struct {
+type P_container_heap_Interface struct {
 	Object	interface{}
 	Len_	func(interface{}) int
 	Less_	func(_proxy_obj_ interface{}, i int, j int) bool
@@ -34,18 +34,18 @@ type Interface_container_heap struct {
 	Push_	func(_proxy_obj_ interface{}, x interface{}) 
 	Swap_	func(_proxy_obj_ interface{}, i int, j int) 
 }
-func (Proxy *Interface_container_heap) Len() int {
-	return Proxy.Len_(Proxy.Object)
+func (P *P_container_heap_Interface) Len() int {
+	return P.Len_(P.Object)
 }
-func (Proxy *Interface_container_heap) Less(i int, j int) bool {
-	return Proxy.Less_(Proxy.Object, i, j)
+func (P *P_container_heap_Interface) Less(i int, j int) bool {
+	return P.Less_(P.Object, i, j)
 }
-func (Proxy *Interface_container_heap) Pop() interface{} {
-	return Proxy.Pop_(Proxy.Object)
+func (P *P_container_heap_Interface) Pop() interface{} {
+	return P.Pop_(P.Object)
 }
-func (Proxy *Interface_container_heap) Push(x interface{})  {
-	Proxy.Push_(Proxy.Object, x)
+func (P *P_container_heap_Interface) Push(x interface{})  {
+	P.Push_(P.Object, x)
 }
-func (Proxy *Interface_container_heap) Swap(i int, j int)  {
-	Proxy.Swap_(Proxy.Object, i, j)
+func (P *P_container_heap_Interface) Swap(i int, j int)  {
+	P.Swap_(P.Object, i, j)
 }

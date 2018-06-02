@@ -22,12 +22,12 @@ func init() {
 		"ImportDir":	ValueOf(build.ImportDir),
 		"IsLocalImport":	ValueOf(build.IsLocalImport),
 		"ToolDir":	ValueOf(&build.ToolDir).Elem(),
-	},Types: map[string]Type{
+	}, Types: map[string]Type{
 		"Context":	TypeOf((*build.Context)(nil)).Elem(),
 		"ImportMode":	TypeOf((*build.ImportMode)(nil)).Elem(),
 		"MultiplePackageError":	TypeOf((*build.MultiplePackageError)(nil)).Elem(),
 		"NoGoError":	TypeOf((*build.NoGoError)(nil)).Elem(),
 		"Package":	TypeOf((*build.Package)(nil)).Elem(),
-	},
+	}, 
 	}
 }
