@@ -414,7 +414,7 @@ func (ir *Interp) CompleteWords(line string, pos int) (head string, completions 
 			// last word can be empty: it means TAB immediately after '.'
 			continue
 		}
-		word := tailIdentifier(words[i])
+		word := TailIdentifier(words[i])
 		if len(word) != len(words[i]) {
 			if len(word) != 0 {
 				words[i] = word
@@ -427,7 +427,7 @@ func (ir *Interp) CompleteWords(line string, pos int) (head string, completions 
 	}
 	completions = ir.Comp.CompleteWords(words)
 	if len(completions) != 0 {
-		fixed := len(head) - len(tailIdentifier(head))
+		fixed := len(head) - len(TailIdentifier(head))
 		pos := strings.LastIndexByte(head, '.')
 		if pos >= 0 && pos >= fixed {
 			head = head[:pos+1]
@@ -582,7 +582,7 @@ func (c *Comp) completeLastWord(node interface{}, word string) []string {
 }
 
 // return the trailing substring of s that is a valid identifier
-func tailIdentifier(s string) string {
+func TailIdentifier(s string) string {
 	if len(s) == 0 {
 		return s
 	}
