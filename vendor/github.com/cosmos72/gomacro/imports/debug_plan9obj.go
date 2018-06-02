@@ -18,17 +18,17 @@ func init() {
 		"MagicARM":	ValueOf(plan9obj.MagicARM),
 		"NewFile":	ValueOf(plan9obj.NewFile),
 		"Open":	ValueOf(plan9obj.Open),
-	},Types: map[string]Type{
+	}, Types: map[string]Type{
 		"File":	TypeOf((*plan9obj.File)(nil)).Elem(),
 		"FileHeader":	TypeOf((*plan9obj.FileHeader)(nil)).Elem(),
 		"Section":	TypeOf((*plan9obj.Section)(nil)).Elem(),
 		"SectionHeader":	TypeOf((*plan9obj.SectionHeader)(nil)).Elem(),
 		"Sym":	TypeOf((*plan9obj.Sym)(nil)).Elem(),
-	},Untypeds: map[string]string{
+	}, Untypeds: map[string]string{
 		"Magic386":	"int:491",
 		"Magic64":	"int:32768",
 		"MagicAMD64":	"int:35479",
 		"MagicARM":	"int:1607",
-	},
+	}, 
 	}
 }

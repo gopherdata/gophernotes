@@ -13,8 +13,8 @@ func init() {
 	Packages["container/ring"] = Package{
 	Binds: map[string]Value{
 		"New":	ValueOf(ring.New),
-	},Types: map[string]Type{
+	}, Types: map[string]Type{
 		"Ring":	TypeOf((*ring.Ring)(nil)).Elem(),
-	},
+	}, 
 	}
 }

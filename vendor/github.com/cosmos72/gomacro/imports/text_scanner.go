@@ -31,10 +31,10 @@ func init() {
 		"SkipComments":	ValueOf(scanner.SkipComments),
 		"String":	ValueOf(scanner.String),
 		"TokenString":	ValueOf(scanner.TokenString),
-	},Types: map[string]Type{
+	}, Types: map[string]Type{
 		"Position":	TypeOf((*scanner.Position)(nil)).Elem(),
 		"Scanner":	TypeOf((*scanner.Scanner)(nil)).Elem(),
-	},Untypeds: map[string]string{
+	}, Untypeds: map[string]string{
 		"Char":	"int:-5",
 		"Comment":	"int:-8",
 		"EOF":	"int:-1",
@@ -53,8 +53,8 @@ func init() {
 		"ScanStrings":	"int:64",
 		"SkipComments":	"int:512",
 		"String":	"int:-6",
-	},Wrappers: map[string][]string{
+	}, Wrappers: map[string][]string{
 		"Scanner":	[]string{"IsValid","String",},
-	},
+	}, 
 	}
 }

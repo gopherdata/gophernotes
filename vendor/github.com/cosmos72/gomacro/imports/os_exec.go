@@ -16,12 +16,12 @@ func init() {
 		"CommandContext":	ValueOf(exec.CommandContext),
 		"ErrNotFound":	ValueOf(&exec.ErrNotFound).Elem(),
 		"LookPath":	ValueOf(exec.LookPath),
-	},Types: map[string]Type{
+	}, Types: map[string]Type{
 		"Cmd":	TypeOf((*exec.Cmd)(nil)).Elem(),
 		"Error":	TypeOf((*exec.Error)(nil)).Elem(),
 		"ExitError":	TypeOf((*exec.ExitError)(nil)).Elem(),
-	},Wrappers: map[string][]string{
+	}, Wrappers: map[string][]string{
 		"ExitError":	[]string{"Exited","Pid","String","Success","Sys","SysUsage","SystemTime","UserTime",},
-	},
+	}, 
 	}
 }

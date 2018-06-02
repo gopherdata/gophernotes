@@ -1,20 +1,11 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017 Massimiliano Ghilardi
+ * Copyright (C) 2017-2018 Massimiliano Ghilardi
  *
- *     This program is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU Lesser General Public License as published
- *     by the Free Software Foundation, either version 3 of the License, or
- *     (at your option) any later version.
- *
- *     This program is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU Lesser General Public License for more details.
- *
- *     You should have received a copy of the GNU Lesser General Public License
- *     along with this program.  If not, see <https://www.gnu.org/licenses/lgpl>.
+ *     This Source Code Form is subject to the terms of the Mozilla Public
+ *     License, v. 2.0. If a copy of the MPL was not distributed with this
+ *     file, You can obtain one at http://mozilla.org/MPL/2.0/.
  *
  *
  * unary.go
@@ -53,7 +44,7 @@ func (c *Comp) UnaryExpr(node *ast.UnaryExpr) *Expr {
 		return c.AddressOf(node)
 	}
 
-	xe := c.Expr1(node.X)
+	xe := c.Expr1(node.X, nil)
 	if xe.Type == nil {
 		return c.invalidUnaryExpr(node, xe)
 	}
@@ -83,7 +74,7 @@ func (c *Comp) UnaryExpr(node *ast.UnaryExpr) *Expr {
 	}
 	if isConst {
 		// constant propagation
-		z.EvalConst(OptKeepUntyped)
+		z.EvalConst(COptKeepUntyped)
 	}
 	return z
 }
@@ -93,7 +84,7 @@ func (c *Comp) UnaryExprUntyped(node *ast.UnaryExpr, xe *Expr) *Expr {
 	switch op {
 	case token.ADD, token.SUB, token.XOR, token.NOT:
 		xlit := xe.Value.(UntypedLit)
-		ret := constant.UnaryOp(op, xlit.Obj, 0)
+		ret := constant.UnaryOp(op, xlit.Val, 0)
 		if ret == constant.MakeUnknown() {
 			return c.invalidUnaryExpr(node, xe)
 		}

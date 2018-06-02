@@ -1,22 +1,11 @@
-// +build go1.8,linux,!android,!gccgo
-
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017 Massimiliano Ghilardi
+ * Copyright (C) 2017-2018 Massimiliano Ghilardi
  *
- *     This program is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU Lesser General Public License as published
- *     by the Free Software Foundation, either version 3 of the License, or
- *     (at your option) any later version.
- *
- *     This program is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU Lesser General Public License for more details.
- *
- *     You should have received a copy of the GNU Lesser General Public License
- *     along with this program.  If not, see <https://www.gnu.org/licenses/lgpl>.
+ *     This Source Code Form is subject to the terms of the Mozilla Public
+ *     License, v. 2.0. If a copy of the MPL was not distributed with this
+ *     file, You can obtain one at http://mozilla.org/MPL/2.0/.
  *
  *
  * plugin.go
@@ -28,66 +17,67 @@
 package base
 
 import (
-	"fmt"
 	"io"
-	"os"
 	"os/exec"
-	"plugin"
-	"strings"
+	r "reflect"
 )
 
-func getGoPath() string {
-	dir := os.Getenv("GOPATH")
-	if len(dir) == 0 {
-		dir = os.Getenv("HOME")
-		if len(dir) == 0 {
-			Errorf("cannot determine go source directory: both $GOPATH and $HOME are unset or empty")
-		}
-		dir += "/go"
-	}
-	return dir
-}
-
-func getGoSrcPath() string {
-	return getGoPath() + "/src"
-}
-
-func (g *Globals) compilePlugin(filename string, stdout io.Writer, stderr io.Writer) string {
-	gosrcdir := getGoSrcPath()
+func (g *Globals) compilePlugin(filepath string, stdout io.Writer, stderr io.Writer) string {
+	gosrcdir := GoSrcDir
 	gosrclen := len(gosrcdir)
-	filelen := len(filename)
-	if filelen < gosrclen || filename[0:gosrclen] != gosrcdir {
-		g.Errorf("source %q is in unsupported directory, cannot compile it: should be inside %q", filename, gosrcdir)
+	filelen := len(filepath)
+	if filelen < gosrclen || filepath[0:gosrclen] != gosrcdir {
+		g.Errorf("source %q is in unsupported directory, cannot compile it: should be inside %q", filepath, gosrcdir)
 	}
 
 	cmd := exec.Command("go", "build", "-buildmode=plugin")
-	cmd.Dir = filename[0 : 1+strings.LastIndexByte(filename, '/')]
+	cmd.Dir = DirName(filepath)
 	cmd.Stdin = nil
 	cmd.Stdout = stdout
 	cmd.Stderr = stderr
 
-	g.Debugf("compiling %q ...", filename)
+	g.Debugf("compiling %q ...", filepath)
 	err := cmd.Run()
 	if err != nil {
 		g.Errorf("error executing \"go build -buildmode=plugin\" in directory %q: %v", cmd.Dir, err)
 	}
 
-	dirname := filename[:strings.LastIndexByte(filename, '/')]
+	dirname := RemoveLastByte(DirName(filepath))
 	// go build uses innermost directory name as shared object name,
 	// i.e.	foo/bar/main.go is compiled to foo/bar/bar.so
-	filename = dirname[1+strings.LastIndexByte(dirname, '/'):]
+	filename := FileName(dirname)
 
-	return fmt.Sprintf("%s/%s.so", dirname, filename)
+	return Subdir(dirname, filename+".so")
 }
 
-func (g *Globals) loadPlugin(soname string, symbolName string) interface{} {
-	pkg, err := plugin.Open(soname)
+func (g *Globals) loadPluginSymbol(soname string, symbolName string) interface{} {
+	// use imports.Packages["plugin"].Binds["Open"] and reflection instead of hard-coding call to plugin.Open()
+	// reasons:
+	// * import ( "plugin" ) does not work on all platforms (creates broken gomacro.exe on Windows/386)
+	// * allow caller to provide us with a different implementation,
+	//   either in imports.Packages["plugin"].Binds["Open"]
+	//   or in Globals.Importer.PluginOpen
+
+	imp := g.Importer
+	if !imp.setPluginOpen() {
+		g.Errorf("gomacro compiled without support to load plugins - requires Go 1.8+ and Linux - cannot import packages at runtime")
+	}
+	if len(soname) == 0 || len(symbolName) == 0 {
+		// caller is just checking whether PluginOpen() is available
+		return nil
+	}
+	so, err := reflectcall(imp.PluginOpen, soname)
 	if err != nil {
 		g.Errorf("error loading plugin %q: %v", soname, err)
 	}
-	val, err := pkg.Lookup(symbolName)
+	vsym, err := reflectcall(so.MethodByName("Lookup"), symbolName)
 	if err != nil {
 		g.Errorf("error loading symbol %q from plugin %q: %v", symbolName, soname, err)
 	}
-	return val
+	return vsym.Interface()
+}
+
+func reflectcall(fun r.Value, arg interface{}) (r.Value, interface{}) {
+	vs := fun.Call([]r.Value{r.ValueOf(arg)})
+	return vs[0], vs[1].Interface()
 }

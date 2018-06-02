@@ -14,6 +14,6 @@ func init() {
 	Binds: map[string]Value{
 		"EscapeString":	ValueOf(html.EscapeString),
 		"UnescapeString":	ValueOf(html.UnescapeString),
-	},
+	}, 
 	}
 }

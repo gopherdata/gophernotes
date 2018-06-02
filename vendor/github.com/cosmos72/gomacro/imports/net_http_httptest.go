@@ -18,11 +18,11 @@ func init() {
 		"NewServer":	ValueOf(httptest.NewServer),
 		"NewTLSServer":	ValueOf(httptest.NewTLSServer),
 		"NewUnstartedServer":	ValueOf(httptest.NewUnstartedServer),
-	},Types: map[string]Type{
+	}, Types: map[string]Type{
 		"ResponseRecorder":	TypeOf((*httptest.ResponseRecorder)(nil)).Elem(),
 		"Server":	TypeOf((*httptest.Server)(nil)).Elem(),
-	},Untypeds: map[string]string{
+	}, Untypeds: map[string]string{
 		"DefaultRemoteAddr":	"string:1.2.3.4",
-	},
+	}, 
 	}
 }

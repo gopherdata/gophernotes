@@ -15,10 +15,10 @@ func init() {
 		"BlockSize":	ValueOf(des.BlockSize),
 		"NewCipher":	ValueOf(des.NewCipher),
 		"NewTripleDESCipher":	ValueOf(des.NewTripleDESCipher),
-	},Types: map[string]Type{
+	}, Types: map[string]Type{
 		"KeySizeError":	TypeOf((*des.KeySizeError)(nil)).Elem(),
-	},Untypeds: map[string]string{
+	}, Untypeds: map[string]string{
 		"BlockSize":	"int:8",
-	},
+	}, 
 	}
 }

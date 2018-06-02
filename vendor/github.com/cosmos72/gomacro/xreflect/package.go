@@ -1,20 +1,11 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017 Massimiliano Ghilardi
+ * Copyright (C) 2017-2018 Massimiliano Ghilardi
  *
- *     This program is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU Lesser General Public License as published
- *     by the Free Software Foundation, either version 3 of the License, or
- *     (at your option) any later version.
- *
- *     This program is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU Lesser General Public License for more details.
- *
- *     You should have received a copy of the GNU Lesser General Public License
- *     along with this program.  If not, see <https://www.gnu.org/licenses/lgpl>.
+ *     This Source Code Form is subject to the terms of the Mozilla Public
+ *     License, v. 2.0. If a copy of the MPL was not distributed with this
+ *     file, You can obtain one at http://mozilla.org/MPL/2.0/.
  *
  *
  * package.go
@@ -35,14 +26,11 @@ func (v *Universe) loadPackage(path string) *Package {
 		// do not create unnamed packages
 		return nil
 	}
-	if pkg := v.Packages[path]; pkg != nil {
-		return pkg
-	}
-	// try to import the package first...
-	// slower, but creates the correct Typename objects for named types
+	// try the importer and its cache
 	if pkg := v.importPackage(path); pkg != nil {
 		return pkg
 	}
+	// no luck. create and return an empty Package
 	if v.Packages == nil {
 		v.Packages = make(map[string]*Package)
 	}

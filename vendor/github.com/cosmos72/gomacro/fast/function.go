@@ -1,20 +1,11 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017 Massimiliano Ghilardi
+ * Copyright (C) 2017-2018 Massimiliano Ghilardi
  *
- *     This program is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU Lesser General Public License as published
- *     by the Free Software Foundation, either version 3 of the License, or
- *     (at your option) any later version.
- *
- *     This program is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU Lesser General Public License for more details.
- *
- *     You should have received a copy of the GNU Lesser General Public License
- *     along with this program.  If not, see <https://www.gnu.org/licenses/lgpl>.
+ *     This Source Code Form is subject to the terms of the Mozilla Public
+ *     License, v. 2.0. If a copy of the MPL was not distributed with this
+ *     file, You can obtain one at http://mozilla.org/MPL/2.0/.
  *
  *
  * function.go
@@ -34,12 +25,13 @@ import (
 )
 
 type funcMaker struct {
-	nbinds      int
-	nintbinds   int
-	parambinds  []*Bind
-	resultbinds []*Bind
-	resultfuns  []I
-	funcbody    func(*Env)
+	Name      string
+	nbind     int
+	nintbind  int
+	Param     []*Bind
+	Result    []*Bind
+	resultfun []I
+	funcbody  func(*Env)
 }
 
 // DeclFunc compiles a function, macro or method declaration
@@ -78,12 +70,12 @@ func (c *Comp) FuncDecl(funcdecl *ast.FuncDecl) {
 	var funcbind *Bind
 	if ismacro {
 		// use a ConstBind, as builtins do
-		funcbind = c.AddBind(funcname, ConstBind, c.TypeOfMacro())
+		funcbind = c.NewBind(funcname, ConstBind, c.TypeOfMacro())
 	} else {
-		funcbind = c.AddBind(funcname, FuncBind, t)
+		funcbind = c.NewBind(funcname, FuncBind, t)
 	}
 	cf := NewComp(c, nil)
-	info, resultfuns := cf.funcBinds(functype, t, paramnames, resultnames)
+	info, resultfuns := cf.funcBinds(funcname, functype, t, paramnames, resultnames)
 	cf.Func = info
 
 	if body := funcdecl.Body; body != nil {
@@ -124,12 +116,12 @@ func (c *Comp) FuncDecl(funcdecl *ast.FuncDecl) {
 		stmt = func(env *Env) (Stmt, *Env) {
 			fun := f(env)
 			// Debugf("setting env.Binds[%d] = %v <%v>", funcindex, fun.Interface(), fun.Type())
-			env.Binds[funcindex] = fun
+			env.Vals[funcindex] = fun
 			env.IP++
 			return env.Code[env.IP], env
 		}
 	}
-	c.Code.Append(stmt, funcdecl.Pos())
+	c.Append(stmt, funcdecl.Pos())
 	panicking = false
 }
 
@@ -148,9 +140,9 @@ func (c *Comp) methodAdd(funcdecl *ast.FuncDecl, t xr.Type) (methodindex int, me
 			c.Errorf("error adding method %s <%v> to type <%v>\n\t%v", name, t, trecv, rec)
 		}
 	}()
-	n1 := trecv.NumMethod()
+	n1 := trecv.NumExplicitMethod()
 	methodindex = trecv.AddMethod(name, t)
-	n2 := trecv.NumMethod()
+	n2 := trecv.NumExplicitMethod()
 	if n1 == n2 {
 		c.Warnf("redefined method: %s.%s", trecv.Name(), name)
 	}
@@ -179,7 +171,7 @@ func (c *Comp) methodDecl(funcdecl *ast.FuncDecl) {
 	methodindex, methods := c.methodAdd(funcdecl, t)
 
 	cf := NewComp(c, nil)
-	info, resultfuns := cf.funcBinds(functype, t, paramnames, resultnames)
+	info, resultfuns := cf.funcBinds(funcdecl.Name.Name, functype, t, paramnames, resultnames)
 	cf.Func = info
 
 	body := funcdecl.Body
@@ -203,7 +195,7 @@ func (c *Comp) methodDecl(funcdecl *ast.FuncDecl) {
 		methodname := funcdecl.Name
 		stmt = func(env *Env) (Stmt, *Env) {
 			(*methods)[methodindex] = f(env)
-			env.ThreadGlobals.Debugf("implemented method %s.%s", tname, methodname)
+			env.Run.Debugf("implemented method %s.%s", tname, methodname)
 			env.IP++
 			return env.Code[env.IP], env
 		}
@@ -214,7 +206,7 @@ func (c *Comp) methodDecl(funcdecl *ast.FuncDecl) {
 			return env.Code[env.IP], env
 		}
 	}
-	c.Code.Append(stmt, funcdecl.Pos())
+	c.Append(stmt, funcdecl.Pos())
 }
 
 // FuncLit compiles a function literal, i.e. a closure.
@@ -224,7 +216,7 @@ func (c *Comp) FuncLit(funclit *ast.FuncLit) *Expr {
 	t, paramnames, resultnames := c.TypeFunction(functype)
 
 	cf := NewComp(c, nil)
-	info, resultfuns := cf.funcBinds(functype, t, paramnames, resultnames)
+	info, resultfuns := cf.funcBinds("", functype, t, paramnames, resultnames)
 	cf.Func = info
 
 	body := funclit.Body
@@ -243,7 +235,7 @@ func (c *Comp) FuncLit(funclit *ast.FuncLit) *Expr {
 }
 
 // prepare the function parameter binds, result binds and FuncInfo
-func (c *Comp) funcBinds(functype *ast.FuncType, t xr.Type, paramnames, resultnames []string) (info *FuncInfo, resultfuns []I) {
+func (c *Comp) funcBinds(funcname string, functype *ast.FuncType, t xr.Type, paramnames, resultnames []string) (info *FuncInfo, resultfuns []I) {
 
 	parambinds := c.funcParamBinds(functype, t, paramnames)
 
@@ -255,8 +247,9 @@ func (c *Comp) funcBinds(functype *ast.FuncType, t xr.Type, paramnames, resultna
 		}
 	}
 	return &FuncInfo{
-		Params:       parambinds,
-		Results:      resultbinds,
+		Name:         funcname,
+		Param:        parambinds,
+		Result:       resultbinds,
 		NamedResults: namedresults,
 	}, resultfuns
 }
@@ -269,7 +262,7 @@ func (c *Comp) funcParamBinds(functype *ast.FuncType, t xr.Type, names []string)
 	ismethod := t.IsMethod()
 	for i := 0; i < nin; i++ {
 		// names[i] == "" means that argument is unnamed, and thus ignored inside the function.
-		// change to "_" so that AddBind will not allocate a bind for it - correct optimization...
+		// change to "_" so that NewBind will not allocate a bind for it - correct optimization...
 		// just remember to check for such case when creating the function
 		name := names[i]
 		if !ismethod || i != 0 {
@@ -284,7 +277,7 @@ func (c *Comp) funcParamBinds(functype *ast.FuncType, t xr.Type, names []string)
 		if namedparams && unnamedparams {
 			c.Errorf("cannot mix named and unnamed parameters in function declaration: %v", functype)
 		}
-		bind := c.AddBind(name, VarBind, t.In(i))
+		bind := c.NewBind(name, VarBind, t.In(i))
 		binds[i] = bind
 	}
 	return binds
@@ -312,26 +305,27 @@ func (c *Comp) funcResultBinds(functype *ast.FuncType, t xr.Type, names []string
 		bind := c.DeclVar0(name, t.Out(i), nil)
 		binds[i] = bind
 		// compile the extraction of results from runtime env
-		sym := bind.AsSymbol(0)
-		funs[i] = c.Symbol(sym).WithFun()
+		funs[i] = c.Bind(bind).WithFun()
 	}
 	return
 }
 
 func (c *Comp) funcMaker(info *FuncInfo, resultfuns []I, funcbody func(*Env)) *funcMaker {
-	return &funcMaker{
-		nbinds:      c.BindNum,
-		nintbinds:   c.IntBindNum,
-		parambinds:  info.Params,
-		resultbinds: info.Results,
-		resultfuns:  resultfuns,
-		funcbody:    funcbody,
+	m := &funcMaker{
+		Name:      info.Name,
+		nbind:     c.BindNum,
+		nintbind:  c.IntBindNum,
+		Param:     info.Param,
+		Result:    info.Result,
+		resultfun: resultfuns,
+		funcbody:  funcbody,
 	}
+	c.FuncMaker = m // store it for debugger command 'backtrace'
+	return m
 }
 
 // actually create the function
 func (c *Comp) funcCreate(t xr.Type, info *FuncInfo, resultfuns []I, funcbody func(*Env)) func(*Env) r.Value {
-	c.ErrorIfCompiled(t)
 
 	m := c.funcMaker(info, resultfuns, funcbody)
 
@@ -385,46 +379,64 @@ func (c *Comp) funcCreate(t xr.Type, info *FuncInfo, resultfuns []I, funcbody fu
 // fallback: create a non-optimized function
 func (c *Comp) funcGeneric(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
-	paramdecls := make([]func(*Env, r.Value), len(m.parambinds))
-	for i, bind := range m.parambinds {
+	// do NOT keep a reference to funcMaker
+	nbinds := m.nbind
+	nintbinds := m.nintbind
+	funcbody := m.funcbody
+	rtype := t.ReflectType()
+
+	if funcbody == nil {
+		// pre-fill rets with zero values
+		rets := make([]r.Value, len(m.Result))
+		for i, bind := range m.Result {
+			rets[i] = xr.Zero(bind.Type)
+		}
+		return func(env *Env) r.Value {
+			return r.MakeFunc(rtype, func(args []r.Value) []r.Value {
+				return rets
+			})
+		}
+	}
+
+	paramdecls := make([]func(*Env, r.Value), len(m.Param))
+	for i, bind := range m.Param {
 		if bind.Desc.Index() != NoIndex {
 			paramdecls[i] = c.DeclBindRuntimeValue(bind)
 		}
 	}
-	resultexprs := make([]func(*Env) r.Value, len(m.resultfuns))
-	for i, resultfun := range m.resultfuns {
-		resultexprs[i] = funAsX1(resultfun, m.resultbinds[i].Type)
+	resultexprs := make([]func(*Env) r.Value, len(m.resultfun))
+	for i, resultfun := range m.resultfun {
+		resultexprs[i] = funAsX1(resultfun, m.Result[i].Type)
 	}
 
-	// do NOT keep a reference to funcMaker
-	nbinds := m.nbinds
-	nintbinds := m.nintbinds
-	funcbody := m.funcbody
-	rtype := t.ReflectType()
+	var debugC *Comp
+	if c.Globals.Options&base.OptDebugger != 0 {
+		// keep a reference to c only if needed
+		debugC = c
+	}
 
 	return func(env *Env) r.Value {
 		// function is closed over the env used to DECLARE it
 		env.MarkUsedByClosure()
 		return r.MakeFunc(rtype, func(args []r.Value) []r.Value {
-			env := NewEnv4Func(env, nbinds, nintbinds)
+			env := newEnv4Func(env, nbinds, nintbinds, debugC)
 
-			if funcbody != nil {
-				// copy runtime arguments into allocated binds
-				for i, decl := range paramdecls {
-					if decl != nil {
-						// decl == nil means the argument is ignored inside the function
-						decl(env, args[i])
-					}
+			// copy runtime arguments into allocated binds
+			for i, decl := range paramdecls {
+				if decl != nil {
+					// decl == nil means the argument is ignored inside the function
+					decl(env, args[i])
 				}
-				// execute the body
-				funcbody(env)
 			}
+			// execute the body
+			funcbody(env)
+
 			// read results from allocated binds and return them
 			rets := make([]r.Value, len(resultexprs))
 			for i, expr := range resultexprs {
 				rets[i] = expr(env)
 			}
-			env.FreeEnv()
+			env.freeEnv4Func()
 			return rets
 		})
 	}
@@ -434,26 +446,32 @@ func (c *Comp) funcGeneric(t xr.Type, m *funcMaker) func(*Env) r.Value {
 func (c *Comp) macroCreate(t xr.Type, info *FuncInfo, resultfuns []I, funcbody func(*Env)) func(*Env) func(args []r.Value) []r.Value {
 	m := c.funcMaker(info, resultfuns, funcbody)
 
-	paramdecls := make([]func(*Env, r.Value), len(m.parambinds))
-	for i, bind := range m.parambinds {
+	paramdecls := make([]func(*Env, r.Value), len(m.Param))
+	for i, bind := range m.Param {
 		if bind.Desc.Index() != NoIndex {
 			paramdecls[i] = c.DeclBindRuntimeValue(bind)
 		}
 	}
-	resultexprs := make([]func(*Env) r.Value, len(m.resultfuns))
-	for i, resultfun := range m.resultfuns {
-		resultexprs[i] = funAsX1(resultfun, m.resultbinds[i].Type)
+	resultexprs := make([]func(*Env) r.Value, len(m.resultfun))
+	for i, resultfun := range m.resultfun {
+		resultexprs[i] = funAsX1(resultfun, m.Result[i].Type)
 	}
 
 	// do NOT keep a reference to funcMaker
-	nbinds := m.nbinds
-	nintbinds := m.nintbinds
+	nbinds := m.nbind
+	nintbinds := m.nintbind
+
+	var debugC *Comp
+	if c.Globals.Options&base.OptDebugger != 0 {
+		// keep a reference to c only if needed
+		debugC = c
+	}
 
 	return func(env *Env) func(args []r.Value) []r.Value {
 		// macro is closed over the env used to DECLARE it
 		env.MarkUsedByClosure()
 		return func(args []r.Value) []r.Value {
-			env := NewEnv4Func(env, nbinds, nintbinds)
+			env := newEnv4Func(env, nbinds, nintbinds, debugC)
 
 			if funcbody != nil {
 				// copy runtime arguments into allocated binds
@@ -471,7 +489,7 @@ func (c *Comp) macroCreate(t xr.Type, info *FuncInfo, resultfuns []I, funcbody f
 			for i, expr := range resultexprs {
 				rets[i] = expr(env)
 			}
-			env.FreeEnv()
+			env.freeEnv4Func()
 			return rets
 		}
 	}

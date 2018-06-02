@@ -21,13 +21,13 @@ func init() {
 		"QueryUnescape":	ValueOf(url.QueryUnescape),
 		"User":	ValueOf(url.User),
 		"UserPassword":	ValueOf(url.UserPassword),
-	},Types: map[string]Type{
+	}, Types: map[string]Type{
 		"Error":	TypeOf((*url.Error)(nil)).Elem(),
 		"EscapeError":	TypeOf((*url.EscapeError)(nil)).Elem(),
 		"InvalidHostError":	TypeOf((*url.InvalidHostError)(nil)).Elem(),
 		"URL":	TypeOf((*url.URL)(nil)).Elem(),
 		"Userinfo":	TypeOf((*url.Userinfo)(nil)).Elem(),
 		"Values":	TypeOf((*url.Values)(nil)).Elem(),
-	},
+	}, 
 	}
 }

@@ -22,6 +22,6 @@ func init() {
 		"RelativeDistinguishedNameSET":	TypeOf((*pkix.RelativeDistinguishedNameSET)(nil)).Elem(),
 		"RevokedCertificate":	TypeOf((*pkix.RevokedCertificate)(nil)).Elem(),
 		"TBSCertificateList":	TypeOf((*pkix.TBSCertificateList)(nil)).Elem(),
-	},
+	}, 
 	}
 }

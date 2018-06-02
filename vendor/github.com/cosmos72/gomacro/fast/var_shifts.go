@@ -6,20 +6,11 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017 Massimiliano Ghilardi
+ * Copyright (C) 2017-2018 Massimiliano Ghilardi
  *
- *     This program is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU Lesser General Public License as published
- *     by the Free Software Foundation, either version 3 of the License, or
- *     (at your option) any later version.
- *
- *     This program is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU Lesser General Public License for more details.
- *
- *     You should have received a copy of the GNU Lesser General Public License
- *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *     This Source Code Form is subject to the terms of the Mozilla Public
+ *     License, v. 2.0. If a copy of the MPL was not distributed with this
+ *     file, You can obtain one at http://mozilla.org/MPL/2.0/.
  *
  *
  * var_shifts.go
@@ -62,7 +53,7 @@ func (c *Comp) varShlConst(va *Var, val I) {
 
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
-						*(*int)(unsafe.Pointer(&env.IntBinds[index])) <<= val
+						*(*int)(unsafe.Pointer(&env.Ints[index])) <<= val
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -71,7 +62,7 @@ func (c *Comp) varShlConst(va *Var, val I) {
 					ret = func(env *Env) (Stmt, *Env) {
 						{
 							lhs := env.
-								Binds[index]
+								Vals[index]
 							lhs.SetInt(lhs.Int() <<
 								val,
 							)
@@ -86,7 +77,7 @@ func (c *Comp) varShlConst(va *Var, val I) {
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
 						*(*int)(unsafe.Pointer(&env.
-							Outer.IntBinds[index])) <<= val
+							Outer.Ints[index])) <<= val
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -96,7 +87,7 @@ func (c *Comp) varShlConst(va *Var, val I) {
 						{
 							lhs := env.
 								Outer.
-								Binds[index]
+								Vals[index]
 							lhs.SetInt(lhs.Int() <<
 								val,
 							)
@@ -111,7 +102,7 @@ func (c *Comp) varShlConst(va *Var, val I) {
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
 						*(*int)(unsafe.Pointer(&env.
-							Outer.Outer.IntBinds[index])) <<= val
+							Outer.Outer.Ints[index])) <<= val
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -121,7 +112,30 @@ func (c *Comp) varShlConst(va *Var, val I) {
 						{
 							lhs := env.
 								Outer.Outer.
-								Binds[index]
+								Vals[index]
+							lhs.SetInt(lhs.Int() <<
+								val,
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				}
+			case c.Depth - 1:
+
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int)(unsafe.Pointer(&env.FileEnv.Ints[index])) <<= val
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.FileEnv.
+								Vals[index]
 							lhs.SetInt(lhs.Int() <<
 								val,
 							)
@@ -139,7 +153,7 @@ func (c *Comp) varShlConst(va *Var, val I) {
 						for i := 3; i < upn; i++ {
 							o = o.Outer
 						}
-						*(*int)(unsafe.Pointer(&o.IntBinds[index])) <<= val
+						*(*int)(unsafe.Pointer(&o.Ints[index])) <<= val
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -153,30 +167,7 @@ func (c *Comp) varShlConst(va *Var, val I) {
 						{
 							lhs :=
 
-								o.Binds[index]
-							lhs.SetInt(lhs.Int() <<
-								val,
-							)
-						}
-
-						env.IP++
-						return env.Code[env.IP], env
-					}
-				}
-			case c.Depth - 1:
-
-				if intbinds {
-					ret = func(env *Env) (Stmt, *Env) {
-						*(*int)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) <<= val
-
-						env.IP++
-						return env.Code[env.IP], env
-					}
-				} else {
-					ret = func(env *Env) (Stmt, *Env) {
-						{
-							lhs := env.ThreadGlobals.FileEnv.
-								Binds[index]
+								o.Vals[index]
 							lhs.SetInt(lhs.Int() <<
 								val,
 							)
@@ -193,7 +184,7 @@ func (c *Comp) varShlConst(va *Var, val I) {
 
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
-						*(*int8)(unsafe.Pointer(&env.IntBinds[index])) <<= val
+						*(*int8)(unsafe.Pointer(&env.Ints[index])) <<= val
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -202,7 +193,7 @@ func (c *Comp) varShlConst(va *Var, val I) {
 					ret = func(env *Env) (Stmt, *Env) {
 						{
 							lhs := env.
-								Binds[index]
+								Vals[index]
 							lhs.SetInt(lhs.Int() <<
 								val,
 							)
@@ -217,7 +208,7 @@ func (c *Comp) varShlConst(va *Var, val I) {
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
 						*(*int8)(unsafe.Pointer(&env.
-							Outer.IntBinds[index])) <<= val
+							Outer.Ints[index])) <<= val
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -227,7 +218,7 @@ func (c *Comp) varShlConst(va *Var, val I) {
 						{
 							lhs := env.
 								Outer.
-								Binds[index]
+								Vals[index]
 							lhs.SetInt(lhs.Int() <<
 								val,
 							)
@@ -242,7 +233,7 @@ func (c *Comp) varShlConst(va *Var, val I) {
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
 						*(*int8)(unsafe.Pointer(&env.
-							Outer.Outer.IntBinds[index])) <<= val
+							Outer.Outer.Ints[index])) <<= val
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -252,7 +243,30 @@ func (c *Comp) varShlConst(va *Var, val I) {
 						{
 							lhs := env.
 								Outer.Outer.
-								Binds[index]
+								Vals[index]
+							lhs.SetInt(lhs.Int() <<
+								val,
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				}
+			case c.Depth - 1:
+
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int8)(unsafe.Pointer(&env.FileEnv.Ints[index])) <<= val
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.FileEnv.
+								Vals[index]
 							lhs.SetInt(lhs.Int() <<
 								val,
 							)
@@ -270,7 +284,7 @@ func (c *Comp) varShlConst(va *Var, val I) {
 						for i := 3; i < upn; i++ {
 							o = o.Outer
 						}
-						*(*int8)(unsafe.Pointer(&o.IntBinds[index])) <<= val
+						*(*int8)(unsafe.Pointer(&o.Ints[index])) <<= val
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -284,30 +298,7 @@ func (c *Comp) varShlConst(va *Var, val I) {
 						{
 							lhs :=
 
-								o.Binds[index]
-							lhs.SetInt(lhs.Int() <<
-								val,
-							)
-						}
-
-						env.IP++
-						return env.Code[env.IP], env
-					}
-				}
-			case c.Depth - 1:
-
-				if intbinds {
-					ret = func(env *Env) (Stmt, *Env) {
-						*(*int8)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) <<= val
-
-						env.IP++
-						return env.Code[env.IP], env
-					}
-				} else {
-					ret = func(env *Env) (Stmt, *Env) {
-						{
-							lhs := env.ThreadGlobals.FileEnv.
-								Binds[index]
+								o.Vals[index]
 							lhs.SetInt(lhs.Int() <<
 								val,
 							)
@@ -324,7 +315,7 @@ func (c *Comp) varShlConst(va *Var, val I) {
 
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
-						*(*int16)(unsafe.Pointer(&env.IntBinds[index])) <<= val
+						*(*int16)(unsafe.Pointer(&env.Ints[index])) <<= val
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -333,7 +324,7 @@ func (c *Comp) varShlConst(va *Var, val I) {
 					ret = func(env *Env) (Stmt, *Env) {
 						{
 							lhs := env.
-								Binds[index]
+								Vals[index]
 							lhs.SetInt(lhs.Int() <<
 								val,
 							)
@@ -348,7 +339,7 @@ func (c *Comp) varShlConst(va *Var, val I) {
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
 						*(*int16)(unsafe.Pointer(&env.
-							Outer.IntBinds[index])) <<= val
+							Outer.Ints[index])) <<= val
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -358,7 +349,7 @@ func (c *Comp) varShlConst(va *Var, val I) {
 						{
 							lhs := env.
 								Outer.
-								Binds[index]
+								Vals[index]
 							lhs.SetInt(lhs.Int() <<
 								val,
 							)
@@ -373,7 +364,7 @@ func (c *Comp) varShlConst(va *Var, val I) {
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
 						*(*int16)(unsafe.Pointer(&env.
-							Outer.Outer.IntBinds[index])) <<= val
+							Outer.Outer.Ints[index])) <<= val
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -383,7 +374,30 @@ func (c *Comp) varShlConst(va *Var, val I) {
 						{
 							lhs := env.
 								Outer.Outer.
-								Binds[index]
+								Vals[index]
+							lhs.SetInt(lhs.Int() <<
+								val,
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				}
+			case c.Depth - 1:
+
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int16)(unsafe.Pointer(&env.FileEnv.Ints[index])) <<= val
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.FileEnv.
+								Vals[index]
 							lhs.SetInt(lhs.Int() <<
 								val,
 							)
@@ -401,7 +415,7 @@ func (c *Comp) varShlConst(va *Var, val I) {
 						for i := 3; i < upn; i++ {
 							o = o.Outer
 						}
-						*(*int16)(unsafe.Pointer(&o.IntBinds[index])) <<= val
+						*(*int16)(unsafe.Pointer(&o.Ints[index])) <<= val
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -415,30 +429,7 @@ func (c *Comp) varShlConst(va *Var, val I) {
 						{
 							lhs :=
 
-								o.Binds[index]
-							lhs.SetInt(lhs.Int() <<
-								val,
-							)
-						}
-
-						env.IP++
-						return env.Code[env.IP], env
-					}
-				}
-			case c.Depth - 1:
-
-				if intbinds {
-					ret = func(env *Env) (Stmt, *Env) {
-						*(*int16)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) <<= val
-
-						env.IP++
-						return env.Code[env.IP], env
-					}
-				} else {
-					ret = func(env *Env) (Stmt, *Env) {
-						{
-							lhs := env.ThreadGlobals.FileEnv.
-								Binds[index]
+								o.Vals[index]
 							lhs.SetInt(lhs.Int() <<
 								val,
 							)
@@ -455,7 +446,7 @@ func (c *Comp) varShlConst(va *Var, val I) {
 
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
-						*(*int32)(unsafe.Pointer(&env.IntBinds[index])) <<= val
+						*(*int32)(unsafe.Pointer(&env.Ints[index])) <<= val
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -464,7 +455,7 @@ func (c *Comp) varShlConst(va *Var, val I) {
 					ret = func(env *Env) (Stmt, *Env) {
 						{
 							lhs := env.
-								Binds[index]
+								Vals[index]
 							lhs.SetInt(lhs.Int() <<
 								val,
 							)
@@ -479,7 +470,7 @@ func (c *Comp) varShlConst(va *Var, val I) {
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
 						*(*int32)(unsafe.Pointer(&env.
-							Outer.IntBinds[index])) <<= val
+							Outer.Ints[index])) <<= val
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -489,7 +480,7 @@ func (c *Comp) varShlConst(va *Var, val I) {
 						{
 							lhs := env.
 								Outer.
-								Binds[index]
+								Vals[index]
 							lhs.SetInt(lhs.Int() <<
 								val,
 							)
@@ -504,7 +495,7 @@ func (c *Comp) varShlConst(va *Var, val I) {
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
 						*(*int32)(unsafe.Pointer(&env.
-							Outer.Outer.IntBinds[index])) <<= val
+							Outer.Outer.Ints[index])) <<= val
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -514,7 +505,30 @@ func (c *Comp) varShlConst(va *Var, val I) {
 						{
 							lhs := env.
 								Outer.Outer.
-								Binds[index]
+								Vals[index]
+							lhs.SetInt(lhs.Int() <<
+								val,
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				}
+			case c.Depth - 1:
+
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int32)(unsafe.Pointer(&env.FileEnv.Ints[index])) <<= val
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.FileEnv.
+								Vals[index]
 							lhs.SetInt(lhs.Int() <<
 								val,
 							)
@@ -532,7 +546,7 @@ func (c *Comp) varShlConst(va *Var, val I) {
 						for i := 3; i < upn; i++ {
 							o = o.Outer
 						}
-						*(*int32)(unsafe.Pointer(&o.IntBinds[index])) <<= val
+						*(*int32)(unsafe.Pointer(&o.Ints[index])) <<= val
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -546,30 +560,7 @@ func (c *Comp) varShlConst(va *Var, val I) {
 						{
 							lhs :=
 
-								o.Binds[index]
-							lhs.SetInt(lhs.Int() <<
-								val,
-							)
-						}
-
-						env.IP++
-						return env.Code[env.IP], env
-					}
-				}
-			case c.Depth - 1:
-
-				if intbinds {
-					ret = func(env *Env) (Stmt, *Env) {
-						*(*int32)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) <<= val
-
-						env.IP++
-						return env.Code[env.IP], env
-					}
-				} else {
-					ret = func(env *Env) (Stmt, *Env) {
-						{
-							lhs := env.ThreadGlobals.FileEnv.
-								Binds[index]
+								o.Vals[index]
 							lhs.SetInt(lhs.Int() <<
 								val,
 							)
@@ -586,7 +577,7 @@ func (c *Comp) varShlConst(va *Var, val I) {
 
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
-						*(*int64)(unsafe.Pointer(&env.IntBinds[index])) <<= val
+						*(*int64)(unsafe.Pointer(&env.Ints[index])) <<= val
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -595,7 +586,7 @@ func (c *Comp) varShlConst(va *Var, val I) {
 					ret = func(env *Env) (Stmt, *Env) {
 						{
 							lhs := env.
-								Binds[index]
+								Vals[index]
 							lhs.SetInt(lhs.Int() <<
 								val,
 							)
@@ -610,7 +601,7 @@ func (c *Comp) varShlConst(va *Var, val I) {
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
 						*(*int64)(unsafe.Pointer(&env.
-							Outer.IntBinds[index])) <<= val
+							Outer.Ints[index])) <<= val
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -620,7 +611,7 @@ func (c *Comp) varShlConst(va *Var, val I) {
 						{
 							lhs := env.
 								Outer.
-								Binds[index]
+								Vals[index]
 							lhs.SetInt(lhs.Int() <<
 								val,
 							)
@@ -635,7 +626,7 @@ func (c *Comp) varShlConst(va *Var, val I) {
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
 						*(*int64)(unsafe.Pointer(&env.
-							Outer.Outer.IntBinds[index])) <<= val
+							Outer.Outer.Ints[index])) <<= val
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -645,7 +636,30 @@ func (c *Comp) varShlConst(va *Var, val I) {
 						{
 							lhs := env.
 								Outer.Outer.
-								Binds[index]
+								Vals[index]
+							lhs.SetInt(lhs.Int() <<
+								val,
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				}
+			case c.Depth - 1:
+
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int64)(unsafe.Pointer(&env.FileEnv.Ints[index])) <<= val
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.FileEnv.
+								Vals[index]
 							lhs.SetInt(lhs.Int() <<
 								val,
 							)
@@ -663,7 +677,7 @@ func (c *Comp) varShlConst(va *Var, val I) {
 						for i := 3; i < upn; i++ {
 							o = o.Outer
 						}
-						*(*int64)(unsafe.Pointer(&o.IntBinds[index])) <<= val
+						*(*int64)(unsafe.Pointer(&o.Ints[index])) <<= val
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -677,30 +691,7 @@ func (c *Comp) varShlConst(va *Var, val I) {
 						{
 							lhs :=
 
-								o.Binds[index]
-							lhs.SetInt(lhs.Int() <<
-								val,
-							)
-						}
-
-						env.IP++
-						return env.Code[env.IP], env
-					}
-				}
-			case c.Depth - 1:
-
-				if intbinds {
-					ret = func(env *Env) (Stmt, *Env) {
-						*(*int64)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) <<= val
-
-						env.IP++
-						return env.Code[env.IP], env
-					}
-				} else {
-					ret = func(env *Env) (Stmt, *Env) {
-						{
-							lhs := env.ThreadGlobals.FileEnv.
-								Binds[index]
+								o.Vals[index]
 							lhs.SetInt(lhs.Int() <<
 								val,
 							)
@@ -717,7 +708,7 @@ func (c *Comp) varShlConst(va *Var, val I) {
 
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
-						*(*uint)(unsafe.Pointer(&env.IntBinds[index])) <<= val
+						*(*uint)(unsafe.Pointer(&env.Ints[index])) <<= val
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -726,7 +717,7 @@ func (c *Comp) varShlConst(va *Var, val I) {
 					ret = func(env *Env) (Stmt, *Env) {
 						{
 							lhs := env.
-								Binds[index]
+								Vals[index]
 							lhs.SetUint(lhs.Uint() <<
 								val,
 							)
@@ -741,7 +732,7 @@ func (c *Comp) varShlConst(va *Var, val I) {
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
 						*(*uint)(unsafe.Pointer(&env.
-							Outer.IntBinds[index])) <<= val
+							Outer.Ints[index])) <<= val
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -751,7 +742,7 @@ func (c *Comp) varShlConst(va *Var, val I) {
 						{
 							lhs := env.
 								Outer.
-								Binds[index]
+								Vals[index]
 							lhs.SetUint(lhs.Uint() <<
 								val,
 							)
@@ -766,7 +757,7 @@ func (c *Comp) varShlConst(va *Var, val I) {
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
 						*(*uint)(unsafe.Pointer(&env.
-							Outer.Outer.IntBinds[index])) <<= val
+							Outer.Outer.Ints[index])) <<= val
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -776,7 +767,30 @@ func (c *Comp) varShlConst(va *Var, val I) {
 						{
 							lhs := env.
 								Outer.Outer.
-								Binds[index]
+								Vals[index]
+							lhs.SetUint(lhs.Uint() <<
+								val,
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				}
+			case c.Depth - 1:
+
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint)(unsafe.Pointer(&env.FileEnv.Ints[index])) <<= val
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.FileEnv.
+								Vals[index]
 							lhs.SetUint(lhs.Uint() <<
 								val,
 							)
@@ -794,7 +808,7 @@ func (c *Comp) varShlConst(va *Var, val I) {
 						for i := 3; i < upn; i++ {
 							o = o.Outer
 						}
-						*(*uint)(unsafe.Pointer(&o.IntBinds[index])) <<= val
+						*(*uint)(unsafe.Pointer(&o.Ints[index])) <<= val
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -808,30 +822,7 @@ func (c *Comp) varShlConst(va *Var, val I) {
 						{
 							lhs :=
 
-								o.Binds[index]
-							lhs.SetUint(lhs.Uint() <<
-								val,
-							)
-						}
-
-						env.IP++
-						return env.Code[env.IP], env
-					}
-				}
-			case c.Depth - 1:
-
-				if intbinds {
-					ret = func(env *Env) (Stmt, *Env) {
-						*(*uint)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) <<= val
-
-						env.IP++
-						return env.Code[env.IP], env
-					}
-				} else {
-					ret = func(env *Env) (Stmt, *Env) {
-						{
-							lhs := env.ThreadGlobals.FileEnv.
-								Binds[index]
+								o.Vals[index]
 							lhs.SetUint(lhs.Uint() <<
 								val,
 							)
@@ -848,7 +839,7 @@ func (c *Comp) varShlConst(va *Var, val I) {
 
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
-						*(*uint8)(unsafe.Pointer(&env.IntBinds[index])) <<= val
+						*(*uint8)(unsafe.Pointer(&env.Ints[index])) <<= val
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -857,7 +848,7 @@ func (c *Comp) varShlConst(va *Var, val I) {
 					ret = func(env *Env) (Stmt, *Env) {
 						{
 							lhs := env.
-								Binds[index]
+								Vals[index]
 							lhs.SetUint(lhs.Uint() <<
 								val,
 							)
@@ -872,7 +863,7 @@ func (c *Comp) varShlConst(va *Var, val I) {
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
 						*(*uint8)(unsafe.Pointer(&env.
-							Outer.IntBinds[index])) <<= val
+							Outer.Ints[index])) <<= val
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -882,7 +873,7 @@ func (c *Comp) varShlConst(va *Var, val I) {
 						{
 							lhs := env.
 								Outer.
-								Binds[index]
+								Vals[index]
 							lhs.SetUint(lhs.Uint() <<
 								val,
 							)
@@ -897,7 +888,7 @@ func (c *Comp) varShlConst(va *Var, val I) {
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
 						*(*uint8)(unsafe.Pointer(&env.
-							Outer.Outer.IntBinds[index])) <<= val
+							Outer.Outer.Ints[index])) <<= val
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -907,7 +898,30 @@ func (c *Comp) varShlConst(va *Var, val I) {
 						{
 							lhs := env.
 								Outer.Outer.
-								Binds[index]
+								Vals[index]
+							lhs.SetUint(lhs.Uint() <<
+								val,
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				}
+			case c.Depth - 1:
+
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint8)(unsafe.Pointer(&env.FileEnv.Ints[index])) <<= val
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.FileEnv.
+								Vals[index]
 							lhs.SetUint(lhs.Uint() <<
 								val,
 							)
@@ -925,7 +939,7 @@ func (c *Comp) varShlConst(va *Var, val I) {
 						for i := 3; i < upn; i++ {
 							o = o.Outer
 						}
-						*(*uint8)(unsafe.Pointer(&o.IntBinds[index])) <<= val
+						*(*uint8)(unsafe.Pointer(&o.Ints[index])) <<= val
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -939,30 +953,7 @@ func (c *Comp) varShlConst(va *Var, val I) {
 						{
 							lhs :=
 
-								o.Binds[index]
-							lhs.SetUint(lhs.Uint() <<
-								val,
-							)
-						}
-
-						env.IP++
-						return env.Code[env.IP], env
-					}
-				}
-			case c.Depth - 1:
-
-				if intbinds {
-					ret = func(env *Env) (Stmt, *Env) {
-						*(*uint8)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) <<= val
-
-						env.IP++
-						return env.Code[env.IP], env
-					}
-				} else {
-					ret = func(env *Env) (Stmt, *Env) {
-						{
-							lhs := env.ThreadGlobals.FileEnv.
-								Binds[index]
+								o.Vals[index]
 							lhs.SetUint(lhs.Uint() <<
 								val,
 							)
@@ -979,7 +970,7 @@ func (c *Comp) varShlConst(va *Var, val I) {
 
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
-						*(*uint16)(unsafe.Pointer(&env.IntBinds[index])) <<= val
+						*(*uint16)(unsafe.Pointer(&env.Ints[index])) <<= val
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -988,7 +979,7 @@ func (c *Comp) varShlConst(va *Var, val I) {
 					ret = func(env *Env) (Stmt, *Env) {
 						{
 							lhs := env.
-								Binds[index]
+								Vals[index]
 							lhs.SetUint(lhs.Uint() <<
 								val,
 							)
@@ -1003,7 +994,7 @@ func (c *Comp) varShlConst(va *Var, val I) {
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
 						*(*uint16)(unsafe.Pointer(&env.
-							Outer.IntBinds[index])) <<= val
+							Outer.Ints[index])) <<= val
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -1013,7 +1004,7 @@ func (c *Comp) varShlConst(va *Var, val I) {
 						{
 							lhs := env.
 								Outer.
-								Binds[index]
+								Vals[index]
 							lhs.SetUint(lhs.Uint() <<
 								val,
 							)
@@ -1028,7 +1019,7 @@ func (c *Comp) varShlConst(va *Var, val I) {
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
 						*(*uint16)(unsafe.Pointer(&env.
-							Outer.Outer.IntBinds[index])) <<= val
+							Outer.Outer.Ints[index])) <<= val
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -1038,7 +1029,30 @@ func (c *Comp) varShlConst(va *Var, val I) {
 						{
 							lhs := env.
 								Outer.Outer.
-								Binds[index]
+								Vals[index]
+							lhs.SetUint(lhs.Uint() <<
+								val,
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				}
+			case c.Depth - 1:
+
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint16)(unsafe.Pointer(&env.FileEnv.Ints[index])) <<= val
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.FileEnv.
+								Vals[index]
 							lhs.SetUint(lhs.Uint() <<
 								val,
 							)
@@ -1056,7 +1070,7 @@ func (c *Comp) varShlConst(va *Var, val I) {
 						for i := 3; i < upn; i++ {
 							o = o.Outer
 						}
-						*(*uint16)(unsafe.Pointer(&o.IntBinds[index])) <<= val
+						*(*uint16)(unsafe.Pointer(&o.Ints[index])) <<= val
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -1070,30 +1084,7 @@ func (c *Comp) varShlConst(va *Var, val I) {
 						{
 							lhs :=
 
-								o.Binds[index]
-							lhs.SetUint(lhs.Uint() <<
-								val,
-							)
-						}
-
-						env.IP++
-						return env.Code[env.IP], env
-					}
-				}
-			case c.Depth - 1:
-
-				if intbinds {
-					ret = func(env *Env) (Stmt, *Env) {
-						*(*uint16)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) <<= val
-
-						env.IP++
-						return env.Code[env.IP], env
-					}
-				} else {
-					ret = func(env *Env) (Stmt, *Env) {
-						{
-							lhs := env.ThreadGlobals.FileEnv.
-								Binds[index]
+								o.Vals[index]
 							lhs.SetUint(lhs.Uint() <<
 								val,
 							)
@@ -1110,7 +1101,7 @@ func (c *Comp) varShlConst(va *Var, val I) {
 
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
-						*(*uint32)(unsafe.Pointer(&env.IntBinds[index])) <<= val
+						*(*uint32)(unsafe.Pointer(&env.Ints[index])) <<= val
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -1119,7 +1110,7 @@ func (c *Comp) varShlConst(va *Var, val I) {
 					ret = func(env *Env) (Stmt, *Env) {
 						{
 							lhs := env.
-								Binds[index]
+								Vals[index]
 							lhs.SetUint(lhs.Uint() <<
 								val,
 							)
@@ -1134,7 +1125,7 @@ func (c *Comp) varShlConst(va *Var, val I) {
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
 						*(*uint32)(unsafe.Pointer(&env.
-							Outer.IntBinds[index])) <<= val
+							Outer.Ints[index])) <<= val
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -1144,7 +1135,7 @@ func (c *Comp) varShlConst(va *Var, val I) {
 						{
 							lhs := env.
 								Outer.
-								Binds[index]
+								Vals[index]
 							lhs.SetUint(lhs.Uint() <<
 								val,
 							)
@@ -1159,7 +1150,7 @@ func (c *Comp) varShlConst(va *Var, val I) {
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
 						*(*uint32)(unsafe.Pointer(&env.
-							Outer.Outer.IntBinds[index])) <<= val
+							Outer.Outer.Ints[index])) <<= val
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -1169,7 +1160,30 @@ func (c *Comp) varShlConst(va *Var, val I) {
 						{
 							lhs := env.
 								Outer.Outer.
-								Binds[index]
+								Vals[index]
+							lhs.SetUint(lhs.Uint() <<
+								val,
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				}
+			case c.Depth - 1:
+
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint32)(unsafe.Pointer(&env.FileEnv.Ints[index])) <<= val
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.FileEnv.
+								Vals[index]
 							lhs.SetUint(lhs.Uint() <<
 								val,
 							)
@@ -1187,7 +1201,7 @@ func (c *Comp) varShlConst(va *Var, val I) {
 						for i := 3; i < upn; i++ {
 							o = o.Outer
 						}
-						*(*uint32)(unsafe.Pointer(&o.IntBinds[index])) <<= val
+						*(*uint32)(unsafe.Pointer(&o.Ints[index])) <<= val
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -1201,30 +1215,7 @@ func (c *Comp) varShlConst(va *Var, val I) {
 						{
 							lhs :=
 
-								o.Binds[index]
-							lhs.SetUint(lhs.Uint() <<
-								val,
-							)
-						}
-
-						env.IP++
-						return env.Code[env.IP], env
-					}
-				}
-			case c.Depth - 1:
-
-				if intbinds {
-					ret = func(env *Env) (Stmt, *Env) {
-						*(*uint32)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) <<= val
-
-						env.IP++
-						return env.Code[env.IP], env
-					}
-				} else {
-					ret = func(env *Env) (Stmt, *Env) {
-						{
-							lhs := env.ThreadGlobals.FileEnv.
-								Binds[index]
+								o.Vals[index]
 							lhs.SetUint(lhs.Uint() <<
 								val,
 							)
@@ -1242,7 +1233,7 @@ func (c *Comp) varShlConst(va *Var, val I) {
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
 						env.
-							IntBinds[index] <<= val
+							Ints[index] <<= val
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -1251,7 +1242,7 @@ func (c *Comp) varShlConst(va *Var, val I) {
 					ret = func(env *Env) (Stmt, *Env) {
 						{
 							lhs := env.
-								Binds[index]
+								Vals[index]
 							lhs.SetUint(lhs.Uint() <<
 								val,
 							)
@@ -1267,7 +1258,7 @@ func (c *Comp) varShlConst(va *Var, val I) {
 					ret = func(env *Env) (Stmt, *Env) {
 						env.
 							Outer.
-							IntBinds[index] <<= val
+							Ints[index] <<= val
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -1277,7 +1268,7 @@ func (c *Comp) varShlConst(va *Var, val I) {
 						{
 							lhs := env.
 								Outer.
-								Binds[index]
+								Vals[index]
 							lhs.SetUint(lhs.Uint() <<
 								val,
 							)
@@ -1293,7 +1284,7 @@ func (c *Comp) varShlConst(va *Var, val I) {
 					ret = func(env *Env) (Stmt, *Env) {
 						env.
 							Outer.Outer.
-							IntBinds[index] <<= val
+							Ints[index] <<= val
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -1303,7 +1294,31 @@ func (c *Comp) varShlConst(va *Var, val I) {
 						{
 							lhs := env.
 								Outer.Outer.
-								Binds[index]
+								Vals[index]
+							lhs.SetUint(lhs.Uint() <<
+								val,
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				}
+			case c.Depth - 1:
+
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						env.FileEnv.
+							Ints[index] <<= val
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.FileEnv.
+								Vals[index]
 							lhs.SetUint(lhs.Uint() <<
 								val,
 							)
@@ -1322,7 +1337,7 @@ func (c *Comp) varShlConst(va *Var, val I) {
 							o = o.Outer
 						}
 
-						o.IntBinds[index] <<= val
+						o.Ints[index] <<= val
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -1336,31 +1351,7 @@ func (c *Comp) varShlConst(va *Var, val I) {
 						{
 							lhs :=
 
-								o.Binds[index]
-							lhs.SetUint(lhs.Uint() <<
-								val,
-							)
-						}
-
-						env.IP++
-						return env.Code[env.IP], env
-					}
-				}
-			case c.Depth - 1:
-
-				if intbinds {
-					ret = func(env *Env) (Stmt, *Env) {
-						env.ThreadGlobals.FileEnv.
-							IntBinds[index] <<= val
-
-						env.IP++
-						return env.Code[env.IP], env
-					}
-				} else {
-					ret = func(env *Env) (Stmt, *Env) {
-						{
-							lhs := env.ThreadGlobals.FileEnv.
-								Binds[index]
+								o.Vals[index]
 							lhs.SetUint(lhs.Uint() <<
 								val,
 							)
@@ -1377,7 +1368,7 @@ func (c *Comp) varShlConst(va *Var, val I) {
 
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
-						*(*uintptr)(unsafe.Pointer(&env.IntBinds[index])) <<= val
+						*(*uintptr)(unsafe.Pointer(&env.Ints[index])) <<= val
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -1386,7 +1377,7 @@ func (c *Comp) varShlConst(va *Var, val I) {
 					ret = func(env *Env) (Stmt, *Env) {
 						{
 							lhs := env.
-								Binds[index]
+								Vals[index]
 							lhs.SetUint(lhs.Uint() <<
 								val,
 							)
@@ -1401,7 +1392,7 @@ func (c *Comp) varShlConst(va *Var, val I) {
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
 						*(*uintptr)(unsafe.Pointer(&env.
-							Outer.IntBinds[index])) <<= val
+							Outer.Ints[index])) <<= val
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -1411,7 +1402,7 @@ func (c *Comp) varShlConst(va *Var, val I) {
 						{
 							lhs := env.
 								Outer.
-								Binds[index]
+								Vals[index]
 							lhs.SetUint(lhs.Uint() <<
 								val,
 							)
@@ -1426,7 +1417,7 @@ func (c *Comp) varShlConst(va *Var, val I) {
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
 						*(*uintptr)(unsafe.Pointer(&env.
-							Outer.Outer.IntBinds[index])) <<= val
+							Outer.Outer.Ints[index])) <<= val
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -1436,7 +1427,30 @@ func (c *Comp) varShlConst(va *Var, val I) {
 						{
 							lhs := env.
 								Outer.Outer.
-								Binds[index]
+								Vals[index]
+							lhs.SetUint(lhs.Uint() <<
+								val,
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				}
+			case c.Depth - 1:
+
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uintptr)(unsafe.Pointer(&env.FileEnv.Ints[index])) <<= val
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.FileEnv.
+								Vals[index]
 							lhs.SetUint(lhs.Uint() <<
 								val,
 							)
@@ -1454,7 +1468,7 @@ func (c *Comp) varShlConst(va *Var, val I) {
 						for i := 3; i < upn; i++ {
 							o = o.Outer
 						}
-						*(*uintptr)(unsafe.Pointer(&o.IntBinds[index])) <<= val
+						*(*uintptr)(unsafe.Pointer(&o.Ints[index])) <<= val
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -1468,30 +1482,7 @@ func (c *Comp) varShlConst(va *Var, val I) {
 						{
 							lhs :=
 
-								o.Binds[index]
-							lhs.SetUint(lhs.Uint() <<
-								val,
-							)
-						}
-
-						env.IP++
-						return env.Code[env.IP], env
-					}
-				}
-			case c.Depth - 1:
-
-				if intbinds {
-					ret = func(env *Env) (Stmt, *Env) {
-						*(*uintptr)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) <<= val
-
-						env.IP++
-						return env.Code[env.IP], env
-					}
-				} else {
-					ret = func(env *Env) (Stmt, *Env) {
-						{
-							lhs := env.ThreadGlobals.FileEnv.
-								Binds[index]
+								o.Vals[index]
 							lhs.SetUint(lhs.Uint() <<
 								val,
 							)
@@ -1530,7 +1521,7 @@ func (c *Comp) varShlExpr(va *Var, function I) {
 
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
-						*(*int)(unsafe.Pointer(&env.IntBinds[index])) <<= fun(env)
+						*(*int)(unsafe.Pointer(&env.Ints[index])) <<= fun(env)
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -1539,7 +1530,7 @@ func (c *Comp) varShlExpr(va *Var, function I) {
 					ret = func(env *Env) (Stmt, *Env) {
 						{
 							lhs := env.
-								Binds[index]
+								Vals[index]
 							lhs.SetInt(lhs.Int() <<
 								fun(env),
 							)
@@ -1554,7 +1545,7 @@ func (c *Comp) varShlExpr(va *Var, function I) {
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
 						*(*int)(unsafe.Pointer(&env.
-							Outer.IntBinds[index])) <<= fun(env)
+							Outer.Ints[index])) <<= fun(env)
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -1564,7 +1555,7 @@ func (c *Comp) varShlExpr(va *Var, function I) {
 						{
 							lhs := env.
 								Outer.
-								Binds[index]
+								Vals[index]
 							lhs.SetInt(lhs.Int() <<
 								fun(env),
 							)
@@ -1579,7 +1570,7 @@ func (c *Comp) varShlExpr(va *Var, function I) {
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
 						*(*int)(unsafe.Pointer(&env.
-							Outer.Outer.IntBinds[index])) <<= fun(env)
+							Outer.Outer.Ints[index])) <<= fun(env)
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -1589,7 +1580,30 @@ func (c *Comp) varShlExpr(va *Var, function I) {
 						{
 							lhs := env.
 								Outer.Outer.
-								Binds[index]
+								Vals[index]
+							lhs.SetInt(lhs.Int() <<
+								fun(env),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				}
+			case c.Depth - 1:
+
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int)(unsafe.Pointer(&env.FileEnv.Ints[index])) <<= fun(env)
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.FileEnv.
+								Vals[index]
 							lhs.SetInt(lhs.Int() <<
 								fun(env),
 							)
@@ -1607,7 +1621,7 @@ func (c *Comp) varShlExpr(va *Var, function I) {
 						for i := 3; i < upn; i++ {
 							o = o.Outer
 						}
-						*(*int)(unsafe.Pointer(&o.IntBinds[index])) <<= fun(env)
+						*(*int)(unsafe.Pointer(&o.Ints[index])) <<= fun(env)
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -1621,30 +1635,7 @@ func (c *Comp) varShlExpr(va *Var, function I) {
 						{
 							lhs :=
 
-								o.Binds[index]
-							lhs.SetInt(lhs.Int() <<
-								fun(env),
-							)
-						}
-
-						env.IP++
-						return env.Code[env.IP], env
-					}
-				}
-			case c.Depth - 1:
-
-				if intbinds {
-					ret = func(env *Env) (Stmt, *Env) {
-						*(*int)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) <<= fun(env)
-
-						env.IP++
-						return env.Code[env.IP], env
-					}
-				} else {
-					ret = func(env *Env) (Stmt, *Env) {
-						{
-							lhs := env.ThreadGlobals.FileEnv.
-								Binds[index]
+								o.Vals[index]
 							lhs.SetInt(lhs.Int() <<
 								fun(env),
 							)
@@ -1661,7 +1652,7 @@ func (c *Comp) varShlExpr(va *Var, function I) {
 
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
-						*(*int8)(unsafe.Pointer(&env.IntBinds[index])) <<= fun(env)
+						*(*int8)(unsafe.Pointer(&env.Ints[index])) <<= fun(env)
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -1670,7 +1661,7 @@ func (c *Comp) varShlExpr(va *Var, function I) {
 					ret = func(env *Env) (Stmt, *Env) {
 						{
 							lhs := env.
-								Binds[index]
+								Vals[index]
 							lhs.SetInt(lhs.Int() <<
 								fun(env),
 							)
@@ -1685,7 +1676,7 @@ func (c *Comp) varShlExpr(va *Var, function I) {
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
 						*(*int8)(unsafe.Pointer(&env.
-							Outer.IntBinds[index])) <<= fun(env)
+							Outer.Ints[index])) <<= fun(env)
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -1695,7 +1686,7 @@ func (c *Comp) varShlExpr(va *Var, function I) {
 						{
 							lhs := env.
 								Outer.
-								Binds[index]
+								Vals[index]
 							lhs.SetInt(lhs.Int() <<
 								fun(env),
 							)
@@ -1710,7 +1701,7 @@ func (c *Comp) varShlExpr(va *Var, function I) {
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
 						*(*int8)(unsafe.Pointer(&env.
-							Outer.Outer.IntBinds[index])) <<= fun(env)
+							Outer.Outer.Ints[index])) <<= fun(env)
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -1720,7 +1711,30 @@ func (c *Comp) varShlExpr(va *Var, function I) {
 						{
 							lhs := env.
 								Outer.Outer.
-								Binds[index]
+								Vals[index]
+							lhs.SetInt(lhs.Int() <<
+								fun(env),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				}
+			case c.Depth - 1:
+
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int8)(unsafe.Pointer(&env.FileEnv.Ints[index])) <<= fun(env)
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.FileEnv.
+								Vals[index]
 							lhs.SetInt(lhs.Int() <<
 								fun(env),
 							)
@@ -1738,7 +1752,7 @@ func (c *Comp) varShlExpr(va *Var, function I) {
 						for i := 3; i < upn; i++ {
 							o = o.Outer
 						}
-						*(*int8)(unsafe.Pointer(&o.IntBinds[index])) <<= fun(env)
+						*(*int8)(unsafe.Pointer(&o.Ints[index])) <<= fun(env)
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -1752,30 +1766,7 @@ func (c *Comp) varShlExpr(va *Var, function I) {
 						{
 							lhs :=
 
-								o.Binds[index]
-							lhs.SetInt(lhs.Int() <<
-								fun(env),
-							)
-						}
-
-						env.IP++
-						return env.Code[env.IP], env
-					}
-				}
-			case c.Depth - 1:
-
-				if intbinds {
-					ret = func(env *Env) (Stmt, *Env) {
-						*(*int8)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) <<= fun(env)
-
-						env.IP++
-						return env.Code[env.IP], env
-					}
-				} else {
-					ret = func(env *Env) (Stmt, *Env) {
-						{
-							lhs := env.ThreadGlobals.FileEnv.
-								Binds[index]
+								o.Vals[index]
 							lhs.SetInt(lhs.Int() <<
 								fun(env),
 							)
@@ -1792,7 +1783,7 @@ func (c *Comp) varShlExpr(va *Var, function I) {
 
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
-						*(*int16)(unsafe.Pointer(&env.IntBinds[index])) <<= fun(env)
+						*(*int16)(unsafe.Pointer(&env.Ints[index])) <<= fun(env)
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -1801,7 +1792,7 @@ func (c *Comp) varShlExpr(va *Var, function I) {
 					ret = func(env *Env) (Stmt, *Env) {
 						{
 							lhs := env.
-								Binds[index]
+								Vals[index]
 							lhs.SetInt(lhs.Int() <<
 								fun(env),
 							)
@@ -1816,7 +1807,7 @@ func (c *Comp) varShlExpr(va *Var, function I) {
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
 						*(*int16)(unsafe.Pointer(&env.
-							Outer.IntBinds[index])) <<= fun(env)
+							Outer.Ints[index])) <<= fun(env)
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -1826,7 +1817,7 @@ func (c *Comp) varShlExpr(va *Var, function I) {
 						{
 							lhs := env.
 								Outer.
-								Binds[index]
+								Vals[index]
 							lhs.SetInt(lhs.Int() <<
 								fun(env),
 							)
@@ -1841,7 +1832,7 @@ func (c *Comp) varShlExpr(va *Var, function I) {
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
 						*(*int16)(unsafe.Pointer(&env.
-							Outer.Outer.IntBinds[index])) <<= fun(env)
+							Outer.Outer.Ints[index])) <<= fun(env)
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -1851,7 +1842,30 @@ func (c *Comp) varShlExpr(va *Var, function I) {
 						{
 							lhs := env.
 								Outer.Outer.
-								Binds[index]
+								Vals[index]
+							lhs.SetInt(lhs.Int() <<
+								fun(env),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				}
+			case c.Depth - 1:
+
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int16)(unsafe.Pointer(&env.FileEnv.Ints[index])) <<= fun(env)
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.FileEnv.
+								Vals[index]
 							lhs.SetInt(lhs.Int() <<
 								fun(env),
 							)
@@ -1869,7 +1883,7 @@ func (c *Comp) varShlExpr(va *Var, function I) {
 						for i := 3; i < upn; i++ {
 							o = o.Outer
 						}
-						*(*int16)(unsafe.Pointer(&o.IntBinds[index])) <<= fun(env)
+						*(*int16)(unsafe.Pointer(&o.Ints[index])) <<= fun(env)
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -1883,30 +1897,7 @@ func (c *Comp) varShlExpr(va *Var, function I) {
 						{
 							lhs :=
 
-								o.Binds[index]
-							lhs.SetInt(lhs.Int() <<
-								fun(env),
-							)
-						}
-
-						env.IP++
-						return env.Code[env.IP], env
-					}
-				}
-			case c.Depth - 1:
-
-				if intbinds {
-					ret = func(env *Env) (Stmt, *Env) {
-						*(*int16)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) <<= fun(env)
-
-						env.IP++
-						return env.Code[env.IP], env
-					}
-				} else {
-					ret = func(env *Env) (Stmt, *Env) {
-						{
-							lhs := env.ThreadGlobals.FileEnv.
-								Binds[index]
+								o.Vals[index]
 							lhs.SetInt(lhs.Int() <<
 								fun(env),
 							)
@@ -1923,7 +1914,7 @@ func (c *Comp) varShlExpr(va *Var, function I) {
 
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
-						*(*int32)(unsafe.Pointer(&env.IntBinds[index])) <<= fun(env)
+						*(*int32)(unsafe.Pointer(&env.Ints[index])) <<= fun(env)
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -1932,7 +1923,7 @@ func (c *Comp) varShlExpr(va *Var, function I) {
 					ret = func(env *Env) (Stmt, *Env) {
 						{
 							lhs := env.
-								Binds[index]
+								Vals[index]
 							lhs.SetInt(lhs.Int() <<
 								fun(env),
 							)
@@ -1947,7 +1938,7 @@ func (c *Comp) varShlExpr(va *Var, function I) {
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
 						*(*int32)(unsafe.Pointer(&env.
-							Outer.IntBinds[index])) <<= fun(env)
+							Outer.Ints[index])) <<= fun(env)
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -1957,7 +1948,7 @@ func (c *Comp) varShlExpr(va *Var, function I) {
 						{
 							lhs := env.
 								Outer.
-								Binds[index]
+								Vals[index]
 							lhs.SetInt(lhs.Int() <<
 								fun(env),
 							)
@@ -1972,7 +1963,7 @@ func (c *Comp) varShlExpr(va *Var, function I) {
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
 						*(*int32)(unsafe.Pointer(&env.
-							Outer.Outer.IntBinds[index])) <<= fun(env)
+							Outer.Outer.Ints[index])) <<= fun(env)
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -1982,7 +1973,30 @@ func (c *Comp) varShlExpr(va *Var, function I) {
 						{
 							lhs := env.
 								Outer.Outer.
-								Binds[index]
+								Vals[index]
+							lhs.SetInt(lhs.Int() <<
+								fun(env),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				}
+			case c.Depth - 1:
+
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int32)(unsafe.Pointer(&env.FileEnv.Ints[index])) <<= fun(env)
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.FileEnv.
+								Vals[index]
 							lhs.SetInt(lhs.Int() <<
 								fun(env),
 							)
@@ -2000,7 +2014,7 @@ func (c *Comp) varShlExpr(va *Var, function I) {
 						for i := 3; i < upn; i++ {
 							o = o.Outer
 						}
-						*(*int32)(unsafe.Pointer(&o.IntBinds[index])) <<= fun(env)
+						*(*int32)(unsafe.Pointer(&o.Ints[index])) <<= fun(env)
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -2014,30 +2028,7 @@ func (c *Comp) varShlExpr(va *Var, function I) {
 						{
 							lhs :=
 
-								o.Binds[index]
-							lhs.SetInt(lhs.Int() <<
-								fun(env),
-							)
-						}
-
-						env.IP++
-						return env.Code[env.IP], env
-					}
-				}
-			case c.Depth - 1:
-
-				if intbinds {
-					ret = func(env *Env) (Stmt, *Env) {
-						*(*int32)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) <<= fun(env)
-
-						env.IP++
-						return env.Code[env.IP], env
-					}
-				} else {
-					ret = func(env *Env) (Stmt, *Env) {
-						{
-							lhs := env.ThreadGlobals.FileEnv.
-								Binds[index]
+								o.Vals[index]
 							lhs.SetInt(lhs.Int() <<
 								fun(env),
 							)
@@ -2054,7 +2045,7 @@ func (c *Comp) varShlExpr(va *Var, function I) {
 
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
-						*(*int64)(unsafe.Pointer(&env.IntBinds[index])) <<= fun(env)
+						*(*int64)(unsafe.Pointer(&env.Ints[index])) <<= fun(env)
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -2063,7 +2054,7 @@ func (c *Comp) varShlExpr(va *Var, function I) {
 					ret = func(env *Env) (Stmt, *Env) {
 						{
 							lhs := env.
-								Binds[index]
+								Vals[index]
 							lhs.SetInt(lhs.Int() <<
 								fun(env),
 							)
@@ -2078,7 +2069,7 @@ func (c *Comp) varShlExpr(va *Var, function I) {
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
 						*(*int64)(unsafe.Pointer(&env.
-							Outer.IntBinds[index])) <<= fun(env)
+							Outer.Ints[index])) <<= fun(env)
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -2088,7 +2079,7 @@ func (c *Comp) varShlExpr(va *Var, function I) {
 						{
 							lhs := env.
 								Outer.
-								Binds[index]
+								Vals[index]
 							lhs.SetInt(lhs.Int() <<
 								fun(env),
 							)
@@ -2103,7 +2094,7 @@ func (c *Comp) varShlExpr(va *Var, function I) {
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
 						*(*int64)(unsafe.Pointer(&env.
-							Outer.Outer.IntBinds[index])) <<= fun(env)
+							Outer.Outer.Ints[index])) <<= fun(env)
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -2113,7 +2104,30 @@ func (c *Comp) varShlExpr(va *Var, function I) {
 						{
 							lhs := env.
 								Outer.Outer.
-								Binds[index]
+								Vals[index]
+							lhs.SetInt(lhs.Int() <<
+								fun(env),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				}
+			case c.Depth - 1:
+
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int64)(unsafe.Pointer(&env.FileEnv.Ints[index])) <<= fun(env)
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.FileEnv.
+								Vals[index]
 							lhs.SetInt(lhs.Int() <<
 								fun(env),
 							)
@@ -2131,7 +2145,7 @@ func (c *Comp) varShlExpr(va *Var, function I) {
 						for i := 3; i < upn; i++ {
 							o = o.Outer
 						}
-						*(*int64)(unsafe.Pointer(&o.IntBinds[index])) <<= fun(env)
+						*(*int64)(unsafe.Pointer(&o.Ints[index])) <<= fun(env)
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -2145,30 +2159,7 @@ func (c *Comp) varShlExpr(va *Var, function I) {
 						{
 							lhs :=
 
-								o.Binds[index]
-							lhs.SetInt(lhs.Int() <<
-								fun(env),
-							)
-						}
-
-						env.IP++
-						return env.Code[env.IP], env
-					}
-				}
-			case c.Depth - 1:
-
-				if intbinds {
-					ret = func(env *Env) (Stmt, *Env) {
-						*(*int64)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) <<= fun(env)
-
-						env.IP++
-						return env.Code[env.IP], env
-					}
-				} else {
-					ret = func(env *Env) (Stmt, *Env) {
-						{
-							lhs := env.ThreadGlobals.FileEnv.
-								Binds[index]
+								o.Vals[index]
 							lhs.SetInt(lhs.Int() <<
 								fun(env),
 							)
@@ -2185,7 +2176,7 @@ func (c *Comp) varShlExpr(va *Var, function I) {
 
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
-						*(*uint)(unsafe.Pointer(&env.IntBinds[index])) <<= fun(env)
+						*(*uint)(unsafe.Pointer(&env.Ints[index])) <<= fun(env)
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -2194,7 +2185,7 @@ func (c *Comp) varShlExpr(va *Var, function I) {
 					ret = func(env *Env) (Stmt, *Env) {
 						{
 							lhs := env.
-								Binds[index]
+								Vals[index]
 							lhs.SetUint(lhs.Uint() <<
 								fun(env),
 							)
@@ -2209,7 +2200,7 @@ func (c *Comp) varShlExpr(va *Var, function I) {
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
 						*(*uint)(unsafe.Pointer(&env.
-							Outer.IntBinds[index])) <<= fun(env)
+							Outer.Ints[index])) <<= fun(env)
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -2219,7 +2210,7 @@ func (c *Comp) varShlExpr(va *Var, function I) {
 						{
 							lhs := env.
 								Outer.
-								Binds[index]
+								Vals[index]
 							lhs.SetUint(lhs.Uint() <<
 								fun(env),
 							)
@@ -2234,7 +2225,7 @@ func (c *Comp) varShlExpr(va *Var, function I) {
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
 						*(*uint)(unsafe.Pointer(&env.
-							Outer.Outer.IntBinds[index])) <<= fun(env)
+							Outer.Outer.Ints[index])) <<= fun(env)
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -2244,7 +2235,30 @@ func (c *Comp) varShlExpr(va *Var, function I) {
 						{
 							lhs := env.
 								Outer.Outer.
-								Binds[index]
+								Vals[index]
+							lhs.SetUint(lhs.Uint() <<
+								fun(env),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				}
+			case c.Depth - 1:
+
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint)(unsafe.Pointer(&env.FileEnv.Ints[index])) <<= fun(env)
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.FileEnv.
+								Vals[index]
 							lhs.SetUint(lhs.Uint() <<
 								fun(env),
 							)
@@ -2262,7 +2276,7 @@ func (c *Comp) varShlExpr(va *Var, function I) {
 						for i := 3; i < upn; i++ {
 							o = o.Outer
 						}
-						*(*uint)(unsafe.Pointer(&o.IntBinds[index])) <<= fun(env)
+						*(*uint)(unsafe.Pointer(&o.Ints[index])) <<= fun(env)
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -2276,30 +2290,7 @@ func (c *Comp) varShlExpr(va *Var, function I) {
 						{
 							lhs :=
 
-								o.Binds[index]
-							lhs.SetUint(lhs.Uint() <<
-								fun(env),
-							)
-						}
-
-						env.IP++
-						return env.Code[env.IP], env
-					}
-				}
-			case c.Depth - 1:
-
-				if intbinds {
-					ret = func(env *Env) (Stmt, *Env) {
-						*(*uint)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) <<= fun(env)
-
-						env.IP++
-						return env.Code[env.IP], env
-					}
-				} else {
-					ret = func(env *Env) (Stmt, *Env) {
-						{
-							lhs := env.ThreadGlobals.FileEnv.
-								Binds[index]
+								o.Vals[index]
 							lhs.SetUint(lhs.Uint() <<
 								fun(env),
 							)
@@ -2316,7 +2307,7 @@ func (c *Comp) varShlExpr(va *Var, function I) {
 
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
-						*(*uint8)(unsafe.Pointer(&env.IntBinds[index])) <<= fun(env)
+						*(*uint8)(unsafe.Pointer(&env.Ints[index])) <<= fun(env)
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -2325,7 +2316,7 @@ func (c *Comp) varShlExpr(va *Var, function I) {
 					ret = func(env *Env) (Stmt, *Env) {
 						{
 							lhs := env.
-								Binds[index]
+								Vals[index]
 							lhs.SetUint(lhs.Uint() <<
 								fun(env),
 							)
@@ -2340,7 +2331,7 @@ func (c *Comp) varShlExpr(va *Var, function I) {
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
 						*(*uint8)(unsafe.Pointer(&env.
-							Outer.IntBinds[index])) <<= fun(env)
+							Outer.Ints[index])) <<= fun(env)
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -2350,7 +2341,7 @@ func (c *Comp) varShlExpr(va *Var, function I) {
 						{
 							lhs := env.
 								Outer.
-								Binds[index]
+								Vals[index]
 							lhs.SetUint(lhs.Uint() <<
 								fun(env),
 							)
@@ -2365,7 +2356,7 @@ func (c *Comp) varShlExpr(va *Var, function I) {
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
 						*(*uint8)(unsafe.Pointer(&env.
-							Outer.Outer.IntBinds[index])) <<= fun(env)
+							Outer.Outer.Ints[index])) <<= fun(env)
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -2375,7 +2366,30 @@ func (c *Comp) varShlExpr(va *Var, function I) {
 						{
 							lhs := env.
 								Outer.Outer.
-								Binds[index]
+								Vals[index]
+							lhs.SetUint(lhs.Uint() <<
+								fun(env),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				}
+			case c.Depth - 1:
+
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint8)(unsafe.Pointer(&env.FileEnv.Ints[index])) <<= fun(env)
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.FileEnv.
+								Vals[index]
 							lhs.SetUint(lhs.Uint() <<
 								fun(env),
 							)
@@ -2393,7 +2407,7 @@ func (c *Comp) varShlExpr(va *Var, function I) {
 						for i := 3; i < upn; i++ {
 							o = o.Outer
 						}
-						*(*uint8)(unsafe.Pointer(&o.IntBinds[index])) <<= fun(env)
+						*(*uint8)(unsafe.Pointer(&o.Ints[index])) <<= fun(env)
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -2407,30 +2421,7 @@ func (c *Comp) varShlExpr(va *Var, function I) {
 						{
 							lhs :=
 
-								o.Binds[index]
-							lhs.SetUint(lhs.Uint() <<
-								fun(env),
-							)
-						}
-
-						env.IP++
-						return env.Code[env.IP], env
-					}
-				}
-			case c.Depth - 1:
-
-				if intbinds {
-					ret = func(env *Env) (Stmt, *Env) {
-						*(*uint8)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) <<= fun(env)
-
-						env.IP++
-						return env.Code[env.IP], env
-					}
-				} else {
-					ret = func(env *Env) (Stmt, *Env) {
-						{
-							lhs := env.ThreadGlobals.FileEnv.
-								Binds[index]
+								o.Vals[index]
 							lhs.SetUint(lhs.Uint() <<
 								fun(env),
 							)
@@ -2447,7 +2438,7 @@ func (c *Comp) varShlExpr(va *Var, function I) {
 
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
-						*(*uint16)(unsafe.Pointer(&env.IntBinds[index])) <<= fun(env)
+						*(*uint16)(unsafe.Pointer(&env.Ints[index])) <<= fun(env)
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -2456,7 +2447,7 @@ func (c *Comp) varShlExpr(va *Var, function I) {
 					ret = func(env *Env) (Stmt, *Env) {
 						{
 							lhs := env.
-								Binds[index]
+								Vals[index]
 							lhs.SetUint(lhs.Uint() <<
 								fun(env),
 							)
@@ -2471,7 +2462,7 @@ func (c *Comp) varShlExpr(va *Var, function I) {
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
 						*(*uint16)(unsafe.Pointer(&env.
-							Outer.IntBinds[index])) <<= fun(env)
+							Outer.Ints[index])) <<= fun(env)
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -2481,7 +2472,7 @@ func (c *Comp) varShlExpr(va *Var, function I) {
 						{
 							lhs := env.
 								Outer.
-								Binds[index]
+								Vals[index]
 							lhs.SetUint(lhs.Uint() <<
 								fun(env),
 							)
@@ -2496,7 +2487,7 @@ func (c *Comp) varShlExpr(va *Var, function I) {
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
 						*(*uint16)(unsafe.Pointer(&env.
-							Outer.Outer.IntBinds[index])) <<= fun(env)
+							Outer.Outer.Ints[index])) <<= fun(env)
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -2506,7 +2497,30 @@ func (c *Comp) varShlExpr(va *Var, function I) {
 						{
 							lhs := env.
 								Outer.Outer.
-								Binds[index]
+								Vals[index]
+							lhs.SetUint(lhs.Uint() <<
+								fun(env),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				}
+			case c.Depth - 1:
+
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint16)(unsafe.Pointer(&env.FileEnv.Ints[index])) <<= fun(env)
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.FileEnv.
+								Vals[index]
 							lhs.SetUint(lhs.Uint() <<
 								fun(env),
 							)
@@ -2524,7 +2538,7 @@ func (c *Comp) varShlExpr(va *Var, function I) {
 						for i := 3; i < upn; i++ {
 							o = o.Outer
 						}
-						*(*uint16)(unsafe.Pointer(&o.IntBinds[index])) <<= fun(env)
+						*(*uint16)(unsafe.Pointer(&o.Ints[index])) <<= fun(env)
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -2538,30 +2552,7 @@ func (c *Comp) varShlExpr(va *Var, function I) {
 						{
 							lhs :=
 
-								o.Binds[index]
-							lhs.SetUint(lhs.Uint() <<
-								fun(env),
-							)
-						}
-
-						env.IP++
-						return env.Code[env.IP], env
-					}
-				}
-			case c.Depth - 1:
-
-				if intbinds {
-					ret = func(env *Env) (Stmt, *Env) {
-						*(*uint16)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) <<= fun(env)
-
-						env.IP++
-						return env.Code[env.IP], env
-					}
-				} else {
-					ret = func(env *Env) (Stmt, *Env) {
-						{
-							lhs := env.ThreadGlobals.FileEnv.
-								Binds[index]
+								o.Vals[index]
 							lhs.SetUint(lhs.Uint() <<
 								fun(env),
 							)
@@ -2578,7 +2569,7 @@ func (c *Comp) varShlExpr(va *Var, function I) {
 
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
-						*(*uint32)(unsafe.Pointer(&env.IntBinds[index])) <<= fun(env)
+						*(*uint32)(unsafe.Pointer(&env.Ints[index])) <<= fun(env)
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -2587,7 +2578,7 @@ func (c *Comp) varShlExpr(va *Var, function I) {
 					ret = func(env *Env) (Stmt, *Env) {
 						{
 							lhs := env.
-								Binds[index]
+								Vals[index]
 							lhs.SetUint(lhs.Uint() <<
 								fun(env),
 							)
@@ -2602,7 +2593,7 @@ func (c *Comp) varShlExpr(va *Var, function I) {
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
 						*(*uint32)(unsafe.Pointer(&env.
-							Outer.IntBinds[index])) <<= fun(env)
+							Outer.Ints[index])) <<= fun(env)
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -2612,7 +2603,7 @@ func (c *Comp) varShlExpr(va *Var, function I) {
 						{
 							lhs := env.
 								Outer.
-								Binds[index]
+								Vals[index]
 							lhs.SetUint(lhs.Uint() <<
 								fun(env),
 							)
@@ -2627,7 +2618,7 @@ func (c *Comp) varShlExpr(va *Var, function I) {
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
 						*(*uint32)(unsafe.Pointer(&env.
-							Outer.Outer.IntBinds[index])) <<= fun(env)
+							Outer.Outer.Ints[index])) <<= fun(env)
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -2637,7 +2628,30 @@ func (c *Comp) varShlExpr(va *Var, function I) {
 						{
 							lhs := env.
 								Outer.Outer.
-								Binds[index]
+								Vals[index]
+							lhs.SetUint(lhs.Uint() <<
+								fun(env),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				}
+			case c.Depth - 1:
+
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint32)(unsafe.Pointer(&env.FileEnv.Ints[index])) <<= fun(env)
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.FileEnv.
+								Vals[index]
 							lhs.SetUint(lhs.Uint() <<
 								fun(env),
 							)
@@ -2655,7 +2669,7 @@ func (c *Comp) varShlExpr(va *Var, function I) {
 						for i := 3; i < upn; i++ {
 							o = o.Outer
 						}
-						*(*uint32)(unsafe.Pointer(&o.IntBinds[index])) <<= fun(env)
+						*(*uint32)(unsafe.Pointer(&o.Ints[index])) <<= fun(env)
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -2669,30 +2683,7 @@ func (c *Comp) varShlExpr(va *Var, function I) {
 						{
 							lhs :=
 
-								o.Binds[index]
-							lhs.SetUint(lhs.Uint() <<
-								fun(env),
-							)
-						}
-
-						env.IP++
-						return env.Code[env.IP], env
-					}
-				}
-			case c.Depth - 1:
-
-				if intbinds {
-					ret = func(env *Env) (Stmt, *Env) {
-						*(*uint32)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) <<= fun(env)
-
-						env.IP++
-						return env.Code[env.IP], env
-					}
-				} else {
-					ret = func(env *Env) (Stmt, *Env) {
-						{
-							lhs := env.ThreadGlobals.FileEnv.
-								Binds[index]
+								o.Vals[index]
 							lhs.SetUint(lhs.Uint() <<
 								fun(env),
 							)
@@ -2710,7 +2701,7 @@ func (c *Comp) varShlExpr(va *Var, function I) {
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
 						env.
-							IntBinds[index] <<= fun(env)
+							Ints[index] <<= fun(env)
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -2719,7 +2710,7 @@ func (c *Comp) varShlExpr(va *Var, function I) {
 					ret = func(env *Env) (Stmt, *Env) {
 						{
 							lhs := env.
-								Binds[index]
+								Vals[index]
 							lhs.SetUint(lhs.Uint() <<
 								fun(env),
 							)
@@ -2735,7 +2726,7 @@ func (c *Comp) varShlExpr(va *Var, function I) {
 					ret = func(env *Env) (Stmt, *Env) {
 						env.
 							Outer.
-							IntBinds[index] <<= fun(env)
+							Ints[index] <<= fun(env)
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -2745,7 +2736,7 @@ func (c *Comp) varShlExpr(va *Var, function I) {
 						{
 							lhs := env.
 								Outer.
-								Binds[index]
+								Vals[index]
 							lhs.SetUint(lhs.Uint() <<
 								fun(env),
 							)
@@ -2761,7 +2752,7 @@ func (c *Comp) varShlExpr(va *Var, function I) {
 					ret = func(env *Env) (Stmt, *Env) {
 						env.
 							Outer.Outer.
-							IntBinds[index] <<= fun(env)
+							Ints[index] <<= fun(env)
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -2771,7 +2762,31 @@ func (c *Comp) varShlExpr(va *Var, function I) {
 						{
 							lhs := env.
 								Outer.Outer.
-								Binds[index]
+								Vals[index]
+							lhs.SetUint(lhs.Uint() <<
+								fun(env),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				}
+			case c.Depth - 1:
+
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						env.FileEnv.
+							Ints[index] <<= fun(env)
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.FileEnv.
+								Vals[index]
 							lhs.SetUint(lhs.Uint() <<
 								fun(env),
 							)
@@ -2790,7 +2805,7 @@ func (c *Comp) varShlExpr(va *Var, function I) {
 							o = o.Outer
 						}
 
-						o.IntBinds[index] <<= fun(env)
+						o.Ints[index] <<= fun(env)
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -2804,31 +2819,7 @@ func (c *Comp) varShlExpr(va *Var, function I) {
 						{
 							lhs :=
 
-								o.Binds[index]
-							lhs.SetUint(lhs.Uint() <<
-								fun(env),
-							)
-						}
-
-						env.IP++
-						return env.Code[env.IP], env
-					}
-				}
-			case c.Depth - 1:
-
-				if intbinds {
-					ret = func(env *Env) (Stmt, *Env) {
-						env.ThreadGlobals.FileEnv.
-							IntBinds[index] <<= fun(env)
-
-						env.IP++
-						return env.Code[env.IP], env
-					}
-				} else {
-					ret = func(env *Env) (Stmt, *Env) {
-						{
-							lhs := env.ThreadGlobals.FileEnv.
-								Binds[index]
+								o.Vals[index]
 							lhs.SetUint(lhs.Uint() <<
 								fun(env),
 							)
@@ -2845,7 +2836,7 @@ func (c *Comp) varShlExpr(va *Var, function I) {
 
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
-						*(*uintptr)(unsafe.Pointer(&env.IntBinds[index])) <<= fun(env)
+						*(*uintptr)(unsafe.Pointer(&env.Ints[index])) <<= fun(env)
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -2854,7 +2845,7 @@ func (c *Comp) varShlExpr(va *Var, function I) {
 					ret = func(env *Env) (Stmt, *Env) {
 						{
 							lhs := env.
-								Binds[index]
+								Vals[index]
 							lhs.SetUint(lhs.Uint() <<
 								fun(env),
 							)
@@ -2869,7 +2860,7 @@ func (c *Comp) varShlExpr(va *Var, function I) {
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
 						*(*uintptr)(unsafe.Pointer(&env.
-							Outer.IntBinds[index])) <<= fun(env)
+							Outer.Ints[index])) <<= fun(env)
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -2879,7 +2870,7 @@ func (c *Comp) varShlExpr(va *Var, function I) {
 						{
 							lhs := env.
 								Outer.
-								Binds[index]
+								Vals[index]
 							lhs.SetUint(lhs.Uint() <<
 								fun(env),
 							)
@@ -2894,7 +2885,7 @@ func (c *Comp) varShlExpr(va *Var, function I) {
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
 						*(*uintptr)(unsafe.Pointer(&env.
-							Outer.Outer.IntBinds[index])) <<= fun(env)
+							Outer.Outer.Ints[index])) <<= fun(env)
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -2904,7 +2895,30 @@ func (c *Comp) varShlExpr(va *Var, function I) {
 						{
 							lhs := env.
 								Outer.Outer.
-								Binds[index]
+								Vals[index]
+							lhs.SetUint(lhs.Uint() <<
+								fun(env),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				}
+			case c.Depth - 1:
+
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uintptr)(unsafe.Pointer(&env.FileEnv.Ints[index])) <<= fun(env)
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.FileEnv.
+								Vals[index]
 							lhs.SetUint(lhs.Uint() <<
 								fun(env),
 							)
@@ -2922,7 +2936,7 @@ func (c *Comp) varShlExpr(va *Var, function I) {
 						for i := 3; i < upn; i++ {
 							o = o.Outer
 						}
-						*(*uintptr)(unsafe.Pointer(&o.IntBinds[index])) <<= fun(env)
+						*(*uintptr)(unsafe.Pointer(&o.Ints[index])) <<= fun(env)
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -2936,30 +2950,7 @@ func (c *Comp) varShlExpr(va *Var, function I) {
 						{
 							lhs :=
 
-								o.Binds[index]
-							lhs.SetUint(lhs.Uint() <<
-								fun(env),
-							)
-						}
-
-						env.IP++
-						return env.Code[env.IP], env
-					}
-				}
-			case c.Depth - 1:
-
-				if intbinds {
-					ret = func(env *Env) (Stmt, *Env) {
-						*(*uintptr)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) <<= fun(env)
-
-						env.IP++
-						return env.Code[env.IP], env
-					}
-				} else {
-					ret = func(env *Env) (Stmt, *Env) {
-						{
-							lhs := env.ThreadGlobals.FileEnv.
-								Binds[index]
+								o.Vals[index]
 							lhs.SetUint(lhs.Uint() <<
 								fun(env),
 							)
@@ -3001,7 +2992,7 @@ func (c *Comp) varShrConst(va *Var, val I) {
 
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
-						*(*int)(unsafe.Pointer(&env.IntBinds[index])) >>= val
+						*(*int)(unsafe.Pointer(&env.Ints[index])) >>= val
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -3010,7 +3001,7 @@ func (c *Comp) varShrConst(va *Var, val I) {
 					ret = func(env *Env) (Stmt, *Env) {
 						{
 							lhs := env.
-								Binds[index]
+								Vals[index]
 							lhs.SetInt(lhs.Int() >>
 								val,
 							)
@@ -3025,7 +3016,7 @@ func (c *Comp) varShrConst(va *Var, val I) {
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
 						*(*int)(unsafe.Pointer(&env.
-							Outer.IntBinds[index])) >>= val
+							Outer.Ints[index])) >>= val
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -3035,7 +3026,7 @@ func (c *Comp) varShrConst(va *Var, val I) {
 						{
 							lhs := env.
 								Outer.
-								Binds[index]
+								Vals[index]
 							lhs.SetInt(lhs.Int() >>
 								val,
 							)
@@ -3050,7 +3041,7 @@ func (c *Comp) varShrConst(va *Var, val I) {
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
 						*(*int)(unsafe.Pointer(&env.
-							Outer.Outer.IntBinds[index])) >>= val
+							Outer.Outer.Ints[index])) >>= val
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -3060,7 +3051,30 @@ func (c *Comp) varShrConst(va *Var, val I) {
 						{
 							lhs := env.
 								Outer.Outer.
-								Binds[index]
+								Vals[index]
+							lhs.SetInt(lhs.Int() >>
+								val,
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				}
+			case c.Depth - 1:
+
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int)(unsafe.Pointer(&env.FileEnv.Ints[index])) >>= val
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.FileEnv.
+								Vals[index]
 							lhs.SetInt(lhs.Int() >>
 								val,
 							)
@@ -3078,7 +3092,7 @@ func (c *Comp) varShrConst(va *Var, val I) {
 						for i := 3; i < upn; i++ {
 							o = o.Outer
 						}
-						*(*int)(unsafe.Pointer(&o.IntBinds[index])) >>= val
+						*(*int)(unsafe.Pointer(&o.Ints[index])) >>= val
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -3092,30 +3106,7 @@ func (c *Comp) varShrConst(va *Var, val I) {
 						{
 							lhs :=
 
-								o.Binds[index]
-							lhs.SetInt(lhs.Int() >>
-								val,
-							)
-						}
-
-						env.IP++
-						return env.Code[env.IP], env
-					}
-				}
-			case c.Depth - 1:
-
-				if intbinds {
-					ret = func(env *Env) (Stmt, *Env) {
-						*(*int)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) >>= val
-
-						env.IP++
-						return env.Code[env.IP], env
-					}
-				} else {
-					ret = func(env *Env) (Stmt, *Env) {
-						{
-							lhs := env.ThreadGlobals.FileEnv.
-								Binds[index]
+								o.Vals[index]
 							lhs.SetInt(lhs.Int() >>
 								val,
 							)
@@ -3132,7 +3123,7 @@ func (c *Comp) varShrConst(va *Var, val I) {
 
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
-						*(*int8)(unsafe.Pointer(&env.IntBinds[index])) >>= val
+						*(*int8)(unsafe.Pointer(&env.Ints[index])) >>= val
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -3141,7 +3132,7 @@ func (c *Comp) varShrConst(va *Var, val I) {
 					ret = func(env *Env) (Stmt, *Env) {
 						{
 							lhs := env.
-								Binds[index]
+								Vals[index]
 							lhs.SetInt(lhs.Int() >>
 								val,
 							)
@@ -3156,7 +3147,7 @@ func (c *Comp) varShrConst(va *Var, val I) {
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
 						*(*int8)(unsafe.Pointer(&env.
-							Outer.IntBinds[index])) >>= val
+							Outer.Ints[index])) >>= val
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -3166,7 +3157,7 @@ func (c *Comp) varShrConst(va *Var, val I) {
 						{
 							lhs := env.
 								Outer.
-								Binds[index]
+								Vals[index]
 							lhs.SetInt(lhs.Int() >>
 								val,
 							)
@@ -3181,7 +3172,7 @@ func (c *Comp) varShrConst(va *Var, val I) {
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
 						*(*int8)(unsafe.Pointer(&env.
-							Outer.Outer.IntBinds[index])) >>= val
+							Outer.Outer.Ints[index])) >>= val
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -3191,7 +3182,30 @@ func (c *Comp) varShrConst(va *Var, val I) {
 						{
 							lhs := env.
 								Outer.Outer.
-								Binds[index]
+								Vals[index]
+							lhs.SetInt(lhs.Int() >>
+								val,
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				}
+			case c.Depth - 1:
+
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int8)(unsafe.Pointer(&env.FileEnv.Ints[index])) >>= val
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.FileEnv.
+								Vals[index]
 							lhs.SetInt(lhs.Int() >>
 								val,
 							)
@@ -3209,7 +3223,7 @@ func (c *Comp) varShrConst(va *Var, val I) {
 						for i := 3; i < upn; i++ {
 							o = o.Outer
 						}
-						*(*int8)(unsafe.Pointer(&o.IntBinds[index])) >>= val
+						*(*int8)(unsafe.Pointer(&o.Ints[index])) >>= val
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -3223,30 +3237,7 @@ func (c *Comp) varShrConst(va *Var, val I) {
 						{
 							lhs :=
 
-								o.Binds[index]
-							lhs.SetInt(lhs.Int() >>
-								val,
-							)
-						}
-
-						env.IP++
-						return env.Code[env.IP], env
-					}
-				}
-			case c.Depth - 1:
-
-				if intbinds {
-					ret = func(env *Env) (Stmt, *Env) {
-						*(*int8)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) >>= val
-
-						env.IP++
-						return env.Code[env.IP], env
-					}
-				} else {
-					ret = func(env *Env) (Stmt, *Env) {
-						{
-							lhs := env.ThreadGlobals.FileEnv.
-								Binds[index]
+								o.Vals[index]
 							lhs.SetInt(lhs.Int() >>
 								val,
 							)
@@ -3263,7 +3254,7 @@ func (c *Comp) varShrConst(va *Var, val I) {
 
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
-						*(*int16)(unsafe.Pointer(&env.IntBinds[index])) >>= val
+						*(*int16)(unsafe.Pointer(&env.Ints[index])) >>= val
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -3272,7 +3263,7 @@ func (c *Comp) varShrConst(va *Var, val I) {
 					ret = func(env *Env) (Stmt, *Env) {
 						{
 							lhs := env.
-								Binds[index]
+								Vals[index]
 							lhs.SetInt(lhs.Int() >>
 								val,
 							)
@@ -3287,7 +3278,7 @@ func (c *Comp) varShrConst(va *Var, val I) {
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
 						*(*int16)(unsafe.Pointer(&env.
-							Outer.IntBinds[index])) >>= val
+							Outer.Ints[index])) >>= val
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -3297,7 +3288,7 @@ func (c *Comp) varShrConst(va *Var, val I) {
 						{
 							lhs := env.
 								Outer.
-								Binds[index]
+								Vals[index]
 							lhs.SetInt(lhs.Int() >>
 								val,
 							)
@@ -3312,7 +3303,7 @@ func (c *Comp) varShrConst(va *Var, val I) {
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
 						*(*int16)(unsafe.Pointer(&env.
-							Outer.Outer.IntBinds[index])) >>= val
+							Outer.Outer.Ints[index])) >>= val
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -3322,7 +3313,30 @@ func (c *Comp) varShrConst(va *Var, val I) {
 						{
 							lhs := env.
 								Outer.Outer.
-								Binds[index]
+								Vals[index]
+							lhs.SetInt(lhs.Int() >>
+								val,
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				}
+			case c.Depth - 1:
+
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int16)(unsafe.Pointer(&env.FileEnv.Ints[index])) >>= val
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.FileEnv.
+								Vals[index]
 							lhs.SetInt(lhs.Int() >>
 								val,
 							)
@@ -3340,7 +3354,7 @@ func (c *Comp) varShrConst(va *Var, val I) {
 						for i := 3; i < upn; i++ {
 							o = o.Outer
 						}
-						*(*int16)(unsafe.Pointer(&o.IntBinds[index])) >>= val
+						*(*int16)(unsafe.Pointer(&o.Ints[index])) >>= val
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -3354,30 +3368,7 @@ func (c *Comp) varShrConst(va *Var, val I) {
 						{
 							lhs :=
 
-								o.Binds[index]
-							lhs.SetInt(lhs.Int() >>
-								val,
-							)
-						}
-
-						env.IP++
-						return env.Code[env.IP], env
-					}
-				}
-			case c.Depth - 1:
-
-				if intbinds {
-					ret = func(env *Env) (Stmt, *Env) {
-						*(*int16)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) >>= val
-
-						env.IP++
-						return env.Code[env.IP], env
-					}
-				} else {
-					ret = func(env *Env) (Stmt, *Env) {
-						{
-							lhs := env.ThreadGlobals.FileEnv.
-								Binds[index]
+								o.Vals[index]
 							lhs.SetInt(lhs.Int() >>
 								val,
 							)
@@ -3394,7 +3385,7 @@ func (c *Comp) varShrConst(va *Var, val I) {
 
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
-						*(*int32)(unsafe.Pointer(&env.IntBinds[index])) >>= val
+						*(*int32)(unsafe.Pointer(&env.Ints[index])) >>= val
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -3403,7 +3394,7 @@ func (c *Comp) varShrConst(va *Var, val I) {
 					ret = func(env *Env) (Stmt, *Env) {
 						{
 							lhs := env.
-								Binds[index]
+								Vals[index]
 							lhs.SetInt(lhs.Int() >>
 								val,
 							)
@@ -3418,7 +3409,7 @@ func (c *Comp) varShrConst(va *Var, val I) {
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
 						*(*int32)(unsafe.Pointer(&env.
-							Outer.IntBinds[index])) >>= val
+							Outer.Ints[index])) >>= val
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -3428,7 +3419,7 @@ func (c *Comp) varShrConst(va *Var, val I) {
 						{
 							lhs := env.
 								Outer.
-								Binds[index]
+								Vals[index]
 							lhs.SetInt(lhs.Int() >>
 								val,
 							)
@@ -3443,7 +3434,7 @@ func (c *Comp) varShrConst(va *Var, val I) {
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
 						*(*int32)(unsafe.Pointer(&env.
-							Outer.Outer.IntBinds[index])) >>= val
+							Outer.Outer.Ints[index])) >>= val
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -3453,7 +3444,30 @@ func (c *Comp) varShrConst(va *Var, val I) {
 						{
 							lhs := env.
 								Outer.Outer.
-								Binds[index]
+								Vals[index]
+							lhs.SetInt(lhs.Int() >>
+								val,
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				}
+			case c.Depth - 1:
+
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int32)(unsafe.Pointer(&env.FileEnv.Ints[index])) >>= val
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.FileEnv.
+								Vals[index]
 							lhs.SetInt(lhs.Int() >>
 								val,
 							)
@@ -3471,7 +3485,7 @@ func (c *Comp) varShrConst(va *Var, val I) {
 						for i := 3; i < upn; i++ {
 							o = o.Outer
 						}
-						*(*int32)(unsafe.Pointer(&o.IntBinds[index])) >>= val
+						*(*int32)(unsafe.Pointer(&o.Ints[index])) >>= val
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -3485,30 +3499,7 @@ func (c *Comp) varShrConst(va *Var, val I) {
 						{
 							lhs :=
 
-								o.Binds[index]
-							lhs.SetInt(lhs.Int() >>
-								val,
-							)
-						}
-
-						env.IP++
-						return env.Code[env.IP], env
-					}
-				}
-			case c.Depth - 1:
-
-				if intbinds {
-					ret = func(env *Env) (Stmt, *Env) {
-						*(*int32)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) >>= val
-
-						env.IP++
-						return env.Code[env.IP], env
-					}
-				} else {
-					ret = func(env *Env) (Stmt, *Env) {
-						{
-							lhs := env.ThreadGlobals.FileEnv.
-								Binds[index]
+								o.Vals[index]
 							lhs.SetInt(lhs.Int() >>
 								val,
 							)
@@ -3525,7 +3516,7 @@ func (c *Comp) varShrConst(va *Var, val I) {
 
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
-						*(*int64)(unsafe.Pointer(&env.IntBinds[index])) >>= val
+						*(*int64)(unsafe.Pointer(&env.Ints[index])) >>= val
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -3534,7 +3525,7 @@ func (c *Comp) varShrConst(va *Var, val I) {
 					ret = func(env *Env) (Stmt, *Env) {
 						{
 							lhs := env.
-								Binds[index]
+								Vals[index]
 							lhs.SetInt(lhs.Int() >>
 								val,
 							)
@@ -3549,7 +3540,7 @@ func (c *Comp) varShrConst(va *Var, val I) {
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
 						*(*int64)(unsafe.Pointer(&env.
-							Outer.IntBinds[index])) >>= val
+							Outer.Ints[index])) >>= val
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -3559,7 +3550,7 @@ func (c *Comp) varShrConst(va *Var, val I) {
 						{
 							lhs := env.
 								Outer.
-								Binds[index]
+								Vals[index]
 							lhs.SetInt(lhs.Int() >>
 								val,
 							)
@@ -3574,7 +3565,7 @@ func (c *Comp) varShrConst(va *Var, val I) {
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
 						*(*int64)(unsafe.Pointer(&env.
-							Outer.Outer.IntBinds[index])) >>= val
+							Outer.Outer.Ints[index])) >>= val
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -3584,7 +3575,30 @@ func (c *Comp) varShrConst(va *Var, val I) {
 						{
 							lhs := env.
 								Outer.Outer.
-								Binds[index]
+								Vals[index]
+							lhs.SetInt(lhs.Int() >>
+								val,
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				}
+			case c.Depth - 1:
+
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int64)(unsafe.Pointer(&env.FileEnv.Ints[index])) >>= val
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.FileEnv.
+								Vals[index]
 							lhs.SetInt(lhs.Int() >>
 								val,
 							)
@@ -3602,7 +3616,7 @@ func (c *Comp) varShrConst(va *Var, val I) {
 						for i := 3; i < upn; i++ {
 							o = o.Outer
 						}
-						*(*int64)(unsafe.Pointer(&o.IntBinds[index])) >>= val
+						*(*int64)(unsafe.Pointer(&o.Ints[index])) >>= val
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -3616,30 +3630,7 @@ func (c *Comp) varShrConst(va *Var, val I) {
 						{
 							lhs :=
 
-								o.Binds[index]
-							lhs.SetInt(lhs.Int() >>
-								val,
-							)
-						}
-
-						env.IP++
-						return env.Code[env.IP], env
-					}
-				}
-			case c.Depth - 1:
-
-				if intbinds {
-					ret = func(env *Env) (Stmt, *Env) {
-						*(*int64)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) >>= val
-
-						env.IP++
-						return env.Code[env.IP], env
-					}
-				} else {
-					ret = func(env *Env) (Stmt, *Env) {
-						{
-							lhs := env.ThreadGlobals.FileEnv.
-								Binds[index]
+								o.Vals[index]
 							lhs.SetInt(lhs.Int() >>
 								val,
 							)
@@ -3656,7 +3647,7 @@ func (c *Comp) varShrConst(va *Var, val I) {
 
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
-						*(*uint)(unsafe.Pointer(&env.IntBinds[index])) >>= val
+						*(*uint)(unsafe.Pointer(&env.Ints[index])) >>= val
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -3665,7 +3656,7 @@ func (c *Comp) varShrConst(va *Var, val I) {
 					ret = func(env *Env) (Stmt, *Env) {
 						{
 							lhs := env.
-								Binds[index]
+								Vals[index]
 							lhs.SetUint(lhs.Uint() >>
 								val,
 							)
@@ -3680,7 +3671,7 @@ func (c *Comp) varShrConst(va *Var, val I) {
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
 						*(*uint)(unsafe.Pointer(&env.
-							Outer.IntBinds[index])) >>= val
+							Outer.Ints[index])) >>= val
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -3690,7 +3681,7 @@ func (c *Comp) varShrConst(va *Var, val I) {
 						{
 							lhs := env.
 								Outer.
-								Binds[index]
+								Vals[index]
 							lhs.SetUint(lhs.Uint() >>
 								val,
 							)
@@ -3705,7 +3696,7 @@ func (c *Comp) varShrConst(va *Var, val I) {
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
 						*(*uint)(unsafe.Pointer(&env.
-							Outer.Outer.IntBinds[index])) >>= val
+							Outer.Outer.Ints[index])) >>= val
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -3715,7 +3706,30 @@ func (c *Comp) varShrConst(va *Var, val I) {
 						{
 							lhs := env.
 								Outer.Outer.
-								Binds[index]
+								Vals[index]
+							lhs.SetUint(lhs.Uint() >>
+								val,
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				}
+			case c.Depth - 1:
+
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint)(unsafe.Pointer(&env.FileEnv.Ints[index])) >>= val
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.FileEnv.
+								Vals[index]
 							lhs.SetUint(lhs.Uint() >>
 								val,
 							)
@@ -3733,7 +3747,7 @@ func (c *Comp) varShrConst(va *Var, val I) {
 						for i := 3; i < upn; i++ {
 							o = o.Outer
 						}
-						*(*uint)(unsafe.Pointer(&o.IntBinds[index])) >>= val
+						*(*uint)(unsafe.Pointer(&o.Ints[index])) >>= val
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -3747,30 +3761,7 @@ func (c *Comp) varShrConst(va *Var, val I) {
 						{
 							lhs :=
 
-								o.Binds[index]
-							lhs.SetUint(lhs.Uint() >>
-								val,
-							)
-						}
-
-						env.IP++
-						return env.Code[env.IP], env
-					}
-				}
-			case c.Depth - 1:
-
-				if intbinds {
-					ret = func(env *Env) (Stmt, *Env) {
-						*(*uint)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) >>= val
-
-						env.IP++
-						return env.Code[env.IP], env
-					}
-				} else {
-					ret = func(env *Env) (Stmt, *Env) {
-						{
-							lhs := env.ThreadGlobals.FileEnv.
-								Binds[index]
+								o.Vals[index]
 							lhs.SetUint(lhs.Uint() >>
 								val,
 							)
@@ -3787,7 +3778,7 @@ func (c *Comp) varShrConst(va *Var, val I) {
 
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
-						*(*uint8)(unsafe.Pointer(&env.IntBinds[index])) >>= val
+						*(*uint8)(unsafe.Pointer(&env.Ints[index])) >>= val
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -3796,7 +3787,7 @@ func (c *Comp) varShrConst(va *Var, val I) {
 					ret = func(env *Env) (Stmt, *Env) {
 						{
 							lhs := env.
-								Binds[index]
+								Vals[index]
 							lhs.SetUint(lhs.Uint() >>
 								val,
 							)
@@ -3811,7 +3802,7 @@ func (c *Comp) varShrConst(va *Var, val I) {
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
 						*(*uint8)(unsafe.Pointer(&env.
-							Outer.IntBinds[index])) >>= val
+							Outer.Ints[index])) >>= val
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -3821,7 +3812,7 @@ func (c *Comp) varShrConst(va *Var, val I) {
 						{
 							lhs := env.
 								Outer.
-								Binds[index]
+								Vals[index]
 							lhs.SetUint(lhs.Uint() >>
 								val,
 							)
@@ -3836,7 +3827,7 @@ func (c *Comp) varShrConst(va *Var, val I) {
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
 						*(*uint8)(unsafe.Pointer(&env.
-							Outer.Outer.IntBinds[index])) >>= val
+							Outer.Outer.Ints[index])) >>= val
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -3846,7 +3837,30 @@ func (c *Comp) varShrConst(va *Var, val I) {
 						{
 							lhs := env.
 								Outer.Outer.
-								Binds[index]
+								Vals[index]
+							lhs.SetUint(lhs.Uint() >>
+								val,
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				}
+			case c.Depth - 1:
+
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint8)(unsafe.Pointer(&env.FileEnv.Ints[index])) >>= val
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.FileEnv.
+								Vals[index]
 							lhs.SetUint(lhs.Uint() >>
 								val,
 							)
@@ -3864,7 +3878,7 @@ func (c *Comp) varShrConst(va *Var, val I) {
 						for i := 3; i < upn; i++ {
 							o = o.Outer
 						}
-						*(*uint8)(unsafe.Pointer(&o.IntBinds[index])) >>= val
+						*(*uint8)(unsafe.Pointer(&o.Ints[index])) >>= val
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -3878,30 +3892,7 @@ func (c *Comp) varShrConst(va *Var, val I) {
 						{
 							lhs :=
 
-								o.Binds[index]
-							lhs.SetUint(lhs.Uint() >>
-								val,
-							)
-						}
-
-						env.IP++
-						return env.Code[env.IP], env
-					}
-				}
-			case c.Depth - 1:
-
-				if intbinds {
-					ret = func(env *Env) (Stmt, *Env) {
-						*(*uint8)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) >>= val
-
-						env.IP++
-						return env.Code[env.IP], env
-					}
-				} else {
-					ret = func(env *Env) (Stmt, *Env) {
-						{
-							lhs := env.ThreadGlobals.FileEnv.
-								Binds[index]
+								o.Vals[index]
 							lhs.SetUint(lhs.Uint() >>
 								val,
 							)
@@ -3918,7 +3909,7 @@ func (c *Comp) varShrConst(va *Var, val I) {
 
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
-						*(*uint16)(unsafe.Pointer(&env.IntBinds[index])) >>= val
+						*(*uint16)(unsafe.Pointer(&env.Ints[index])) >>= val
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -3927,7 +3918,7 @@ func (c *Comp) varShrConst(va *Var, val I) {
 					ret = func(env *Env) (Stmt, *Env) {
 						{
 							lhs := env.
-								Binds[index]
+								Vals[index]
 							lhs.SetUint(lhs.Uint() >>
 								val,
 							)
@@ -3942,7 +3933,7 @@ func (c *Comp) varShrConst(va *Var, val I) {
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
 						*(*uint16)(unsafe.Pointer(&env.
-							Outer.IntBinds[index])) >>= val
+							Outer.Ints[index])) >>= val
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -3952,7 +3943,7 @@ func (c *Comp) varShrConst(va *Var, val I) {
 						{
 							lhs := env.
 								Outer.
-								Binds[index]
+								Vals[index]
 							lhs.SetUint(lhs.Uint() >>
 								val,
 							)
@@ -3967,7 +3958,7 @@ func (c *Comp) varShrConst(va *Var, val I) {
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
 						*(*uint16)(unsafe.Pointer(&env.
-							Outer.Outer.IntBinds[index])) >>= val
+							Outer.Outer.Ints[index])) >>= val
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -3977,7 +3968,30 @@ func (c *Comp) varShrConst(va *Var, val I) {
 						{
 							lhs := env.
 								Outer.Outer.
-								Binds[index]
+								Vals[index]
+							lhs.SetUint(lhs.Uint() >>
+								val,
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				}
+			case c.Depth - 1:
+
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint16)(unsafe.Pointer(&env.FileEnv.Ints[index])) >>= val
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.FileEnv.
+								Vals[index]
 							lhs.SetUint(lhs.Uint() >>
 								val,
 							)
@@ -3995,7 +4009,7 @@ func (c *Comp) varShrConst(va *Var, val I) {
 						for i := 3; i < upn; i++ {
 							o = o.Outer
 						}
-						*(*uint16)(unsafe.Pointer(&o.IntBinds[index])) >>= val
+						*(*uint16)(unsafe.Pointer(&o.Ints[index])) >>= val
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -4009,30 +4023,7 @@ func (c *Comp) varShrConst(va *Var, val I) {
 						{
 							lhs :=
 
-								o.Binds[index]
-							lhs.SetUint(lhs.Uint() >>
-								val,
-							)
-						}
-
-						env.IP++
-						return env.Code[env.IP], env
-					}
-				}
-			case c.Depth - 1:
-
-				if intbinds {
-					ret = func(env *Env) (Stmt, *Env) {
-						*(*uint16)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) >>= val
-
-						env.IP++
-						return env.Code[env.IP], env
-					}
-				} else {
-					ret = func(env *Env) (Stmt, *Env) {
-						{
-							lhs := env.ThreadGlobals.FileEnv.
-								Binds[index]
+								o.Vals[index]
 							lhs.SetUint(lhs.Uint() >>
 								val,
 							)
@@ -4049,7 +4040,7 @@ func (c *Comp) varShrConst(va *Var, val I) {
 
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
-						*(*uint32)(unsafe.Pointer(&env.IntBinds[index])) >>= val
+						*(*uint32)(unsafe.Pointer(&env.Ints[index])) >>= val
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -4058,7 +4049,7 @@ func (c *Comp) varShrConst(va *Var, val I) {
 					ret = func(env *Env) (Stmt, *Env) {
 						{
 							lhs := env.
-								Binds[index]
+								Vals[index]
 							lhs.SetUint(lhs.Uint() >>
 								val,
 							)
@@ -4073,7 +4064,7 @@ func (c *Comp) varShrConst(va *Var, val I) {
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
 						*(*uint32)(unsafe.Pointer(&env.
-							Outer.IntBinds[index])) >>= val
+							Outer.Ints[index])) >>= val
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -4083,7 +4074,7 @@ func (c *Comp) varShrConst(va *Var, val I) {
 						{
 							lhs := env.
 								Outer.
-								Binds[index]
+								Vals[index]
 							lhs.SetUint(lhs.Uint() >>
 								val,
 							)
@@ -4098,7 +4089,7 @@ func (c *Comp) varShrConst(va *Var, val I) {
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
 						*(*uint32)(unsafe.Pointer(&env.
-							Outer.Outer.IntBinds[index])) >>= val
+							Outer.Outer.Ints[index])) >>= val
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -4108,7 +4099,30 @@ func (c *Comp) varShrConst(va *Var, val I) {
 						{
 							lhs := env.
 								Outer.Outer.
-								Binds[index]
+								Vals[index]
+							lhs.SetUint(lhs.Uint() >>
+								val,
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				}
+			case c.Depth - 1:
+
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint32)(unsafe.Pointer(&env.FileEnv.Ints[index])) >>= val
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.FileEnv.
+								Vals[index]
 							lhs.SetUint(lhs.Uint() >>
 								val,
 							)
@@ -4126,7 +4140,7 @@ func (c *Comp) varShrConst(va *Var, val I) {
 						for i := 3; i < upn; i++ {
 							o = o.Outer
 						}
-						*(*uint32)(unsafe.Pointer(&o.IntBinds[index])) >>= val
+						*(*uint32)(unsafe.Pointer(&o.Ints[index])) >>= val
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -4140,30 +4154,7 @@ func (c *Comp) varShrConst(va *Var, val I) {
 						{
 							lhs :=
 
-								o.Binds[index]
-							lhs.SetUint(lhs.Uint() >>
-								val,
-							)
-						}
-
-						env.IP++
-						return env.Code[env.IP], env
-					}
-				}
-			case c.Depth - 1:
-
-				if intbinds {
-					ret = func(env *Env) (Stmt, *Env) {
-						*(*uint32)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) >>= val
-
-						env.IP++
-						return env.Code[env.IP], env
-					}
-				} else {
-					ret = func(env *Env) (Stmt, *Env) {
-						{
-							lhs := env.ThreadGlobals.FileEnv.
-								Binds[index]
+								o.Vals[index]
 							lhs.SetUint(lhs.Uint() >>
 								val,
 							)
@@ -4181,7 +4172,7 @@ func (c *Comp) varShrConst(va *Var, val I) {
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
 						env.
-							IntBinds[index] >>= val
+							Ints[index] >>= val
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -4190,7 +4181,7 @@ func (c *Comp) varShrConst(va *Var, val I) {
 					ret = func(env *Env) (Stmt, *Env) {
 						{
 							lhs := env.
-								Binds[index]
+								Vals[index]
 							lhs.SetUint(lhs.Uint() >>
 								val,
 							)
@@ -4206,7 +4197,7 @@ func (c *Comp) varShrConst(va *Var, val I) {
 					ret = func(env *Env) (Stmt, *Env) {
 						env.
 							Outer.
-							IntBinds[index] >>= val
+							Ints[index] >>= val
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -4216,7 +4207,7 @@ func (c *Comp) varShrConst(va *Var, val I) {
 						{
 							lhs := env.
 								Outer.
-								Binds[index]
+								Vals[index]
 							lhs.SetUint(lhs.Uint() >>
 								val,
 							)
@@ -4232,7 +4223,7 @@ func (c *Comp) varShrConst(va *Var, val I) {
 					ret = func(env *Env) (Stmt, *Env) {
 						env.
 							Outer.Outer.
-							IntBinds[index] >>= val
+							Ints[index] >>= val
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -4242,7 +4233,31 @@ func (c *Comp) varShrConst(va *Var, val I) {
 						{
 							lhs := env.
 								Outer.Outer.
-								Binds[index]
+								Vals[index]
+							lhs.SetUint(lhs.Uint() >>
+								val,
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				}
+			case c.Depth - 1:
+
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						env.FileEnv.
+							Ints[index] >>= val
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.FileEnv.
+								Vals[index]
 							lhs.SetUint(lhs.Uint() >>
 								val,
 							)
@@ -4261,7 +4276,7 @@ func (c *Comp) varShrConst(va *Var, val I) {
 							o = o.Outer
 						}
 
-						o.IntBinds[index] >>= val
+						o.Ints[index] >>= val
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -4275,31 +4290,7 @@ func (c *Comp) varShrConst(va *Var, val I) {
 						{
 							lhs :=
 
-								o.Binds[index]
-							lhs.SetUint(lhs.Uint() >>
-								val,
-							)
-						}
-
-						env.IP++
-						return env.Code[env.IP], env
-					}
-				}
-			case c.Depth - 1:
-
-				if intbinds {
-					ret = func(env *Env) (Stmt, *Env) {
-						env.ThreadGlobals.FileEnv.
-							IntBinds[index] >>= val
-
-						env.IP++
-						return env.Code[env.IP], env
-					}
-				} else {
-					ret = func(env *Env) (Stmt, *Env) {
-						{
-							lhs := env.ThreadGlobals.FileEnv.
-								Binds[index]
+								o.Vals[index]
 							lhs.SetUint(lhs.Uint() >>
 								val,
 							)
@@ -4316,7 +4307,7 @@ func (c *Comp) varShrConst(va *Var, val I) {
 
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
-						*(*uintptr)(unsafe.Pointer(&env.IntBinds[index])) >>= val
+						*(*uintptr)(unsafe.Pointer(&env.Ints[index])) >>= val
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -4325,7 +4316,7 @@ func (c *Comp) varShrConst(va *Var, val I) {
 					ret = func(env *Env) (Stmt, *Env) {
 						{
 							lhs := env.
-								Binds[index]
+								Vals[index]
 							lhs.SetUint(lhs.Uint() >>
 								val,
 							)
@@ -4340,7 +4331,7 @@ func (c *Comp) varShrConst(va *Var, val I) {
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
 						*(*uintptr)(unsafe.Pointer(&env.
-							Outer.IntBinds[index])) >>= val
+							Outer.Ints[index])) >>= val
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -4350,7 +4341,7 @@ func (c *Comp) varShrConst(va *Var, val I) {
 						{
 							lhs := env.
 								Outer.
-								Binds[index]
+								Vals[index]
 							lhs.SetUint(lhs.Uint() >>
 								val,
 							)
@@ -4365,7 +4356,7 @@ func (c *Comp) varShrConst(va *Var, val I) {
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
 						*(*uintptr)(unsafe.Pointer(&env.
-							Outer.Outer.IntBinds[index])) >>= val
+							Outer.Outer.Ints[index])) >>= val
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -4375,7 +4366,30 @@ func (c *Comp) varShrConst(va *Var, val I) {
 						{
 							lhs := env.
 								Outer.Outer.
-								Binds[index]
+								Vals[index]
+							lhs.SetUint(lhs.Uint() >>
+								val,
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				}
+			case c.Depth - 1:
+
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uintptr)(unsafe.Pointer(&env.FileEnv.Ints[index])) >>= val
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.FileEnv.
+								Vals[index]
 							lhs.SetUint(lhs.Uint() >>
 								val,
 							)
@@ -4393,7 +4407,7 @@ func (c *Comp) varShrConst(va *Var, val I) {
 						for i := 3; i < upn; i++ {
 							o = o.Outer
 						}
-						*(*uintptr)(unsafe.Pointer(&o.IntBinds[index])) >>= val
+						*(*uintptr)(unsafe.Pointer(&o.Ints[index])) >>= val
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -4407,30 +4421,7 @@ func (c *Comp) varShrConst(va *Var, val I) {
 						{
 							lhs :=
 
-								o.Binds[index]
-							lhs.SetUint(lhs.Uint() >>
-								val,
-							)
-						}
-
-						env.IP++
-						return env.Code[env.IP], env
-					}
-				}
-			case c.Depth - 1:
-
-				if intbinds {
-					ret = func(env *Env) (Stmt, *Env) {
-						*(*uintptr)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) >>= val
-
-						env.IP++
-						return env.Code[env.IP], env
-					}
-				} else {
-					ret = func(env *Env) (Stmt, *Env) {
-						{
-							lhs := env.ThreadGlobals.FileEnv.
-								Binds[index]
+								o.Vals[index]
 							lhs.SetUint(lhs.Uint() >>
 								val,
 							)
@@ -4469,7 +4460,7 @@ func (c *Comp) varShrExpr(va *Var, function I) {
 
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
-						*(*int)(unsafe.Pointer(&env.IntBinds[index])) >>= fun(env)
+						*(*int)(unsafe.Pointer(&env.Ints[index])) >>= fun(env)
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -4478,7 +4469,7 @@ func (c *Comp) varShrExpr(va *Var, function I) {
 					ret = func(env *Env) (Stmt, *Env) {
 						{
 							lhs := env.
-								Binds[index]
+								Vals[index]
 							lhs.SetInt(lhs.Int() >>
 								fun(env),
 							)
@@ -4493,7 +4484,7 @@ func (c *Comp) varShrExpr(va *Var, function I) {
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
 						*(*int)(unsafe.Pointer(&env.
-							Outer.IntBinds[index])) >>= fun(env)
+							Outer.Ints[index])) >>= fun(env)
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -4503,7 +4494,7 @@ func (c *Comp) varShrExpr(va *Var, function I) {
 						{
 							lhs := env.
 								Outer.
-								Binds[index]
+								Vals[index]
 							lhs.SetInt(lhs.Int() >>
 								fun(env),
 							)
@@ -4518,7 +4509,7 @@ func (c *Comp) varShrExpr(va *Var, function I) {
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
 						*(*int)(unsafe.Pointer(&env.
-							Outer.Outer.IntBinds[index])) >>= fun(env)
+							Outer.Outer.Ints[index])) >>= fun(env)
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -4528,7 +4519,30 @@ func (c *Comp) varShrExpr(va *Var, function I) {
 						{
 							lhs := env.
 								Outer.Outer.
-								Binds[index]
+								Vals[index]
+							lhs.SetInt(lhs.Int() >>
+								fun(env),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				}
+			case c.Depth - 1:
+
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int)(unsafe.Pointer(&env.FileEnv.Ints[index])) >>= fun(env)
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.FileEnv.
+								Vals[index]
 							lhs.SetInt(lhs.Int() >>
 								fun(env),
 							)
@@ -4546,7 +4560,7 @@ func (c *Comp) varShrExpr(va *Var, function I) {
 						for i := 3; i < upn; i++ {
 							o = o.Outer
 						}
-						*(*int)(unsafe.Pointer(&o.IntBinds[index])) >>= fun(env)
+						*(*int)(unsafe.Pointer(&o.Ints[index])) >>= fun(env)
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -4560,30 +4574,7 @@ func (c *Comp) varShrExpr(va *Var, function I) {
 						{
 							lhs :=
 
-								o.Binds[index]
-							lhs.SetInt(lhs.Int() >>
-								fun(env),
-							)
-						}
-
-						env.IP++
-						return env.Code[env.IP], env
-					}
-				}
-			case c.Depth - 1:
-
-				if intbinds {
-					ret = func(env *Env) (Stmt, *Env) {
-						*(*int)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) >>= fun(env)
-
-						env.IP++
-						return env.Code[env.IP], env
-					}
-				} else {
-					ret = func(env *Env) (Stmt, *Env) {
-						{
-							lhs := env.ThreadGlobals.FileEnv.
-								Binds[index]
+								o.Vals[index]
 							lhs.SetInt(lhs.Int() >>
 								fun(env),
 							)
@@ -4600,7 +4591,7 @@ func (c *Comp) varShrExpr(va *Var, function I) {
 
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
-						*(*int8)(unsafe.Pointer(&env.IntBinds[index])) >>= fun(env)
+						*(*int8)(unsafe.Pointer(&env.Ints[index])) >>= fun(env)
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -4609,7 +4600,7 @@ func (c *Comp) varShrExpr(va *Var, function I) {
 					ret = func(env *Env) (Stmt, *Env) {
 						{
 							lhs := env.
-								Binds[index]
+								Vals[index]
 							lhs.SetInt(lhs.Int() >>
 								fun(env),
 							)
@@ -4624,7 +4615,7 @@ func (c *Comp) varShrExpr(va *Var, function I) {
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
 						*(*int8)(unsafe.Pointer(&env.
-							Outer.IntBinds[index])) >>= fun(env)
+							Outer.Ints[index])) >>= fun(env)
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -4634,7 +4625,7 @@ func (c *Comp) varShrExpr(va *Var, function I) {
 						{
 							lhs := env.
 								Outer.
-								Binds[index]
+								Vals[index]
 							lhs.SetInt(lhs.Int() >>
 								fun(env),
 							)
@@ -4649,7 +4640,7 @@ func (c *Comp) varShrExpr(va *Var, function I) {
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
 						*(*int8)(unsafe.Pointer(&env.
-							Outer.Outer.IntBinds[index])) >>= fun(env)
+							Outer.Outer.Ints[index])) >>= fun(env)
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -4659,7 +4650,30 @@ func (c *Comp) varShrExpr(va *Var, function I) {
 						{
 							lhs := env.
 								Outer.Outer.
-								Binds[index]
+								Vals[index]
+							lhs.SetInt(lhs.Int() >>
+								fun(env),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				}
+			case c.Depth - 1:
+
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int8)(unsafe.Pointer(&env.FileEnv.Ints[index])) >>= fun(env)
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.FileEnv.
+								Vals[index]
 							lhs.SetInt(lhs.Int() >>
 								fun(env),
 							)
@@ -4677,7 +4691,7 @@ func (c *Comp) varShrExpr(va *Var, function I) {
 						for i := 3; i < upn; i++ {
 							o = o.Outer
 						}
-						*(*int8)(unsafe.Pointer(&o.IntBinds[index])) >>= fun(env)
+						*(*int8)(unsafe.Pointer(&o.Ints[index])) >>= fun(env)
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -4691,30 +4705,7 @@ func (c *Comp) varShrExpr(va *Var, function I) {
 						{
 							lhs :=
 
-								o.Binds[index]
-							lhs.SetInt(lhs.Int() >>
-								fun(env),
-							)
-						}
-
-						env.IP++
-						return env.Code[env.IP], env
-					}
-				}
-			case c.Depth - 1:
-
-				if intbinds {
-					ret = func(env *Env) (Stmt, *Env) {
-						*(*int8)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) >>= fun(env)
-
-						env.IP++
-						return env.Code[env.IP], env
-					}
-				} else {
-					ret = func(env *Env) (Stmt, *Env) {
-						{
-							lhs := env.ThreadGlobals.FileEnv.
-								Binds[index]
+								o.Vals[index]
 							lhs.SetInt(lhs.Int() >>
 								fun(env),
 							)
@@ -4731,7 +4722,7 @@ func (c *Comp) varShrExpr(va *Var, function I) {
 
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
-						*(*int16)(unsafe.Pointer(&env.IntBinds[index])) >>= fun(env)
+						*(*int16)(unsafe.Pointer(&env.Ints[index])) >>= fun(env)
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -4740,7 +4731,7 @@ func (c *Comp) varShrExpr(va *Var, function I) {
 					ret = func(env *Env) (Stmt, *Env) {
 						{
 							lhs := env.
-								Binds[index]
+								Vals[index]
 							lhs.SetInt(lhs.Int() >>
 								fun(env),
 							)
@@ -4755,7 +4746,7 @@ func (c *Comp) varShrExpr(va *Var, function I) {
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
 						*(*int16)(unsafe.Pointer(&env.
-							Outer.IntBinds[index])) >>= fun(env)
+							Outer.Ints[index])) >>= fun(env)
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -4765,7 +4756,7 @@ func (c *Comp) varShrExpr(va *Var, function I) {
 						{
 							lhs := env.
 								Outer.
-								Binds[index]
+								Vals[index]
 							lhs.SetInt(lhs.Int() >>
 								fun(env),
 							)
@@ -4780,7 +4771,7 @@ func (c *Comp) varShrExpr(va *Var, function I) {
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
 						*(*int16)(unsafe.Pointer(&env.
-							Outer.Outer.IntBinds[index])) >>= fun(env)
+							Outer.Outer.Ints[index])) >>= fun(env)
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -4790,7 +4781,30 @@ func (c *Comp) varShrExpr(va *Var, function I) {
 						{
 							lhs := env.
 								Outer.Outer.
-								Binds[index]
+								Vals[index]
+							lhs.SetInt(lhs.Int() >>
+								fun(env),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				}
+			case c.Depth - 1:
+
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int16)(unsafe.Pointer(&env.FileEnv.Ints[index])) >>= fun(env)
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.FileEnv.
+								Vals[index]
 							lhs.SetInt(lhs.Int() >>
 								fun(env),
 							)
@@ -4808,7 +4822,7 @@ func (c *Comp) varShrExpr(va *Var, function I) {
 						for i := 3; i < upn; i++ {
 							o = o.Outer
 						}
-						*(*int16)(unsafe.Pointer(&o.IntBinds[index])) >>= fun(env)
+						*(*int16)(unsafe.Pointer(&o.Ints[index])) >>= fun(env)
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -4822,30 +4836,7 @@ func (c *Comp) varShrExpr(va *Var, function I) {
 						{
 							lhs :=
 
-								o.Binds[index]
-							lhs.SetInt(lhs.Int() >>
-								fun(env),
-							)
-						}
-
-						env.IP++
-						return env.Code[env.IP], env
-					}
-				}
-			case c.Depth - 1:
-
-				if intbinds {
-					ret = func(env *Env) (Stmt, *Env) {
-						*(*int16)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) >>= fun(env)
-
-						env.IP++
-						return env.Code[env.IP], env
-					}
-				} else {
-					ret = func(env *Env) (Stmt, *Env) {
-						{
-							lhs := env.ThreadGlobals.FileEnv.
-								Binds[index]
+								o.Vals[index]
 							lhs.SetInt(lhs.Int() >>
 								fun(env),
 							)
@@ -4862,7 +4853,7 @@ func (c *Comp) varShrExpr(va *Var, function I) {
 
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
-						*(*int32)(unsafe.Pointer(&env.IntBinds[index])) >>= fun(env)
+						*(*int32)(unsafe.Pointer(&env.Ints[index])) >>= fun(env)
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -4871,7 +4862,7 @@ func (c *Comp) varShrExpr(va *Var, function I) {
 					ret = func(env *Env) (Stmt, *Env) {
 						{
 							lhs := env.
-								Binds[index]
+								Vals[index]
 							lhs.SetInt(lhs.Int() >>
 								fun(env),
 							)
@@ -4886,7 +4877,7 @@ func (c *Comp) varShrExpr(va *Var, function I) {
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
 						*(*int32)(unsafe.Pointer(&env.
-							Outer.IntBinds[index])) >>= fun(env)
+							Outer.Ints[index])) >>= fun(env)
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -4896,7 +4887,7 @@ func (c *Comp) varShrExpr(va *Var, function I) {
 						{
 							lhs := env.
 								Outer.
-								Binds[index]
+								Vals[index]
 							lhs.SetInt(lhs.Int() >>
 								fun(env),
 							)
@@ -4911,7 +4902,7 @@ func (c *Comp) varShrExpr(va *Var, function I) {
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
 						*(*int32)(unsafe.Pointer(&env.
-							Outer.Outer.IntBinds[index])) >>= fun(env)
+							Outer.Outer.Ints[index])) >>= fun(env)
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -4921,7 +4912,30 @@ func (c *Comp) varShrExpr(va *Var, function I) {
 						{
 							lhs := env.
 								Outer.Outer.
-								Binds[index]
+								Vals[index]
+							lhs.SetInt(lhs.Int() >>
+								fun(env),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				}
+			case c.Depth - 1:
+
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int32)(unsafe.Pointer(&env.FileEnv.Ints[index])) >>= fun(env)
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.FileEnv.
+								Vals[index]
 							lhs.SetInt(lhs.Int() >>
 								fun(env),
 							)
@@ -4939,7 +4953,7 @@ func (c *Comp) varShrExpr(va *Var, function I) {
 						for i := 3; i < upn; i++ {
 							o = o.Outer
 						}
-						*(*int32)(unsafe.Pointer(&o.IntBinds[index])) >>= fun(env)
+						*(*int32)(unsafe.Pointer(&o.Ints[index])) >>= fun(env)
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -4953,30 +4967,7 @@ func (c *Comp) varShrExpr(va *Var, function I) {
 						{
 							lhs :=
 
-								o.Binds[index]
-							lhs.SetInt(lhs.Int() >>
-								fun(env),
-							)
-						}
-
-						env.IP++
-						return env.Code[env.IP], env
-					}
-				}
-			case c.Depth - 1:
-
-				if intbinds {
-					ret = func(env *Env) (Stmt, *Env) {
-						*(*int32)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) >>= fun(env)
-
-						env.IP++
-						return env.Code[env.IP], env
-					}
-				} else {
-					ret = func(env *Env) (Stmt, *Env) {
-						{
-							lhs := env.ThreadGlobals.FileEnv.
-								Binds[index]
+								o.Vals[index]
 							lhs.SetInt(lhs.Int() >>
 								fun(env),
 							)
@@ -4993,7 +4984,7 @@ func (c *Comp) varShrExpr(va *Var, function I) {
 
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
-						*(*int64)(unsafe.Pointer(&env.IntBinds[index])) >>= fun(env)
+						*(*int64)(unsafe.Pointer(&env.Ints[index])) >>= fun(env)
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -5002,7 +4993,7 @@ func (c *Comp) varShrExpr(va *Var, function I) {
 					ret = func(env *Env) (Stmt, *Env) {
 						{
 							lhs := env.
-								Binds[index]
+								Vals[index]
 							lhs.SetInt(lhs.Int() >>
 								fun(env),
 							)
@@ -5017,7 +5008,7 @@ func (c *Comp) varShrExpr(va *Var, function I) {
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
 						*(*int64)(unsafe.Pointer(&env.
-							Outer.IntBinds[index])) >>= fun(env)
+							Outer.Ints[index])) >>= fun(env)
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -5027,7 +5018,7 @@ func (c *Comp) varShrExpr(va *Var, function I) {
 						{
 							lhs := env.
 								Outer.
-								Binds[index]
+								Vals[index]
 							lhs.SetInt(lhs.Int() >>
 								fun(env),
 							)
@@ -5042,7 +5033,7 @@ func (c *Comp) varShrExpr(va *Var, function I) {
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
 						*(*int64)(unsafe.Pointer(&env.
-							Outer.Outer.IntBinds[index])) >>= fun(env)
+							Outer.Outer.Ints[index])) >>= fun(env)
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -5052,7 +5043,30 @@ func (c *Comp) varShrExpr(va *Var, function I) {
 						{
 							lhs := env.
 								Outer.Outer.
-								Binds[index]
+								Vals[index]
+							lhs.SetInt(lhs.Int() >>
+								fun(env),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				}
+			case c.Depth - 1:
+
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*int64)(unsafe.Pointer(&env.FileEnv.Ints[index])) >>= fun(env)
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.FileEnv.
+								Vals[index]
 							lhs.SetInt(lhs.Int() >>
 								fun(env),
 							)
@@ -5070,7 +5084,7 @@ func (c *Comp) varShrExpr(va *Var, function I) {
 						for i := 3; i < upn; i++ {
 							o = o.Outer
 						}
-						*(*int64)(unsafe.Pointer(&o.IntBinds[index])) >>= fun(env)
+						*(*int64)(unsafe.Pointer(&o.Ints[index])) >>= fun(env)
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -5084,30 +5098,7 @@ func (c *Comp) varShrExpr(va *Var, function I) {
 						{
 							lhs :=
 
-								o.Binds[index]
-							lhs.SetInt(lhs.Int() >>
-								fun(env),
-							)
-						}
-
-						env.IP++
-						return env.Code[env.IP], env
-					}
-				}
-			case c.Depth - 1:
-
-				if intbinds {
-					ret = func(env *Env) (Stmt, *Env) {
-						*(*int64)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) >>= fun(env)
-
-						env.IP++
-						return env.Code[env.IP], env
-					}
-				} else {
-					ret = func(env *Env) (Stmt, *Env) {
-						{
-							lhs := env.ThreadGlobals.FileEnv.
-								Binds[index]
+								o.Vals[index]
 							lhs.SetInt(lhs.Int() >>
 								fun(env),
 							)
@@ -5124,7 +5115,7 @@ func (c *Comp) varShrExpr(va *Var, function I) {
 
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
-						*(*uint)(unsafe.Pointer(&env.IntBinds[index])) >>= fun(env)
+						*(*uint)(unsafe.Pointer(&env.Ints[index])) >>= fun(env)
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -5133,7 +5124,7 @@ func (c *Comp) varShrExpr(va *Var, function I) {
 					ret = func(env *Env) (Stmt, *Env) {
 						{
 							lhs := env.
-								Binds[index]
+								Vals[index]
 							lhs.SetUint(lhs.Uint() >>
 								fun(env),
 							)
@@ -5148,7 +5139,7 @@ func (c *Comp) varShrExpr(va *Var, function I) {
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
 						*(*uint)(unsafe.Pointer(&env.
-							Outer.IntBinds[index])) >>= fun(env)
+							Outer.Ints[index])) >>= fun(env)
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -5158,7 +5149,7 @@ func (c *Comp) varShrExpr(va *Var, function I) {
 						{
 							lhs := env.
 								Outer.
-								Binds[index]
+								Vals[index]
 							lhs.SetUint(lhs.Uint() >>
 								fun(env),
 							)
@@ -5173,7 +5164,7 @@ func (c *Comp) varShrExpr(va *Var, function I) {
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
 						*(*uint)(unsafe.Pointer(&env.
-							Outer.Outer.IntBinds[index])) >>= fun(env)
+							Outer.Outer.Ints[index])) >>= fun(env)
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -5183,7 +5174,30 @@ func (c *Comp) varShrExpr(va *Var, function I) {
 						{
 							lhs := env.
 								Outer.Outer.
-								Binds[index]
+								Vals[index]
+							lhs.SetUint(lhs.Uint() >>
+								fun(env),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				}
+			case c.Depth - 1:
+
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint)(unsafe.Pointer(&env.FileEnv.Ints[index])) >>= fun(env)
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.FileEnv.
+								Vals[index]
 							lhs.SetUint(lhs.Uint() >>
 								fun(env),
 							)
@@ -5201,7 +5215,7 @@ func (c *Comp) varShrExpr(va *Var, function I) {
 						for i := 3; i < upn; i++ {
 							o = o.Outer
 						}
-						*(*uint)(unsafe.Pointer(&o.IntBinds[index])) >>= fun(env)
+						*(*uint)(unsafe.Pointer(&o.Ints[index])) >>= fun(env)
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -5215,30 +5229,7 @@ func (c *Comp) varShrExpr(va *Var, function I) {
 						{
 							lhs :=
 
-								o.Binds[index]
-							lhs.SetUint(lhs.Uint() >>
-								fun(env),
-							)
-						}
-
-						env.IP++
-						return env.Code[env.IP], env
-					}
-				}
-			case c.Depth - 1:
-
-				if intbinds {
-					ret = func(env *Env) (Stmt, *Env) {
-						*(*uint)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) >>= fun(env)
-
-						env.IP++
-						return env.Code[env.IP], env
-					}
-				} else {
-					ret = func(env *Env) (Stmt, *Env) {
-						{
-							lhs := env.ThreadGlobals.FileEnv.
-								Binds[index]
+								o.Vals[index]
 							lhs.SetUint(lhs.Uint() >>
 								fun(env),
 							)
@@ -5255,7 +5246,7 @@ func (c *Comp) varShrExpr(va *Var, function I) {
 
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
-						*(*uint8)(unsafe.Pointer(&env.IntBinds[index])) >>= fun(env)
+						*(*uint8)(unsafe.Pointer(&env.Ints[index])) >>= fun(env)
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -5264,7 +5255,7 @@ func (c *Comp) varShrExpr(va *Var, function I) {
 					ret = func(env *Env) (Stmt, *Env) {
 						{
 							lhs := env.
-								Binds[index]
+								Vals[index]
 							lhs.SetUint(lhs.Uint() >>
 								fun(env),
 							)
@@ -5279,7 +5270,7 @@ func (c *Comp) varShrExpr(va *Var, function I) {
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
 						*(*uint8)(unsafe.Pointer(&env.
-							Outer.IntBinds[index])) >>= fun(env)
+							Outer.Ints[index])) >>= fun(env)
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -5289,7 +5280,7 @@ func (c *Comp) varShrExpr(va *Var, function I) {
 						{
 							lhs := env.
 								Outer.
-								Binds[index]
+								Vals[index]
 							lhs.SetUint(lhs.Uint() >>
 								fun(env),
 							)
@@ -5304,7 +5295,7 @@ func (c *Comp) varShrExpr(va *Var, function I) {
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
 						*(*uint8)(unsafe.Pointer(&env.
-							Outer.Outer.IntBinds[index])) >>= fun(env)
+							Outer.Outer.Ints[index])) >>= fun(env)
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -5314,7 +5305,30 @@ func (c *Comp) varShrExpr(va *Var, function I) {
 						{
 							lhs := env.
 								Outer.Outer.
-								Binds[index]
+								Vals[index]
+							lhs.SetUint(lhs.Uint() >>
+								fun(env),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				}
+			case c.Depth - 1:
+
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint8)(unsafe.Pointer(&env.FileEnv.Ints[index])) >>= fun(env)
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.FileEnv.
+								Vals[index]
 							lhs.SetUint(lhs.Uint() >>
 								fun(env),
 							)
@@ -5332,7 +5346,7 @@ func (c *Comp) varShrExpr(va *Var, function I) {
 						for i := 3; i < upn; i++ {
 							o = o.Outer
 						}
-						*(*uint8)(unsafe.Pointer(&o.IntBinds[index])) >>= fun(env)
+						*(*uint8)(unsafe.Pointer(&o.Ints[index])) >>= fun(env)
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -5346,30 +5360,7 @@ func (c *Comp) varShrExpr(va *Var, function I) {
 						{
 							lhs :=
 
-								o.Binds[index]
-							lhs.SetUint(lhs.Uint() >>
-								fun(env),
-							)
-						}
-
-						env.IP++
-						return env.Code[env.IP], env
-					}
-				}
-			case c.Depth - 1:
-
-				if intbinds {
-					ret = func(env *Env) (Stmt, *Env) {
-						*(*uint8)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) >>= fun(env)
-
-						env.IP++
-						return env.Code[env.IP], env
-					}
-				} else {
-					ret = func(env *Env) (Stmt, *Env) {
-						{
-							lhs := env.ThreadGlobals.FileEnv.
-								Binds[index]
+								o.Vals[index]
 							lhs.SetUint(lhs.Uint() >>
 								fun(env),
 							)
@@ -5386,7 +5377,7 @@ func (c *Comp) varShrExpr(va *Var, function I) {
 
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
-						*(*uint16)(unsafe.Pointer(&env.IntBinds[index])) >>= fun(env)
+						*(*uint16)(unsafe.Pointer(&env.Ints[index])) >>= fun(env)
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -5395,7 +5386,7 @@ func (c *Comp) varShrExpr(va *Var, function I) {
 					ret = func(env *Env) (Stmt, *Env) {
 						{
 							lhs := env.
-								Binds[index]
+								Vals[index]
 							lhs.SetUint(lhs.Uint() >>
 								fun(env),
 							)
@@ -5410,7 +5401,7 @@ func (c *Comp) varShrExpr(va *Var, function I) {
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
 						*(*uint16)(unsafe.Pointer(&env.
-							Outer.IntBinds[index])) >>= fun(env)
+							Outer.Ints[index])) >>= fun(env)
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -5420,7 +5411,7 @@ func (c *Comp) varShrExpr(va *Var, function I) {
 						{
 							lhs := env.
 								Outer.
-								Binds[index]
+								Vals[index]
 							lhs.SetUint(lhs.Uint() >>
 								fun(env),
 							)
@@ -5435,7 +5426,7 @@ func (c *Comp) varShrExpr(va *Var, function I) {
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
 						*(*uint16)(unsafe.Pointer(&env.
-							Outer.Outer.IntBinds[index])) >>= fun(env)
+							Outer.Outer.Ints[index])) >>= fun(env)
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -5445,7 +5436,30 @@ func (c *Comp) varShrExpr(va *Var, function I) {
 						{
 							lhs := env.
 								Outer.Outer.
-								Binds[index]
+								Vals[index]
+							lhs.SetUint(lhs.Uint() >>
+								fun(env),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				}
+			case c.Depth - 1:
+
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint16)(unsafe.Pointer(&env.FileEnv.Ints[index])) >>= fun(env)
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.FileEnv.
+								Vals[index]
 							lhs.SetUint(lhs.Uint() >>
 								fun(env),
 							)
@@ -5463,7 +5477,7 @@ func (c *Comp) varShrExpr(va *Var, function I) {
 						for i := 3; i < upn; i++ {
 							o = o.Outer
 						}
-						*(*uint16)(unsafe.Pointer(&o.IntBinds[index])) >>= fun(env)
+						*(*uint16)(unsafe.Pointer(&o.Ints[index])) >>= fun(env)
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -5477,30 +5491,7 @@ func (c *Comp) varShrExpr(va *Var, function I) {
 						{
 							lhs :=
 
-								o.Binds[index]
-							lhs.SetUint(lhs.Uint() >>
-								fun(env),
-							)
-						}
-
-						env.IP++
-						return env.Code[env.IP], env
-					}
-				}
-			case c.Depth - 1:
-
-				if intbinds {
-					ret = func(env *Env) (Stmt, *Env) {
-						*(*uint16)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) >>= fun(env)
-
-						env.IP++
-						return env.Code[env.IP], env
-					}
-				} else {
-					ret = func(env *Env) (Stmt, *Env) {
-						{
-							lhs := env.ThreadGlobals.FileEnv.
-								Binds[index]
+								o.Vals[index]
 							lhs.SetUint(lhs.Uint() >>
 								fun(env),
 							)
@@ -5517,7 +5508,7 @@ func (c *Comp) varShrExpr(va *Var, function I) {
 
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
-						*(*uint32)(unsafe.Pointer(&env.IntBinds[index])) >>= fun(env)
+						*(*uint32)(unsafe.Pointer(&env.Ints[index])) >>= fun(env)
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -5526,7 +5517,7 @@ func (c *Comp) varShrExpr(va *Var, function I) {
 					ret = func(env *Env) (Stmt, *Env) {
 						{
 							lhs := env.
-								Binds[index]
+								Vals[index]
 							lhs.SetUint(lhs.Uint() >>
 								fun(env),
 							)
@@ -5541,7 +5532,7 @@ func (c *Comp) varShrExpr(va *Var, function I) {
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
 						*(*uint32)(unsafe.Pointer(&env.
-							Outer.IntBinds[index])) >>= fun(env)
+							Outer.Ints[index])) >>= fun(env)
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -5551,7 +5542,7 @@ func (c *Comp) varShrExpr(va *Var, function I) {
 						{
 							lhs := env.
 								Outer.
-								Binds[index]
+								Vals[index]
 							lhs.SetUint(lhs.Uint() >>
 								fun(env),
 							)
@@ -5566,7 +5557,7 @@ func (c *Comp) varShrExpr(va *Var, function I) {
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
 						*(*uint32)(unsafe.Pointer(&env.
-							Outer.Outer.IntBinds[index])) >>= fun(env)
+							Outer.Outer.Ints[index])) >>= fun(env)
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -5576,7 +5567,30 @@ func (c *Comp) varShrExpr(va *Var, function I) {
 						{
 							lhs := env.
 								Outer.Outer.
-								Binds[index]
+								Vals[index]
+							lhs.SetUint(lhs.Uint() >>
+								fun(env),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				}
+			case c.Depth - 1:
+
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uint32)(unsafe.Pointer(&env.FileEnv.Ints[index])) >>= fun(env)
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.FileEnv.
+								Vals[index]
 							lhs.SetUint(lhs.Uint() >>
 								fun(env),
 							)
@@ -5594,7 +5608,7 @@ func (c *Comp) varShrExpr(va *Var, function I) {
 						for i := 3; i < upn; i++ {
 							o = o.Outer
 						}
-						*(*uint32)(unsafe.Pointer(&o.IntBinds[index])) >>= fun(env)
+						*(*uint32)(unsafe.Pointer(&o.Ints[index])) >>= fun(env)
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -5608,30 +5622,7 @@ func (c *Comp) varShrExpr(va *Var, function I) {
 						{
 							lhs :=
 
-								o.Binds[index]
-							lhs.SetUint(lhs.Uint() >>
-								fun(env),
-							)
-						}
-
-						env.IP++
-						return env.Code[env.IP], env
-					}
-				}
-			case c.Depth - 1:
-
-				if intbinds {
-					ret = func(env *Env) (Stmt, *Env) {
-						*(*uint32)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) >>= fun(env)
-
-						env.IP++
-						return env.Code[env.IP], env
-					}
-				} else {
-					ret = func(env *Env) (Stmt, *Env) {
-						{
-							lhs := env.ThreadGlobals.FileEnv.
-								Binds[index]
+								o.Vals[index]
 							lhs.SetUint(lhs.Uint() >>
 								fun(env),
 							)
@@ -5649,7 +5640,7 @@ func (c *Comp) varShrExpr(va *Var, function I) {
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
 						env.
-							IntBinds[index] >>= fun(env)
+							Ints[index] >>= fun(env)
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -5658,7 +5649,7 @@ func (c *Comp) varShrExpr(va *Var, function I) {
 					ret = func(env *Env) (Stmt, *Env) {
 						{
 							lhs := env.
-								Binds[index]
+								Vals[index]
 							lhs.SetUint(lhs.Uint() >>
 								fun(env),
 							)
@@ -5674,7 +5665,7 @@ func (c *Comp) varShrExpr(va *Var, function I) {
 					ret = func(env *Env) (Stmt, *Env) {
 						env.
 							Outer.
-							IntBinds[index] >>= fun(env)
+							Ints[index] >>= fun(env)
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -5684,7 +5675,7 @@ func (c *Comp) varShrExpr(va *Var, function I) {
 						{
 							lhs := env.
 								Outer.
-								Binds[index]
+								Vals[index]
 							lhs.SetUint(lhs.Uint() >>
 								fun(env),
 							)
@@ -5700,7 +5691,7 @@ func (c *Comp) varShrExpr(va *Var, function I) {
 					ret = func(env *Env) (Stmt, *Env) {
 						env.
 							Outer.Outer.
-							IntBinds[index] >>= fun(env)
+							Ints[index] >>= fun(env)
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -5710,7 +5701,31 @@ func (c *Comp) varShrExpr(va *Var, function I) {
 						{
 							lhs := env.
 								Outer.Outer.
-								Binds[index]
+								Vals[index]
+							lhs.SetUint(lhs.Uint() >>
+								fun(env),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				}
+			case c.Depth - 1:
+
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						env.FileEnv.
+							Ints[index] >>= fun(env)
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.FileEnv.
+								Vals[index]
 							lhs.SetUint(lhs.Uint() >>
 								fun(env),
 							)
@@ -5729,7 +5744,7 @@ func (c *Comp) varShrExpr(va *Var, function I) {
 							o = o.Outer
 						}
 
-						o.IntBinds[index] >>= fun(env)
+						o.Ints[index] >>= fun(env)
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -5743,31 +5758,7 @@ func (c *Comp) varShrExpr(va *Var, function I) {
 						{
 							lhs :=
 
-								o.Binds[index]
-							lhs.SetUint(lhs.Uint() >>
-								fun(env),
-							)
-						}
-
-						env.IP++
-						return env.Code[env.IP], env
-					}
-				}
-			case c.Depth - 1:
-
-				if intbinds {
-					ret = func(env *Env) (Stmt, *Env) {
-						env.ThreadGlobals.FileEnv.
-							IntBinds[index] >>= fun(env)
-
-						env.IP++
-						return env.Code[env.IP], env
-					}
-				} else {
-					ret = func(env *Env) (Stmt, *Env) {
-						{
-							lhs := env.ThreadGlobals.FileEnv.
-								Binds[index]
+								o.Vals[index]
 							lhs.SetUint(lhs.Uint() >>
 								fun(env),
 							)
@@ -5784,7 +5775,7 @@ func (c *Comp) varShrExpr(va *Var, function I) {
 
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
-						*(*uintptr)(unsafe.Pointer(&env.IntBinds[index])) >>= fun(env)
+						*(*uintptr)(unsafe.Pointer(&env.Ints[index])) >>= fun(env)
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -5793,7 +5784,7 @@ func (c *Comp) varShrExpr(va *Var, function I) {
 					ret = func(env *Env) (Stmt, *Env) {
 						{
 							lhs := env.
-								Binds[index]
+								Vals[index]
 							lhs.SetUint(lhs.Uint() >>
 								fun(env),
 							)
@@ -5808,7 +5799,7 @@ func (c *Comp) varShrExpr(va *Var, function I) {
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
 						*(*uintptr)(unsafe.Pointer(&env.
-							Outer.IntBinds[index])) >>= fun(env)
+							Outer.Ints[index])) >>= fun(env)
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -5818,7 +5809,7 @@ func (c *Comp) varShrExpr(va *Var, function I) {
 						{
 							lhs := env.
 								Outer.
-								Binds[index]
+								Vals[index]
 							lhs.SetUint(lhs.Uint() >>
 								fun(env),
 							)
@@ -5833,7 +5824,7 @@ func (c *Comp) varShrExpr(va *Var, function I) {
 				if intbinds {
 					ret = func(env *Env) (Stmt, *Env) {
 						*(*uintptr)(unsafe.Pointer(&env.
-							Outer.Outer.IntBinds[index])) >>= fun(env)
+							Outer.Outer.Ints[index])) >>= fun(env)
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -5843,7 +5834,30 @@ func (c *Comp) varShrExpr(va *Var, function I) {
 						{
 							lhs := env.
 								Outer.Outer.
-								Binds[index]
+								Vals[index]
+							lhs.SetUint(lhs.Uint() >>
+								fun(env),
+							)
+						}
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				}
+			case c.Depth - 1:
+
+				if intbinds {
+					ret = func(env *Env) (Stmt, *Env) {
+						*(*uintptr)(unsafe.Pointer(&env.FileEnv.Ints[index])) >>= fun(env)
+
+						env.IP++
+						return env.Code[env.IP], env
+					}
+				} else {
+					ret = func(env *Env) (Stmt, *Env) {
+						{
+							lhs := env.FileEnv.
+								Vals[index]
 							lhs.SetUint(lhs.Uint() >>
 								fun(env),
 							)
@@ -5861,7 +5875,7 @@ func (c *Comp) varShrExpr(va *Var, function I) {
 						for i := 3; i < upn; i++ {
 							o = o.Outer
 						}
-						*(*uintptr)(unsafe.Pointer(&o.IntBinds[index])) >>= fun(env)
+						*(*uintptr)(unsafe.Pointer(&o.Ints[index])) >>= fun(env)
 
 						env.IP++
 						return env.Code[env.IP], env
@@ -5875,30 +5889,7 @@ func (c *Comp) varShrExpr(va *Var, function I) {
 						{
 							lhs :=
 
-								o.Binds[index]
-							lhs.SetUint(lhs.Uint() >>
-								fun(env),
-							)
-						}
-
-						env.IP++
-						return env.Code[env.IP], env
-					}
-				}
-			case c.Depth - 1:
-
-				if intbinds {
-					ret = func(env *Env) (Stmt, *Env) {
-						*(*uintptr)(unsafe.Pointer(&env.ThreadGlobals.FileEnv.IntBinds[index])) >>= fun(env)
-
-						env.IP++
-						return env.Code[env.IP], env
-					}
-				} else {
-					ret = func(env *Env) (Stmt, *Env) {
-						{
-							lhs := env.ThreadGlobals.FileEnv.
-								Binds[index]
+								o.Vals[index]
 							lhs.SetUint(lhs.Uint() >>
 								fun(env),
 							)

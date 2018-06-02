@@ -16,6 +16,6 @@ func init() {
 		"Notify":	ValueOf(signal.Notify),
 		"Reset":	ValueOf(signal.Reset),
 		"Stop":	ValueOf(signal.Stop),
-	},
+	}, 
 	}
 }

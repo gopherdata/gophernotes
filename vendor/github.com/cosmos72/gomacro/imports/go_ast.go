@@ -43,7 +43,7 @@ func init() {
 		"Typ":	ValueOf(ast.Typ),
 		"Var":	ValueOf(ast.Var),
 		"Walk":	ValueOf(ast.Walk),
-	},Types: map[string]Type{
+	}, Types: map[string]Type{
 		"ArrayType":	TypeOf((*ast.ArrayType)(nil)).Elem(),
 		"AssignStmt":	TypeOf((*ast.AssignStmt)(nil)).Elem(),
 		"BadDecl":	TypeOf((*ast.BadDecl)(nil)).Elem(),
@@ -114,31 +114,31 @@ func init() {
 		"UnaryExpr":	TypeOf((*ast.UnaryExpr)(nil)).Elem(),
 		"ValueSpec":	TypeOf((*ast.ValueSpec)(nil)).Elem(),
 		"Visitor":	TypeOf((*ast.Visitor)(nil)).Elem(),
-	},Proxies: map[string]Type{
-		"Node":	TypeOf((*Node_go_ast)(nil)).Elem(),
-		"Visitor":	TypeOf((*Visitor_go_ast)(nil)).Elem(),
-	},
+	}, Proxies: map[string]Type{
+		"Node":	TypeOf((*P_go_ast_Node)(nil)).Elem(),
+		"Visitor":	TypeOf((*P_go_ast_Visitor)(nil)).Elem(),
+	}, 
 	}
 }
 
 // --------------- proxy for go/ast.Node ---------------
-type Node_go_ast struct {
+type P_go_ast_Node struct {
 	Object	interface{}
 	End_	func(interface{}) token.Pos
 	Pos_	func(interface{}) token.Pos
 }
-func (Proxy *Node_go_ast) End() token.Pos {
-	return Proxy.End_(Proxy.Object)
+func (P *P_go_ast_Node) End() token.Pos {
+	return P.End_(P.Object)
 }
-func (Proxy *Node_go_ast) Pos() token.Pos {
-	return Proxy.Pos_(Proxy.Object)
+func (P *P_go_ast_Node) Pos() token.Pos {
+	return P.Pos_(P.Object)
 }
 
 // --------------- proxy for go/ast.Visitor ---------------
-type Visitor_go_ast struct {
+type P_go_ast_Visitor struct {
 	Object	interface{}
 	Visit_	func(_proxy_obj_ interface{}, node ast.Node) (w ast.Visitor)
 }
-func (Proxy *Visitor_go_ast) Visit(node ast.Node) (w ast.Visitor) {
-	return Proxy.Visit_(Proxy.Object, node)
+func (P *P_go_ast_Visitor) Visit(node ast.Node) (w ast.Visitor) {
+	return P.Visit_(P.Object, node)
 }

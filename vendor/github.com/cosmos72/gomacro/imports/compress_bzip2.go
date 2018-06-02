@@ -13,8 +13,8 @@ func init() {
 	Packages["compress/bzip2"] = Package{
 	Binds: map[string]Value{
 		"NewReader":	ValueOf(bzip2.NewReader),
-	},Types: map[string]Type{
+	}, Types: map[string]Type{
 		"StructuralError":	TypeOf((*bzip2.StructuralError)(nil)).Elem(),
-	},
+	}, 
 	}
 }

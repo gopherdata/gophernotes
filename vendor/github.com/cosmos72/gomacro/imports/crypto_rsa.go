@@ -28,7 +28,7 @@ func init() {
 		"SignPSS":	ValueOf(rsa.SignPSS),
 		"VerifyPKCS1v15":	ValueOf(rsa.VerifyPKCS1v15),
 		"VerifyPSS":	ValueOf(rsa.VerifyPSS),
-	},Types: map[string]Type{
+	}, Types: map[string]Type{
 		"CRTValue":	TypeOf((*rsa.CRTValue)(nil)).Elem(),
 		"OAEPOptions":	TypeOf((*rsa.OAEPOptions)(nil)).Elem(),
 		"PKCS1v15DecryptOptions":	TypeOf((*rsa.PKCS1v15DecryptOptions)(nil)).Elem(),
@@ -36,9 +36,9 @@ func init() {
 		"PrecomputedValues":	TypeOf((*rsa.PrecomputedValues)(nil)).Elem(),
 		"PrivateKey":	TypeOf((*rsa.PrivateKey)(nil)).Elem(),
 		"PublicKey":	TypeOf((*rsa.PublicKey)(nil)).Elem(),
-	},Untypeds: map[string]string{
+	}, Untypeds: map[string]string{
 		"PSSSaltLengthAuto":	"int:0",
 		"PSSSaltLengthEqualsHash":	"int:-1",
-	},
+	}, 
 	}
 }
