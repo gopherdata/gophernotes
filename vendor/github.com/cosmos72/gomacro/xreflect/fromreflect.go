@@ -1,20 +1,11 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017 Massimiliano Ghilardi
+ * Copyright (C) 2017-2018 Massimiliano Ghilardi
  *
- *     This program is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU Lesser General Public License as published
- *     by the Free Software Foundation, either version 3 of the License, or
- *     (at your option) any later version.
- *
- *     This program is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU Lesser General Public License for more details.
- *
- *     You should have received a copy of the GNU Lesser General Public License
- *     along with this program.  If not, see <https://www.gnu.org/licenses/lgpl>.
+ *     This Source Code Form is subject to the terms of the Mozilla Public
+ *     License, v. 2.0. If a copy of the MPL was not distributed with this
+ *     file, You can obtain one at http://mozilla.org/MPL/2.0/.
  *
  *
  * fromreflect.go
@@ -231,17 +222,16 @@ func (v *Universe) fromReflectField(rfield *reflect.StructField) StructField {
 	name := rfield.Name
 	anonymous := rfield.Anonymous
 
-	if strings.HasPrefix(name, StrGensymEmbedded) {
-		// this reflect.StructField emulates embedded field using our own convention.
-		// eat our own dogfood and convert it back to an embedded field.
-		rtype := rfield.Type
-		typename := rtype.Name()
-		if len(typename) == 0 {
-			typename = name[len(StrGensymEmbedded):]
+	if strings.HasPrefix(name, StrGensymAnonymous) {
+		// this reflect.StructField emulates anonymous field using our own convention.
+		// eat our own dogfood and convert it back to an anonymous field.
+		name = name[len(StrGensymAnonymous):]
+		if len(name) == 0 || name[0] >= '0' && name[0] <= '9' {
+			rtype := rfield.Type
+			name = rtype.Name()
+			// rebuild the type's name and package
+			t = v.rebuildnamed(t, name, rtype.PkgPath())
 		}
-		// rebuild the type's name and package
-		t = v.rebuildnamed(t, typename, rtype.PkgPath())
-		name = typename
 		anonymous = true
 	} else if strings.HasPrefix(name, StrGensymPrivate) {
 		// this reflect.StructField emulates private (unexported) field using our own convention.
@@ -396,12 +386,9 @@ func (v *Universe) fromReflectInterface(rtype reflect.Type) Type {
 // that contains our own conventions to emulate an interface
 func isReflectInterfaceStruct(rtype reflect.Type) bool {
 	if rtype.Kind() == reflect.Struct {
-		if n := rtype.NumField(); n >= 2 {
+		if n := rtype.NumField(); n != 0 {
 			rfield := rtype.Field(0)
-			if rfield.Name == StrGensymInterface && rfield.Type == rTypeOfInterfaceHeader {
-				rfield = rtype.Field(1)
-				return rfield.Name == StrGensymEmbedded && rfield.Type.Kind() == reflect.Array && rfield.Type.Len() == 0
-			}
+			return rfield.Name == StrGensymInterface && rfield.Type == rTypeOfInterfaceHeader
 		}
 	}
 	return false
@@ -427,28 +414,19 @@ func (v *Universe) fromReflectInterfacePtrStruct(rtype reflect.Type) Type {
 	for i := 1; i < n; i++ {
 		rfield := rtype.Field(i)
 		name := rfield.Name
-		if name == StrGensymEmbedded {
-			ts := v.fromReflectInterfaceEmbeddeds(rtype, rfield.Type)
-			for _, t := range ts {
-				gembeddeds = append(gembeddeds, t.GoType().(*types.Named))
-			}
-			if rebuild {
-				rebuildfields[i] = approxInterfaceEmbeddeds(ts)
-			}
-		} else {
-			if strings.HasPrefix(name, StrGensymPrivate) {
-				name = name[len(StrGensymPrivate):]
-			}
-			t := v.fromReflectFunc(rfield.Type)
-			if t.Kind() != reflect.Func {
-				errorf(t, "FromReflectType: reflect.Type <%v> is an emulated interface containing the method <%v>.\n\tExtracting the latter returned a non-function: %v", t)
-			}
-			gtype := t.GoType().Underlying()
-			pkg := v.loadPackage(rfield.PkgPath)
-			gmethods = append(gmethods, types.NewFunc(token.NoPos, (*types.Package)(pkg), name, gtype.(*types.Signature)))
-			if rebuild {
-				rebuildfields[i] = approxInterfaceMethodAsField(name, t.ReflectType())
-			}
+
+		if strings.HasPrefix(name, StrGensymPrivate) {
+			name = name[len(StrGensymPrivate):]
+		}
+		t := v.fromReflectFunc(rfield.Type)
+		if t.Kind() != reflect.Func {
+			errorf(t, "FromReflectType: reflect.Type <%v> is an emulated interface containing the method <%v>.\n\tExtracting the latter returned a non-function: %v", t)
+		}
+		gtype := t.GoType().Underlying()
+		pkg := v.loadPackage(rfield.PkgPath)
+		gmethods = append(gmethods, types.NewFunc(token.NoPos, (*types.Package)(pkg), name, gtype.(*types.Signature)))
+		if rebuild {
+			rebuildfields[i] = approxInterfaceMethodAsField(name, t.ReflectType())
 		}
 	}
 	if rebuild {

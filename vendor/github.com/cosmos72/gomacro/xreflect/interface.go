@@ -1,23 +1,14 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017 Massimiliano Ghilardi
+ * Copyright (C) 2017-2018 Massimiliano Ghilardi
  *
- *     This program is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU Lesser General Public License as published
- *     by the Free Software Foundation, either version 3 of the License, or
- *     (at your option) any later version.
- *
- *     This program is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU Lesser General Public License for more details.
- *
- *     You should have received a copy of the GNU Lesser General Public License
- *     along with this program.  If not, see <https://www.gnu.org/licenses/lgpl>.
+ *     This Source Code Form is subject to the terms of the Mozilla Public
+ *     License, v. 2.0. If a copy of the MPL was not distributed with this
+ *     file, You can obtain one at http://mozilla.org/MPL/2.0/.
  *
  *
- * struct.go
+ * interface.go
  *
  *  Created on May 07, 2017
  *      Author Massimiliano Ghilardi
@@ -51,14 +42,14 @@ func ToEmulatedInterface(rtypeinterf reflect.Type, v reflect.Value,
 	place := addr.Elem()
 	place.Field(0).Set(reflect.ValueOf(InterfaceHeader{v, t}))
 	for i := range obj2methods {
-		place.Field(i + 2).Set(obj2methods[i](v))
+		place.Field(i + 1).Set(obj2methods[i](v))
 	}
 	return addr
 }
 
 // extract the already-made i-th closure from inside the emulated interface object.
 func EmulatedInterfaceGetMethod(obj reflect.Value, index int) reflect.Value {
-	return obj.Elem().Field(index + 2)
+	return obj.Elem().Field(index + 1)
 }
 
 // create []*types.Func suitable for types.NewInterface.
@@ -116,12 +107,11 @@ func (v *Universe) InterfaceOf(methodnames []string, methodtypes []Type, embedde
 	// for reflect.Type, approximate an interface as a pointer-to-struct:
 	// one field for the wrapped object: type is interface{},
 	// one field for each explicit method: type is the method type i.e. a function
-	rfields := make([]reflect.StructField, 2+len(methodtypes), gtype.NumMethods()+2)
+	rfields := make([]reflect.StructField, 1+len(methodtypes), 1+gtype.NumMethods())
 	rfields[0] = approxInterfaceHeader()
-	rfields[1] = approxInterfaceEmbeddeds(embeddeds)
 
 	for i, methodtype := range methodtypes {
-		rfields[i+2] = approxInterfaceMethodAsField(methodnames[i], methodtype.ReflectType())
+		rfields[i+1] = approxInterfaceMethodAsField(methodnames[i], methodtype.ReflectType())
 	}
 	for _, e := range embeddeds {
 		n := e.NumMethod()
@@ -166,31 +156,6 @@ func approxInterfaceHeader() reflect.StructField {
 	}
 }
 
-// if true, produces more detailes reflect.Types for emulated interfaces,
-// at the cost of an exponential explosion of their String() output
-const ANNOTATE_EMULATED_INTERFACES_WITH_EMBEDDED_INTERFACE_TYPES = false
-
-func approxInterfaceEmbeddeds(embeddeds []Type) reflect.StructField {
-	var rtype reflect.Type
-	if ANNOTATE_EMULATED_INTERFACES_WITH_EMBEDDED_INTERFACE_TYPES {
-		fields := make([]reflect.StructField, len(embeddeds))
-		for i, t := range embeddeds {
-			fields[i] = approxInterfaceEmbedded(t)
-		}
-		rtype = reflect.ArrayOf(0, reflect.StructOf(fields))
-	} else {
-		rtype = reflect.ArrayOf(0, reflect.TypeOf(struct{}{}))
-	}
-	return reflect.StructField{Name: StrGensymEmbedded, Type: rtype}
-}
-
-func approxInterfaceEmbedded(t Type) reflect.StructField {
-	return reflect.StructField{
-		Name: toExportedFieldName("", t, true),
-		Type: t.ReflectType(),
-	}
-}
-
 func approxInterfaceMethodAsField(name string, rtype reflect.Type) reflect.StructField {
 	// interface methods cannot be anonymous
 	if len(name) == 0 {
@@ -219,8 +184,8 @@ func setInterfaceMethods(t Type) {
 // create and return a single wrapper function that forwards the call to the i-th closure
 // stored in the emulated interface struct rtype (that will be received as first parameter)
 func interfaceMethod(rtype reflect.Type, index int) reflect.Value {
-	// rtype is *struct { InterfaceHeader; [0]struct{ embeddeds.. }; closures... }
-	index += 2
+	// rtype is *struct { InterfaceHeader; closures... }
+	index++
 	rclosure := rtype.Elem().Field(index).Type
 	rfunc := rAddReceiver(rtype, rclosure)
 	return reflect.MakeFunc(rfunc, func(args []reflect.Value) []reflect.Value {

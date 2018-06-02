@@ -1,46 +1,38 @@
-## gomacro - interactive Go interpreter with macros
+## gomacro - interactive Go interpreter and debugger with macros
 
-gomacro is a fairly complete Go interpreter, implemented in pure Go. It offers both
+gomacro is an almost complete Go interpreter, implemented in pure Go. It offers both
 an interactive REPL and a scripting mode, and does not require a Go toolchain at runtime
-(except in one very specific case: import of a 3d-party package).
+(except in one very specific case: import of a 3<sup>rd</sup> party package at runtime).
 
-It has very few dependencies: go/ast, go/types, reflect, github.com/peterh/liner and,
-for legacy reasons (no longer used by the default interpreter), golang.org/sync/syncmap.
+It has two dependencies beyond the Go standard library: github.com/peterh/liner and golang.org/x/sys
 
 Gomacro can be used as:
-* a standalone executable with interactive Go REPL:
-  just run `gomacro` from your command line.
-  Available options:
+* a standalone executable with interactive Go REPL, line editing and code completion:
+  just run `gomacro` from your command line, then type Go code. Example:
     ```
-    -c,   --collect          collect declarations and statements, to print them later
-    -e,   --expr EXPR        evaluate expression
-    -f,   --force-overwrite  option -w will overwrite existing files
-    -h,   --help             show this help and exit
-    -i,   --repl             interactive. start a REPL after evaluating expression, files and dirs.
-                             default: start a REPL only if no expressions, files or dirs are specified
-    -m,   --macro-only       do not execute code, only parse and macroexpand it.
-                             useful to run gomacro as a Go preprocessor
-    -n,   --no-trap          do not trap panics in the interpreter
-    -t,   --trap             trap panics in the interpreter (default)
-    -s,   --silent           silent. do NOT show startup message, prompt, and expressions results.
-                             default when executing files and dirs.
-    -v,   --verbose          verbose. show startup message, prompt, and expressions results.
-                             default when executing an expression.
-    -vv,  --very-verbose     as -v, and in addition show the type of expressions results.
-                             default when executing a REPL
-    -w,   --write-decls      write collected declarations and statements to *.go files.
-                             implies -c
-    -x,   --exec             execute parsed code (default). disabled by -m
+    $ gomacro
+    [greeting message...]
+
+    gomacro> import "fmt"
+    gomacro> fmt.Println("hello, world!")
+    hello, world!
+    14      // int
+    <nil>   // error
+    gomacro>
     ```
+  press TAB to autocomplete a word, and press it again to cycle on possible completions.
 
-    Options are processed in order, except for -i that is always processed as last.
-
-    Collected declarations and statements can be also written to standard output
-    or to a file with the REPL command :write
+  Line editing follows mostly Emacs: Ctrl+A or Home jumps to start of line,
+  Ctrl+E or End jumps to end of line, Ald+D deletes word starting at cursor...
+  For the full list of key bindings, see https://github.com/peterh/liner
+  
+  
+* a Go source code debugger: see [Debugger](#debugger)
 
 * an interactive tool to make science more productive and more fun.
   If you use compiled Go with scientific libraries (physics, bioinformatics, statistics...)
-  you can import the same libraries from gomacro REPL (requires Go 1.8+ and Linux),
+  you can import the same libraries from gomacro REPL (immediate on Go 1.8+ and Linux,
+  requires restarting on other platforms, see [Importing packages](#importing-packages) below),
   call them interactively, inspect the results, feed them to other functions/libraries,
   all in a single session.
   The imported libraries will be **compiled**, not interpreted,
@@ -72,11 +64,11 @@ Gomacro can be used as:
   how to have your application's functions, variable, constants and types
   available in the interpreter.
 
-  Note: gomacro is currently [LGPL](LICENSE), which imposes some restrictions
-  on programs that use gomacro. The author is currently looking for a license
-  that has fewer (but not zero) restrictions. If you are sufficiently expert with licenses,
-  you can help by reading [issue #14](https://github.com/cosmos72/gomacro/issues/14)
-  and indicating a license that satisfies the requirements listed in it.
+  Note: gomacro license is [MPL 2.0](LICENSE), which imposes some restrictions
+  on programs that use gomacro.
+  See [MPL 2.0 FAQ](https://www.mozilla.org/en-US/MPL/2.0/FAQ/) for common questions
+  regarding the license terms and conditions.
+
 
 * a way to execute Go source code on-the-fly without a Go compiler:
   you can either run `gomacro FILENAME.go` (works on every supported platform)
@@ -113,13 +105,14 @@ Gomacro can be used as:
 
 ### Supported platforms
 
-Gomacro is pure Go, and in theory it should work on any platform supported by the Go compiler.  
+Gomacro is pure Go, and in theory it should work on any platform supported by the Go compiler.
 The following combinations are tested and known to work:
 
-- Linux: amd64, 386, arm64, arm (on Linux it can also import 3rd party libraries at runtime)
-- Mac OS X: amd64, 386
+- Linux: amd64, 386, arm64, arm, mips, ppc64le (on Linux it can also import 3<sup>rd</sup> party libraries at runtime)
+- Mac OS X: amd64, 386 (386 binaries running on amd64 system)
 - Windows: amd64, 386
 - FreeBSD: amd64, 386
+- Android: arm64, arm (tested with [Termux](https://termux.com/) and the Go compiler distributed with it)
 
 ### How to install
 
@@ -127,23 +120,188 @@ The following combinations are tested and known to work:
   ```
   go get -u github.com/cosmos72/gomacro
   ```
-  downloads, compiles and installs gomacro
+  downloads, compiles and installs gomacro and its dependencies
 
 ## Current Status
 
 Almost complete.
 
-The main missing features are:
+The main limitations and missing features are:
 
-* importing 3rd party libraries on non-Linux systems. Gomacro uses the Go 'plugin' package for this, and it currently works only on Linux.
+* importing 3<sup>rd</sup> party libraries on non-Linux systems is cumbersome - see [Importing packages](#importing-packages).
 * some corner cases using interpreted interfaces, as interface -> interface type assertions and type switches, are not implemented yet.
-* out-of-order code. Types, constants, variables and functions must be declared **before** using them.
-* switching to a different package (if you absolutely need it, the older and slower `gomacro.classic.Interp` supports switching to a different package)
-* goto is partially implemented - can only jump back, not forward
-* type inference in composite literals - see [github issue #9](https://github.com/cosmos72/gomacro/issues/9)
+* goto can only jump backward, not forward
+* out-of-order code is under testing - some corner cases, as for example out-of-order declarations
+  used in keys of composite literals, are not supported.  
+  Clearly, at REPL code is still executed as soon as possible, so it makes a difference mostly
+  if you separate multiple declarations with ; on a single line. Example: `var a = b; var b = 42`  
+  Support for "batch mode" is in progress - it reads as much source code as possible before executing it,
+  and it's useful mostly to execute whole files or directories.
 
 The [documentation](doc/) also contains the [full list of features and limitations](doc/features-and-limitations.md)
 
+## Extensions
+
+Compared to compiled Go, gomacro supports several extensions:
+
+* an integrated debugger, see [Debugger](#debugger)
+
+* configurable special commands. Type `:help` at REPL to list them,
+  and see [cmd.go:37](https://github.com/cosmos72/gomacro/blob/master/fast/cmd.go#L37)
+  for the documentation and API to define new ones.
+
+* untyped constants can be manipulated directly at REPL. Examples:
+    ```
+	gomacro> 1<<100
+	{int 1267650600228229401496703205376}	// untyped.Lit
+	gomacro> const c = 1<<100; c * c / 100000000000
+	{int 16069380442589902755419620923411626025222029937827}	// untyped.Lit
+	```
+  This provides a handy arbitrary-precision calculator.
+
+  Note: operations on large untyped integer constants are always exact,
+  while operations on large untyped float constants are implemented with `go/constant.Value`,
+  and are exact as long as both numerator and denominator are <= 5e1232.
+
+  Beyond that, `go/constant.Value` switches from `*big.Rat` to `*big.Float`
+  with precision = 512, which can accumulate rounding errors.
+
+  If you need **exact** results, convert the untyped float constant to `*big.Rat`
+  (see next item) before exceeding 5e1232.
+
+* untyped constants can be converted implicitly to `*big.Int`, `*big.Rat` and `*big.Float`. Examples:
+    ```
+	import "math/big"
+	var i *big.Int = 1<<1000                 // exact - would overflow int
+	var r *big.Rat = 1.000000000000000000001 // exact - different from 1.0
+	var s *big.Rat = 5e1232                  // exact - would overflow float64
+	var t *big.Rat = 1e1234                  // approximate, exceeds 5e1232
+	var f *big.Float = 1e646456992           // largest untyped float constant that is different from +Inf
+    ```
+  Note: every time such a conversion is evaluated, it creates a new value - no risk to modify the constant.
+
+  Be aware that converting a huge value to string, as typing `f` at REPL would do, can be very slow.
+
+* macros, quoting and quasiquoting (to be documented)
+
+and slightly relaxed checks:
+
+* unused variables and unused return values never cause errors
+
+## Examples
+
+Some short, notable examples - to run them on non-Linux platforms, see [Importing packages](#importing-packages) first.
+
+### plot mathematical functions
+
+* install libraries: `go get gonum.org/v1/plot gonum.org/v1/plot/plotter gonum.org/v1/plot/vg`
+* start the interpreter: `gomacro`
+* at interpreter prompt, paste the whole Go code listed at https://github.com/gonum/plot/wiki/Example-plots#functions
+  (the source code starts after the picture under the section "Functions", and ends just before the section "Histograms")
+* still at interpreter prompt, enter `main()`
+  If all goes well, it will create a file named "functions.png" in current directory containing the plotted functions.
+
+### simple mandelbrot web server
+
+* install libraries: `go get github.com/sverrirab/mandelbrot-go`
+* chdir to mandelbrot-go source folder: `cd; cd go/src/github.com/sverrirab/mandelbrot-go`
+* start interpreter with arguments: `gomacro -i mbrot.go`
+* at interpreter prompt, enter `init(); main()`
+* visit http://localhost:8090/
+  Be patient, rendering and zooming mandelbrot set with an interpreter is a little slow.
+
+Further examples are listed by [Gophernotes](https://github.com/gopherdata/gophernotes/#example-notebooks-dowload-and-run-them-locally-follow-the-links-to-view-in-github-or-use-the-jupyter-notebook-viewer)
+
+## Importing packages
+
+Gomacro supports the standard Go syntax `import`, including package renaming. Examples:
+```
+import "fmt"
+import (
+    "io"
+    "net/http"
+    r "reflect"
+)
+```
+Third party packages - i.e. packages not in Go standard library - can also be imported
+with the same syntax, as long as the package is **already** installed.
+
+To install a package, follow its installation procedure: quite often it is the command `go get PACKAGE-PATH`
+
+The next steps depend on the system you are running gomacro on:
+
+### Linux
+
+If you are running gomacro on Linux, `import` will then just work. Example:
+```
+$ go get gonum.org/v1/plot
+$ gomacro
+[greeting message...]
+
+gomacro> import "gonum.org/v1/plot"
+// debug: created file "/home/max/src/gomacro_imports/gonum.org/v1/plot/plot.go"...
+// debug: compiling "/home/max/go/src/gomacro_imports/gonum.org/v1/plot/plot.go" ...
+gomacro> plot.New()
+&{...} // *plot.Plot
+<nil>  // error
+```
+
+Note: internally, gomacro will compile and load a Go plugin containing the package's exported declarations.
+Currently, Go plugins are fully functional only on Linux.
+
+
+### Other systems
+
+On Mac OS X, Windows, Android and *BSD you can still use `import`, but there are some more steps.
+Example:
+```
+$ go get gonum.org/v1/plot
+$ gomacro
+[greeting message...]
+
+gomacro> import "gonum.org/v1/plot"
+// warning: created file "/home/max/go/src/github.com/cosmos72/gomacro/imports/thirdparty/gonum_org_v1_plot.go", recompile gomacro to use it
+```
+
+Now quit gomacro, recompile and reinstall it:
+```
+gomacro> :quit
+$ go install github.com/cosmos72/gomacro
+```
+
+Finally restart it. Your import is now linked **inside** gomacro and will work:
+```
+$ gomacro
+[greeting message...]
+
+gomacro> import "gonum.org/v1/plot"
+gomacro> plot.New()
+&{...} // *plot.Plot
+<nil>  // error
+```
+
+Note: if you need several packages, you can first `import` all of them,
+then quit and recompile gomacro only once.
+
+## Debugger
+
+Since version 2.6, gomacro also has an integrated debugger.
+There are two ways to use it:
+* type `:debug STATEMENT-OR-FUNCTION-CALL` at the prompt.
+* add a statement (an expression is not enough) `"break"` or `_ = "break"` to your code, then execute it normally.
+
+In both cases, execution will be suspended and you will get a `debug>` prompt, which accepts the following commands:  
+`step`, `next`, `finish`, `continue`, `env [NAME]`, `inspect EXPR`, `list`, `print EXPR-OR-STATEMENT`
+
+Also,
+* commands can be abbreviated.
+* `print` fully supports expressions or statements with side effects, including function calls and modifying local variables.
+* `env` without arguments prints all global and local variables.
+* an empty command (i.e. just pressing enter) repeats the last command.
+
+Only interpreted statements can be debugged: expressions and compiled code will be executed, but you cannot step into them.
+
+The debugger is quite new, and may have some minor glitches.
 
 ## Why it was created
 
@@ -185,3 +343,8 @@ into regular Go source code, without the need for external programs
 (except for the intepreter itself).
 
 As a free bonus, we get support for Eval()
+
+## LEGAL
+
+Gomacro is distributed under the terms of [Mozilla Public License 2.0](LICENSE)
+or any later version.

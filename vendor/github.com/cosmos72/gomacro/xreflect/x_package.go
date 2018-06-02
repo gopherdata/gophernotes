@@ -14,7 +14,7 @@ func init() {
 	imports.Packages["github.com/cosmos72/gomacro/xreflect"] = imports.Package{
 		Binds: map[string]r.Value{
 			"DefaultImporter":    r.ValueOf(DefaultImporter),
-			"GensymEmbedded":     r.ValueOf(GensymEmbedded),
+			"GensymAnonymous":    r.ValueOf(GensymAnonymous),
 			"GensymPrivate":      r.ValueOf(GensymPrivate),
 			"MaxDepth":           r.ValueOf(MaxDepth),
 			"MissingMethod":      r.ValueOf(MissingMethod),
@@ -23,7 +23,7 @@ func init() {
 			"QName2":             r.ValueOf(QName2),
 			"QNameGo":            r.ValueOf(QNameGo),
 			"QNameGo2":           r.ValueOf(QNameGo2),
-			"StrGensymEmbedded":  r.ValueOf(StrGensymEmbedded),
+			"StrGensymAnonymous": r.ValueOf(StrGensymAnonymous),
 			"StrGensymInterface": r.ValueOf(StrGensymInterface),
 			"StrGensymPrivate":   r.ValueOf(StrGensymPrivate),
 			"Zero":               r.ValueOf(Zero),

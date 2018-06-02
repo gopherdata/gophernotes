@@ -40,7 +40,7 @@ func init() {
 		"ReadTrace":	ValueOf(runtime.ReadTrace),
 		"SetBlockProfileRate":	ValueOf(runtime.SetBlockProfileRate),
 		"SetCPUProfileRate":	ValueOf(runtime.SetCPUProfileRate),
-		"SetCgoTraceback":	ValueOf(runtime.SetCgoTraceback),
+		// "SetCgoTraceback":      ValueOf(runtime.SetCgoTraceback), // missing in gccgo!
 		"SetFinalizer":	ValueOf(runtime.SetFinalizer),
 		"SetMutexProfileFraction":	ValueOf(runtime.SetMutexProfileFraction),
 		"Stack":	ValueOf(runtime.Stack),

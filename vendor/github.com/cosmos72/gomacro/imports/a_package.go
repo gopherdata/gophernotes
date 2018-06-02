@@ -1,20 +1,11 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017 Massimiliano Ghilardi
+ * Copyright (C) 2017-2018 Massimiliano Ghilardi
  *
- *     This program is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU Lesser General Public License as published
- *     by the Free Software Foundation, either version 3 of the License, or
- *     (at your option) any later version.
- *
- *     This program is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU Lesser General Public License for more details.
- *
- *     You should have received a copy of the GNU Lesser General Public License
- *     along with this program.  If not, see <https://www.gnu.org/licenses/lgpl>.
+ *     This Source Code Form is subject to the terms of the Mozilla Public
+ *     License, v. 2.0. If a copy of the MPL was not distributed with this
+ *     file, You can obtain one at http://mozilla.org/MPL/2.0/.
  *
  *
  * a_package.go
@@ -27,9 +18,12 @@ package imports
 
 import (
 	. "reflect"
+
+	"github.com/cosmos72/gomacro/imports/syscall"
+	"github.com/cosmos72/gomacro/imports/thirdparty"
 )
 
-type Package struct {
+type PackageUnderlying = struct { // unnamed
 	Binds   map[string]Value
 	Types   map[string]Type
 	Proxies map[string]Type
@@ -42,7 +36,11 @@ type Package struct {
 	Wrappers map[string][]string
 }
 
-var Packages = make(map[string]Package)
+type Package PackageUnderlying // named, can have methods
+
+type PackageMap map[string]Package // named, can have methods
+
+var Packages = make(PackageMap)
 
 // reflection: allow interpreted code to import "github.com/cosmos72/gomacro/imports"
 func init() {
@@ -53,32 +51,49 @@ func init() {
 		Types: map[string]Type{
 			"Package": TypeOf((*Package)(nil)).Elem(),
 		},
-		Proxies:  map[string]Type{},
-		Untypeds: map[string]string{},
-		Wrappers: map[string][]string{},
 	}
+	Packages.Merge(syscall.Packages)
+	Packages.Merge(thirdparty.Packages)
 }
 
-func (pkg *Package) Init() {
-	pkg.Binds = make(map[string]Value)
-	pkg.Types = make(map[string]Type)
-	pkg.Proxies = make(map[string]Type)
-	pkg.Untypeds = make(map[string]string)
-	pkg.Wrappers = make(map[string][]string)
-}
-
-func (pkg Package) SaveToPackages(path string) {
+func (pkgs PackageMap) Merge(srcs map[string]PackageUnderlying) {
 	// exploit the fact that maps are actually handles
-	dst, ok := Packages[path]
-	if !ok {
-		dst = Package{}
-		dst.Init()
-		Packages[path] = dst
+	for path, src := range srcs {
+		pkgs.MergePackage(path, src)
 	}
-	dst.Merge(pkg)
 }
 
-func (dst Package) Merge(src Package) {
+func (pkgs PackageMap) MergePackage(path string, src PackageUnderlying) {
+	// exploit the fact that maps are actually handles
+	pkg, ok := pkgs[path]
+	if ok {
+		pkg.Merge(src)
+	} else {
+		pkg = Package(src)
+		pkg.LazyInit()
+		pkgs[path] = pkg
+	}
+}
+
+func (pkg *Package) LazyInit() {
+	if pkg.Binds == nil {
+		pkg.Binds = make(map[string]Value)
+	}
+	if pkg.Types == nil {
+		pkg.Types = make(map[string]Type)
+	}
+	if pkg.Proxies == nil {
+		pkg.Proxies = make(map[string]Type)
+	}
+	if pkg.Untypeds == nil {
+		pkg.Untypeds = make(map[string]string)
+	}
+	if pkg.Wrappers == nil {
+		pkg.Wrappers = make(map[string][]string)
+	}
+}
+
+func (dst Package) Merge(src PackageUnderlying) {
 	// exploit the fact that maps are actually handles
 	for k, v := range src.Binds {
 		dst.Binds[k] = v

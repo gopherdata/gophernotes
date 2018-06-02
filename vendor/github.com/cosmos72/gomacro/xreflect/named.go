@@ -1,20 +1,11 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017 Massimiliano Ghilardi
+ * Copyright (C) 2017-2018 Massimiliano Ghilardi
  *
- *     This program is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU Lesser General Public License as published
- *     by the Free Software Foundation, either version 3 of the License, or
- *     (at your option) any later version.
- *
- *     This program is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU Lesser General Public License for more details.
- *
- *     You should have received a copy of the GNU Lesser General Public License
- *     along with this program.  If not, see <https://www.gnu.org/licenses/lgpl>.
+ *     This Source Code Form is subject to the terms of the Mozilla Public
+ *     License, v. 2.0. If a copy of the MPL was not distributed with this
+ *     file, You can obtain one at http://mozilla.org/MPL/2.0/.
  *
  *
  * named.go
@@ -47,7 +38,7 @@ func (v *Universe) NamedOf(name, pkgpath string, kind reflect.Kind) Type {
 func (v *Universe) namedOf(name, pkgpath string, kind reflect.Kind) Type {
 	underlying := v.BasicTypes[kind]
 	if underlying == nil {
-		underlying = v.TypeOfInterface
+		underlying = v.TypeOfForward
 	}
 	return v.reflectNamedOf(name, pkgpath, kind, underlying.ReflectType())
 }
@@ -63,7 +54,7 @@ func (v *Universe) reflectNamedOf(name, pkgpath string, kind reflect.Kind, rtype
 	return v.maketype3(
 		// kind may be inaccurate or reflect.Invalid;
 		// underlying.GoType() will often be inaccurate and equal to interface{};
-		// rtype will often be inaccurate and equal to interface{}.
+		// rtype will often be inaccurate and equal to Incomplete.
 		// All these issues will be fixed by Type.SetUnderlying()
 		kind,
 		types.NewNamed(typename, underlying.GoType(), nil),
@@ -87,6 +78,7 @@ func (t *xtype) SetUnderlying(underlying Type) {
 		gunderlying := tunderlying.gtype.Underlying() // in case underlying is named
 		t.kind = gtypeToKind(t, gunderlying)
 		gtype.SetUnderlying(gunderlying)
+		// debugf("SetUnderlying: updated <%v> reflect Type from <%v> to <%v>", gtype, t.rtype, underlying.ReflectType())
 		t.rtype = underlying.ReflectType()
 		if t.kind == reflect.Interface {
 			// propagate methodvalues from underlying interface to named type

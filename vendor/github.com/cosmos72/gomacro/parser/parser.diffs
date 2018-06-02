@@ -1,6 +1,6 @@
---- /usr/local/go/src/go/parser/parser.go	2017-02-16 20:27:47.000000000 +0100
-+++ parser.go	2017-04-22 17:58:50.801987424 +0200
-@@ -19,11 +19,13 @@
+--- go1.10.1/src/go/parser/parser.go	2018-03-29 06:29:01.000000000 +0200
++++ parser.go	2018-04-09 21:20:52.453627706 +0200
+@@ -19,16 +19,18 @@
  import (
  	"fmt"
  	"go/ast"
@@ -15,34 +15,34 @@
  )
  
  // The parser structure holds the parser's internal state.
-@@ -37,11 +39,17 @@
- 	trace  bool // == (mode & Trace != 0)
- 	indent int  // indentation used for tracing output
+ type parser struct {
+-	file    *token.File
++	file    *mt.File
+ 	errors  scanner.ErrorList
+ 	scanner scanner.Scanner
  
-+	specialChar rune // patch: prefix for quote operators ' ` , ,@
-+	fileset     *token.FileSet
-+
- 	// Comments
- 	comments    []*ast.CommentGroup
+@@ -42,6 +44,9 @@
  	leadComment *ast.CommentGroup // last lead comment
  	lineComment *ast.CommentGroup // last line comment
  
-+	// Previous token
-+	tok0 token.Token
++	tok0        token.Token // patch: Previous token
++	specialChar rune        // patch: prefix for quote operators ' ` , ,@
 +
  	// Next token
  	pos token.Pos   // token position
  	tok token.Token // one token look-ahead
-@@ -71,16 +79,51 @@
+@@ -70,17 +75,51 @@
+ 	targetStack [][]*ast.Ident // stack of unresolved labels
  }
  
- func (p *parser) init(fset *token.FileSet, filename string, src []byte, mode Mode) {
+-func (p *parser) init(fset *token.FileSet, filename string, src []byte, mode Mode) {
+-	p.file = fset.AddFile(filename, -1, len(src))
++func (p *parser) init(fset *mt.FileSet, filename string, lineOffset int, src []byte, mode Mode) {
 +	// Explicitly initialize all private fields since a parser may be reused.
 +	if fset == nil {
-+		fset = token.NewFileSet()
++		fset = mt.NewFileSet()
 +	}
-+	p.fileset = fset
- 	p.file = fset.AddFile(filename, -1, len(src))
++	p.file = fset.AddFile(filename, -1, len(src), lineOffset)
 +	p.errors = nil
 +
  	var m scanner.Mode
@@ -86,7 +86,7 @@
  
  	p.next()
  }
-@@ -243,11 +286,13 @@
+@@ -243,11 +282,13 @@
  	// very first token (!p.pos.IsValid()) is not initialized
  	// (it is token.ILLEGAL), so don't print it .
  	if p.trace && p.pos.IsValid() {
@@ -102,16 +102,7 @@
  			p.printTrace("\"" + s + "\"")
  		default:
  			p.printTrace(s)
-@@ -274,7 +319,7 @@
- 	comment = &ast.Comment{Slash: p.pos, Text: p.lit}
- 	p.next0()
- 
--	return
-+	return comment, endline
- }
- 
- // Consume a group of adjacent comments, add it to the parser's
-@@ -317,6 +362,7 @@
+@@ -317,6 +358,7 @@
  	p.leadComment = nil
  	p.lineComment = nil
  	prev := p.pos
@@ -119,7 +110,7 @@
  	p.next0()
  
  	if p.tok == token.COMMENT {
-@@ -378,7 +424,7 @@
+@@ -378,7 +420,7 @@
  		if p.tok == token.SEMICOLON && p.lit == "\n" {
  			msg += ", found newline"
  		} else {
@@ -128,7 +119,7 @@
  			if p.tok.IsLiteral() {
  				msg += " " + p.lit
  			}
-@@ -390,7 +436,7 @@
+@@ -390,7 +432,7 @@
  func (p *parser) expect(tok token.Token) token.Pos {
  	pos := p.pos
  	if p.tok != tok {
@@ -137,7 +128,7 @@
  	}
  	p.next() // make progress
  	return pos
-@@ -409,7 +455,7 @@
+@@ -409,7 +451,7 @@
  
  func (p *parser) expectSemi() {
  	// semicolon is optional before a closing ')' or '}'
@@ -146,7 +137,7 @@
  		switch p.tok {
  		case token.COMMA:
  			// permit a ',' instead of a ';' but complain
-@@ -454,7 +500,7 @@
+@@ -454,7 +496,7 @@
  		case token.BREAK, token.CONST, token.CONTINUE, token.DEFER,
  			token.FALLTHROUGH, token.FOR, token.GO, token.GOTO,
  			token.IF, token.RETURN, token.SELECT, token.SWITCH,
@@ -155,7 +146,7 @@
  			// Return only if parser made some progress since last
  			// sync or if it has not reached 10 sync calls without
  			// progress. Otherwise consume at least one token to
-@@ -489,7 +535,7 @@
+@@ -489,7 +531,7 @@
  func syncDecl(p *parser) {
  	for {
  		switch p.tok {
@@ -164,7 +155,7 @@
  			// see comments in syncStmt
  			if p.pos == p.syncPos && p.syncCnt < 10 {
  				p.syncCnt++
-@@ -912,12 +958,12 @@
+@@ -912,12 +954,12 @@
  	return
  }
  
@@ -179,7 +170,7 @@
  	scope := ast.NewScope(p.topScope) // function scope
  	params, results := p.parseSignature(scope)
  
-@@ -1026,8 +1072,8 @@
+@@ -1026,8 +1068,8 @@
  		return p.parseStructType()
  	case token.MUL:
  		return p.parsePointerType()
@@ -190,7 +181,7 @@
  		return typ
  	case token.INTERFACE:
  		return p.parseInterfaceType()
-@@ -1041,6 +1087,8 @@
+@@ -1041,6 +1083,8 @@
  		typ := p.parseType()
  		rparen := p.expect(token.RPAREN)
  		return &ast.ParenExpr{Lparen: lparen, X: typ, Rparen: rparen}
@@ -199,7 +190,7 @@
  	}
  
  	// no type found
-@@ -1063,7 +1111,7 @@
+@@ -1063,7 +1107,7 @@
  		defer un(trace(p, "StatementList"))
  	}
  
@@ -208,7 +199,7 @@
  		list = append(list, p.parseStmt())
  	}
  
-@@ -1103,12 +1151,12 @@
+@@ -1103,12 +1147,12 @@
  // ----------------------------------------------------------------------------
  // Expressions
  
@@ -223,7 +214,7 @@
  	if p.tok != token.LBRACE {
  		// function type only
  		return typ
-@@ -1152,8 +1200,20 @@
+@@ -1152,8 +1196,20 @@
  		rparen := p.expect(token.RPAREN)
  		return &ast.ParenExpr{Lparen: lparen, X: x, Rparen: rparen}
  
@@ -246,7 +237,7 @@
  	}
  
  	if typ := p.tryIdentOrType(); typ != nil {
-@@ -1432,10 +1492,13 @@
+@@ -1432,10 +1488,13 @@
  
  // If x is of the form (T), unparen returns unparen(T), otherwise it returns x.
  func unparen(x ast.Expr) ast.Expr {
@@ -263,7 +254,7 @@
  }
  
  // checkExprOrType checks that x is an expression or a type
-@@ -1701,6 +1764,10 @@
+@@ -1701,6 +1760,10 @@
  			// Go spec: The scope of a label is the body of the function
  			// in which it is declared and excludes the body of any nested
  			// function.
@@ -274,7 +265,7 @@
  			stmt := &ast.LabeledStmt{Label: label, Colon: colon, Stmt: p.parseStmt()}
  			p.declare(stmt, nil, p.labelScope, ast.Lbl, label)
  			return stmt, false
-@@ -1884,25 +1951,32 @@
+@@ -1884,25 +1947,37 @@
  	return
  }
  
@@ -301,9 +292,14 @@
 +	} else if p.tok == token.DEFAULT {
  		p.expect(token.DEFAULT)
 +	} else {
-+		// patch: support switch foo { ~,{bar} }
-+		// where bar will expand to case x, y, z: w
-+		return p.parseStmt()
++		switch p.tok {
++		case token.ILLEGAL, token.EOF, token.COLON, token.SEMICOLON, token.RBRACE, token.RBRACK, token.LPAREN:
++			p.errorExpected(p.pos, "'case' or 'default'")
++		default:
++			// patch: support switch foo { ~,{bar} }
++			// where bar will expand to case x, y, z: w
++			return p.parseStmt()
++		}
  	}
 -
  	colon := p.expect(token.COLON)
@@ -311,7 +307,7 @@
  	p.openScope()
  	body := p.parseStmtList()
  	p.closeScope()
-@@ -1980,7 +2054,8 @@
+@@ -1980,7 +2055,8 @@
  	typeSwitch := p.isTypeSwitchGuard(s2)
  	lbrace := p.expect(token.LBRACE)
  	var list []ast.Stmt
@@ -321,7 +317,7 @@
  		list = append(list, p.parseCaseClause(typeSwitch))
  	}
  	rbrace := p.expect(token.RBRACE)
-@@ -2159,13 +2234,17 @@
+@@ -2159,13 +2235,17 @@
  	}
  
  	switch p.tok {
@@ -341,7 +337,7 @@
  		s, _ = p.parseSimpleStmt(labelOk)
  		// because of the required look-ahead, labeled statements are
  		// parsed by parseSimpleStmt - don't expect a semicolon after
-@@ -2173,6 +2252,8 @@
+@@ -2173,6 +2253,8 @@
  		if _, isLabeledStmt := s.(*ast.LabeledStmt); !isLabeledStmt {
  			p.expectSemi()
  		}
@@ -350,7 +346,21 @@
  	case token.GO:
  		s = p.parseGoStmt()
  	case token.DEFER:
-@@ -2366,17 +2447,41 @@
+@@ -2327,11 +2409,12 @@
+ 	// (Global identifiers are resolved in a separate phase after parsing.)
+ 	spec := &ast.TypeSpec{Doc: doc, Name: ident}
+ 	p.declare(spec, nil, p.topScope, ast.Typ, ident)
++
+ 	if p.tok == token.ASSIGN {
+ 		spec.Assign = p.pos
+ 		p.next()
+ 	}
+-	spec.Type = p.parseType()
++ 	spec.Type = p.parseType()
+ 	p.expectSemi() // call before accessing p.linecomment
+ 	spec.Comment = p.lineComment
+ 
+@@ -2369,17 +2452,41 @@
  	}
  }
  
@@ -395,7 +405,7 @@
  		recv = p.parseParameters(scope, false)
  	}
  
-@@ -2429,8 +2534,11 @@
+@@ -2432,8 +2539,11 @@
  	case token.TYPE:
  		f = p.parseTypeSpec
  
@@ -409,7 +419,7 @@
  
  	default:
  		pos := p.pos
-@@ -2473,8 +2581,11 @@
+@@ -2476,8 +2586,11 @@
  		return nil
  	}
  
@@ -423,7 +433,7 @@
  	var decls []ast.Decl
  	if p.mode&PackageClauseOnly == 0 {
  		// import decls
-@@ -2489,9 +2600,11 @@
+@@ -2492,9 +2605,11 @@
  			}
  		}
  	}

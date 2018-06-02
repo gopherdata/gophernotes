@@ -1,20 +1,11 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017 Massimiliano Ghilardi
+ * Copyright (C) 2017-2018 Massimiliano Ghilardi
  *
- *     This program is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU Lesser General Public License as published
- *     by the Free Software Foundation, either version 3 of the License, or
- *     (at your option) any later version.
- *
- *     This program is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU Lesser General Public License for more details.
- *
- *     You should have received a copy of the GNU Lesser General Public License
- *     along with this program.  If not, see <https://www.gnu.org/licenses/lgpl>.
+ *     This Source Code Form is subject to the terms of the Mozilla Public
+ *     License, v. 2.0. If a copy of the MPL was not distributed with this
+ *     file, You can obtain one at http://mozilla.org/MPL/2.0/.
  *
  *
  * compile.go
@@ -28,107 +19,23 @@ package fast
 import (
 	"go/ast"
 	"go/token"
-	"go/types"
 	r "reflect"
 
 	. "github.com/cosmos72/gomacro/ast2"
 	. "github.com/cosmos72/gomacro/base"
-	xr "github.com/cosmos72/gomacro/xreflect"
+	"github.com/cosmos72/gomacro/base/dep"
+	"github.com/cosmos72/gomacro/gls"
 )
-
-func NewThreadGlobals() *ThreadGlobals {
-	return &ThreadGlobals{
-		Globals: NewGlobals(),
-	}
-}
-
-func New() *Interp {
-	top := newTopInterp("builtin")
-	top.env.UsedByClosure = true // do not free this *Env
-	file := NewInnerInterp(top, "main", "main")
-	file.env.UsedByClosure = true // do not free this *Env
-	return file
-}
-
-func newTopInterp(path string) *Interp {
-	name := FileName(path)
-
-	globals := NewGlobals()
-	universe := xr.NewUniverse()
-
-	compGlobals := &CompGlobals{
-		Universe:     universe,
-		interf2proxy: make(map[r.Type]r.Type),
-		proxy2interf: make(map[r.Type]xr.Type),
-		Globals:      globals,
-	}
-	envGlobals := &ThreadGlobals{Globals: globals}
-	ce := &Interp{
-		Comp: &Comp{
-			UpCost:      1,
-			Depth:       0,
-			Outer:       nil,
-			Name:        name,
-			Path:        path,
-			CompGlobals: compGlobals,
-		},
-		env: &Env{
-			Outer:         nil,
-			ThreadGlobals: envGlobals,
-		},
-	}
-	// tell xreflect about our packages "fast" and "main"
-	compGlobals.Universe.CachePackage(types.NewPackage("fast", "fast"))
-	compGlobals.Universe.CachePackage(types.NewPackage("main", "main"))
-
-	// no need to scavenge for Builtin, Function, Import, Macro and UntypedLit fields and methods.
-	// actually, making them opaque helps securing against malicious interpreted code.
-	for _, rtype := range []r.Type{rtypeOfBuiltin, rtypeOfFunction, rtypeOfImport, rtypeOfMacro, rtypeOfUntypedLit} {
-		compGlobals.opaqueType(rtype)
-	}
-
-	envGlobals.TopEnv = ce.env
-	ce.addBuiltins()
-	return ce
-}
-
-func NewInnerInterp(outer *Interp, name string, path string) *Interp {
-	if len(name) == 0 {
-		name = FileName(path)
-	}
-
-	outerComp := outer.Comp
-	outerEnv := outer.env
-	ir := &Interp{
-		Comp: &Comp{
-			UpCost:      1,
-			Depth:       outerComp.Depth + 1,
-			Outer:       outerComp,
-			Name:        name,
-			Path:        path,
-			CompGlobals: outerComp.CompGlobals,
-		},
-		env: &Env{
-			Outer:         outerEnv,
-			ThreadGlobals: outerEnv.ThreadGlobals,
-		},
-	}
-	if outerEnv.Outer == nil {
-		outerEnv.ThreadGlobals.FileEnv = ir.env
-	}
-	return ir
-}
 
 func NewComp(outer *Comp, code *Code) *Comp {
 	if outer == nil {
 		return &Comp{UpCost: 1}
 	}
 	c := Comp{
-		UpCost:         1,
-		Depth:          outer.Depth + 1,
-		Outer:          outer,
-		CompileOptions: outer.CompileOptions,
-		CompGlobals:    outer.CompGlobals,
+		UpCost:      1,
+		Depth:       outer.Depth + 1,
+		Outer:       outer,
+		CompGlobals: outer.CompGlobals,
 	}
 	// Debugf("NewComp(%p->%p) %s", outer, &c, debug.Stack())
 	if code != nil {
@@ -156,72 +63,169 @@ func (c *Comp) FileComp() *Comp {
 	return c
 }
 
-// if a function Env only declares ignored binds, it gets this scratch buffers
-var ignoredBinds = []r.Value{Nil}
-var ignoredIntBinds = []uint64{0}
+func NewIrGlobals() *IrGlobals {
+	return &IrGlobals{
+		gls:     make(map[uintptr]*Run),
+		Globals: *NewGlobals(),
+	}
+}
 
-func NewEnv(outer *Env, nbinds int, nintbinds int) *Env {
-	tg := outer.ThreadGlobals
-	pool := &tg.Pool // pool is an array, do NOT copy it!
-	index := tg.PoolSize - 1
+func (g *IrGlobals) glsGet(goid uintptr) *Run {
+	g.lock.Lock()
+	ret := g.gls[goid]
+	g.lock.Unlock()
+	return ret
+}
+
+func (run *Run) getRun4Goid(goid uintptr) *Run {
+	g := run.IrGlobals
+	ret := g.glsGet(goid)
+	if ret == nil {
+		ret = run.new(goid)
+		ret.glsStore()
+	}
+	return ret
+}
+
+func (tg *Run) glsStore() {
+	g := tg.IrGlobals
+	goid := tg.goid
+	g.lock.Lock()
+	g.gls[goid] = tg
+	g.lock.Unlock()
+}
+
+func (tg *Run) glsDel() {
+	g := tg.IrGlobals
+	goid := tg.goid
+	g.lock.Lock()
+	delete(g.gls, goid)
+	g.lock.Unlock()
+}
+
+func (run *Run) new(goid uintptr) *Run {
+	return &Run{
+		IrGlobals: run.IrGlobals,
+		goid:      goid,
+		// Interrupt, Signal, PoolSize and Pool are zero-initialized, fine with that
+	}
+}
+
+// common part between NewEnv() and newEnv4Func()
+func newEnv(run *Run, outer *Env, nbind int, nintbind int) *Env {
+	pool := &run.Pool // pool is an array, do NOT copy it!
+	index := run.PoolSize - 1
 	var env *Env
 	if index >= 0 {
-		tg.PoolSize = index
+		run.PoolSize = index
 		env = pool[index]
 		pool[index] = nil
 	} else {
 		env = &Env{}
 	}
-	if nbinds <= 1 {
-		env.Binds = ignoredBinds
-	} else if cap(env.Binds) < nbinds {
-		env.Binds = make([]r.Value, nbinds)
+	if cap(env.Vals) >= nbind {
+		env.Vals = env.Vals[0:nbind]
 	} else {
-		env.Binds = env.Binds[0:nbinds]
+		env.Vals = make([]r.Value, nbind)
 	}
-	if nintbinds <= 1 {
-		env.IntBinds = ignoredIntBinds
-	} else if cap(env.IntBinds) < nintbinds {
-		env.IntBinds = make([]uint64, nintbinds)
+	if cap(env.Ints) >= nintbind {
+		env.Ints = env.Ints[0:nintbind]
 	} else {
-		env.IntBinds = env.IntBinds[0:nintbinds]
+		env.Ints = make([]uint64, nintbind)
 	}
 	env.Outer = outer
-	env.IP = outer.IP
-	env.Code = outer.Code
-	env.ThreadGlobals = tg
+	env.Run = run
+	env.FileEnv = outer.FileEnv
 	return env
 }
 
-func newEnv4Func(outer *Env, nbinds int, nintbinds int) *Env {
-	tg := outer.ThreadGlobals
-	pool := &tg.Pool // pool is an array, do NOT copy it!
-	index := tg.PoolSize - 1
+// return a new, nested Env with given number of binds and intbinds
+func NewEnv(outer *Env, nbind int, nintbind int) *Env {
+	run := outer.Run
+
+	// manually inline
+	// env := newEnv(run, outer, nbind, nintbind)
 	var env *Env
-	if index >= 0 {
-		tg.PoolSize = index
-		env = pool[index]
-		pool[index] = nil
-	} else {
-		env = &Env{}
+	{
+		pool := &run.Pool // pool is an array, do NOT copy it!
+		index := run.PoolSize - 1
+		if index >= 0 {
+			run.PoolSize = index
+			env = pool[index]
+			pool[index] = nil
+		} else {
+			env = &Env{}
+		}
+		if cap(env.Vals) >= nbind {
+			env.Vals = env.Vals[0:nbind]
+		} else {
+			env.Vals = make([]r.Value, nbind)
+		}
+		if cap(env.Ints) >= nintbind {
+			env.Ints = env.Ints[0:nintbind]
+		} else {
+			env.Ints = make([]uint64, nintbind)
+		}
+		env.Outer = outer
+		env.Run = run
+		env.FileEnv = outer.FileEnv
 	}
-	if nbinds <= 1 {
-		env.Binds = ignoredBinds
-	} else if cap(env.Binds) < nbinds {
-		env.Binds = make([]r.Value, nbinds)
-	} else {
-		env.Binds = env.Binds[0:nbinds]
+	env.IP = outer.IP
+	env.Code = outer.Code
+	env.DebugPos = outer.DebugPos
+	env.CallDepth = outer.CallDepth
+	// this is a nested *Env, not a function body: to obtain the caller function,
+	// follow env.Outer.Outer... chain until you find an *Env with non-nil Caller
+	// env.Caller = nil
+	// DebugCallStack Debugf("NewEnv(%p->%p) nbind=%d nintbind=%d calldepth: %d->%d", outer, env, nbind, nintbind, outer.CallDepth, env.CallDepth)
+	run.CurrEnv = env
+	return env
+}
+
+func newEnv4Func(outer *Env, nbind int, nintbind int, debugComp *Comp) *Env {
+	goid := gls.GoID()
+	run := outer.Run
+	if run.goid != goid {
+		// no luck... get the correct ThreadGlobals for goid
+		run = run.getRun4Goid(goid)
 	}
-	if nintbinds <= 1 {
-		env.IntBinds = ignoredIntBinds
-	} else if cap(env.IntBinds) < nintbinds {
-		env.IntBinds = make([]uint64, nintbinds)
-	} else {
-		env.IntBinds = env.IntBinds[0:nintbinds]
+	// manually inline
+	// env := newEnv(run, outer, nbind, nintbind)
+	var env *Env
+	{
+		pool := &run.Pool // pool is an array, do NOT copy it!
+		index := run.PoolSize - 1
+		if index >= 0 {
+			run.PoolSize = index
+			env = pool[index]
+			pool[index] = nil
+		} else {
+			env = &Env{}
+		}
+		if cap(env.Vals) >= nbind {
+			env.Vals = env.Vals[0:nbind]
+		} else {
+			env.Vals = make([]r.Value, nbind)
+		}
+		if cap(env.Ints) >= nintbind {
+			env.Ints = env.Ints[0:nintbind]
+		} else {
+			env.Ints = make([]uint64, nintbind)
+		}
+		env.Outer = outer
+		env.Run = run
+		env.FileEnv = outer.FileEnv
 	}
-	env.Outer = outer
-	env.ThreadGlobals = tg
-	// Debugf("newEnv4Func(%p->%p) binds=%d intbinds=%d", outer, env, nbinds, nintbinds)
+	env.DebugComp = debugComp
+	caller := run.CurrEnv
+	env.Caller = caller
+	if caller == nil {
+		env.CallDepth = 1
+	} else {
+		env.CallDepth = caller.CallDepth + 1
+	}
+	// DebugCallStack Debugf("newEnv4Func(%p->%p) nbind=%d nintbind=%d calldepth: %d->%d", caller, env, nbind, nintbind, env.CallDepth-1, env.CallDepth)
+	run.CurrEnv = env
 	return env
 }
 
@@ -231,63 +235,80 @@ func (env *Env) MarkUsedByClosure() {
 	}
 }
 
-// FreeEnv tells the interpreter that given Env is no longer needed.
+// FreeEnv tells the interpreter that given nested *Env is no longer needed.
 func (env *Env) FreeEnv() {
-	// Debugf("FreeEnv(%p->%p), IP = %d of %d", env, env.Outer, env.Outer.IP, len(env.Outer.Code))
+	run := env.Run
+	run.CurrEnv = env.Outer
+	env.freeEnv(run)
+}
+
+// freeEnv4Func tells the interpreter that given function body *Env is no longer needed.
+func (env *Env) freeEnv4Func() {
+	run := env.Run
+	run.CurrEnv = env.Caller
+	env.freeEnv(run)
+}
+
+func (env *Env) freeEnv(run *Run) {
+	// DebugCallStack Debugf("FreeEnv(%p->%p), calldepth: %d->%d", env, caller, env.CallDepth, caller.CallDepth)
 	if env.UsedByClosure {
 		// in use, cannot recycle
 		return
 	}
-	common := env.ThreadGlobals
-	n := common.PoolSize
-	if n >= PoolCapacity {
+	n := run.PoolSize
+	if n >= poolCapacity {
 		return
 	}
-	if env.AddressTaken {
-		env.IntBinds = nil
-		env.AddressTaken = false
+	if env.IntAddressTaken {
+		env.Ints = nil
+		env.IntAddressTaken = false
 	}
 	env.Outer = nil
 	env.Code = nil
-	env.ThreadGlobals = nil
-	common.Pool[n] = env // pool is an array, be careful NOT to copy it!
-	common.PoolSize = n + 1
-}
-
-func (c *Comp) IsCompiled() bool {
-	return c.CompileOptions.IsCompiled()
-}
-
-func (c *Comp) ErrorIfCompiled(x interface{}) {
-	if c.IsCompiled() {
-		c.Errorf("internal error: compiler for %v has flag OptIsCompiled set. this should not happen!", x)
-	}
+	env.DebugPos = nil
+	env.DebugComp = nil
+	env.Caller = nil
+	env.Run = nil
+	env.FileEnv = nil
+	run.Pool[n] = env // pool is an array, be careful NOT to copy it!
+	run.PoolSize = n + 1
 }
 
 func (env *Env) Top() *Env {
-	for ; env != nil; env = env.Outer {
-		if env.Outer == nil {
-			break
+	if env == nil {
+		return nil
+	}
+	if file := env.FileEnv; file != nil {
+		if top := file.Outer; top != nil && top.Outer == nil {
+			return top
 		}
+	}
+	for o := env.Outer; o != nil; o = o.Outer {
+		env = o
 	}
 	return env
 }
 
-func (env *Env) File() *Env {
-	for ; env != nil; env = env.Outer {
-		outer := env.Outer
-		if outer == nil || outer.Outer == nil {
-			break
-		}
+func (env *Env) Up(n int) *Env {
+	for ; n >= 3; n -= 3 {
+		env = env.Outer.Outer.Outer
+	}
+	switch n {
+	case 2:
+		env = env.Outer
+		fallthrough
+	case 1:
+		env = env.Outer
 	}
 	return env
 }
 
 // combined Parse + MacroExpandCodeWalk
 func (c *Comp) Parse(src string) Ast {
-	c.Line = 0
+	// do NOT set c.Globals.Line = 0
+	// caller can do it manually if needed
 	nodes := c.ParseBytes([]byte(src))
-	forms := AnyToAst(nodes, "Parse")
+	forms := anyToAst(nodes, "Parse")
 
 	forms, _ = c.MacroExpandCodewalk(forms)
 	if c.Options&OptShowMacroExpand != 0 {
@@ -296,24 +317,76 @@ func (c *Comp) Parse(src string) Ast {
 	return forms
 }
 
+// compile code. support out-of-order declarations
 func (c *Comp) Compile(in Ast) *Expr {
-	switch form := in.(type) {
-	case nil:
+	if in == nil {
 		return nil
-	case AstWithNode:
-		return c.CompileNode(form.Node())
-	case AstWithSlice:
-		n := form.Size()
-		var list []*Expr
-		for i := 0; i < n; i++ {
-			e := c.Compile(form.Get(i))
+	}
+	switch node := in.Interface().(type) {
+	case *ast.File, ast.Decl, *ast.ValueSpec:
+		// complicated, use general technique below
+	case ast.Node:
+		// shortcut
+		return c.compileNode(node, dep.Unknown)
+	}
+	// order declarations by topological sort on their dependencies
+	sorter := dep.NewSorter()
+	sorter.LoadAst(in)
+
+	decls := sorter.All()
+
+	switch n := len(decls); n {
+	case 0:
+		return nil
+	case 1:
+		return c.compileDecl(decls[0])
+	default:
+		exprs := make([]*Expr, 0, n)
+		for _, decl := range decls {
+			e := c.compileDecl(decl)
 			if e != nil {
-				list = append(list, e)
+				exprs = append(exprs, e)
 			}
 		}
-		return exprList(list, c.CompileOptions)
+		return exprList(exprs, c.CompileOptions())
 	}
-	c.Errorf("unsupported Ast node, expecting <AstWithNode> or <AstWithSlice>, found %v <%v>", in, r.TypeOf(in))
+	return nil
+}
+
+// compile code. support out-of-order declarations too
+func (c *Comp) CompileNode(node ast.Node) *Expr {
+	return c.Compile(ToAst(node))
+}
+
+func (c *Comp) compileDecl(decl *dep.Decl) *Expr {
+	if decl == nil {
+		return nil
+	}
+	if extra := decl.Extra; extra != nil {
+		// decl.Node may declare multiple constants or variables:
+		// do not use it!
+		// instead get the single const or var declaration from Extra
+		switch decl.Kind {
+		case dep.Const:
+			// see Comp.GenDecl() in declaration.go for a discussion
+			// on the scope where to declare iota, and what to do
+			// with any previous declaration of iota in the same scope
+			top := c.TopComp()
+			defer top.endIota(top.beginIota())
+			top.setIota(extra.Iota)
+
+			c.DeclConsts(extra.Spec(), nil, nil)
+			return c.Code.AsExpr()
+		case dep.Var:
+			c.DeclVars(extra.Spec())
+			return c.Code.AsExpr()
+		}
+	}
+	if node := decl.Node; node != nil {
+		return c.compileNode(node, decl.Kind)
+	}
+	// may happen for second and later variables in VarMulti,
+	// which CANNOT be declared individually
 	return nil
 }
 
@@ -327,27 +400,49 @@ func (c *Comp) compileExpr(in Ast) *Expr {
 	return cf.Compile(in)
 }
 
-func (c *Comp) CompileNode(node ast.Node) *Expr {
+// common backend for Compile, CompileNode, File, compileDecl.
+// does NOT support out-of-order declarations
+func (c *Comp) compileNode(node ast.Node, kind dep.Kind) *Expr {
 	if n := c.Code.Len(); n != 0 {
 		c.Warnf("Compile: discarding %d previously compiled statements from code buffer", n)
 	}
-	c.Code.Clear()
 	if node == nil {
 		return nil
 	}
+	c.Code.Clear()
+	c.Loop = nil
+	c.Func = nil
+	c.Labels = nil
+	c.FuncMaker = nil
 	c.Pos = node.Pos()
 	switch node := node.(type) {
 	case ast.Decl:
 		c.Decl(node)
 	case ast.Expr:
-		return c.Expr(node)
+		return c.Expr(node, nil)
+	case *ast.ImportSpec:
+		// dep.Sorter.Some() returns naked *ast.ImportSpec,
+		// instead of *ast.GenDecl containing one or more *ast.ImportSpec as parser does
+		c.Import(node)
+	case *ast.TypeSpec:
+		// dep.Sorter.Some() returns naked *ast.TypeSpec,
+		// instead of *ast.GenDecl containing one or more *ast.TypeSpec as parser does
+		if kind == dep.TypeFwd {
+			// forward type declaration
+			c.DeclNamedType(node.Name.Name)
+		} else {
+			c.DeclType(node)
+		}
 	case *ast.ExprStmt:
 		// special case of statement
-		return c.Expr(node.X)
+		return c.Expr(node.X, nil)
 	case ast.Stmt:
 		c.Stmt(node)
 	case *ast.File:
-		c.File(node)
+		// not c.File(node): unnecessary and risks an infinite recursion
+		for _, decl := range node.Decls {
+			c.Decl(decl)
+		}
 	default:
 		c.Errorf("unsupported node type, expecting <ast.Decl>, <ast.Expr>, <ast.Stmt> or <*ast.File>, found %v <%v>", node, r.TypeOf(node))
 		return nil
@@ -355,10 +450,11 @@ func (c *Comp) CompileNode(node ast.Node) *Expr {
 	return c.Code.AsExpr()
 }
 
+// compile file. support out-of-order declarations too
 func (c *Comp) File(node *ast.File) {
-	c.Name = node.Name.Name
-	for _, decl := range node.Decls {
-		c.Decl(decl)
+	if node != nil {
+		c.Name = node.Name.Name
+		c.Compile(File{node})
 	}
 }
 

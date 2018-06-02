@@ -1,20 +1,11 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017 Massimiliano Ghilardi
+ * Copyright (C) 2017-2018 Massimiliano Ghilardi
  *
- *     This program is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU Lesser General Public License as published
- *     by the Free Software Foundation, either version 3 of the License, or
- *     (at your option) any later version.
- *
- *     This program is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU Lesser General Public License for more details.
- *
- *     You should have received a copy of the GNU Lesser General Public License
- *     along with this program.  If not, see <https://www.gnu.org/licenses/lgpl>.
+ *     This Source Code Form is subject to the terms of the Mozilla Public
+ *     License, v. 2.0. If a copy of the MPL was not distributed with this
+ *     file, You can obtain one at http://mozilla.org/MPL/2.0/.
  *
  *
  * call.go
@@ -80,7 +71,7 @@ func (c *Comp) CallExpr(node *ast.CallExpr) *Expr {
 // callExpr compiles the common part between CallExpr and Go statement
 func (c *Comp) prepareCall(node *ast.CallExpr, fun *Expr) *Call {
 	if fun == nil {
-		fun = c.Expr1(node.Fun)
+		fun = c.Expr1(node.Fun, nil)
 	}
 	t := fun.Type
 	var builtin bool
@@ -99,7 +90,7 @@ func (c *Comp) prepareCall(node *ast.CallExpr, fun *Expr) *Call {
 	var args []*Expr
 	if len(node.Args) == 1 {
 		// support foo(bar()) where bar() returns multiple values
-		arg := c.Expr(node.Args[0])
+		arg := c.Expr(node.Args[0], nil)
 		if arg.NumOut() == 0 {
 			c.Errorf("function argument returns zero values: %v ", node.Args[0])
 		}
@@ -133,7 +124,14 @@ func (c *Comp) call_any(call *Call) *Expr {
 	// but call_builtin does not know about them
 	if call.Fun.Const() {
 		if call.Builtin {
-			expr.Fun = c.call_builtin(call)
+			fun := c.call_builtin(call)
+			if _, untyped := fun.(UntypedLit); untyped {
+				// complex(), real(), imag() of untyped constants produce an untyped constant, not a function
+				expr.Value = fun
+				return expr
+			} else {
+				expr.Fun = fun
+			}
 		} else {
 			// normal calls do not expect function to be a constant.
 			call.Fun.WithFun()
@@ -154,7 +152,7 @@ func (c *Comp) call_any(call *Call) *Expr {
 	}
 	// constant propagation - only if function returns a single value
 	if call.Const && len(call.OutTypes) == 1 {
-		expr.EvalConst(OptDefaults)
+		expr.EvalConst(COptDefaults)
 		// c.Debugf("pre-computed result of constant call %v: %v <%v>", call, expr.Value, TypeOf(expr.Value))
 	}
 	return expr
@@ -224,7 +222,7 @@ func (c *Comp) checkCallArgs(node *ast.CallExpr, t xr.Type, args []*Expr, ellips
 	if !multivalue || !needconvs {
 		return
 	}
-	f := args[0].AsXV(OptDefaults)
+	f := args[0].AsXV(COptDefaults)
 	args[0].Fun = func(env *Env) (r.Value, []r.Value) {
 		_, vs := f(env)
 		for i, conv := range convs {

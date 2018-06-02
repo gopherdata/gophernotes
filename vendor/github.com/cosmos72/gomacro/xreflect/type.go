@@ -1,20 +1,11 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017 Massimiliano Ghilardi
+ * Copyright (C) 2017-2018 Massimiliano Ghilardi
  *
- *     This program is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU Lesser General Public License as published
- *     by the Free Software Foundation, either version 3 of the License, or
- *     (at your option) any later version.
- *
- *     This program is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU Lesser General Public License for more details.
- *
- *     You should have received a copy of the GNU Lesser General Public License
- *     along with this program.  If not, see <https://www.gnu.org/licenses/lgpl>.
+ *     This Source Code Form is subject to the terms of the Mozilla Public
+ *     License, v. 2.0. If a copy of the MPL was not distributed with this
+ *     file, You can obtain one at http://mozilla.org/MPL/2.0/.
  *
  *
  * type.go
@@ -28,7 +19,6 @@ package xreflect
 import (
 	"go/types"
 	"reflect"
-	// "runtime/debug"
 
 	"github.com/cosmos72/gomacro/typeutil"
 )
@@ -49,20 +39,13 @@ func debugOnMismatchCache(gtype types.Type, rtype reflect.Type, cached Type) {
 		gtype, rtype, cached.ReflectType()) //, debug.Stack())
 }
 
-func warnOnSuspiciousCache(t *xtype) {
+func (t *xtype) warnOnSuspiciousCache() {
 	// reflect cannot create new interface types or new named types: accept whatever we have.
 	// also, it cannot create unnamed structs containing unexported fields. again, accept whatever we have.
 	// instead complain on mismatch for non-interface, non-named types
 	rt := t.rtype
-	bad := !t.Named() && len(rt.Name()) != 0 && rt.Kind() != reflect.Interface && rt.Kind() != reflect.Struct
-	if !bad {
-		if t.kind != rt.Kind() && rt.Kind() == reflect.Interface {
-			tinterf := unwrap(t.Universe().TypeOfInterface)
-			bad = t.NumMethod() != 0 || tinterf != nil && (t.gunderlying() != tinterf.gtype || rt != tinterf.rtype)
-		}
-	}
-	if bad {
-		debugf("caching suspicious/incomplete type %v => %v", t.GoType(), t.ReflectType())
+	if !t.Named() && len(rt.Name()) != 0 && rt.Kind() != reflect.Interface && rt.Kind() != reflect.Struct {
+		xerrorf(t, "caching suspicious type %v => %v", t.gtype, rt)
 	}
 }
 
@@ -72,12 +55,20 @@ func (m *Types) clear() {
 
 func (m *Types) add(t Type) {
 	xt := unwrap(t)
-	warnOnSuspiciousCache(xt)
-	switch t.Kind() {
+
+	if xt.rtype == rTypeOfForward {
+		if m.gmap.At(xt.gtype) != nil {
+			// debugf("not adding again type to cache: %v <%v> reflect type: <%v>\n%s", xt.kind, xt.gtype, xt.rtype)
+			return
+		}
+	} else {
+		xt.warnOnSuspiciousCache()
+	}
+	switch xt.kind {
 	case reflect.Func:
 		// even function types can be named => they need SetUnderlying() before being complete
 		if !xt.needSetUnderlying() {
-			t.NumIn() // check consistency
+			xt.NumIn() // check consistency
 		}
 	case reflect.Interface:
 		rtype := t.ReflectType()
@@ -87,8 +78,8 @@ func (m *Types) add(t Type) {
 				t, t.Kind(), rtype.Kind(), t.ReflectType())
 		}
 	}
-	m.gmap.Set(t.GoType(), t)
-	// debugf("added type to cache: %v <%v> <%v>", t.Kind(), t.GoType(), t.ReflectType())
+	m.gmap.Set(xt.gtype, t)
+	// debugf("added type to cache: %v <%v> reflect type: <%v>", xt.kind, xt.gtype, xt.rtype)
 }
 
 // all unexported methods assume lock is already held
@@ -101,7 +92,12 @@ func (v *Universe) maketype3(kind reflect.Kind, gtype types.Type, rtype reflect.
 	ret := v.Types.gmap.At(gtype)
 	if ret != nil {
 		t := ret.(Type)
-		if t.ReflectType() == rtype {
+		switch t.ReflectType() {
+		case rtype:
+			return t
+		case rTypeOfForward:
+			// update t, do not create a new Type
+			t.UnsafeForceReflectType(rtype)
 			return t
 		}
 		if v.debug() {
@@ -203,12 +199,14 @@ func (t *xtype) Pkg() *Package {
 // If the type was predeclared (string, error) or unnamed (*T, struct{}, []int),
 // the package name will be the empty string.
 func (t *xtype) PkgName() string {
-	switch gtype := t.gtype.(type) {
-	case *types.Named:
-		return gtype.Obj().Pkg().Name()
-	default:
-		return ""
+	if gtype, ok := t.gtype.(*types.Named); ok {
+		pkg := gtype.Obj().Pkg()
+		// pkg may be nil for builtin named types, as for example 'error'
+		if pkg != nil {
+			return pkg.Name()
+		}
 	}
+	return ""
 }
 
 // PkgPath returns a named type's package path, that is, the import path
@@ -216,12 +214,14 @@ func (t *xtype) PkgName() string {
 // If the type was predeclared (string, error) or unnamed (*T, struct{}, []int),
 // the package path will be the empty string.
 func (t *xtype) PkgPath() string {
-	switch gtype := t.gtype.(type) {
-	case *types.Named:
-		return gtype.Obj().Pkg().Path()
-	default:
-		return ""
+	if gtype, ok := t.gtype.(*types.Named); ok {
+		pkg := gtype.Obj().Pkg()
+		// pkg may be nil for builtin named types, as for example 'error'
+		if pkg != nil {
+			return pkg.Path()
+		}
 	}
+	return ""
 }
 
 // Size returns the number of bytes needed to store

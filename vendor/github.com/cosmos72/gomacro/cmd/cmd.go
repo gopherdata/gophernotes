@@ -1,20 +1,11 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017 Massimiliano Ghilardi
+ * Copyright (C) 2017-2018 Massimiliano Ghilardi
  *
- *     This program is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU Lesser General Public License as published
- *     by the Free Software Foundation, either version 3 of the License, or
- *     (at your option) any later version.
- *
- *     This program is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU Lesser General Public License for more details.
- *
- *     You should have received a copy of the GNU Lesser General Public License
- *     along with this program.  If not, see <https://www.gnu.org/licenses/lgpl>.
+ *     This Source Code Form is subject to the terms of the Mozilla Public
+ *     License, v. 2.0. If a copy of the MPL was not distributed with this
+ *     file, You can obtain one at http://mozilla.org/MPL/2.0/.
  *
  *
  * cmd.go
@@ -26,9 +17,7 @@
 package cmd
 
 import (
-	"bufio"
 	"bytes"
-	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -36,12 +25,15 @@ import (
 	"strings"
 
 	. "github.com/cosmos72/gomacro/base"
-	"github.com/cosmos72/gomacro/classic"
+	"github.com/cosmos72/gomacro/base/inspect"
+	"github.com/cosmos72/gomacro/fast"
+	"github.com/cosmos72/gomacro/fast/debug"
 )
 
 type Cmd struct {
-	Interp                                   *classic.Interp
-	WriteDeclsAndStmtsToFile, OverwriteFiles bool
+	Interp             *fast.Interp
+	WriteDeclsAndStmts bool
+	OverwriteFiles     bool
 }
 
 func New() *Cmd {
@@ -51,11 +43,15 @@ func New() *Cmd {
 }
 
 func (cmd *Cmd) Init() {
-	ir := classic.New()
-	ir.ParserMode = 0
-	ir.Options = OptFastInterpreter | OptTrapPanic | OptShowPrompt | OptShowEval | OptShowEvalType // | OptShowAfterMacroExpansion // | OptDebugMacroExpand // |  OptDebugQuasiquote  // | OptShowEvalDuration // | OptShowAfterParse
+	ir := fast.New()
+	ir.SetDebugger(&debug.Debugger{})
+	ir.SetInspector(&inspect.Inspector{})
+
+	g := &ir.Comp.Globals
+	g.ParserMode = 0
+	g.Options = OptDebugger | OptCtrlCEnterDebugger | OptKeepUntyped | OptTrapPanic | OptShowPrompt | OptShowEval | OptShowEvalType
 	cmd.Interp = ir
-	cmd.WriteDeclsAndStmtsToFile = false
+	cmd.WriteDeclsAndStmts = false
 	cmd.OverwriteFiles = false
 }
 
@@ -64,11 +60,11 @@ func (cmd *Cmd) Main(args []string) (err error) {
 		cmd.Init()
 	}
 	ir := cmd.Interp
-	g := ir.Globals
+	g := &ir.Comp.Globals
 
 	var set, clear Options
 	var repl, forcerepl = true, false
-	cmd.WriteDeclsAndStmtsToFile = false
+	cmd.WriteDeclsAndStmts = false
 	cmd.OverwriteFiles = false
 
 	for len(args) > 0 {
@@ -82,7 +78,7 @@ func (cmd *Cmd) Main(args []string) (err error) {
 				buf.WriteByte('\n')      // because ReadMultiLine() needs a final '\n'
 				g.Options |= OptShowEval // set by default, overridden by -s, -v and -vv
 				g.Options = (g.Options | set) &^ clear
-				_, err := cmd.EvalReader(buf)
+				err := cmd.EvalReader(buf)
 				if err != nil {
 					return err
 				}
@@ -104,8 +100,8 @@ func (cmd *Cmd) Main(args []string) (err error) {
 			set |= OptTrapPanic | OptPanicStackTrace
 			clear &= OptTrapPanic | OptPanicStackTrace
 		case "-s", "--silent":
-			set &^= OptShowEval | OptShowEvalType
-			clear |= OptShowEval | OptShowEvalType
+			set &^= OptShowPrompt | OptShowEval | OptShowEvalType
+			clear |= OptShowPrompt | OptShowEval | OptShowEvalType
 		case "-v", "--verbose":
 			set = (set | OptShowEval) &^ OptShowEvalType
 			clear = (clear &^ OptShowEval) | OptShowEvalType
@@ -113,7 +109,7 @@ func (cmd *Cmd) Main(args []string) (err error) {
 			set |= OptShowEval | OptShowEvalType
 			clear &^= OptShowEval | OptShowEvalType
 		case "-w", "--write-decls":
-			cmd.WriteDeclsAndStmtsToFile = true
+			cmd.WriteDeclsAndStmts = true
 		case "-x", "--exec":
 			clear |= OptMacroExpandOnly
 			set &^= OptMacroExpandOnly
@@ -124,7 +120,7 @@ func (cmd *Cmd) Main(args []string) (err error) {
 				return nil
 			}
 			repl = false
-			if cmd.WriteDeclsAndStmtsToFile {
+			if cmd.WriteDeclsAndStmts {
 				g.Options |= OptCollectDeclarations | OptCollectStatements
 			}
 			g.Options &^= OptShowPrompt | OptShowEval | OptShowEvalType // cleared by default, overridden by -s, -v and -vv
@@ -144,7 +140,8 @@ func (cmd *Cmd) Main(args []string) (err error) {
 }
 
 func (cmd *Cmd) Usage() error {
-	fmt.Fprint(cmd.Interp.Stdout, `usage: gomacro [OPTIONS] [files-and-dirs]
+	g := &cmd.Interp.Comp.Globals
+	fmt.Fprint(g.Stdout, `usage: gomacro [OPTIONS] [files-and-dirs]
 
   Recognized options:
     -c,   --collect          collect declarations and statements, to print them later
@@ -205,7 +202,7 @@ func (cmd *Cmd) EvalDir(dirname string) error {
 	for _, file := range files {
 		filename := file.Name()
 		if !file.IsDir() && strings.HasSuffix(filename, ".gomacro") {
-			filename = fmt.Sprintf("%s%c%s", dirname, os.PathSeparator, filename)
+			filename = Subdir(dirname, filename)
 			err := cmd.EvalFile(filename)
 			if err != nil {
 				return err
@@ -223,28 +220,17 @@ const disclaimer = `// ---------------------------------------------------------
 
 `
 
-func (cmd *Cmd) EvalFile(filename string) (err error) {
-	g := cmd.Interp.Globals
+func (cmd *Cmd) EvalFile(filename string) error {
+	g := &cmd.Interp.Comp.Globals
 	g.Declarations = nil
 	g.Statements = nil
-	saveFilename := g.Filename
 
-	f, err := os.Open(filename)
-	if err != nil {
-		return err
-	}
-	defer func() {
-		f.Close()
-		g.Filename = saveFilename
-	}()
-	g.Filename = filename
-	var comments string
-	comments, err = cmd.EvalReader(f)
+	comments, err := cmd.Interp.EvalFile(filename)
 	if err != nil {
 		return err
 	}
 
-	if cmd.WriteDeclsAndStmtsToFile {
+	if cmd.WriteDeclsAndStmts {
 		outname := filename
 		if dot := strings.LastIndexByte(outname, '.'); dot >= 0 {
 			// sanity check: dot must be in the file name, NOT in its path
@@ -269,35 +255,10 @@ func (cmd *Cmd) EvalFile(filename string) (err error) {
 	return nil
 }
 
-func (cmd *Cmd) EvalReader(src io.Reader) (comments string, err error) {
-	defer func() {
-		if rec := recover(); rec != nil {
-			switch rec := rec.(type) {
-			case error:
-				err = rec
-			default:
-				err = errors.New(fmt.Sprint(rec))
-			}
-		}
-	}()
-	in := MakeBufReadline(bufio.NewReader(src), cmd.Interp.Stdout)
-	ir := cmd.Interp
-	env := ir.Env
-	env.Options &^= OptShowPrompt // parsing a file: suppress prompt
-	env.Line = 0
-
-	// perform the first iteration manually, to collect comments
-	str, firstToken := env.ReadMultiline(in, ReadOptCollectAllComments)
-	if firstToken >= 0 {
-		comments = str[0:firstToken]
-		if firstToken > 0 {
-			str = str[firstToken:]
-			env.IncLine(comments)
-		}
+func (cmd *Cmd) EvalReader(src io.Reader) error {
+	_, err := cmd.Interp.EvalReader(src)
+	if err != nil {
+		return err
 	}
-	if ir.ParseEvalPrint(str, in) {
-		for ir.ReadParseEvalPrint(in) {
-		}
-	}
-	return comments, nil
+	return nil
 }

@@ -1,20 +1,11 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017 Massimiliano Ghilardi
+ * Copyright (C) 2017-2018 Massimiliano Ghilardi
  *
- *     This program is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU Lesser General Public License as published
- *     by the Free Software Foundation, either version 3 of the License, or
- *     (at your option) any later version.
- *
- *     This program is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU Lesser General Public License for more details.
- *
- *     You should have received a copy of the GNU Lesser General Public License
- *     along with this program.  If not, see <https://www.gnu.org/licenses/lgpl>.
+ *     This Source Code Form is subject to the terms of the Mozilla Public
+ *     License, v. 2.0. If a copy of the MPL was not distributed with this
+ *     file, You can obtain one at http://mozilla.org/MPL/2.0/.
  *
  *
  * struct.go
@@ -53,8 +44,29 @@ func (t *xtype) field(i int) StructField {
 	}
 	gtype := t.gtype.Underlying().(*types.Struct)
 
+	if i < 0 || i >= gtype.NumFields() {
+		xerrorf(t, "Field(%v) out of bounds, struct type has %v fields: %v", i, gtype.NumFields(), t)
+	}
 	va := gtype.Field(i)
-	rf := t.rtype.Field(i)
+	var rf reflect.StructField
+	if t.rtype != rTypeOfForward {
+		rf = t.rtype.Field(i)
+	} else {
+		// cannot dig in a forward-declared type,
+		// so try to resolve it
+		it := t.universe.gmap.At(t.gtype)
+		if it != nil {
+			rtype := it.(Type).ReflectType()
+			if rtype.Kind() != t.kind {
+				debugf("mismatched Forward type: <%v> has reflect.Type <%v>", t, rtype)
+			}
+			rf = rtype.Field(i)
+		} else {
+			// populate  Field.Index and approximate Field.Type
+			rf.Index = []int{i}
+			rf.Type = rTypeOfForward
+		}
+	}
 
 	return StructField{
 		Name:      va.Name(),
@@ -87,13 +99,15 @@ func (field *StructField) toReflectField(forceExported bool) reflect.StructField
 		name = toExportedFieldName(name, field.Type, field.Anonymous)
 	}
 	return reflect.StructField{
-		Name:      name,
-		PkgPath:   pkgpath,
-		Type:      field.Type.ReflectType(),
-		Tag:       field.Tag,
-		Offset:    field.Offset,
-		Index:     field.Index,
-		Anonymous: field.Anonymous,
+		Name:    name,
+		PkgPath: pkgpath,
+		Type:    field.Type.ReflectType(),
+		Tag:     field.Tag,
+		Offset:  field.Offset,
+		Index:   field.Index,
+		// reflect.StructOf() has very limited support for anonymous fields,
+		// do not even try to use it.
+		Anonymous: false,
 	}
 }
 
@@ -115,7 +129,7 @@ func (field *StructField) sanitize(i int) {
 		name = t.elem().Name()
 	}
 	if len(name) == 0 {
-		name = StrGensymEmbedded + fmt.Sprintf("%d", i)
+		name = fmt.Sprintf("%s%d", StrGensymAnonymous, i)
 	}
 	field.Name = name
 	field.Anonymous = true
@@ -154,7 +168,7 @@ func toExportedFieldName(name string, t Type, anonymous bool) string {
 	}
 	if !ast.IsExported(name) {
 		if anonymous {
-			return GensymEmbedded(name)
+			return GensymAnonymous(name)
 		} else {
 			return GensymPrivate(name)
 		}

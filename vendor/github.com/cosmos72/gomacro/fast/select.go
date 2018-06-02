@@ -1,20 +1,11 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017 Massimiliano Ghilardi
+ * Copyright (C) 2017-2018 Massimiliano Ghilardi
  *
- *     This program is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU Lesser General Public License as published
- *     by the Free Software Foundation, either version 3 of the License, or
- *     (at your option) any later version.
- *
- *     This program is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU Lesser General Public License for more details.
- *
- *     You should have received a copy of the GNU Lesser General Public License
- *     along with this program.  If not, see <https://www.gnu.org/licenses/lgpl>.
+ *     This Source Code Form is subject to the terms of the Mozilla Public
+ *     License, v. 2.0. If a copy of the MPL was not distributed with this
+ *     file, You can obtain one at http://mozilla.org/MPL/2.0/.
  *
  *
  * select.go
@@ -51,7 +42,7 @@ func (c *Comp) Select(node *ast.SelectStmt, labels []string) {
 	}
 
 	// unnamed bind, contains received value. Nil means nothing received
-	bindrecv := c.AddBind("", VarBind, c.TypeOfInterface())
+	bindrecv := c.NewBind("", VarBind, c.TypeOfInterface())
 	idxrecv := bindrecv.Desc.Index()
 
 	list := node.Body.List
@@ -75,7 +66,7 @@ func (c *Comp) Select(node *ast.SelectStmt, labels []string) {
 			}
 		}
 		chosen, recv, _ := r.Select(cases)
-		env.Binds[idxrecv] = recv
+		env.Vals[idxrecv] = recv
 		ip := ips[chosen]
 		env.IP = ip
 		return env.Code[ip], env
@@ -116,7 +107,7 @@ func (c *Comp) selectDefault(node *ast.CommClause) selectEntry {
 func (c *Comp) selectCase(clause *ast.CommClause, bind *Bind) selectEntry {
 
 	var entry selectEntry
-	var nbinds [2]int
+	var nbind [2]int
 	stmt := clause.Comm
 	c2 := c
 	locals := false
@@ -151,7 +142,7 @@ func (c *Comp) selectCase(clause *ast.CommClause, bind *Bind) selectEntry {
 			entry = selectEntry{Dir: r.SelectRecv, Chan: echan.AsX1()}
 
 			if id0 != nil && id0.Name != "_" || id1 != nil && id1.Name != "_" {
-				c2, locals = c.pushEnvIfFlag(&nbinds, true)
+				c2, locals = c.pushEnvIfFlag(&nbind, true)
 
 				if id0 != nil && id0.Name != "_" {
 					t := echan.Type.Elem()
@@ -160,11 +151,11 @@ func (c *Comp) selectCase(clause *ast.CommClause, bind *Bind) selectEntry {
 				if id1 != nil && id1.Name != "_" {
 					idx := bind.Desc.Index()
 					c2.DeclVar0(id1.Name, c.TypeOfBool(), c.exprBool(func(env *Env) bool {
-						return env.Outer.Binds[idx].IsValid()
+						return env.Outer.Vals[idx].IsValid()
 					}))
 				}
 			} else if len(clause.Body) != 0 {
-				c2, locals = c.pushEnvIfLocalBinds(&nbinds, clause.Body...)
+				c2, locals = c.pushEnvIfLocalBinds(&nbind, clause.Body...)
 			}
 
 		case token.ASSIGN:
@@ -189,22 +180,22 @@ func (c *Comp) selectCase(clause *ast.CommClause, bind *Bind) selectEntry {
 				}
 				idx := bind.Desc.Index()
 				c.SetPlace(place, token.ASSIGN, c.exprBool(func(env *Env) bool {
-					return env.Binds[idx].IsValid()
+					return env.Vals[idx].IsValid()
 				}))
 			}
 
 			if len(clause.Body) != 0 {
-				c2, locals = c.pushEnvIfLocalBinds(&nbinds, clause.Body...)
+				c2, locals = c.pushEnvIfLocalBinds(&nbind, clause.Body...)
 			}
 		}
 
 	case *ast.SendStmt:
 		// ch <- v
-		echan := c.Expr1(node.Chan)
+		echan := c.Expr1(node.Chan, nil)
 		if echan.Type.Kind() != r.Chan {
 			c.Errorf("cannot use %v <%v> as channel in select case", node, echan.Type)
 		}
-		esend := c.Expr1(node.Value)
+		esend := c.Expr1(node.Value, nil)
 		tactual := esend.Type
 		texpected := echan.Type.Elem()
 		if !tactual.AssignableTo(texpected) {
@@ -220,7 +211,7 @@ func (c *Comp) selectCase(clause *ast.CommClause, bind *Bind) selectEntry {
 		c2.List(clause.Body)
 	}
 	if c2 != c {
-		c2.popEnvIfFlag(&nbinds, locals)
+		c2.popEnvIfFlag(&nbind, locals)
 	}
 	c.jumpOut(0, c.Loop.Break)
 	return entry
@@ -234,7 +225,7 @@ func (c *Comp) selectRecv(stmt ast.Stmt, node ast.Expr) *Expr {
 			continue
 		case *ast.UnaryExpr:
 			if expr.Op == token.ARROW {
-				e := c.Expr1(expr.X)
+				e := c.Expr1(expr.X, nil)
 				if e.Type.Kind() != r.Chan {
 					c.Errorf("cannot use %v <%v> as channel in select case", node, e.Type)
 				}

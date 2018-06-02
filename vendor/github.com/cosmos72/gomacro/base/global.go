@@ -1,20 +1,11 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017 Massimiliano Ghilardi
+ * Copyright (C) 2017-2018 Massimiliano Ghilardi
  *
- *     This program is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU Lesser General Public License as published
- *     by the Free Software Foundation, either version 3 of the License, or
- *     (at your option) any later version.
- *
- *     This program is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU Lesser General Public License for more details.
- *
- *     You should have received a copy of the GNU Lesser General Public License
- *     along with this program.  If not, see <https://www.gnu.org/licenses/lgpl>.
+ *     This Source Code Form is subject to the terms of the Mozilla Public
+ *     License, v. 2.0. If a copy of the MPL was not distributed with this
+ *     file, You can obtain one at http://mozilla.org/MPL/2.0/.
  *
  *
  * global.go
@@ -34,24 +25,41 @@ import (
 	r "reflect"
 	"strings"
 
+	"github.com/cosmos72/gomacro/imports"
 	mp "github.com/cosmos72/gomacro/parser"
 	mt "github.com/cosmos72/gomacro/token"
+	xr "github.com/cosmos72/gomacro/xreflect"
 
 	. "github.com/cosmos72/gomacro/ast2"
 )
+
+type CmdOpt uint32
+
+const (
+	CmdOptQuit      = 1 << iota
+	CmdOptForceEval // temporarily re-enable evaluation even if in macroexpand-only mode
+)
+
+type Inspector interface {
+	Inspect(name string, val r.Value, typ r.Type, xtyp xr.Type, globals *Globals)
+}
 
 type Globals struct {
 	Output
 	Options      Options
 	PackagePath  string
-	Filename     string
-	GensymN      uint
+	Filepath     string
 	Importer     *Importer
 	Imports      []*ast.GenDecl
 	Declarations []ast.Decl
 	Statements   []ast.Stmt
+	Prompt       string
+	Readline     Readline
+	GensymN      uint
 	ParserMode   mp.Mode
-	SpecialChar  rune
+	MacroChar    rune // prefix for macro-related keywords macro, quote, quasiquote, splice... The default is '~'
+	ReplCmdChar  byte // prefix for special REPL commands env, help, inspect, quit, unload... The default is ':'
+	Inspector    Inspector
 }
 
 func NewGlobals() *Globals {
@@ -68,14 +76,16 @@ func NewGlobals() *Globals {
 		},
 		Options:      OptTrapPanic, // set by default
 		PackagePath:  "main",
-		Filename:     "repl.go",
-		GensymN:      0,
+		Filepath:     "repl.go",
 		Importer:     DefaultImporter(),
 		Imports:      nil,
 		Declarations: nil,
 		Statements:   nil,
+		Prompt:       "gomacro> ",
+		GensymN:      0,
 		ParserMode:   0,
-		SpecialChar:  '~',
+		MacroChar:    '~',
+		ReplCmdChar:  ':', // Jupyter and gophernotes would probably set this to '%'
 	}
 }
 
@@ -85,13 +95,13 @@ func (g *Globals) Gensym() string {
 	return fmt.Sprintf("%s%d", StrGensym, n)
 }
 
-func (g *Globals) GensymEmbedded(name string) string {
+func (g *Globals) GensymAnonymous(name string) string {
 	if len(name) == 0 {
 		n := g.GensymN
 		g.GensymN++
 		name = fmt.Sprintf("%d", n)
 	}
-	return StrGensymEmbedded + name
+	return StrGensymAnonymous + name
 }
 
 func (g *Globals) GensymPrivate(name string) string {
@@ -111,12 +121,23 @@ func IsGensymInterface(name string) bool {
 	return name == StrGensymInterface
 }
 
-func IsGensymEmbedded(name string) bool {
-	return strings.HasPrefix(name, StrGensymEmbedded)
+func IsGensymAnonymous(name string) bool {
+	return strings.HasPrefix(name, StrGensymAnonymous)
 }
 
 func IsGensymPrivate(name string) bool {
 	return strings.HasPrefix(name, StrGensymPrivate)
+}
+
+// read phase
+// return read string and position of first non-comment token.
+// return "", -1 on EOF
+func (g *Globals) ReadMultiline(opts ReadOptions, prompt string) (str string, firstToken int) {
+	str, firstToken, err := ReadMultiline(g.Readline, opts, prompt)
+	if err != nil && err != io.EOF {
+		fmt.Fprintf(g.Stderr, "// read error: %s\n", err)
+	}
+	return str, firstToken
 }
 
 // parse phase. no macroexpansion.
@@ -129,15 +150,65 @@ func (g *Globals) ParseBytes(src []byte) []ast.Node {
 	} else {
 		mode &^= mp.Trace
 	}
-	parser.Configure(mode, g.SpecialChar)
-	parser.Init(g.Fileset, g.Filename, g.Line, src)
+	if g.Options&OptDebugger != 0 {
+		// to show source code in debugger
+		mode |= mp.CopySources
+	} else {
+		mode &^= mp.CopySources
+	}
+	parser.Configure(mode, g.MacroChar)
+	parser.Init(g.Fileset, g.Filepath, g.Line, src)
 
 	nodes, err := parser.Parse()
 	if err != nil {
 		Error(err)
-		return nil
 	}
 	return nodes
+}
+
+// print phase
+func (g *Globals) Print(values []r.Value, types []xr.Type) {
+	opts := g.Options
+	if opts&OptShowEval != 0 {
+		if opts&OptShowEvalType != 0 {
+			for i, vi := range values {
+				var ti interface{}
+				if types != nil && i < len(types) {
+					ti = types[i]
+				} else {
+					ti = ValueType(vi)
+				}
+				g.Fprintf(g.Stdout, "%v\t// %v\n", vi, ti)
+			}
+		} else {
+			for _, vi := range values {
+				g.Fprintf(g.Stdout, "%v\n", vi)
+			}
+		}
+	}
+}
+
+// remove package 'path' from the list of known packages.
+// later attempts to import it again will trigger a recompile.
+func (g *Globals) UnloadPackage(path string) {
+	if n := len(path); n > 1 && path[0] == '"' && path[n-1] == '"' {
+		path = path[1 : n-1] // remove quotes
+	}
+	slash := strings.IndexByte(path, '/')
+	if _, found := imports.Packages[path]; !found {
+		if slash < 0 {
+			g.Debugf("nothing to unload: cannot find imported package %q. Remember to specify the full package path, not only its name", path)
+		} else {
+			g.Debugf("nothing to unload: cannot find imported package %q", path)
+		}
+	}
+	delete(imports.Packages, path)
+	dot := strings.IndexByte(path, '.')
+	if slash < 0 || dot > slash {
+		g.Warnf("unloaded standard library package %q. attempts to import it again will trigger a recompile", path)
+		return
+	}
+	g.Debugf("unloaded package %q. attempts to import it again will trigger a recompile", path)
 }
 
 // CollectAst accumulates declarations in ir.Decls and statements in ir.Stmts
@@ -168,14 +239,36 @@ func (g *Globals) CollectNode(node ast.Node) {
 			switch node.Tok {
 			case token.IMPORT:
 				g.Imports = append(g.Imports, node)
-			case token.PACKAGE: // exception: modified parser parses "package foo" as a declaration
+			case token.PACKAGE:
+				/*
+					exception: modified parser converts 'package foo' to:
+
+					ast.GenDecl{
+						Tok: token.PACKAGE,
+						Specs: []ast.Spec{
+							&ast.ValueSpec{
+								Values: []ast.Expr{
+									&ast.BasicLit{
+										Kind:  token.String,
+										Value: "path/to/package",
+									},
+								},
+							},
+						},
+					}
+				*/
 				if len(node.Specs) == 1 {
-					if spec, ok := node.Specs[0].(*ast.ValueSpec); ok && len(spec.Names) == 1 {
-						g.PackagePath = spec.Names[0].Name
-						break
+					if decl, ok := node.Specs[0].(*ast.ValueSpec); ok {
+						if len(decl.Values) == 1 {
+							if lit, ok := decl.Values[0].(*ast.BasicLit); ok {
+								if lit.Kind == token.STRING {
+									path := MaybeUnescapeString(lit.Value)
+									g.PackagePath = path
+								}
+							}
+						}
 					}
 				}
-				fallthrough
 			default:
 				g.Declarations = append(g.Declarations, node)
 			}

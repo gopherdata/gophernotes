@@ -22,7 +22,7 @@ type testCase struct {
 var testCases = []testCase{
 	{[]rune("query"), 5},
 	{[]rune("私"), 2},
-	{[]rune("hello世界"), 9},
+	{[]rune("hello『世界』"), 13},
 }
 
 func TestCountGlyphs(t *testing.T) {

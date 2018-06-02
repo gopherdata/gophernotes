@@ -437,7 +437,7 @@ func doEval(ir *interp.Interp, code string) (val []interface{}, err error) {
 	compiledSrc := ir.CompileAst(srcAst)
 
 	// Evaluate the code.
-	results := base.PackValues(ir.RunExpr(compiledSrc))
+	results, _ := ir.RunExpr(compiledSrc)
 
 	// If the source ends with an expression, then the result of the execution is the value of the expression. In the
 	// event that all return values are nil, the result is also nil.

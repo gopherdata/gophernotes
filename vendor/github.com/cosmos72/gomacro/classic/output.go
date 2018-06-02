@@ -1,20 +1,11 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017 Massimiliano Ghilardi
+ * Copyright (C) 2017-2018 Massimiliano Ghilardi
  *
- *     This program is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU Lesser General Public License as published
- *     by the Free Software Foundation, either version 3 of the License, or
- *     (at your option) any later version.
- *
- *     This program is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU Lesser General Public License for more details.
- *
- *     You should have received a copy of the GNU Lesser General Public License
- *     along with this program.  If not, see <https://www.gnu.org/licenses/lgpl>.
+ *     This Source Code Form is subject to the terms of the Mozilla Public
+ *     License, v. 2.0. If a copy of the MPL was not distributed with this
+ *     file, You can obtain one at http://mozilla.org/MPL/2.0/.
  *
  *
  * output.go
@@ -41,23 +32,6 @@ var (
 	NilEnv = []r.Value{r.ValueOf(nilEnv)}
 )
 
-func (ir *ThreadGlobals) ShowHelp(out io.Writer) {
-	fmt.Fprint(out, `// type Go code to execute it. example: func add(x, y int) int { return x + y }
-
-// interpreter commands:
-:classic CODE   execute CODE using the classic interpreter
-:env [name]     show available functions, variables and constants
-                in current package, or from imported package "name"
-:fast CODE      execute CODE using the fast interpreter (default)
-:help           show this help
-:inspect EXPR   inspect expression interactively
-:options [OPTS] show or toggle interpreter options
-:quit           quit the interpreter
-:write [FILE]   write collected declarations and/or statements to standard output or to FILE
-                use :o Declarations and/or :o Statements to start collecting them
-`)
-}
-
 func (env *Env) showStack() {
 	frames := env.CallStack.Frames
 	n := len(frames)
@@ -70,7 +44,7 @@ func (env *Env) showStack() {
 		if frame.panicking {
 			env.Debugf("%d:\t     %v, runningDefers = %v, panic = %v", i, name, frame.runningDefers, frame.panick)
 		} else {
-			env.Debugf("%d:\t     %v, runningDefers = %v, panic is nil", i, name, frame.runningDefers)
+			env.Debugf("%d:\t     %v, runningDefers = %v", i, name, frame.runningDefers)
 		}
 	}
 }
@@ -84,7 +58,7 @@ func (env *Env) ShowPackage(packageName string) {
 		for i := len(stack) - 1; i >= 0; i-- {
 			e := stack[i]
 			pkg := e.AsPackage()
-			env.showPackage(e.Name, &pkg)
+			env.showPackage(e.Name, e.Path, &pkg)
 		}
 		return
 	}
@@ -98,15 +72,15 @@ func (env *Env) ShowPackage(packageName string) {
 		env.Warnf("not an imported package: %q = %v <%v>", packageName, val, typeOf(bind))
 		return
 	}
-	env.showPackage(val.Name, &val.Package)
+	env.showPackage(val.Name, val.Path, &val.Package)
 }
 
-func (env *Env) showPackage(name string, pkg *imports.Package) {
+func (env *Env) showPackage(name string, path string, pkg *imports.Package) {
 	const spaces15 = "               "
 	out := env.Stdout
 	binds := pkg.Binds
 	if len(binds) > 0 {
-		fmt.Fprintf(out, "// ----- %s binds -----\n", name)
+		ShowPackageHeader(out, name, path, "binds")
 
 		keys := make([]string, len(binds))
 		i := 0
@@ -116,23 +90,13 @@ func (env *Env) showPackage(name string, pkg *imports.Package) {
 		}
 		sort.Strings(keys)
 		for _, k := range keys {
-			n := len(k) & 15
-			fmt.Fprintf(out, "%s%s = ", k, spaces15[n:])
-			bind := binds[k]
-			if bind != Nil {
-				switch bind := bind.Interface().(type) {
-				case *Env:
-					fmt.Fprintf(out, "%p // %v\n", bind, r.TypeOf(bind))
-					continue
-				}
-			}
-			env.Fprintf(out, "%v // %v\n", bind, r.TypeOf(bind))
+			showValue(out, k, binds[k])
 		}
 		fmt.Fprintln(out)
 	}
 	types := pkg.Types
 	if len(types) > 0 {
-		fmt.Fprintf(out, "// ----- %s types -----\n", name)
+		ShowPackageHeader(out, name, path, "types")
 
 		keys := make([]string, len(types))
 		i := 0
@@ -142,10 +106,24 @@ func (env *Env) showPackage(name string, pkg *imports.Package) {
 		}
 		sort.Strings(keys)
 		for _, k := range keys {
-			n := len(k) & 15
-			t := types[k]
-			fmt.Fprintf(out, "%s%s = %v\t// %v\n", k, spaces15[n:], t, t.Kind())
+			showType(out, k, types[k])
 		}
 		fmt.Fprintln(out)
 	}
+}
+
+const spaces15 = "               "
+
+func showValue(out io.Writer, name string, v r.Value) {
+	n := len(name) & 15
+	if !v.IsValid() || v == None {
+		fmt.Fprintf(out, "%s%s = nil\t// nil\n", name, spaces15[n:])
+	} else {
+		fmt.Fprintf(out, "%s%s = %v\t// %s\n", name, spaces15[n:], v, ValueType(v))
+	}
+}
+
+func showType(out io.Writer, name string, t r.Type) {
+	n := len(name) & 15
+	fmt.Fprintf(out, "%s%s = %v\t// %v\n", name, spaces15[n:], t, t.Kind())
 }

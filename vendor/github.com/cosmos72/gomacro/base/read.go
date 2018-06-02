@@ -1,20 +1,11 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017 Massimiliano Ghilardi
+ * Copyright (C) 2017-2018 Massimiliano Ghilardi
  *
- *     This program is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU Lesser General Public License as published
- *     by the Free Software Foundation, either version 3 of the License, or
- *     (at your option) any later version.
- *
- *     This program is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU Lesser General Public License for more details.
- *
- *     You should have received a copy of the GNU Lesser General Public License
- *     along with this program.  If not, see <https://www.gnu.org/licenses/lgpl>.
+ *     This Source Code Form is subject to the terms of the Mozilla Public
+ *     License, v. 2.0. If a copy of the MPL was not distributed with this
+ *     file, You can obtain one at http://mozilla.org/MPL/2.0/.
  *
  *
  * read.go
@@ -39,24 +30,18 @@ import (
 func ReadBytes(src interface{}) []byte {
 	switch s := src.(type) {
 	case []byte:
-		if s != nil {
-			return s
-		}
+		return s
 	case string:
 		return []byte(s)
 	case *bytes.Buffer:
 		// is io.Reader, but src is already available in []byte form
-		if s != nil {
-			return s.Bytes()
-		}
+		return s.Bytes()
 	case io.Reader:
-		if s != nil {
-			var buf bytes.Buffer
-			if _, err := io.Copy(&buf, s); err != nil {
-				Error(err)
-			}
-			return buf.Bytes()
+		var buf bytes.Buffer
+		if _, err := io.Copy(&buf, s); err != nil {
+			Error(err)
 		}
+		return buf.Bytes()
 	}
 	Errorf("unsupported source, cannot read from: %v <%v>", src, r.TypeOf(src))
 	return nil
@@ -65,24 +50,18 @@ func ReadBytes(src interface{}) []byte {
 func ReadString(src interface{}) string {
 	switch s := src.(type) {
 	case []byte:
-		if s != nil {
-			return string(s)
-		}
+		return string(s)
 	case string:
 		return s
 	case *bytes.Buffer:
 		// is io.Reader, but src is already available in string form
-		if s != nil {
-			return s.String()
-		}
+		return s.String()
 	case io.Reader:
-		if s != nil {
-			var buf bytes.Buffer
-			if _, err := io.Copy(&buf, s); err != nil {
-				Error(err)
-			}
-			return buf.String()
+		var buf bytes.Buffer
+		if _, err := io.Copy(&buf, s); err != nil {
+			Error(err)
 		}
+		return buf.String()
 	}
 	Errorf("unsupported source, cannot read from: %v <%v>", src, r.TypeOf(src))
 	return ""
@@ -151,6 +130,8 @@ func (m mode) String() string {
 	}
 }
 
+// return read string, position of first non-comment token and error (if any)
+// on EOF, return "", -1, io.EOF
 func ReadMultiline(in Readline, opts ReadOptions, prompt string) (src string, firstToken int, err error) {
 	var line, buf []byte
 	m := mNormal

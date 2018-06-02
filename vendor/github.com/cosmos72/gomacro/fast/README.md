@@ -17,5 +17,5 @@ See [../doc/features-and-limitations.md](../doc/features-and-limitations.md)
 
 * contact github.com/neugram/ng author?
 * when importing a package, reuse compiled .so if exists already?
-* gomacro FILE: execute main() if (re)defined and package == "main"
+* gomacro FILE: execute all the init() functions, then execute main() if (re)defined and package == "main"
 * try to run Go compiler tests

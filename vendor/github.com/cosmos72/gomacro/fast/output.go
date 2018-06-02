@@ -1,20 +1,11 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017 Massimiliano Ghilardi
+ * Copyright (C) 2017-2018 Massimiliano Ghilardi
  *
- *     This program is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU Lesser General Public License as published
- *     by the Free Software Foundation, either version 3 of the License, or
- *     (at your option) any later version.
- *
- *     This program is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU Lesser General Public License for more details.
- *
- *     You should have received a copy of the GNU Lesser General Public License
- *     along with this program.  If not, see <https://www.gnu.org/licenses/lgpl>.
+ *     This Source Code Form is subject to the terms of the Mozilla Public
+ *     License, v. 2.0. If a copy of the MPL was not distributed with this
+ *     file, You can obtain one at http://mozilla.org/MPL/2.0/.
  *
  *
  * output.go
@@ -40,7 +31,7 @@ func (b Builtin) String() string {
 	return fmt.Sprintf("%p", b.Compile)
 }
 
-func (imp Import) String() string {
+func (imp *Import) String() string {
 	return fmt.Sprintf("{%s %q, %d binds, %d types}", imp.Name, imp.Path, len(imp.Binds), len(imp.Types))
 }
 
@@ -91,10 +82,11 @@ func (ir *Interp) ShowPackage(name string) {
 
 func (ir *Interp) ShowAsPackage() {
 	c := ir.Comp
-	out := c.Stdout
+	env := ir.PrepareEnv()
+	out := c.Globals.Stdout
 	stringer := typestringer(c.Path)
 	if binds := c.Binds; len(binds) > 0 {
-		showPackageHeader(out, c.Name, c.Path, "binds")
+		base.ShowPackageHeader(out, c.Name, c.Path, "binds")
 
 		keys := make([]string, len(binds))
 		i := 0
@@ -104,16 +96,10 @@ func (ir *Interp) ShowAsPackage() {
 		}
 		sort.Strings(keys)
 		for _, k := range keys {
-			bind := binds[k]
-			if bind == nil {
-				continue
+			if bind := binds[k]; bind != nil {
+				v := bind.RuntimeValue(env)
+				showValue(out, k, v, bind.Type, stringer)
 			}
-			if bind.Const() {
-				showValue(out, k, bind.ConstValue(), bind.Type, stringer)
-				continue
-			}
-			expr := c.Symbol(bind.AsSymbol(0))
-			showValue(out, k, ir.RunExpr1(expr), expr.Type, stringer)
 		}
 		fmt.Fprintln(out)
 	}
@@ -121,20 +107,23 @@ func (ir *Interp) ShowAsPackage() {
 }
 
 func (ir *Interp) ShowImportedPackage(name string) {
-	var imp Import
+	var imp *Import
 	var ok bool
-	if bind := ir.Comp.Binds[name]; bind != nil && bind.Const() && bind.Type != nil && bind.Type.ReflectType() == rtypeOfImport {
-		imp, ok = bind.Value.(Import)
+	if bind := ir.Comp.Binds[name]; bind != nil && bind.Const() && bind.Type != nil && bind.Type.ReflectType() == rtypeOfPtrImport {
+		imp, ok = bind.Value.(*Import)
 	}
 	if !ok {
 		ir.Comp.Warnf("not an imported package: %q", name)
 		return
 	}
-	c := ir.Comp
-	out := c.Stdout
+	imp.Show(ir.Comp.CompGlobals)
+}
+
+func (imp *Import) Show(g *CompGlobals) {
 	stringer := typestringer(imp.Path)
+	out := g.Stdout
 	if binds := imp.Binds; len(binds) > 0 {
-		showPackageHeader(out, imp.Name, imp.Path, "binds")
+		base.ShowPackageHeader(out, imp.Name, imp.Path, "binds")
 
 		keys := make([]string, len(binds))
 		i := 0
@@ -143,8 +132,11 @@ func (ir *Interp) ShowImportedPackage(name string) {
 			i++
 		}
 		sort.Strings(keys)
+		env := imp.env
 		for _, k := range keys {
-			showValue(out, k, binds[k], imp.BindTypes[k], stringer)
+			bind := imp.Binds[k]
+			v := bind.RuntimeValue(env)
+			showValue(out, k, v, bind.Type, stringer)
 		}
 		fmt.Fprintln(out)
 	}
@@ -153,7 +145,7 @@ func (ir *Interp) ShowImportedPackage(name string) {
 
 func showTypes(out io.Writer, name string, path string, types map[string]xr.Type, stringer func(xr.Type) string) {
 	if len(types) > 0 {
-		showPackageHeader(out, name, path, "types")
+		base.ShowPackageHeader(out, name, path, "types")
 
 		keys := make([]string, len(types))
 		i := 0
@@ -169,16 +161,6 @@ func showTypes(out io.Writer, name string, path string, types map[string]xr.Type
 			}
 		}
 		fmt.Fprintln(out)
-	}
-}
-
-func showPackageHeader(out io.Writer, name string, path string, kind string) {
-	if name == path {
-		fmt.Fprintf(out, "// ----- %s %s -----\n", name, kind)
-	} else if name == base.FileName(path) {
-		fmt.Fprintf(out, "// ----- %q %s -----\n", path, kind)
-	} else {
-		fmt.Fprintf(out, "// ----- %s %q %s -----\n", name, path, kind)
 	}
 }
 

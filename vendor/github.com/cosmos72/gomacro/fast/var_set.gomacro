@@ -1,20 +1,11 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017 Massimiliano Ghilardi
+ * Copyright (C) 2017-2018 Massimiliano Ghilardi
  *
- *     This program is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU Lesser General Public License as published
- *     by the Free Software Foundation, either version 3 of the License, or
- *     (at your option) any later version.
- *
- *     This program is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU Lesser General Public License for more details.
- *
- *     You should have received a copy of the GNU Lesser General Public License
- *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *     This Source Code Form is subject to the terms of the Mozilla Public
+ *     License, v. 2.0. If a copy of the MPL was not distributed with this
+ *     file, You can obtain one at http://mozilla.org/MPL/2.0/.
  *
  *
  * var_set.go
@@ -51,9 +42,9 @@ import (
 			env = ~"{~,env . Outer}
 		}
 	} else if upn == -2 {
-		env = ~'{env.ThreadGlobals.FileEnv}
+		env = ~'{env.FileEnv}
 	} else if upn == -3 {
-		env = ~'{env.ThreadGlobals.TopEnv}
+		env = ~'{env.FileEnv.Outer}
 	} else {
 		loop = ~'{
 			o := env.Outer.Outer.Outer
@@ -65,32 +56,32 @@ import (
 	}
 
 	if t == nil {
-		bind = ~"{~,env . Binds[index] .Set(~,exprv)}
+		bind = ~"{~,env . Vals[index] .Set(~,exprv)}
 	} else {
 		typename := &ast.Ident{Name: t.Name()}
-		bind = ~"{*(*~,typename)(unsafe.Pointer(& ~,env .IntBinds[index])) = ~,expr}
+		bind = ~"{*(*~,typename)(unsafe.Pointer(& ~,env .Ints[index])) = ~,expr}
 		switch t.Kind() {
 			case r.Bool:
-				cbind = ~"{~,env . Binds[index].SetBool(~,expr)}
+				cbind = ~"{~,env . Vals[index].SetBool(~,expr)}
 			case r.Int, r.Int8, r.Int16, r.Int32:
-				cbind = ~"{~,env . Binds[index].SetInt(int64(~,expr))}
+				cbind = ~"{~,env . Vals[index].SetInt(int64(~,expr))}
 			case r.Int64:
-				cbind = ~"{~,env . Binds[index].SetInt(~,expr)}
+				cbind = ~"{~,env . Vals[index].SetInt(~,expr)}
 			case r.Uint, r.Uint8, r.Uint16, r.Uint32, r.Uintptr:
-				cbind = ~"{~,env . Binds[index].SetUint(uint64(~,expr))}
+				cbind = ~"{~,env . Vals[index].SetUint(uint64(~,expr))}
 			case r.Uint64:
-				bind = ~"{~,env . IntBinds[index] = ~,expr}
-				cbind = ~"{~,env . Binds[index].SetUint(~,expr)}
+				bind = ~"{~,env . Ints[index] = ~,expr}
+				cbind = ~"{~,env . Vals[index].SetUint(~,expr)}
 			case r.Float32:
-				cbind = ~"{~,env . Binds[index].SetFloat(float64(~,expr))}
+				cbind = ~"{~,env . Vals[index].SetFloat(float64(~,expr))}
 			case r.Float64:
-				cbind = ~"{~,env . Binds[index].SetFloat(~,expr)}
+				cbind = ~"{~,env . Vals[index].SetFloat(~,expr)}
 			case r.Complex64:
-				cbind = ~"{~,env . Binds[index] .SetComplex(complex128(~,expr))}
+				cbind = ~"{~,env . Vals[index] .SetComplex(complex128(~,expr))}
 			case r.Complex128:
-				bind = ~"{~,env . Binds[index] .SetComplex(~,expr)}
+				cbind = ~"{~,env . Vals[index] .SetComplex(~,expr)}
 			case r.String:
-				bind = ~"{~,env . Binds[index] .SetString(~,expr)}
+				bind = ~"{~,env . Vals[index] .SetString(~,expr)}
 		}
 	}
 

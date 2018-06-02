@@ -1,20 +1,11 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017 Massimiliano Ghilardi
+ * Copyright (C) 2017-2018 Massimiliano Ghilardi
  *
- *     This program is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU Lesser General Public License as published
- *     by the Free Software Foundation, either version 3 of the License, or
- *     (at your option) any later version.
- *
- *     This program is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU Lesser General Public License for more details.
- *
- *     You should have received a copy of the GNU Lesser General Public License
- *     along with this program.  If not, see <https://www.gnu.org/licenses/lgpl>.
+ *     This Source Code Form is subject to the terms of the Mozilla Public
+ *     License, v. 2.0. If a copy of the MPL was not distributed with this
+ *     file, You can obtain one at http://mozilla.org/MPL/2.0/.
  *
  *
  * method.go
@@ -74,31 +65,37 @@ func (t *xtype) NumExplicitMethod() int {
 //       goNamedType.Underlying().NumMethods() to retrieve the number of methods
 //       of a named interface
 func (t *xtype) NumAllMethod() int {
-	return goTypeNumAllMethod(t.gtype)
+	return goTypeNumAllMethod(t.gtype, make(map[types.Type]struct{}))
 }
 
 // recursively count total number of methods for type t,
 // including wrapper methods for embedded fields or embedded interfaces
-func goTypeNumAllMethod(gt types.Type) int {
+func goTypeNumAllMethod(gt types.Type, visited map[types.Type]struct{}) int {
 	count := 0
-again:
-	switch t := gt.(type) {
-	case *types.Named:
-		count += t.NumMethods()
-		u := t.Underlying()
-		if u != gt {
-			gt = u
-			goto again
+	for {
+		if _, ok := visited[gt]; ok {
+			break
 		}
-	case *types.Interface:
-		count += t.NumMethods()
-	case *types.Struct:
-		n := t.NumFields()
-		for i := 0; i < n; i++ {
-			if f := t.Field(i); f.Anonymous() {
-				count += goTypeNumAllMethod(f.Type())
+		visited[gt] = struct{}{}
+		switch t := gt.(type) {
+		case *types.Named:
+			count += t.NumMethods()
+			u := t.Underlying()
+			if u != gt {
+				gt = u
+				continue
+			}
+		case *types.Interface:
+			count += t.NumMethods()
+		case *types.Struct:
+			n := t.NumFields()
+			for i := 0; i < n; i++ {
+				if f := t.Field(i); f.Anonymous() {
+					count += goTypeNumAllMethod(f.Type(), visited)
+				}
 			}
 		}
+		break
 	}
 	return count
 }

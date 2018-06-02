@@ -1,20 +1,11 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017 Massimiliano Ghilardi
+ * Copyright (C) 2017-2018 Massimiliano Ghilardi
  *
- *     This program is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU Lesser General Public License as published
- *     by the Free Software Foundation, either version 3 of the License, or
- *     (at your option) any later version.
- *
- *     This program is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU Lesser General Public License for more details.
- *
- *     You should have received a copy of the GNU Lesser General Public License
- *     along with this program.  If not, see <https://www.gnu.org/licenses/lgpl>.
+ *     This Source Code Form is subject to the terms of the Mozilla Public
+ *     License, v. 2.0. If a copy of the MPL was not distributed with this
+ *     file, You can obtain one at http://mozilla.org/MPL/2.0/.
  *
  *
  * type.go
@@ -32,6 +23,7 @@ import (
 	r "reflect"
 
 	. "github.com/cosmos72/gomacro/base"
+	"github.com/cosmos72/gomacro/base/untyped"
 	xr "github.com/cosmos72/gomacro/xreflect"
 )
 
@@ -39,9 +31,9 @@ import (
 func (c *Comp) DeclType(node ast.Spec) {
 	if node, ok := node.(*ast.TypeSpec); ok {
 		name := node.Name.Name
-		// PATCH: support type aliases
-		if unary, ok := node.Type.(*ast.UnaryExpr); ok && unary.Op == token.ASSIGN {
-			t := c.Type(unary.X)
+		// support type aliases
+		if node.Assign != token.NoPos {
+			t := c.Type(node.Type)
 			c.DeclTypeAlias(name, t)
 			return
 		}
@@ -75,8 +67,11 @@ func (c *Comp) DeclTypeAlias(name string, t xr.Type) xr.Type {
 	if name == "_" {
 		return t
 	}
-	if _, ok := c.Types[name]; ok {
-		c.Warnf("redefined type alias: %v", name)
+	if et := c.Types[name]; et != nil {
+		// forward-declared types have kind == r.Invalid, see Comp.DeclNamedType() below
+		if et.Kind() != r.Invalid {
+			c.Warnf("redefined type alias: %v", name)
+		}
 		c.Universe.InvalidateCache()
 	} else if c.Types == nil {
 		c.Types = make(map[string]xr.Type)
@@ -87,13 +82,15 @@ func (c *Comp) DeclTypeAlias(name string, t xr.Type) xr.Type {
 
 // DeclNamedType executes a named type forward declaration.
 // Returns nil if name == "_"
-// Otherwise it must be followed by Comp.SetUnderlyingType()
+// Otherwise it must be followed by Comp.SetUnderlyingType(t) where t is the returned type
 func (c *Comp) DeclNamedType(name string) xr.Type {
 	if name == "_" {
 		return nil
 	}
-	if t, ok := c.Types[name]; ok {
-		c.Warnf("redefined type: %v", name)
+	if t := c.Types[name]; t != nil {
+		if t.Kind() != r.Invalid {
+			c.Warnf("redefined type: %v", name)
+		}
 		if xr.QName1(t) != xr.QName2(name, c.FileComp().Path) {
 			// the current type "name" is an alias, discard it
 			c.Universe.InvalidateCache()
@@ -210,7 +207,7 @@ func (c *Comp) compileType2(node ast.Expr, allowEllipsis bool) (t xr.Type, ellip
 	case *ast.FuncType:
 		t, _, _ = c.TypeFunction(node)
 	case *ast.Ident:
-		t = c.TypeIdent(node.Name)
+		t = c.ResolveType(node.Name)
 	case *ast.InterfaceType:
 		t = c.TypeInterface(node)
 	case *ast.MapType:
@@ -233,10 +230,10 @@ func (c *Comp) compileType2(node ast.Expr, allowEllipsis bool) (t xr.Type, ellip
 		}
 		if bind == nil {
 			c.Errorf("undefined %q in %v <%v>", name, node, r.TypeOf(node))
-		} else if !bind.Const() || bind.Type.ReflectType() != rtypeOfImport {
+		} else if !bind.Const() || bind.Type.ReflectType() != rtypeOfPtrImport {
 			c.Errorf("not a package: %q in %v <%v>", name, node, r.TypeOf(node))
 		}
-		imp, ok := bind.Value.(Import)
+		imp, ok := bind.Value.(*Import)
 		if !ok {
 			c.Errorf("not a package: %q in %v <%v>", name, node, r.TypeOf(node))
 		}
@@ -260,7 +257,7 @@ func (c *Comp) compileType2(node ast.Expr, allowEllipsis bool) (t xr.Type, ellip
 		// type can be omitted in many case - then we must perform type inference
 		break
 	default:
-		// TODO which types are still missing?
+		// which types are still missing?
 		c.Errorf("unimplemented type: %v <%v>", node, r.TypeOf(node))
 	}
 	if t != nil {
@@ -290,14 +287,14 @@ func (c *Comp) TypeArray(node *ast.ArrayType) (t xr.Type, ellipsis bool) {
 		// "The length is part of the array's type; it must evaluate to a non-negative constant
 		// representable by a value of type int. "
 		var count int
-		init := c.Expr(n)
+		init := c.Expr(n, nil)
 		if !init.Const() {
 			c.Errorf("array length is not a constant: %v", node)
 			return
 		} else if init.Untyped() {
 			count = init.ConstTo(c.TypeOfInt()).(int)
 		} else {
-			count = convertLiteralCheckOverflow(init.Value, c.TypeOfInt()).(int)
+			count = untyped.ConvertLiteralCheckOverflow(init.Value, c.TypeOfInt()).(int)
 		}
 		if count < 0 {
 			c.Errorf("array length [%v] is negative: %v", count, node)
@@ -374,14 +371,22 @@ func (c *Comp) typeFieldsOrParams(list []*ast.Field, allowEllipsis bool) (types 
 	return types, names, ellipsis
 }
 
-func (c *Comp) TypeIdent(name string) xr.Type {
-	for co := c; co != nil; co = co.Outer {
-		if t, ok := co.Types[name]; ok {
-			return t
+func (c *Comp) TryResolveType(name string) xr.Type {
+	var t xr.Type
+	for ; c != nil; c = c.Outer {
+		if t = c.Types[name]; t != nil {
+			break
 		}
 	}
-	c.Errorf("undefined identifier: %v", name)
-	return nil
+	return t
+}
+
+func (c *Comp) ResolveType(name string) xr.Type {
+	t := c.TryResolveType(name)
+	if t == nil {
+		c.Errorf("undefined identifier: %v", name)
+	}
+	return t
 }
 
 func (c *Comp) makeStructFields(pkg *xr.Package, names []string, types []xr.Type) []xr.StructField {
@@ -409,7 +414,7 @@ func rtypeof(v r.Value, t xr.Type) r.Type {
 
 // TypeAssert2 compiles a multi-valued type assertion
 func (c *Comp) TypeAssert2(node *ast.TypeAssertExpr) *Expr {
-	val := c.Expr1(node.X)
+	val := c.Expr1(node.X, nil)
 	tin := val.Type
 	tout := c.Type(node.Type)
 	rtout := tout.ReflectType()
@@ -522,7 +527,7 @@ func (c *Comp) TypeAssert1(node *ast.TypeAssertExpr) *Expr {
 	if node.Type == nil {
 		c.Errorf("invalid type assertion: expecting actual type, found type switch: %v", node)
 	}
-	val := c.Expr1(node.X)
+	val := c.Expr1(node.X, nil)
 	tin := val.Type
 	tout := c.Type(node.Type)
 	kout := tout.Kind()
@@ -635,7 +640,7 @@ func (c *Comp) TypeAssert1(node *ast.TypeAssertExpr) *Expr {
 		ret = func(env *Env) complex128 {
 			v, t := extractor(fun(env))
 			v = typeassert(v, t, tin, tout)
-			return v.Convert(rtout).Complex()
+			return v.Complex()
 		}
 	case r.String:
 		ret = func(env *Env) string {
@@ -833,7 +838,7 @@ func (g *CompGlobals) TypeOfInterface() xr.Type {
 var (
 	rtypeOfBuiltin     = r.TypeOf(Builtin{})
 	rtypeOfFunction    = r.TypeOf(Function{})
-	rtypeOfImport      = r.TypeOf(Import{})
+	rtypeOfPtrImport   = r.TypeOf((*Import)(nil))
 	rtypeOfMacro       = r.TypeOf(Macro{})
 	rtypeOfUntypedLit  = r.TypeOf(UntypedLit{})
 	rtypeOfReflectType = r.TypeOf((*r.Type)(nil)).Elem()
@@ -849,8 +854,8 @@ func (g *CompGlobals) TypeOfFunction() xr.Type {
 	return g.Universe.ReflectTypes[rtypeOfFunction]
 }
 
-func (g *CompGlobals) TypeOfImport() xr.Type {
-	return g.Universe.ReflectTypes[rtypeOfImport]
+func (g *CompGlobals) TypeOfPtrImport() xr.Type {
+	return g.Universe.ReflectTypes[rtypeOfPtrImport]
 }
 
 func (g *CompGlobals) TypeOfMacro() xr.Type {

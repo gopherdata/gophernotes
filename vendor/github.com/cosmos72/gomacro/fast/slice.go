@@ -1,20 +1,11 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017 Massimiliano Ghilardi
+ * Copyright (C) 2017-2018 Massimiliano Ghilardi
  *
- *     This program is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU Lesser General Public License as published
- *     by the Free Software Foundation, either version 3 of the License, or
- *     (at your option) any later version.
- *
- *     This program is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU Lesser General Public License for more details.
- *
- *     You should have received a copy of the GNU Lesser General Public License
- *     along with this program.  If not, see <https://www.gnu.org/licenses/lgpl>.
+ *     This Source Code Form is subject to the terms of the Mozilla Public
+ *     License, v. 2.0. If a copy of the MPL was not distributed with this
+ *     file, You can obtain one at http://mozilla.org/MPL/2.0/.
  *
  *
  * slice.go
@@ -32,7 +23,7 @@ import (
 
 // SliceExpr compiles slice[lo:hi] and slice[lo:hi:max]
 func (c *Comp) SliceExpr(node *ast.SliceExpr) *Expr {
-	e := c.Expr1(node.X)
+	e := c.Expr1(node.X, nil)
 	if e.Const() {
 		e.ConstTo(e.DefaultType())
 	}
@@ -50,7 +41,7 @@ func (c *Comp) SliceExpr(node *ast.SliceExpr) *Expr {
 	}
 	// constant propagation
 	if e.Const() && (lo == nil || lo.Const()) && (hi == nil || hi.Const()) && (max == nil || max.Const()) {
-		ret.EvalConst(OptKeepUntyped)
+		ret.EvalConst(COptKeepUntyped)
 	}
 	return ret
 }
@@ -59,7 +50,7 @@ func (c *Comp) sliceIndex(node ast.Expr) *Expr {
 	if node == nil {
 		return nil
 	}
-	idx := c.Expr1(node)
+	idx := c.Expr1(node, nil)
 	if idx.Const() {
 		idx.ConstTo(c.TypeOfInt())
 		if idx.Value.(int) < 0 {
@@ -277,6 +268,6 @@ func (c *Comp) sliceArrayMustBeAddressable(node *ast.SliceExpr, e *Expr) {
 			c.Errorf("cannot slice: array must be addressable: %v <%v>", node, e.Type)
 		}
 	}()
-	c.placeOrAddress(node.X, PlaceAddress)
+	c.placeOrAddress(node.X, PlaceAddress, nil)
 	panicking = false
 }

@@ -1,20 +1,11 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017 Massimiliano Ghilardi
+ * Copyright (C) 2017-2018 Massimiliano Ghilardi
  *
- *     This program is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU Lesser General Public License as published
- *     by the Free Software Foundation, either version 3 of the License, or
- *     (at your option) any later version.
- *
- *     This program is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU Lesser General Public License for more details.
- *
- *     You should have received a copy of the GNU Lesser General Public License
- *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *     This Source Code Form is subject to the terms of the Mozilla Public
+ *     License, v. 2.0. If a copy of the MPL was not distributed with this
+ *     file, You can obtain one at http://mozilla.org/MPL/2.0/.
  *
  *
  * var_setops.go
@@ -138,9 +129,9 @@ import (
 			env = ~"{~,env . Outer}
 		}
 	} else if upn == -2 {
-		env = ~'{env.ThreadGlobals.FileEnv}
+		env = ~'{env.FileEnv}
 	} else if upn == -3 {
-		env = ~'{env.ThreadGlobals.TopEnv}
+		env = ~'{env.FileEnv.Outer}
 	} else {
 		loop = ~'{
 			o := env.Outer.Outer.Outer
@@ -161,7 +152,7 @@ import (
 	opset := op_to_assign(op)
 	var bind, cbind ast.Node
 
-	var assign *ast.AssignStmt = ~"{*(*~,typ)(unsafe.Pointer(& ~,env .IntBinds[index])) += ~,expr}
+	var assign *ast.AssignStmt = ~"{*(*~,typ)(unsafe.Pointer(& ~,env .Ints[index])) += ~,expr}
 	assign.Tok = opset
 	bind = assign
 
@@ -169,36 +160,32 @@ import (
 		case r.Bool:
 			var result *ast.BinaryExpr = ~"{lhs.Bool() + ~,expr}
 			result.Op = op
-			cbind = ~"{lhs := ~,env . Binds[index]; lhs.SetBool(~,result)}
+			cbind = ~"{lhs := ~,env . Vals[index]; lhs.SetBool(~,result)}
 		case r.Int, r.Int8, r.Int16, r.Int32, r.Int64:
 			var result *ast.BinaryExpr = ~"{lhs.Int() + int64(~,expr)}
 			result.Op = op
-			cbind = ~"{lhs := ~,env . Binds[index]; lhs.SetInt(~,result)}
+			cbind = ~"{lhs := ~,env . Vals[index]; lhs.SetInt(~,result)}
 		case r.Uint, r.Uint8, r.Uint16, r.Uint32, r.Uint64, r.Uintptr:
 			var result *ast.BinaryExpr = ~"{lhs.Uint() + uint64(~,expr)}
 			result.Op = op
-			cbind = ~"{lhs := ~,env . Binds[index]; lhs.SetUint(~,result)}
+			cbind = ~"{lhs := ~,env . Vals[index]; lhs.SetUint(~,result)}
 			if t.Kind() == r.Uint64 {
-				var assign *ast.AssignStmt = ~"{~,env . IntBinds[index] += ~,expr}
+				var assign *ast.AssignStmt = ~"{~,env . Ints[index] += ~,expr}
 				assign.Tok = opset
 				bind = assign
 			}
 		case r.Float32, r.Float64:
 			var result *ast.BinaryExpr = ~"{lhs.Float() + float64(~,expr)}
 			result.Op = op
-			cbind = ~"{lhs := ~,env . Binds[index]; lhs.SetFloat(~,result)}
-		case r.Complex64:
+			cbind = ~"{lhs := ~,env . Vals[index]; lhs.SetFloat(~,result)}
+		case r.Complex64, r.Complex128:
 			var result *ast.BinaryExpr = ~"{lhs.Complex() + complex128(~,expr)}
 			result.Op = op
-			cbind = ~"{lhs := ~,env . Binds[index]; lhs.SetComplex(~,result)}
-		case r.Complex128:
-			var result *ast.BinaryExpr = ~"{lhs.Complex() + ~,expr}
-			result.Op = op
-			bind = ~"{lhs := ~,env . Binds[index]; lhs.SetComplex(~,result)}
+			cbind = ~"{lhs := ~,env . Vals[index]; lhs.SetComplex(~,result)}
 		case r.String:
 			var result *ast.BinaryExpr = ~"{lhs.String() + ~,expr}
 			result.Op = op
-			bind = ~"{lhs := ~,env . Binds[index]; lhs.SetString(~,result)}
+			bind = ~"{lhs := ~,env . Vals[index]; lhs.SetString(~,result)}
 	}
 
 	if cbind == nil {
@@ -245,8 +232,8 @@ import (
 			case 0:         setplace_const; ~,opnode; 0; ~,typ
 			case 1:         setplace_const; ~,opnode; 1; ~,typ
 			case 2:         setplace_const; ~,opnode; 2; ~,typ
-			default:        setplace_const; ~,opnode;-1; ~,typ
 			case c.Depth-1: setplace_const; ~,opnode;-2; ~,typ
+			default:        setplace_const; ~,opnode;-1; ~,typ
 		}
 	}
 }
@@ -257,8 +244,8 @@ import (
 			case 0:         setplace_expr; ~,opnode; 0; ~,typ
 			case 1:         setplace_expr; ~,opnode; 1; ~,typ
 			case 2:         setplace_expr; ~,opnode; 2; ~,typ
-			default:        setplace_expr; ~,opnode;-1; ~,typ
 			case c.Depth-1: setplace_expr; ~,opnode;-2; ~,typ
+			default:        setplace_expr; ~,opnode;-1; ~,typ
 		}
 	}
 }
@@ -379,7 +366,7 @@ func (c *Comp) varMulExpr(va *Var, fun I) {
 	var t r.Type = EvalType(typ)
 	loop, bind := fgetplace(depth, typ)
 
-	addr := ~"{(*~,typ)(unsafe.Pointer(& ~,bind .IntBinds[index]))}
+	addr := ~"{(*~,typ)(unsafe.Pointer(& ~,bind .Ints[index]))}
 
 	return ~"{
 		y_1 := ~,typ(y - 1) // cannot overflow, y is the abs() value of a non-zero ~,typ
@@ -416,9 +403,9 @@ func (c *Comp) varMulExpr(va *Var, fun I) {
 	loop, bind := fgetplace(depth, typ)
 
 	if t.Kind() == r.Uint64 {
-		bind = ~"{~,bind . IntBinds[index]}
+		bind = ~"{~,bind . Ints[index]}
 	} else {
-		bind = ~"{*(*~,typ)(unsafe.Pointer(& ~,bind .IntBinds[index]))}
+		bind = ~"{*(*~,typ)(unsafe.Pointer(& ~,bind .Ints[index]))}
 	}
 	return ~"{
 		ret = func(env *Env) (Stmt, *Env) {
@@ -436,8 +423,8 @@ func (c *Comp) varMulExpr(va *Var, fun I) {
 			case 0:			place_quopow2; 0; ~,typ
 			case 1:			place_quopow2; 1; ~,typ
 			case 2:			place_quopow2; 2; ~,typ
-			default:        place_quopow2;-1; ~,typ
 			case c.Depth-1: place_quopow2;-2; ~,typ
+			default:        place_quopow2;-1; ~,typ
 		}
 	}
 }
@@ -448,8 +435,8 @@ func (c *Comp) varMulExpr(va *Var, fun I) {
 			case 0:			place_quopow2_u; 0; ~,typ
 			case 1:			place_quopow2_u; 1; ~,typ
 			case 2:			place_quopow2_u; 2; ~,typ
-			default:        place_quopow2_u;-1; ~,typ
 			case c.Depth-1: place_quopow2_u;-2; ~,typ
+			default:        place_quopow2_u;-1; ~,typ
 		}
 	}
 }

@@ -1,20 +1,11 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017 Massimiliano Ghilardi
+ * Copyright (C) 2017-2018 Massimiliano Ghilardi
  *
- *     This program is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU Lesser General Public License as published
- *     by the Free Software Foundation, either version 3 of the License, or
- *     (at your option) any later version.
- *
- *     This program is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU Lesser General Public License for more details.
- *
- *     You should have received a copy of the GNU Lesser General Public License
- *     along with this program.  If not, see <https://www.gnu.org/licenses/lgpl>.
+ *     This Source Code Form is subject to the terms of the Mozilla Public
+ *     License, v. 2.0. If a copy of the MPL was not distributed with this
+ *     file, You can obtain one at http://mozilla.org/MPL/2.0/.
  *
  *
  * interpreter.go
@@ -26,11 +17,16 @@
 package fast
 
 import (
-	"go/ast"
+	"bufio"
+	"errors"
+	"fmt"
+	"go/types"
+	"io"
+	"os"
 	r "reflect"
 
-	"github.com/cosmos72/gomacro/ast2"
 	. "github.com/cosmos72/gomacro/base"
+	"github.com/cosmos72/gomacro/gls"
 	xr "github.com/cosmos72/gomacro/xreflect"
 )
 
@@ -39,63 +35,118 @@ import (
 // and the interpreter's runtime environment Env
 type Interp struct {
 	Comp *Comp
-	env  *Env // not exported. to access it, call CompEnv.PrepareEnv()
+	env  *Env // not exported. to access it, call Interp.PrepareEnv()
 }
 
-func (ir *Interp) RunExpr1(e *Expr) r.Value {
-	if e == nil {
-		return None
+func New() *Interp {
+	top := newTopInterp("builtin")
+	top.env.UsedByClosure = true // do not free this *Env
+	file := NewInnerInterp(top, "main", "main")
+	file.env.UsedByClosure = true // do not free this *Env
+	return file
+}
+
+func newTopInterp(path string) *Interp {
+	name := FileName(path)
+
+	g := NewIrGlobals()
+	universe := xr.NewUniverse()
+
+	cg := &CompGlobals{
+		IrGlobals:    g,
+		Universe:     universe,
+		KnownImports: make(map[string]*Import),
+		interf2proxy: make(map[r.Type]r.Type),
+		proxy2interf: make(map[r.Type]xr.Type),
+		Prompt:       "gomacro> ",
 	}
-	env := ir.PrepareEnv()
-	fun := e.AsX1()
-	return fun(env)
-}
+	goid := gls.GoID()
+	run := &Run{IrGlobals: g, goid: goid}
+	// early register run in goroutine-local data
+	g.gls[goid] = run
 
-func (ir *Interp) RunExpr(e *Expr) (r.Value, []r.Value) {
-	if e == nil {
-		return None, nil
+	ir := &Interp{
+		Comp: &Comp{
+			CompGlobals: cg,
+			CompBinds: CompBinds{
+				Name: name,
+				Path: path,
+			},
+			UpCost: 1,
+			Depth:  0,
+			Outer:  nil,
+		},
+		env: &Env{
+			Outer: nil,
+			Run:   run,
+		},
 	}
-	env := ir.PrepareEnv()
-	fun := e.AsXV(ir.Comp.CompileOptions)
-	return fun(env)
+	// tell xreflect about our packages "fast" and "main"
+	universe.CachePackage(types.NewPackage("fast", "fast"))
+	universe.CachePackage(types.NewPackage("main", "main"))
+
+	// no need to scavenge for Builtin, Function,  Macro and UntypedLit fields and methods.
+	// actually, making them opaque helps securing against malicious interpreted code.
+	for _, rtype := range []r.Type{rtypeOfBuiltin, rtypeOfFunction, rtypeOfPtrImport, rtypeOfMacro} {
+		cg.opaqueType(rtype, "fast")
+	}
+	cg.opaqueType(rtypeOfUntypedLit, "untyped")
+
+	ir.addBuiltins()
+	return ir
 }
 
-func (ir *Interp) Parse(src string) ast2.Ast {
-	return ir.Comp.Parse(src)
-}
-
-// combined Parse + Compile
-func (ir *Interp) Compile(src string) *Expr {
-	c := ir.Comp
-	return c.Compile(c.Parse(src))
-}
-
-func (ir *Interp) CompileNode(node ast.Node) *Expr {
-	return ir.Comp.CompileNode(node)
-}
-
-func (ir *Interp) CompileAst(form ast2.Ast) *Expr {
-	return ir.Comp.Compile(form)
-}
-
-// combined Parse + Compile + RunExpr
-func (ir *Interp) Eval(src string) (r.Value, []r.Value) {
-	c := ir.Comp
-	return ir.RunExpr(c.Compile(c.Parse(src)))
-}
-
-func (ir *Interp) ChangePackage(name, path string) {
-	if len(path) == 0 {
-		path = name
-	} else {
+func NewInnerInterp(outer *Interp, name string, path string) *Interp {
+	if len(name) == 0 {
 		name = FileName(path)
 	}
-	c := ir.Comp
-	currpath := c.Path
-	if path == currpath {
-		return
+
+	outerComp := outer.Comp
+	outerEnv := outer.env
+	run := outerEnv.Run
+
+	env := &Env{
+		Outer:     outerEnv,
+		Run:       run,
+		FileEnv:   outerEnv.FileEnv,
+		CallDepth: outerEnv.CallDepth,
+	}
+
+	if outerEnv.Outer == nil {
+		env.FileEnv = env
+	} else {
+		env.FileEnv = outerEnv.FileEnv
+	}
+
+	// do NOT set g.CurrEnv = ir.Env, it messes up the call stack
+	return &Interp{
+		&Comp{
+			CompGlobals: outerComp.CompGlobals,
+			CompBinds: CompBinds{
+				Name: name,
+				Path: path,
+			},
+			UpCost: 1,
+			Depth:  outerComp.Depth + 1,
+			Outer:  outerComp,
+		},
+		env,
 	}
 }
+
+func (ir *Interp) SetInspector(inspector Inspector) {
+	ir.Comp.Globals.Inspector = inspector
+}
+
+func (ir *Interp) SetDebugger(debugger Debugger) {
+	ir.env.Run.Debugger = debugger
+}
+
+func (ir *Interp) Interrupt(os.Signal) {
+	ir.env.Run.interrupt()
+}
+
+// ============================================================================
 
 // DeclConst compiles a constant declaration
 func (ir *Interp) DeclConst(name string, t xr.Type, value I) {
@@ -152,15 +203,16 @@ func (ir *Interp) apply() {
 func (ir *Interp) AddressOfVar(name string) (addr r.Value) {
 	c := ir.Comp
 	sym := c.TryResolve(name)
+	var v r.Value
 	if sym != nil {
 		switch sym.Desc.Class() {
 		case VarBind, IntBind:
 			va := sym.AsVar(PlaceAddress)
 			expr := va.Address(c.Depth)
-			return ir.RunExpr1(expr)
+			v, _ = ir.RunExpr1(expr)
 		}
 	}
-	return Nil
+	return v
 }
 
 // replacement of reflect.TypeOf() that uses xreflect.TypeOf()
@@ -181,71 +233,81 @@ func (ir *Interp) ValueOf(name string) (value r.Value) {
 		return sym.Bind.ConstValue()
 	case IntBind:
 		value = ir.AddressOfVar(name)
-		if value != Nil {
+		if value.IsValid() {
 			value = value.Elem() // dereference
 		}
 		return value
-	case VarBind:
+	default:
 		env := ir.PrepareEnv()
 		for i := 0; i < sym.Upn; i++ {
 			env = env.Outer
 		}
-		return env.Binds[sym.Desc.Index()]
-	default:
-		expr := ir.Comp.Symbol(sym)
-		return ir.RunExpr1(expr)
+		return env.Vals[sym.Desc.Index()]
 	}
 }
 
-func (ir *Interp) PrepareEnv() *Env {
-	return ir.prepareEnv(128)
+// ===================== Eval(), EvalFile(), EvalReader() ============================
+
+// combined Parse + Compile + RunExpr1
+func (ir *Interp) Eval1(src string) (r.Value, xr.Type) {
+	return ir.RunExpr1(ir.Compile(src))
 }
 
-func (ir *Interp) prepareEnv(minDelta int) *Env {
-	c := ir.Comp
-	env := ir.env
-	// usually we know at Env creation how many slots are needed in c.Env.Binds
-	// but here we are modifying an existing Env...
-	if minDelta < 0 {
-		minDelta = 0
-	}
-	capacity, min := cap(env.Binds), c.BindNum
-	// c.Debugf("prepareEnv() before: c.BindNum = %v, minDelta = %v, len(env.Binds) = %v, cap(env.Binds) = %v, env = %p", c.BindNum, minDelta, len(env.Binds), cap(env.Binds), env)
+// combined Parse + Compile + RunExpr
+func (ir *Interp) Eval(src string) ([]r.Value, []xr.Type) {
+	return ir.RunExpr(ir.Compile(src))
+}
 
-	if capacity < min {
-		if capacity <= min/2 {
-			capacity = min
-		} else {
-			capacity *= 2
-		}
-		if capacity-min < minDelta {
-			capacity = min + minDelta
-		}
-		binds := make([]r.Value, min, capacity)
-		copy(binds, env.Binds)
-		env.Binds = binds
+func (ir *Interp) EvalFile(filepath string) (comments string, err error) {
+	g := ir.Comp.CompGlobals
+	saveFilename := g.Filepath
+	f, err := os.Open(filepath)
+	if err != nil {
+		return "", err
 	}
-	if len(env.Binds) < min {
-		env.Binds = env.Binds[0:min:cap(env.Binds)]
-	}
-	// c.Debugf("prepareEnv() after:  c.BindNum = %v, minDelta = %v, len(env.Binds) = %v, cap(env.Binds) = %v, env = %p", c.BindNum, minDelta, len(env.Binds), cap(env.Binds), env)
+	defer func() {
+		f.Close()
+		g.Filepath = saveFilename
+	}()
+	g.Filepath = filepath
+	return ir.EvalReader(f)
+}
 
-	capacity, min = cap(env.IntBinds), c.IntBindNum
-	if capacity < min {
-		if capacity <= min/2 {
-			capacity = min
-		} else {
-			capacity *= 2
+func (ir *Interp) EvalReader(src io.Reader) (comments string, err error) {
+	g := ir.Comp.CompGlobals
+	savein := g.Readline
+	saveopts := g.Options
+	g.Line = 0
+	in := MakeBufReadline(bufio.NewReader(src), g.Stdout)
+	g.Readline = in
+	// parsing a file: suppress prompt and printing expression results
+	g.Options &^= OptShowPrompt | OptShowEval | OptShowEvalType
+	defer func() {
+		g.Readline = savein
+		g.Options = saveopts
+		if rec := recover(); rec != nil {
+			switch rec := rec.(type) {
+			case error:
+				err = rec
+			default:
+				err = errors.New(fmt.Sprint(rec))
+			}
 		}
-		if capacity-min < minDelta {
-			capacity = min + minDelta
+	}()
+
+	// perform the first iteration manually, to collect comments
+	str, firstToken := g.ReadMultiline(ReadOptCollectAllComments, g.Prompt)
+	if firstToken >= 0 {
+		comments = str[0:firstToken]
+		if firstToken > 0 {
+			str = str[firstToken:]
+			g.IncLine(comments)
 		}
-		binds := make([]uint64, min, capacity)
-		copy(binds, env.IntBinds)
-		env.IntBinds = binds
 	}
-	if len(env.IntBinds) < min {
-		env.IntBinds = env.IntBinds[0:min:cap(env.IntBinds)]
+
+	if ir.ParseEvalPrint(str) {
+		for ir.ReadParseEvalPrint() {
+		}
 	}
-	return env
+	return comments, nil
 }

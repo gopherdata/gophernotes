@@ -1,20 +1,11 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017 Massimiliano Ghilardi
+ * Copyright (C) 2017-2018 Massimiliano Ghilardi
  *
- *     This program is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU Lesser General Public License as published
- *     by the Free Software Foundation, either version 3 of the License, or
- *     (at your option) any later version.
- *
- *     This program is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU Lesser General Public License for more details.
- *
- *     You should have received a copy of the GNU Lesser General Public License
- *     along with this program.  If not, see <https://www.gnu.org/licenses/lgpl>.
+ *     This Source Code Form is subject to the terms of the Mozilla Public
+ *     License, v. 2.0. If a copy of the MPL was not distributed with this
+ *     file, You can obtain one at http://mozilla.org/MPL/2.0/.
  *
  *
  * literal.go
@@ -29,6 +20,7 @@ import (
 	"go/ast"
 	"go/constant"
 	"go/token"
+	"math/big"
 	r "reflect"
 
 	. "github.com/cosmos72/gomacro/base"
@@ -60,23 +52,6 @@ func (c *Comp) BasicLit(node *ast.BasicLit) *Expr {
 		return nil
 	}
 	return c.exprUntypedLit(kind, obj)
-}
-
-func constantKindToUntypedLitKind(ckind constant.Kind) r.Kind {
-	ret := r.Invalid
-	switch ckind {
-	case constant.Bool:
-		ret = r.Bool
-	case constant.Int:
-		ret = r.Int // actually ambiguous, could be a rune - thus r.Int32
-	case constant.Float:
-		ret = r.Float64
-	case constant.Complex:
-		ret = r.Complex128
-	case constant.String:
-		ret = r.String
-	}
-	return ret
 }
 
 func isLiteral(x interface{}) bool {
@@ -124,31 +99,10 @@ func isLiteralNumber(x I, n int64) bool {
 	case r.Value:
 		return false
 	case UntypedLit:
-		return x.IsLiteralNumber(n)
+		return x.EqualInt64(n)
 	}
 	Errorf("isLiteralNumber: unexpected literal type %v <%v>", x, r.TypeOf(x))
 	return false
-}
-
-func (untyp *UntypedLit) IsLiteralNumber(n int64) bool {
-	obj := untyp.Obj
-	switch obj.Kind() {
-	case constant.Int:
-		m, exact := constant.Int64Val(obj)
-		return exact && m == n
-	case constant.Float:
-		m, exact := constant.Float64Val(obj)
-		return exact && float64(int64(m)) == m && int64(m) == n
-	case constant.Complex:
-		m, exact := constant.Float64Val(constant.Imag(obj))
-		if !exact || m != 0.0 {
-			return false
-		}
-		m, exact = constant.Float64Val(constant.Real(obj))
-		return exact && float64(int64(m)) == m && int64(m) == n
-	default:
-		return false
-	}
 }
 
 // ================================= ConstTo =================================
@@ -161,9 +115,13 @@ func (e *Expr) ConstTo(t xr.Type) I {
 		Errorf("internal error: expression is not constant, use Expr.To() instead of Expr.ConstTo() to convert from <%v> to <%v>", e.Type, t)
 	}
 	val := e.Lit.ConstTo(t)
-	if e.Fun != nil {
-		// no longer valid, recompute it
-		e.Fun = nil
+	fun := makeMathBigFun(val)
+	if fun != nil {
+		// no longer a constant
+		e.Lit.Value = nil
+		e.Fun = fun
+	} else if e.Fun != nil {
+		// e.Fun is no longer valid, recompute it
 		e.WithFun()
 	}
 	return val
@@ -189,10 +147,11 @@ func (lit *Lit) ConstTo(t xr.Type) I {
 	}
 	switch x := value.(type) {
 	case UntypedLit:
+		val := x.Convert(t)
 		lit.Type = t
-		lit.Value = x.ConstTo(t)
-		// Debugf("Lit.ConstTo(): converted untyped constant %v to %v <%v> (stored as <%v>)", x, lit.Value, TypeOf(lit.Value), t)
-		return lit.Value
+		lit.Value = val
+		// Debugf("UntypedLit.Convert(): converted untyped constant %v to %v <%v> (stored as <%v>)", x, val, TypeOf(val), t)
+		return val
 	case nil:
 		// literal nil can only be converted to nillable types
 		if IsNillableKind(t.Kind()) {
@@ -212,48 +171,30 @@ func (lit *Lit) ConstTo(t xr.Type) I {
 	return nil
 }
 
-// ConstTo checks that an UntypedLit can be used as the given type.
-// performs actual untyped -> typed conversion and subsequent overflow checks.
-// returns the constant converted to given type
-func (untyp *UntypedLit) ConstTo(t xr.Type) I {
-	obj := untyp.Obj
-	var val interface{}
-again:
-	switch t.Kind() {
-	case r.Bool:
-		if obj.Kind() != constant.Bool {
-			Errorf("cannot convert untyped constant %v to <%v>", untyp, t)
+// return a closure that duplicates at each invokation any *big.Int, *big.Rat, *big.Float passed as 'val'
+func makeMathBigFun(val I) func(*Env) r.Value {
+	switch a := val.(type) {
+	case *big.Int:
+		return func(*Env) r.Value {
+			var b big.Int
+			b.Set(a)
+			return r.ValueOf(&b)
 		}
-		val = constant.BoolVal(obj)
-	case r.Int, r.Int8, r.Int16, r.Int32, r.Int64,
-		r.Uint, r.Uint8, r.Uint16, r.Uint32, r.Uint64, r.Uintptr,
-		r.Float32, r.Float64, r.Complex64, r.Complex128:
-
-		n := untyp.extractNumber(obj, t)
-		return convertLiteralCheckOverflow(n, t)
-	case r.String:
-		if untyp.Obj.Kind() != constant.String {
-			Errorf("cannot convert untyped constant %v to <%v>", untyp, t)
+	case *big.Rat:
+		return func(*Env) r.Value {
+			var b big.Rat
+			b.Set(a)
+			return r.ValueOf(&b)
 		}
-		val = UnescapeString(obj.ExactString())
-	case r.Interface:
-		// this can happen too... for example in "var foo interface{} = 7"
-		// and it requires to convert the untyped constant to its default type.
-		// obviously, untyped constants can only implement empty interfaces
-		if t.NumMethod() == 0 {
-			t = untyp.DefaultType()
-			goto again
+	case *big.Float:
+		return func(*Env) r.Value {
+			var b big.Float
+			b.Set(a)
+			return r.ValueOf(&b)
 		}
-		fallthrough
 	default:
-		Errorf("cannot convert untyped constant %v to <%v>", untyp, t)
 		return nil
 	}
-	v := r.ValueOf(val)
-	if v.Type() != t.ReflectType() {
-		val = v.Convert(t.ReflectType())
-	}
-	return val
 }
 
 // ================================= DefaultType =================================
@@ -274,93 +215,6 @@ func (lit *Lit) DefaultType() xr.Type {
 	default:
 		return lit.Type
 	}
-}
-
-// DefaultType returns the default type of an untyped constant.
-func (untyp *UntypedLit) DefaultType() xr.Type {
-	switch untyp.Kind {
-	case r.Bool, r.Int32, r.Int, r.Uint, r.Float64, r.Complex128, r.String:
-		if basicTypes := untyp.BasicTypes; basicTypes == nil {
-			Errorf("UntypedLit.DefaultType(): malformed untyped constant %v, has nil BasicTypes!", untyp)
-			return nil
-		} else {
-			return (*basicTypes)[untyp.Kind]
-		}
-
-	default:
-		Errorf("unexpected untyped constant %v, its default type is not known", untyp)
-		return nil
-	}
-}
-
-// ======================= utilities for ConstTo and ConstToDefaultType =======================
-
-// extractNumber converts the untyped constant src to an integer, float or complex.
-// panics if src has different kind from constant.Int, constant.Float and constant.Complex
-// the receiver (untyp UntypedLit) and the second argument (t reflect.Type) are only used to pretty-print the panic error message
-func (untyp *UntypedLit) extractNumber(src constant.Value, t xr.Type) interface{} {
-	var n interface{}
-	var exact bool
-	switch src.Kind() {
-	case constant.Int:
-		n, exact = constant.Int64Val(src)
-		if !exact {
-			n, exact = constant.Uint64Val(src)
-		}
-	case constant.Float:
-		n, exact = constant.Float64Val(src)
-	case constant.Complex:
-		re := untyp.extractNumber(constant.Real(src), t)
-		im := untyp.extractNumber(constant.Imag(src), t)
-		rfloat := r.ValueOf(re).Convert(TypeOfFloat64).Float()
-		ifloat := r.ValueOf(im).Convert(TypeOfFloat64).Float()
-		n = complex(rfloat, ifloat)
-		exact = true
-	default:
-		Errorf("cannot convert untyped constant %v to <%v>", untyp, t)
-		return nil
-	}
-	// allow inexact conversions to float64 and complex128:
-	// floating point is intrinsically inexact, and Go compiler allows them too
-	if !exact && src.Kind() == constant.Int {
-		Errorf("untyped constant %v overflows <%v>", untyp, t)
-		return nil
-	}
-	return n
-}
-
-// convertLiteralCheckOverflow converts a literal to type t and returns the converted value.
-// panics if the conversion overflows the given type
-func convertLiteralCheckOverflow(src interface{}, to xr.Type) interface{} {
-	v := r.ValueOf(src)
-	rto := to.ReflectType()
-	vto := ConvertValue(v, rto)
-
-	k, kto := v.Kind(), vto.Kind()
-	if k == kto {
-		return vto.Interface() // no numeric conversion happened
-	}
-	c, cto := KindToCategory(k), KindToCategory(kto)
-	if cto == r.Int || cto == r.Uint {
-		if c == r.Float64 || c == r.Complex128 {
-			// float-to-integer conversion. check for truncation
-			t1 := ValueType(v)
-			vback := ConvertValue(vto, t1)
-			if src != vback.Interface() {
-				Errorf("constant %v truncated to %v", src, to)
-				return nil
-			}
-		} else {
-			// integer-to-integer conversion. convert back and compare the interfaces for overflows
-			t1 := ValueType(v)
-			vback := vto.Convert(t1)
-			if src != vback.Interface() {
-				Errorf("constant %v overflows <%v>", src, to)
-				return nil
-			}
-		}
-	}
-	return vto.Interface()
 }
 
 // SetTypes sets the expression result types
@@ -488,7 +342,7 @@ again:
 		if rtexpected.Kind() == r.Interface && rtactual.Implements(rtexpected) {
 			v = v.Convert(rtexpected)
 		} else {
-			Errorf("internal error: constant %v <%v> was assumed to have type <%v>", value, r.TypeOf(value), t.ReflectType())
+			Errorf("internal error: constant %v <%v> was assumed to have type <%v>", value, rtactual, rtexpected)
 		}
 	}
 	switch v.Kind() {

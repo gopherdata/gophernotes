@@ -1,20 +1,11 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017 Massimiliano Ghilardi
+ * Copyright (C) 2017-2018 Massimiliano Ghilardi
  *
- *     This program is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU Lesser General Public License as published
- *     by the Free Software Foundation, either version 3 of the License, or
- *     (at your option) any later version.
- *
- *     This program is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU Lesser General Public License for more details.
- *
- *     You should have received a copy of the GNU Lesser General Public License
- *     along with this program.  If not, see <https://www.gnu.org/licenses/lgpl>.
+ *     This Source Code Form is subject to the terms of the Mozilla Public
+ *     License, v. 2.0. If a copy of the MPL was not distributed with this
+ *     file, You can obtain one at http://mozilla.org/MPL/2.0/.
  *
  *
  * lookup.go
@@ -28,7 +19,24 @@ package xreflect
 import (
 	"go/types"
 	"reflect"
+
+	"github.com/cosmos72/gomacro/typeutil"
 )
+
+type depthMap struct {
+	gmap typeutil.Map
+}
+
+func (m *depthMap) visited(gtype types.Type, depth int) bool {
+	if at := m.gmap.At(gtype); at != nil && at.(int) < depth {
+		// already visited at shallower depth.
+		// avoids infinite loop for self-referencing types
+		// as type X struct { *X }
+		return true
+	}
+	m.gmap.Set(gtype, depth)
+	return false
+}
 
 // FieldByName returns the (possibly embedded) struct field with given name,
 // and the number of fields found at the same (shallowest) depth: 0 if not found.
@@ -54,14 +62,14 @@ func (t *xtype) FieldByName(name, pkgpath string) (field StructField, count int)
 		return field, count
 	}
 	var tovisit []StructField
-
-	field, count, tovisit = fieldByName(t, qname, 0, nil)
+	var visited depthMap
+	field, count, tovisit = fieldByName(t, qname, 0, nil, &visited)
 
 	// breadth-first recursion
 	for count == 0 && len(tovisit) != 0 {
 		var next []StructField
 		for _, f := range tovisit {
-			efield, ecount, etovisit := fieldByName(unwrap(f.Type), qname, f.Offset, f.Index)
+			efield, ecount, etovisit := fieldByName(unwrap(f.Type), qname, f.Offset, f.Index, &visited)
 			if count == 0 {
 				if ecount > 0 {
 					field = efield
@@ -80,23 +88,21 @@ func (t *xtype) FieldByName(name, pkgpath string) (field StructField, count int)
 	return field, count
 }
 
-func fieldByName(t *xtype, qname QName, offset uintptr, index []int) (field StructField, count int, tovisit []StructField) {
+func fieldByName(t *xtype, qname QName, offset uintptr, index []int, m *depthMap) (field StructField, count int, tovisit []StructField) {
 	// also support embedded fields: they can be named types or pointers to named types
-	if t.kind == reflect.Ptr {
-		t = unwrap(t.elem())
-	}
-	gtype, ok := t.gtype.Underlying().(*types.Struct)
-	if !ok {
-		debugf("fieldByName: type is %s, not struct. bailing out", t.kind)
+	t, gtype := derefStruct(t)
+	if gtype == nil || m.visited(gtype, len(index)) {
 		return
 	}
+	// debugf("fieldByName: visiting %v <%v> <%v> at depth %d", t.kind, t.gtype, t.rtype, len(index))
+
 	n := t.NumField()
 	for i := 0; i < n; i++ {
 
 		gfield := gtype.Field(i)
 		if matchFieldByName(qname, gfield) {
 			if count == 0 {
-				field = t.field(i) // lock already held
+				field = t.field(i) // lock already held. makes a copy
 				field.Offset += offset
 				field.Index = concat(index, field.Index) // make a copy of index
 				// debugf("fieldByName: %d-th field of <%v> matches: %#v", i, t.rtype, field)
@@ -110,7 +116,21 @@ func fieldByName(t *xtype, qname QName, offset uintptr, index []int) (field Stru
 			tovisit = append(tovisit, efield)
 		}
 	}
-	return
+	return field, count, tovisit
+}
+
+func derefStruct(t *xtype) (*xtype, *types.Struct) {
+	switch gtype := t.gtype.Underlying().(type) {
+	case *types.Struct:
+		return t, gtype
+	case *types.Pointer:
+		gelem, ok := gtype.Elem().Underlying().(*types.Struct)
+		if ok {
+			// not t.Elem(), it would acquire Universe lock
+			return unwrap(t.elem()), gelem
+		}
+	}
+	return nil, nil
 }
 
 // return true if gfield name matches given name, or if it's anonymous and its *type* name matches given name
@@ -154,22 +174,19 @@ func cacheFieldByName(t *xtype, qname QName, field *StructField, count int) {
 	t.universe.fieldcache = true
 }
 
-// anonymousFields returns the anonymous fields of a (named or unnamed) struct type
-func anonymousFields(t *xtype, offset uintptr, index []int) []StructField {
-	var tovisit []StructField
-	gt := t.gtype.Underlying()
-	if gptr, ok := gt.(*types.Pointer); ok {
-		gt = gptr.Elem().Underlying()
-	}
-	gtype, ok := gt.(*types.Struct)
-	if !ok {
-		return tovisit
+// anonymousFields returns the anonymous fields of a struct type (either named or unnamed)
+// also accepts a pointer to a struct type
+func anonymousFields(t *xtype, offset uintptr, index []int, m *depthMap) []StructField {
+	t, gtype := derefStruct(t)
+	if gtype == nil || m.visited(gtype, len(index)) {
+		return nil
 	}
 	n := gtype.NumFields()
+	var tovisit []StructField
 	for i := 0; i < n; i++ {
 		gfield := gtype.Field(i)
 		if gfield.Anonymous() {
-			field := t.Field(i)
+			field := t.field(i) // not t.Field(), it would acquire Universe lock
 			field.Offset += offset
 			field.Index = concat(index, field.Index) // make a copy of index
 			tovisit = append(tovisit, field)
@@ -203,9 +220,10 @@ func (t *xtype) MethodByName(name, pkgpath string) (method Method, count int) {
 		}
 		return method, count
 	}
+	var visited depthMap
 	method, count = methodByName(t, qname, nil)
 	if count == 0 {
-		tovisit := anonymousFields(t, 0, nil)
+		tovisit := anonymousFields(t, 0, nil, &visited)
 		// breadth-first recursion on struct's anonymous fields
 		for count == 0 && len(tovisit) != 0 {
 			var next []StructField
@@ -217,7 +235,7 @@ func (t *xtype) MethodByName(name, pkgpath string) (method Method, count int) {
 						method = emethod
 					} else {
 						// no recursion if we found something
-						next = append(next, anonymousFields(et, f.Offset, f.Index)...)
+						next = append(next, anonymousFields(et, f.Offset, f.Index, &visited)...)
 					}
 				}
 				count += ecount
@@ -234,9 +252,16 @@ func (t *xtype) MethodByName(name, pkgpath string) (method Method, count int) {
 // For interfaces, search in *all* methods including wrapper methods for embedded interfaces
 // For all other named types, only search in explicitly declared methods, ignoring wrapper methods for embedded fields.
 func methodByName(t *xtype, qname QName, index []int) (method Method, count int) {
+
+	// debugf("methodByName: visiting %v <%v> <%v> at depth %d", t.kind, t.gtype, t.rtype, len(index))
+
 	// also support embedded fields: they can be interfaces, named types, pointers to named types
-	if t.kind == reflect.Ptr && t.elem().Kind() != reflect.Interface {
-		t = unwrap(t.elem())
+	if t.kind == reflect.Ptr {
+		te := unwrap(t.elem())
+		if te.kind == reflect.Interface || te.kind == reflect.Ptr {
+			return
+		}
+		t = te
 	}
 	n := t.NumMethod()
 	for i := 0; i < n; i++ {
@@ -269,6 +294,41 @@ func cacheMethodByName(t *xtype, qname QName, method *Method, count int) {
 	}
 	t.methodcache[qname] = *method
 	t.universe.methodcache = true
+}
+
+// visit type's direct and embedded fields in breadth-first order
+func (v *Universe) VisitFields(t Type, visitor func(StructField)) {
+	xt := unwrap(t)
+	if xt == nil {
+		return
+	}
+	var curr, tovisit []*xtype
+	curr = []*xtype{xt}
+	var seen typeutil.Map
+
+	for len(curr) != 0 {
+		for _, xt := range curr {
+			if xt == nil {
+				continue
+			}
+			// embedded fields can be named types or pointers to named types
+			xt, _ = derefStruct(xt)
+			if xt.kind != reflect.Struct || seen.At(xt.gtype) != nil {
+				continue
+			}
+			seen.Set(xt.gtype, xt.gtype)
+
+			for i, n := 0, xt.NumField(); i < n; i++ {
+				field := xt.field(i)
+				visitor(field)
+				if field.Anonymous {
+					tovisit = append(tovisit, unwrap(field.Type))
+				}
+			}
+		}
+		curr = tovisit
+		tovisit = nil
+	}
 }
 
 func invalidateCache(gtype types.Type, t interface{}) {
