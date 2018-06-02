@@ -283,6 +283,10 @@ func handleShellMsg(ir *interp.Interp, receipt msgReceipt) {
 		if err := sendKernelInfo(receipt); err != nil {
 			log.Fatal(err)
 		}
+	case "complete_request":
+		if err := handleCompleteRequest(ir, receipt); err != nil {
+			log.Fatal(err)
+		}
 	case "execute_request":
 		if err := handleExecuteRequest(ir, receipt); err != nil {
 			log.Fatal(err)
