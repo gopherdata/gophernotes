@@ -95,6 +95,12 @@ func runKernel(connectionFile string) {
 	ir.Comp.Stdout = ioutil.Discard
 	ir.Comp.Stderr = ioutil.Discard
 
+	// Inject the "display" package to render HTML, JSON, PNG, JPEG, SVG... from interpreted code
+	_, err := ir.Comp.ImportPackageOrError("display", "display")
+	if err != nil {
+		log.Print(err)
+	}
+
 	// Parse the connection info.
 	var connInfo ConnectionInfo
 
@@ -345,6 +351,13 @@ func handleExecuteRequest(ir *interp.Interp, receipt msgReceipt) error {
 		io.Copy(&jupyterStdErr, rErr)
 	}()
 
+	// set the globalReceipt variable used by rendering functions injected into the interpreter
+	globalReceipt = &receipt
+	defer func() {
+		globalReceipt = nil
+	}()
+
+	// eval
 	vals, executionErr := doEval(ir, code)
 
 	// Close and restore the streams.
@@ -359,7 +372,7 @@ func handleExecuteRequest(ir *interp.Interp, receipt msgReceipt) error {
 
 	if executionErr == nil {
 		// if one or more value is image.Image, display it instead
-		vals = publishImages(vals, receipt)
+		vals = publishImages(vals, &receipt)
 
 		content["status"] = "ok"
 		content["user_expressions"] = make(map[string]string)

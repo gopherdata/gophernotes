@@ -12,7 +12,7 @@ import (
 // then replaces it with a placeholder string equal to reflect.TypeOf(val).String()
 // to avoid overloading the front-end with huge amounts of output text:
 // fmt.Sprint(val) is often very large for an image
-func publishImages(vals []interface{}, receipt msgReceipt) []interface{} {
+func publishImages(vals []interface{}, receipt *msgReceipt) []interface{} {
 	for i, val := range vals {
 		if img, ok := val.(image.Image); ok {
 			err := publishImage(img, receipt)
@@ -27,7 +27,7 @@ func publishImages(vals []interface{}, receipt msgReceipt) []interface{} {
 }
 
 // publishImages sends a "display_data" broadcast message for given image.
-func publishImage(img image.Image, receipt msgReceipt) error {
+func publishImage(img image.Image, receipt *msgReceipt) error {
 	bytes, mime, err := encodePng(img)
 	if err != nil {
 		return err
