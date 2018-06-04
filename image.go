@@ -2,43 +2,43 @@ package main
 
 import (
 	"bytes"
-	"fmt"
 	"image"
 	"image/png"
 	"log"
 )
 
-// publishImages sends a "display_data" broadcast message for each image.Image found in vals,
-// then replaces it with a placeholder string equal to reflect.TypeOf(val).String()
-// to avoid overloading the front-end with huge amounts of output text:
-// fmt.Sprint(val) is often very large for an image
-func publishImages(vals []interface{}, receipt *msgReceipt) []interface{} {
-	for i, val := range vals {
-		if img, ok := val.(image.Image); ok {
-			err := publishImage(img, receipt)
-			if err != nil {
-				log.Printf("Error publishing image: %v\n", err)
-			} else {
-				vals[i] = fmt.Sprintf("%T", val)
-			}
+// Image converts an image.Image to DisplayData containing PNG []byte,
+// or to DisplayData containing error if the conversion fails
+func Image(img image.Image) DisplayData {
+	data, err := image0(img)
+	if err != nil {
+		return DisplayData{
+			Data: BundledMIMEData{
+				"ename":     "ERROR",
+				"evalue":    err.Error(),
+				"traceback": nil,
+				"status":    "error",
+			},
 		}
 	}
-	return vals
+	return data
 }
 
-// publishImages sends a "display_data" broadcast message for given image.
-func publishImage(img image.Image, receipt *msgReceipt) error {
+// image0 converts an image.Image to DisplayData containing PNG []byte,
+// or error if the conversion fails
+func image0(img image.Image) (DisplayData, error) {
 	bytes, mime, err := encodePng(img)
 	if err != nil {
-		return err
+		return DisplayData{}, err
 	}
-	data := bundledMIMEData{
-		mime: bytes,
-	}
-	metadata := bundledMIMEData{
-		mime: imageMetadata(img),
-	}
-	return receipt.PublishDisplayData(data, metadata)
+	return DisplayData{
+		Data: BundledMIMEData{
+			mime: bytes,
+		},
+		Metadata: BundledMIMEData{
+			mime: imageMetadata(img),
+		},
+	}, nil
 }
 
 // encodePng converts an image.Image to PNG []byte
@@ -51,11 +51,52 @@ func encodePng(img image.Image) (data []byte, mime string, err error) {
 	return buf.Bytes(), "image/png", nil
 }
 
-// imageMetadata returns image size, represented as bundledMIMEData{"width": width, "height": height}
-func imageMetadata(img image.Image) bundledMIMEData {
+// imageMetadata returns image size, represented as BundledMIMEData{"width": width, "height": height}
+func imageMetadata(img image.Image) BundledMIMEData {
 	rect := img.Bounds()
-	return bundledMIMEData{
+	return BundledMIMEData{
 		"width":  rect.Dx(),
 		"height": rect.Dy(),
 	}
+}
+
+// publishImages sends a "display_data" broadcast message for given image.Image.
+func publishImage(img image.Image, receipt *msgReceipt) error {
+	data, err := image0(img)
+	if err != nil {
+		return err
+	}
+	return receipt.PublishDisplayData(data)
+}
+
+// publishImagesAndDisplayData sends a "display_data" broadcast message for each
+// image.Image and DisplayData found in vals, then replaces it with nil
+// to avoid overloading the front-end with huge amounts of output text:
+// fmt.Sprint(val) is often very large for an image and other multimedia data.
+func publishImagesAndDisplayData(vals []interface{}, receipt *msgReceipt) []interface{} {
+	for i, val := range vals {
+		switch obj := val.(type) {
+		case image.Image:
+			err := publishImage(obj, receipt)
+			if err != nil {
+				log.Printf("Error publishing image.Image: %v\n", err)
+			} else {
+				vals[i] = nil
+			}
+		case DisplayData:
+			err := receipt.PublishDisplayData(obj)
+			if err != nil {
+				log.Printf("Error publishing DisplayData: %v\n", err)
+			} else {
+				vals[i] = nil
+			}
+		}
+	}
+	// if all values are nil, return empty slice
+	for _, val := range vals {
+		if val != nil {
+			return vals
+		}
+	}
+	return nil
 }

@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"reflect"
 	"runtime"
 	"sync"
 	"time"
@@ -109,10 +110,16 @@ func runKernel(connectionFile string) {
 	ir.Comp.Stderr = ioutil.Discard
 
 	// Inject the "display" package to render HTML, JSON, PNG, JPEG, SVG... from interpreted code
+	// maybe a dot-import is easier to use?
 	_, err := ir.Comp.ImportPackageOrError("display", "display")
 	if err != nil {
 		log.Print(err)
 	}
+
+	// Inject the stub "Display" function. declare a variable
+	// instead of a function, because we want to later change
+	// its value to the closure that holds a reference to msgReceipt
+	ir.DeclVar("Display", nil, stubDisplay)
 
 	// Parse the connection info.
 	var connInfo ConnectionInfo
@@ -369,10 +376,12 @@ func handleExecuteRequest(ir *interp.Interp, receipt msgReceipt) error {
 		io.Copy(&jupyterStdErr, rErr)
 	}()
 
-	// set the globalReceipt variable used by rendering functions injected into the interpreter
-	globalReceipt = &receipt
+	// inject the actual "Display" closure that displays multimedia data in Jupyter
+	displayPlace := ir.ValueOf("Display")
+	displayPlace.Set(reflect.ValueOf(receipt.PublishDisplayData))
 	defer func() {
-		globalReceipt = nil
+		// remove the closure before returning
+		displayPlace.Set(reflect.ValueOf(stubDisplay))
 	}()
 
 	// eval
@@ -389,8 +398,8 @@ func handleExecuteRequest(ir *interp.Interp, receipt msgReceipt) error {
 	writersWG.Wait()
 
 	if executionErr == nil {
-		// if one or more value is image.Image, display it instead
-		vals = publishImages(vals, &receipt)
+		// if one or more value is image.Image or DisplayData, display it instead
+		vals = publishImagesAndDisplayData(vals, &receipt)
 
 		content["status"] = "ok"
 		content["user_expressions"] = make(map[string]string)
