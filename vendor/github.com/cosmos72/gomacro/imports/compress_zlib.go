@@ -26,26 +26,26 @@ func init() {
 		"NewWriterLevel":	ValueOf(zlib.NewWriterLevel),
 		"NewWriterLevelDict":	ValueOf(zlib.NewWriterLevelDict),
 		"NoCompression":	ValueOf(zlib.NoCompression),
-	},Types: map[string]Type{
+	}, Types: map[string]Type{
 		"Resetter":	TypeOf((*zlib.Resetter)(nil)).Elem(),
 		"Writer":	TypeOf((*zlib.Writer)(nil)).Elem(),
-	},Proxies: map[string]Type{
-		"Resetter":	TypeOf((*Resetter_compress_zlib)(nil)).Elem(),
-	},Untypeds: map[string]string{
+	}, Proxies: map[string]Type{
+		"Resetter":	TypeOf((*P_compress_zlib_Resetter)(nil)).Elem(),
+	}, Untypeds: map[string]string{
 		"BestCompression":	"int:9",
 		"BestSpeed":	"int:1",
 		"DefaultCompression":	"int:-1",
 		"HuffmanOnly":	"int:-2",
 		"NoCompression":	"int:0",
-	},
+	}, 
 	}
 }
 
 // --------------- proxy for compress/zlib.Resetter ---------------
-type Resetter_compress_zlib struct {
+type P_compress_zlib_Resetter struct {
 	Object	interface{}
 	Reset_	func(_proxy_obj_ interface{}, r io.Reader, dict []byte) error
 }
-func (Proxy *Resetter_compress_zlib) Reset(r io.Reader, dict []byte) error {
-	return Proxy.Reset_(Proxy.Object, r, dict)
+func (P *P_compress_zlib_Resetter) Reset(r io.Reader, dict []byte) error {
+	return P.Reset_(P.Object, r, dict)
 }

@@ -22,8 +22,8 @@ func init() {
 		"SetTraceback":	ValueOf(debug.SetTraceback),
 		"Stack":	ValueOf(debug.Stack),
 		"WriteHeapDump":	ValueOf(debug.WriteHeapDump),
-	},Types: map[string]Type{
+	}, Types: map[string]Type{
 		"GCStats":	TypeOf((*debug.GCStats)(nil)).Elem(),
-	},
+	}, 
 	}
 }

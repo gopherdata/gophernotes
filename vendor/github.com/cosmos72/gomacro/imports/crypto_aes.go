@@ -14,10 +14,10 @@ func init() {
 	Binds: map[string]Value{
 		"BlockSize":	ValueOf(aes.BlockSize),
 		"NewCipher":	ValueOf(aes.NewCipher),
-	},Types: map[string]Type{
+	}, Types: map[string]Type{
 		"KeySizeError":	TypeOf((*aes.KeySizeError)(nil)).Elem(),
-	},Untypeds: map[string]string{
+	}, Untypeds: map[string]string{
 		"BlockSize":	"int:16",
-	},
+	}, 
 	}
 }

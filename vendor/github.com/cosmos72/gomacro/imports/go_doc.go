@@ -21,7 +21,7 @@ func init() {
 		"Synopsis":	ValueOf(doc.Synopsis),
 		"ToHTML":	ValueOf(doc.ToHTML),
 		"ToText":	ValueOf(doc.ToText),
-	},Types: map[string]Type{
+	}, Types: map[string]Type{
 		"Example":	TypeOf((*doc.Example)(nil)).Elem(),
 		"Filter":	TypeOf((*doc.Filter)(nil)).Elem(),
 		"Func":	TypeOf((*doc.Func)(nil)).Elem(),
@@ -30,6 +30,6 @@ func init() {
 		"Package":	TypeOf((*doc.Package)(nil)).Elem(),
 		"Type":	TypeOf((*doc.Type)(nil)).Elem(),
 		"Value":	TypeOf((*doc.Value)(nil)).Elem(),
-	},
+	}, 
 	}
 }

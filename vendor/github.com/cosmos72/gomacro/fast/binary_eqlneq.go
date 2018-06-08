@@ -6,20 +6,11 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017 Massimiliano Ghilardi
+ * Copyright (C) 2017-2018 Massimiliano Ghilardi
  *
- *     This program is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU Lesser General Public License as published
- *     by the Free Software Foundation, either version 3 of the License, or
- *     (at your option) any later version.
- *
- *     This program is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU Lesser General Public License for more details.
- *
- *     You should have received a copy of the GNU Lesser General Public License
- *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *     This Source Code Form is subject to the terms of the Mozilla Public
+ *     License, v. 2.0. If a copy of the MPL was not distributed with this
+ *     file, You can obtain one at http://mozilla.org/MPL/2.0/.
  *
  *
  * binary_eql.go
@@ -39,13 +30,13 @@ import (
 )
 
 func (c *Comp) Eql(node *ast.BinaryExpr, xe *Expr, ye *Expr) *Expr {
-	if xe.IsNil {
-		if ye.IsNil {
+	if xe.IsNil() {
+		if ye.IsNil() {
 			return c.invalidBinaryExpr(node, xe, ye)
 		} else {
 			return c.eqlneqNil(node, xe, ye)
 		}
-	} else if ye.IsNil {
+	} else if ye.IsNil() {
 		return c.eqlneqNil(node, xe, ye)
 	}
 
@@ -538,13 +529,13 @@ func (c *Comp) Eql(node *ast.BinaryExpr, xe *Expr, ye *Expr) *Expr {
 	return c.eqlneqMisc(node, xe, ye)
 }
 func (c *Comp) Neq(node *ast.BinaryExpr, xe *Expr, ye *Expr) *Expr {
-	if xe.IsNil {
-		if ye.IsNil {
+	if xe.IsNil() {
+		if ye.IsNil() {
 			return c.invalidBinaryExpr(node, xe, ye)
 		} else {
 			return c.eqlneqNil(node, xe, ye)
 		}
-	} else if ye.IsNil {
+	} else if ye.IsNil() {
 		return c.eqlneqNil(node, xe, ye)
 	}
 
@@ -1015,129 +1006,65 @@ func (c *Comp) Neq(node *ast.BinaryExpr, xe *Expr, ye *Expr) *Expr {
 func (c *Comp) eqlneqMisc(node *ast.BinaryExpr, xe *Expr, ye *Expr) *Expr {
 	var fun func(*Env) bool
 
-	if xe.Type.Kind() == r.Interface || ye.Type.Kind() == r.Interface {
+	x := xe.AsX1()
+	y := ye.AsX1()
+	t1 := xe.Type
+	t2 := ye.Type
+	extractor1 := c.extractor(t1)
+	extractor2 := c.extractor(t2)
 
-		xe.CheckX1()
-		ye.CheckX1()
-	}
-
-	switch x := xe.Fun.(type) {
-	case func(*Env) (r.Value, []r.Value):
-		switch y := ye.Fun.(type) {
-		case func(*Env) (r.Value, []r.Value):
-			if node.Op == token.EQL {
-				fun = func(env *Env) bool {
-					v1, _ := x(env)
-					v2, _ := y(env)
-					if v1 == Nil || v2 == Nil {
-						return v1 == v2
-					} else {
-						return v1.Interface() == v2.Interface()
-					}
-
-				}
-			} else {
-				fun = func(env *Env) bool {
-					v1, _ := x(env)
-					v2, _ := y(env)
-					if v1 == Nil || v2 == Nil {
-						return v1 != v2
-					} else {
-						return v1.Interface() != v2.Interface()
-					}
-
-				}
+	if node.Op == token.EQL {
+		fun = func(env *Env) bool {
+			v1 := x(env)
+			v2 := y(env)
+			if v1 == Nil || v2 == Nil {
+				return v1 == v2
 			}
 
-		default:
-			y1 := ye.AsX1()
-			if node.Op == token.EQL {
-				fun = func(env *Env) bool {
-					v1, _ := x(env)
-					v2 := y1(env)
-					if v1 == Nil || v2 == Nil {
-						return v1 == v2
-					} else {
-						return v1.Interface() == v2.Interface()
-					}
-
-				}
-			} else {
-				fun = func(env *Env) bool {
-					v1, _ := x(env)
-					v2 := y1(env)
-					if v1 == Nil || v2 == Nil {
-						return v1 != v2
-					} else {
-						return v1.Interface() != v2.Interface()
-					}
-
-				}
+			t1, t2 := t1, t2
+			if extractor1 != nil {
+				v1, t1 = extractor1(v1)
 			}
 
+			if extractor2 != nil {
+				v2, t2 = extractor2(v2)
+			}
+
+			if v1 == Nil || v2 == Nil {
+				return v1 == v2
+			}
+			return v1.Interface() == v2.Interface() &&
+				(t1 == nil || t2 == nil || t1.IdenticalTo(t2))
 		}
-	default:
-		x1 := xe.AsX1()
-
-		switch y := ye.Fun.(type) {
-		case func(*Env) (r.Value, []r.Value):
-			if node.Op == token.EQL {
-				fun = func(env *Env) bool {
-					v1 := x1(env)
-					v2, _ := y(env)
-					if v1 == Nil || v2 == Nil {
-						return v1 == v2
-					} else {
-						return v1.Interface() == v2.Interface()
-					}
-
-				}
-			} else {
-				fun = func(env *Env) bool {
-					v1 := x1(env)
-					v2, _ := y(env)
-					if v1 == Nil || v2 == Nil {
-						return v1 != v2
-					} else {
-						return v1.Interface() != v2.Interface()
-					}
-
-				}
+	} else {
+		fun = func(env *Env) bool {
+			v1 := x(env)
+			v2 := y(env)
+			if v1 == Nil || v2 == Nil {
+				return v1 != v2
 			}
 
-		default:
-			y1 := ye.AsX1()
-			if node.Op == token.EQL {
-				fun = func(env *Env) bool {
-					v1 := x1(env)
-					v2 := y1(env)
-					if v1 == Nil || v2 == Nil {
-						return v1 == v2
-					} else {
-						return v1.Interface() == v2.Interface()
-					}
-
-				}
-			} else {
-				fun = func(env *Env) bool {
-					v1 := x1(env)
-					v2 := y1(env)
-					if v1 == Nil || v2 == Nil {
-						return v1 != v2
-					} else {
-						return v1.Interface() != v2.Interface()
-					}
-
-				}
+			t1, t2 := t1, t2
+			if extractor1 != nil {
+				v1, t1 = extractor1(v1)
 			}
 
+			if extractor2 != nil {
+				v2, t2 = extractor2(v2)
+			}
+
+			if v1 == Nil || v2 == Nil {
+				return v1 != v2
+			}
+			return v1.Interface() != v2.Interface() ||
+				t1 != nil && t2 != nil && !t1.IdenticalTo(t2)
 		}
 	}
 	return c.exprBool(fun)
 }
 func (c *Comp) eqlneqNil(node *ast.BinaryExpr, xe *Expr, ye *Expr) *Expr {
 	var e *Expr
-	if ye.IsNil {
+	if ye.IsNil() {
 		e = xe
 	} else {
 		e = ye

@@ -18,6 +18,6 @@ func init() {
 		"ConstantTimeEq":	ValueOf(subtle.ConstantTimeEq),
 		"ConstantTimeLessOrEq":	ValueOf(subtle.ConstantTimeLessOrEq),
 		"ConstantTimeSelect":	ValueOf(subtle.ConstantTimeSelect),
-	},
+	}, 
 	}
 }

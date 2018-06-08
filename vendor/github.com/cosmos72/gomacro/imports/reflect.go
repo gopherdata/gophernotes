@@ -39,6 +39,7 @@ func init() {
 		"MakeChan":	ValueOf(reflect.MakeChan),
 		"MakeFunc":	ValueOf(reflect.MakeFunc),
 		"MakeMap":	ValueOf(reflect.MakeMap),
+		"MakeMapWithSize":	ValueOf(reflect.MakeMapWithSize),
 		"MakeSlice":	ValueOf(reflect.MakeSlice),
 		"Map":	ValueOf(reflect.Map),
 		"MapOf":	ValueOf(reflect.MapOf),
@@ -68,7 +69,7 @@ func init() {
 		"UnsafePointer":	ValueOf(reflect.UnsafePointer),
 		"ValueOf":	ValueOf(reflect.ValueOf),
 		"Zero":	ValueOf(reflect.Zero),
-	},Types: map[string]Type{
+	}, Types: map[string]Type{
 		"ChanDir":	TypeOf((*reflect.ChanDir)(nil)).Elem(),
 		"Kind":	TypeOf((*reflect.Kind)(nil)).Elem(),
 		"Method":	TypeOf((*reflect.Method)(nil)).Elem(),
@@ -81,6 +82,6 @@ func init() {
 		"Type":	TypeOf((*reflect.Type)(nil)).Elem(),
 		"Value":	TypeOf((*reflect.Value)(nil)).Elem(),
 		"ValueError":	TypeOf((*reflect.ValueError)(nil)).Elem(),
-	},
+	}, 
 	}
 }

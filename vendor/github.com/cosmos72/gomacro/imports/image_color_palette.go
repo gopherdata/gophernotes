@@ -14,6 +14,6 @@ func init() {
 	Binds: map[string]Value{
 		"Plan9":	ValueOf(&palette.Plan9).Elem(),
 		"WebSafe":	ValueOf(&palette.WebSafe).Elem(),
-	},
+	}, 
 	}
 }

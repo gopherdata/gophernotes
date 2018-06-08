@@ -14,7 +14,8 @@ func init() {
 	Binds: map[string]Value{
 		"ErrConnClosed":	ValueOf(&fcgi.ErrConnClosed).Elem(),
 		"ErrRequestAborted":	ValueOf(&fcgi.ErrRequestAborted).Elem(),
+		"ProcessEnv":	ValueOf(fcgi.ProcessEnv),
 		"Serve":	ValueOf(fcgi.Serve),
-	},
+	}, 
 	}
 }

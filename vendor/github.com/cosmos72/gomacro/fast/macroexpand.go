@@ -1,20 +1,11 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017 Massimiliano Ghilardi
+ * Copyright (C) 2017-2018 Massimiliano Ghilardi
  *
- *     This program is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU Lesser General Public License as published
- *     by the Free Software Foundation, either version 3 of the License, or
- *     (at your option) any later version.
- *
- *     This program is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU Lesser General Public License for more details.
- *
- *     You should have received a copy of the GNU Lesser General Public License
- *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ *     This Source Code Form is subject to the terms of the Mozilla Public
+ *     License, v. 2.0. If a copy of the MPL was not distributed with this
+ *     file, You can obtain one at http://mozilla.org/MPL/2.0/.
  *
  *
  * macroexpand.go
@@ -77,10 +68,10 @@ func (c *Comp) macroExpandCodewalk(in Ast, quasiquoteDepth int) (out Ast, anythi
 	saved := in
 
 	if expr, ok := in.(UnaryExpr); ok {
-		isBlockWithinExpr := false
-		switch expr.X.Op {
+		op := expr.X.Op
+		switch op {
 		case mt.MACRO:
-			isBlockWithinExpr = true
+			break
 		case mt.QUOTE:
 			// QUOTE prevents macroexpansion only if found outside any QUASIQUOTE
 			if quasiquoteDepth == 0 {
@@ -97,15 +88,14 @@ func (c *Comp) macroExpandCodewalk(in Ast, quasiquoteDepth int) (out Ast, anythi
 		}
 		inChild := UnwrapTrivialAst(in.Get(0).Get(1))
 		outChild, expanded := c.macroExpandCodewalk(inChild, quasiquoteDepth)
-		if isBlockWithinExpr {
+		if op == mt.MACRO {
 			return outChild, expanded
-		} else {
-			out := in
-			if expanded {
-				out = MakeQuote2(expr, outChild.(AstWithNode))
-			}
-			return out, expanded
 		}
+		out := in
+		if expanded {
+			out = MakeQuote2(expr, outChild.(AstWithNode))
+		}
+		return out, expanded
 	}
 Recurse:
 	if in == nil {
@@ -116,9 +106,9 @@ Recurse:
 	}
 	out = in.New()
 	n := in.Size()
-	if outSlice, canAppend := out.(AstWithSlice); canAppend {
+	if outSlice, appendable := out.(AstWithSlice); appendable {
 		// New() returns zero-length slice... resize it
-		for i := 0; i < n; i++ {
+		for outSlice.Size() < n {
 			outSlice = outSlice.Append(nil)
 		}
 		out = outSlice
@@ -193,7 +183,7 @@ func (c *Comp) extractMacroCall(form Ast) Macro {
 	switch form := form.(type) {
 	case Ident:
 		sym := c.TryResolve(form.X.Name)
-		if sym != nil && sym.Bind.Desc.Class() == ConstBind && sym.Type.Kind() == r.Struct {
+		if sym != nil && sym.Bind.Desc.Class() == ConstBind && sym.Type != nil && sym.Type.Kind() == r.Struct {
 			switch value := sym.Value.(type) {
 			case Macro:
 				if c.Options&OptDebugMacroExpand != 0 {
@@ -223,8 +213,8 @@ func (c *Comp) MacroExpand1(in Ast) (out Ast, expanded bool) {
 	if debug {
 		c.Debugf("MacroExpand1: found list: %v", ins.Interface())
 	}
-	outs := ins.New().(AstWithSlice)
 	n := ins.Size()
+	outs := ins.New().(AstWithSlice)
 
 	// since macro calls are sequences of statements,
 	// we must scan the whole list,
@@ -271,7 +261,7 @@ func (c *Comp) MacroExpand1(in Ast) (out Ast, expanded bool) {
 		case 1:
 			any := results[0].Interface()
 			if any != nil {
-				out = AnyToAst(any, "macroexpansion")
+				out = anyToAst(any, "macroexpansion")
 				break
 			}
 			fallthrough

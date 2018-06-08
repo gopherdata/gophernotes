@@ -20,6 +20,6 @@ func init() {
 		"OneByteReader":	ValueOf(iotest.OneByteReader),
 		"TimeoutReader":	ValueOf(iotest.TimeoutReader),
 		"TruncateWriter":	ValueOf(iotest.TruncateWriter),
-	},
+	}, 
 	}
 }

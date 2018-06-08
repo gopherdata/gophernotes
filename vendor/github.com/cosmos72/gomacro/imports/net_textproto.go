@@ -19,7 +19,7 @@ func init() {
 		"NewWriter":	ValueOf(textproto.NewWriter),
 		"TrimBytes":	ValueOf(textproto.TrimBytes),
 		"TrimString":	ValueOf(textproto.TrimString),
-	},Types: map[string]Type{
+	}, Types: map[string]Type{
 		"Conn":	TypeOf((*textproto.Conn)(nil)).Elem(),
 		"Error":	TypeOf((*textproto.Error)(nil)).Elem(),
 		"MIMEHeader":	TypeOf((*textproto.MIMEHeader)(nil)).Elem(),
@@ -27,8 +27,8 @@ func init() {
 		"ProtocolError":	TypeOf((*textproto.ProtocolError)(nil)).Elem(),
 		"Reader":	TypeOf((*textproto.Reader)(nil)).Elem(),
 		"Writer":	TypeOf((*textproto.Writer)(nil)).Elem(),
-	},Wrappers: map[string][]string{
+	}, Wrappers: map[string][]string{
 		"Conn":	[]string{"DotReader","DotWriter","EndRequest","EndResponse","Next","PrintfLine","ReadCodeLine","ReadContinuedLine","ReadContinuedLineBytes","ReadDotBytes","ReadDotLines","ReadLine","ReadLineBytes","ReadMIMEHeader","ReadResponse","StartRequest","StartResponse",},
-	},
+	}, 
 	}
 }

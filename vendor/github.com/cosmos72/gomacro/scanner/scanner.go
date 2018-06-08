@@ -39,7 +39,7 @@ type Scanner struct {
 	err  ErrorHandler // error reporting; or nil
 	mode Mode         // scanning mode
 
-	specialChar rune // prefix of macro-related keywords and symbols ' ` , ,@
+	macroChar rune // prefix of macro-related keywords and symbols ' ` , ,@
 
 	// scanning state
 	ch         rune // current character
@@ -114,7 +114,7 @@ const (
 // Note that Init may call err if there is an error in the first character
 // of the file.
 //
-func (s *Scanner) Init(file *mt.File, src []byte, err ErrorHandler, mode Mode, specialChar rune) {
+func (s *Scanner) Init(file *mt.File, src []byte, err ErrorHandler, mode Mode, macroChar rune) {
 	// Explicitly initialize all fields since a scanner may be reused.
 	if file.Size() != len(src) {
 		panic(fmt.Sprintf("file size (%d) does not match src len (%d)", file.Size(), len(src)))
@@ -124,7 +124,7 @@ func (s *Scanner) Init(file *mt.File, src []byte, err ErrorHandler, mode Mode, s
 	s.src = src
 	s.err = err
 	s.mode = mode
-	s.specialChar = specialChar
+	s.macroChar = macroChar
 
 	s.ch = ' '
 	s.offset = 0
@@ -766,12 +766,12 @@ scanAgain:
 		case '@':
 			// patch: support macro, quote and friends
 			tok = mt.SPLICE
-		case s.specialChar:
-			// patch: support macro, quote and friends. s.specialChar is configurable, default is '~'
-			// quote           specialChar '
-			// quasiquote      specialChar `
-			// unquote         specialChar ,
-			// unquote_splice  specialChar ,@
+		case s.macroChar:
+			// patch: support macro, quote and friends. s.macroChar is configurable, default is '~'
+			// quote           macroChar '
+			// quasiquote      macroChar `
+			// unquote         macroChar ,
+			// unquote_splice  macroChar ,@
 			switch s.ch {
 			case '\'':
 				s.next()
@@ -791,7 +791,7 @@ scanAgain:
 				lit = s.scanIdentifier()
 				tok = mt.LookupSpecial(lit)
 				if tok == token.ILLEGAL {
-					s.error(s.file.Offset(pos), fmt.Sprintf("expecting macro-related keyword after '%c', found '%c%s'", s.specialChar, s.specialChar, lit))
+					s.error(s.file.Offset(pos), fmt.Sprintf("expecting macro-related keyword after '%c', found '%c%s'", s.macroChar, s.macroChar, lit))
 					insertSemi = s.insertSemi // preserve insertSemi info
 				}
 			}

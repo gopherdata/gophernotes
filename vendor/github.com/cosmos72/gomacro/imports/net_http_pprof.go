@@ -18,6 +18,6 @@ func init() {
 		"Profile":	ValueOf(pprof.Profile),
 		"Symbol":	ValueOf(pprof.Symbol),
 		"Trace":	ValueOf(pprof.Trace),
-	},
+	}, 
 	}
 }

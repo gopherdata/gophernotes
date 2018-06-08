@@ -1,0 +1,49 @@
+TEXT %22%22.fib(SB) gofile../home/max/go/src/github.com/cosmos72/gomacro/jit/stack_maps/fib.go
+  fib.go:19		0xc63			64488b0c2500000000	MOVQ FS:0, CX		[5:9]R_TLS_LE
+  fib.go:19		0xc6c			483b6110		CMPQ 0x10(CX), SP	
+  fib.go:19		0xc70			766e			JBE 0xce0		
+  fib.go:19		0xc72			4883ec20		SUBQ $0x20, SP		
+  fib.go:19		0xc76			48896c2418		MOVQ BP, 0x18(SP)	
+  fib.go:19		0xc7b			488d6c2418		LEAQ 0x18(SP), BP	
+  fib.go:19		0xc80			488b442428		MOVQ 0x28(SP), AX	
+  fib.go:20		0xc85			4883f802		CMPQ $0x2, AX		
+  fib.go:20		0xc89			7f13			JG 0xc9e		
+  fib.go:21		0xc8b			48c744243001000000	MOVQ $0x1, 0x30(SP)	
+  fib.go:21		0xc94			488b6c2418		MOVQ 0x18(SP), BP	
+  fib.go:21		0xc99			4883c420		ADDQ $0x20, SP		
+  fib.go:21		0xc9d			c3			RET			
+  fib.go:23		0xc9e			488d48ff		LEAQ -0x1(AX), CX	
+  fib.go:23		0xca2			48890c24		MOVQ CX, 0(SP)		
+  fib.go:23		0xca6			e800000000		CALL 0xcab		[1:5]R_CALL:%22%22.fib
+  fib.go:23		0xcab			488b442408		MOVQ 0x8(SP), AX	
+  fib.go:23		0xcb0			4889442410		MOVQ AX, 0x10(SP)	
+  fib.go:23		0xcb5			488b4c2428		MOVQ 0x28(SP), CX	
+  fib.go:23		0xcba			4883c1fe		ADDQ $-0x2, CX		
+  fib.go:23		0xcbe			48890c24		MOVQ CX, 0(SP)		
+  fib.go:23		0xcc2			e800000000		CALL 0xcc7		[1:5]R_CALL:%22%22.fib
+  fib.go:23		0xcc7			488b442410		MOVQ 0x10(SP), AX	
+  fib.go:23		0xccc			4803442408		ADDQ 0x8(SP), AX	
+  fib.go:23		0xcd1			4889442430		MOVQ AX, 0x30(SP)	
+  fib.go:23		0xcd6			488b6c2418		MOVQ 0x18(SP), BP	
+  fib.go:23		0xcdb			4883c420		ADDQ $0x20, SP		
+  fib.go:23		0xcdf			c3			RET			
+  fib.go:19		0xce0			e800000000		CALL 0xce5		[1:5]R_CALL:runtime.morestack_noctxt
+  fib.go:19		0xce5			e979ffffff		JMP %22%22.fib(SB)	
+
+TEXT %22%22.fib_asm(SB) gofile../home/max/go/src/github.com/cosmos72/gomacro/jit/stack_maps/fib.go
+  fib.go:26		0xd0f			64488b0c2500000000	MOVQ FS:0, CX		[5:9]R_TLS_LE
+  fib.go:26		0xd18			483b6110		CMPQ 0x10(CX), SP	
+  fib.go:26		0xd1c			7630			JBE 0xd4e		
+  fib.go:26		0xd1e			4883ec18		SUBQ $0x18, SP		
+  fib.go:26		0xd22			48896c2410		MOVQ BP, 0x10(SP)	
+  fib.go:26		0xd27			488d6c2410		LEAQ 0x10(SP), BP	
+  fib.go:26		0xd2c			488b442420		MOVQ 0x20(SP), AX	
+  fib.go:27		0xd31			48890424		MOVQ AX, 0(SP)		
+  fib.go:27		0xd35			e800000000		CALL 0xd3a		[1:5]R_CALL:%22%22.fib
+  fib.go:27		0xd3a			488b442408		MOVQ 0x8(SP), AX	
+  fib.go:27		0xd3f			4889442428		MOVQ AX, 0x28(SP)	
+  fib.go:27		0xd44			488b6c2410		MOVQ 0x10(SP), BP	
+  fib.go:27		0xd49			4883c418		ADDQ $0x18, SP		
+  fib.go:27		0xd4d			c3			RET			
+  fib.go:26		0xd4e			e800000000		CALL 0xd53		[1:5]R_CALL:runtime.morestack_noctxt
+  fib.go:26		0xd53			ebba			JMP %22%22.fib_asm(SB)	

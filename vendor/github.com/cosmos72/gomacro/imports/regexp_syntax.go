@@ -79,7 +79,7 @@ func init() {
 		"Simple":	ValueOf(syntax.Simple),
 		"UnicodeGroups":	ValueOf(syntax.UnicodeGroups),
 		"WasDollar":	ValueOf(syntax.WasDollar),
-	},Types: map[string]Type{
+	}, Types: map[string]Type{
 		"EmptyOp":	TypeOf((*syntax.EmptyOp)(nil)).Elem(),
 		"Error":	TypeOf((*syntax.Error)(nil)).Elem(),
 		"ErrorCode":	TypeOf((*syntax.ErrorCode)(nil)).Elem(),
@@ -89,6 +89,6 @@ func init() {
 		"Op":	TypeOf((*syntax.Op)(nil)).Elem(),
 		"Prog":	TypeOf((*syntax.Prog)(nil)).Elem(),
 		"Regexp":	TypeOf((*syntax.Regexp)(nil)).Elem(),
-	},
+	}, 
 	}
 }

@@ -16,6 +16,6 @@ func init() {
 		"Prime":	ValueOf(rand.Prime),
 		"Read":	ValueOf(rand.Read),
 		"Reader":	ValueOf(&rand.Reader).Elem(),
-	},
+	}, 
 	}
 }

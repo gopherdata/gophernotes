@@ -35,7 +35,7 @@ func init() {
 		"IMAGE_FILE_MACHINE_WCEMIPSV2":	ValueOf(pe.IMAGE_FILE_MACHINE_WCEMIPSV2),
 		"NewFile":	ValueOf(pe.NewFile),
 		"Open":	ValueOf(pe.Open),
-	},Types: map[string]Type{
+	}, Types: map[string]Type{
 		"COFFSymbol":	TypeOf((*pe.COFFSymbol)(nil)).Elem(),
 		"DataDirectory":	TypeOf((*pe.DataDirectory)(nil)).Elem(),
 		"File":	TypeOf((*pe.File)(nil)).Elem(),
@@ -50,7 +50,7 @@ func init() {
 		"SectionHeader32":	TypeOf((*pe.SectionHeader32)(nil)).Elem(),
 		"StringTable":	TypeOf((*pe.StringTable)(nil)).Elem(),
 		"Symbol":	TypeOf((*pe.Symbol)(nil)).Elem(),
-	},Untypeds: map[string]string{
+	}, Untypeds: map[string]string{
 		"COFFSymbolSize":	"int:18",
 		"IMAGE_FILE_MACHINE_AM33":	"int:467",
 		"IMAGE_FILE_MACHINE_AMD64":	"int:34404",
@@ -72,6 +72,6 @@ func init() {
 		"IMAGE_FILE_MACHINE_THUMB":	"int:450",
 		"IMAGE_FILE_MACHINE_UNKNOWN":	"int:0",
 		"IMAGE_FILE_MACHINE_WCEMIPSV2":	"int:361",
-	},
+	}, 
 	}
 }

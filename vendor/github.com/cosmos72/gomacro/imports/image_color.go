@@ -32,7 +32,7 @@ func init() {
 		"White":	ValueOf(&color.White).Elem(),
 		"YCbCrModel":	ValueOf(&color.YCbCrModel).Elem(),
 		"YCbCrToRGB":	ValueOf(color.YCbCrToRGB),
-	},Types: map[string]Type{
+	}, Types: map[string]Type{
 		"Alpha":	TypeOf((*color.Alpha)(nil)).Elem(),
 		"Alpha16":	TypeOf((*color.Alpha16)(nil)).Elem(),
 		"CMYK":	TypeOf((*color.CMYK)(nil)).Elem(),
@@ -47,27 +47,27 @@ func init() {
 		"RGBA":	TypeOf((*color.RGBA)(nil)).Elem(),
 		"RGBA64":	TypeOf((*color.RGBA64)(nil)).Elem(),
 		"YCbCr":	TypeOf((*color.YCbCr)(nil)).Elem(),
-	},Proxies: map[string]Type{
-		"Color":	TypeOf((*Color_image_color)(nil)).Elem(),
-		"Model":	TypeOf((*Model_image_color)(nil)).Elem(),
-	},
+	}, Proxies: map[string]Type{
+		"Color":	TypeOf((*P_image_color_Color)(nil)).Elem(),
+		"Model":	TypeOf((*P_image_color_Model)(nil)).Elem(),
+	}, 
 	}
 }
 
 // --------------- proxy for image/color.Color ---------------
-type Color_image_color struct {
+type P_image_color_Color struct {
 	Object	interface{}
 	RGBA_	func(interface{}) (r uint32, g uint32, b uint32, a uint32)
 }
-func (Proxy *Color_image_color) RGBA() (r uint32, g uint32, b uint32, a uint32) {
-	return Proxy.RGBA_(Proxy.Object)
+func (P *P_image_color_Color) RGBA() (r uint32, g uint32, b uint32, a uint32) {
+	return P.RGBA_(P.Object)
 }
 
 // --------------- proxy for image/color.Model ---------------
-type Model_image_color struct {
+type P_image_color_Model struct {
 	Object	interface{}
 	Convert_	func(_proxy_obj_ interface{}, c color.Color) color.Color
 }
-func (Proxy *Model_image_color) Convert(c color.Color) color.Color {
-	return Proxy.Convert_(Proxy.Object, c)
+func (P *P_image_color_Model) Convert(c color.Color) color.Color {
+	return P.Convert_(P.Object, c)
 }

@@ -47,9 +47,9 @@ func init() {
 		"Uint64Val":	ValueOf(constant.Uint64Val),
 		"UnaryOp":	ValueOf(constant.UnaryOp),
 		"Unknown":	ValueOf(constant.Unknown),
-	},Types: map[string]Type{
+	}, Types: map[string]Type{
 		"Kind":	TypeOf((*constant.Kind)(nil)).Elem(),
 		"Value":	TypeOf((*constant.Value)(nil)).Elem(),
-	},
+	}, 
 	}
 }

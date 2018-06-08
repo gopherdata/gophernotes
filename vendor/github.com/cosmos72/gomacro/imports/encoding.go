@@ -16,47 +16,47 @@ func init() {
 		"BinaryUnmarshaler":	TypeOf((*encoding.BinaryUnmarshaler)(nil)).Elem(),
 		"TextMarshaler":	TypeOf((*encoding.TextMarshaler)(nil)).Elem(),
 		"TextUnmarshaler":	TypeOf((*encoding.TextUnmarshaler)(nil)).Elem(),
-	},Proxies: map[string]Type{
-		"BinaryMarshaler":	TypeOf((*BinaryMarshaler_encoding)(nil)).Elem(),
-		"BinaryUnmarshaler":	TypeOf((*BinaryUnmarshaler_encoding)(nil)).Elem(),
-		"TextMarshaler":	TypeOf((*TextMarshaler_encoding)(nil)).Elem(),
-		"TextUnmarshaler":	TypeOf((*TextUnmarshaler_encoding)(nil)).Elem(),
-	},
+	}, Proxies: map[string]Type{
+		"BinaryMarshaler":	TypeOf((*P_encoding_BinaryMarshaler)(nil)).Elem(),
+		"BinaryUnmarshaler":	TypeOf((*P_encoding_BinaryUnmarshaler)(nil)).Elem(),
+		"TextMarshaler":	TypeOf((*P_encoding_TextMarshaler)(nil)).Elem(),
+		"TextUnmarshaler":	TypeOf((*P_encoding_TextUnmarshaler)(nil)).Elem(),
+	}, 
 	}
 }
 
 // --------------- proxy for encoding.BinaryMarshaler ---------------
-type BinaryMarshaler_encoding struct {
+type P_encoding_BinaryMarshaler struct {
 	Object	interface{}
 	MarshalBinary_	func(interface{}) (data []byte, err error)
 }
-func (Proxy *BinaryMarshaler_encoding) MarshalBinary() (data []byte, err error) {
-	return Proxy.MarshalBinary_(Proxy.Object)
+func (P *P_encoding_BinaryMarshaler) MarshalBinary() (data []byte, err error) {
+	return P.MarshalBinary_(P.Object)
 }
 
 // --------------- proxy for encoding.BinaryUnmarshaler ---------------
-type BinaryUnmarshaler_encoding struct {
+type P_encoding_BinaryUnmarshaler struct {
 	Object	interface{}
 	UnmarshalBinary_	func(_proxy_obj_ interface{}, data []byte) error
 }
-func (Proxy *BinaryUnmarshaler_encoding) UnmarshalBinary(data []byte) error {
-	return Proxy.UnmarshalBinary_(Proxy.Object, data)
+func (P *P_encoding_BinaryUnmarshaler) UnmarshalBinary(data []byte) error {
+	return P.UnmarshalBinary_(P.Object, data)
 }
 
 // --------------- proxy for encoding.TextMarshaler ---------------
-type TextMarshaler_encoding struct {
+type P_encoding_TextMarshaler struct {
 	Object	interface{}
 	MarshalText_	func(interface{}) (text []byte, err error)
 }
-func (Proxy *TextMarshaler_encoding) MarshalText() (text []byte, err error) {
-	return Proxy.MarshalText_(Proxy.Object)
+func (P *P_encoding_TextMarshaler) MarshalText() (text []byte, err error) {
+	return P.MarshalText_(P.Object)
 }
 
 // --------------- proxy for encoding.TextUnmarshaler ---------------
-type TextUnmarshaler_encoding struct {
+type P_encoding_TextUnmarshaler struct {
 	Object	interface{}
 	UnmarshalText_	func(_proxy_obj_ interface{}, text []byte) error
 }
-func (Proxy *TextUnmarshaler_encoding) UnmarshalText(text []byte) error {
-	return Proxy.UnmarshalText_(Proxy.Object, text)
+func (P *P_encoding_TextUnmarshaler) UnmarshalText(text []byte) error {
+	return P.UnmarshalText_(P.Object, text)
 }

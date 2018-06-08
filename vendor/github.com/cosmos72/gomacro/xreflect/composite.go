@@ -1,20 +1,11 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017 Massimiliano Ghilardi
+ * Copyright (C) 2017-2018 Massimiliano Ghilardi
  *
- *     This program is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU Lesser General Public License as published
- *     by the Free Software Foundation, either version 3 of the License, or
- *     (at your option) any later version.
- *
- *     This program is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU Lesser General Public License for more details.
- *
- *     You should have received a copy of the GNU Lesser General Public License
- *     along with this program.  If not, see <https://www.gnu.org/licenses/lgpl>.
+ *     This Source Code Form is subject to the terms of the Mozilla Public
+ *     License, v. 2.0. If a copy of the MPL was not distributed with this
+ *     file, You can obtain one at http://mozilla.org/MPL/2.0/.
  *
  *
  * composite.go
@@ -50,7 +41,7 @@ func (t *xtype) Elem() Type {
 }
 
 func (t *xtype) elem() Type {
-	gtype := t.underlying()
+	gtype := t.gunderlying()
 	rtype := t.rtype
 	switch gtype := gtype.(type) {
 	case *types.Array:
@@ -75,7 +66,7 @@ func (t *xtype) Key() Type {
 	if t.Kind() != reflect.Map {
 		xerrorf(t, "Key of non-map type %v", t)
 	}
-	gtype := t.underlying().(*types.Map)
+	gtype := t.gunderlying().(*types.Map)
 	return t.universe.MakeType(gtype.Key(), t.rtype.Key())
 }
 
@@ -117,24 +108,4 @@ func (v *Universe) SliceOf(elem Type) Type {
 	return v.MakeType(
 		types.NewSlice(elem.GoType()),
 		reflect.SliceOf(elem.ReflectType()))
-}
-
-func ArrayOf(count int, elem Type) Type {
-	return elem.Universe().ArrayOf(count, elem)
-}
-
-func ChanOf(dir reflect.ChanDir, elem Type) Type {
-	return elem.Universe().ChanOf(dir, elem)
-}
-
-func MapOf(key, elem Type) Type {
-	return key.Universe().MapOf(key, elem)
-}
-
-func PtrTo(elem Type) Type {
-	return elem.Universe().PtrTo(elem)
-}
-
-func SliceOf(elem Type) Type {
-	return elem.Universe().SliceOf(elem)
 }
