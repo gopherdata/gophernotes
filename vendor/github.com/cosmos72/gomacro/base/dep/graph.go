@@ -17,8 +17,8 @@
 package dep
 
 import (
+	"bytes"
 	"fmt"
-	"strings"
 
 	"github.com/cosmos72/gomacro/base"
 )
@@ -235,7 +235,8 @@ func (g *graph) circularDependencyError() {
 		g.visit(node, &ctx)
 	}
 
-	var buf strings.Builder
+	var buf bytes.Buffer // strings.Builder requires Go >= 1.10
+
 	buf.WriteString("declaration loop\n")
 
 	if len(cycle) != 0 {

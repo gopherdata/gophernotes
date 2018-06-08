@@ -258,8 +258,8 @@ func (ir *Interp) ReplStdin() {
 	g := ir.Comp.CompGlobals
 
 	if g.Options&OptShowPrompt != 0 {
-		g.Fprintf(g.Stdout, `// GOMACRO, an interactive Go interpreter with macros <https://github.com/cosmos72/gomacro>
-// Copyright (C) 2017-2018 Massimiliano Ghilardi
+		g.Fprintf(g.Stdout, `// GOMACRO, an interactive Go interpreter with generics and macros
+// Copyright (C) 2017-2018 Massimiliano Ghilardi <https://github.com/cosmos72/gomacro>
 // License MPL v2.0+: Mozilla Public License version 2.0 or later <http://mozilla.org/MPL/2.0/>
 // This is free software with ABSOLUTELY NO WARRANTY.
 //
@@ -410,11 +410,14 @@ func (ir *Interp) CompleteWords(line string, pos int) (head string, completions 
 	// find the longest sequence of ident.ident.ident...
 
 	for i := n - 1; i >= 0; i-- {
+		// ignore spaces before and after identifiers
+		words[i] = strings.TrimSpace(words[i])
+
 		if i == n-1 && len(words[i]) == 0 {
 			// last word can be empty: it means TAB immediately after '.'
 			continue
 		}
-		word := tailIdentifier(words[i])
+		word := TailIdentifier(words[i])
 		if len(word) != len(words[i]) {
 			if len(word) != 0 {
 				words[i] = word
@@ -427,7 +430,7 @@ func (ir *Interp) CompleteWords(line string, pos int) (head string, completions 
 	}
 	completions = ir.Comp.CompleteWords(words)
 	if len(completions) != 0 {
-		fixed := len(head) - len(tailIdentifier(head))
+		fixed := len(head) - len(TailIdentifier(head))
 		pos := strings.LastIndexByte(head, '.')
 		if pos >= 0 && pos >= fixed {
 			head = head[:pos+1]
@@ -582,7 +585,7 @@ func (c *Comp) completeLastWord(node interface{}, word string) []string {
 }
 
 // return the trailing substring of s that is a valid identifier
-func tailIdentifier(s string) string {
+func TailIdentifier(s string) string {
 	if len(s) == 0 {
 		return s
 	}

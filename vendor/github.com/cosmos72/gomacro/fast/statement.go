@@ -771,9 +771,12 @@ func (inner *Comp) popEnvIfFlag(nbinds *[2]int, flag bool) *Comp {
 	nbinds[0] = inner.BindNum // we finally know these
 	nbinds[1] = inner.IntBindNum
 
-	if flag != (inner.BindNum != 0 || inner.IntBindNum != 0) {
+	if flag && nbinds[0] == 0 && nbinds[1] == 0 {
+		c.Debugf(`redundant popEnvIfFlag: flag is %t, but block actually defined %d Binds and %d IntBinds:
+	Binds = %v`, flag, nbinds[0], nbinds[1], inner.Binds)
+	} else if !flag && (nbinds[0] != 0 || nbinds[1] != 0) {
 		c.Errorf(`popEnvIfFlag internal error: flag is %t, but block actually defined %d Binds and %d IntBinds:
-	Binds = %v`, flag, inner.BindNum, inner.IntBindNum, inner.Binds)
+	Binds = %v`, flag, nbinds[0], nbinds[1], inner.Binds)
 		return nil
 	}
 

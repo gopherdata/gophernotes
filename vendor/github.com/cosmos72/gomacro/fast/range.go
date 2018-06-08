@@ -35,8 +35,9 @@ type rangeJump struct {
 // Range compiles a "for-range" statement
 func (c *Comp) Range(node *ast.RangeStmt, labels []string) {
 	var nbinds [2]int
+	flag := true // node.Tok == token.DEFINE || (node.Body != nil && containLocalBinds(node.Body.List...))
 
-	c, _ = c.pushEnvIfFlag(&nbinds, true)
+	c, _ = c.pushEnvIfFlag(&nbinds, flag)
 	erange := c.Expr1(node.X, nil)
 	t := erange.Type
 	if erange.Untyped() {
@@ -46,7 +47,7 @@ func (c *Comp) Range(node *ast.RangeStmt, labels []string) {
 	var jump rangeJump
 
 	sort.Strings(labels)
-	// we need a fresh Comp here... created above by c.pushEnvIfLocalBinds()
+	// we need a fresh Comp here... created above by c.pushEnvIfFlag()
 	c.Loop = &LoopInfo{
 		Continue:   &jump.Continue,
 		Break:      &jump.Break,
@@ -65,12 +66,12 @@ func (c *Comp) Range(node *ast.RangeStmt, labels []string) {
 			return efun(env).Elem()
 		})
 		fallthrough
+	case r.Array, r.Slice:
+		c.rangeSlice(node, erange, &jump)
 	case r.Chan:
 		c.rangeChan(node, erange, &jump)
 	case r.Map:
 		c.rangeMap(node, erange, &jump)
-	case r.Array, r.Slice:
-		c.rangeSlice(node, erange, &jump)
 	case r.String:
 		c.rangeString(node, erange, &jump)
 	default:
@@ -79,7 +80,7 @@ func (c *Comp) Range(node *ast.RangeStmt, labels []string) {
 
 	jump.Break = c.Code.Len()
 
-	c = c.popEnvIfFlag(&nbinds, true)
+	c = c.popEnvIfFlag(&nbinds, flag)
 }
 
 func (c *Comp) rangeChan(node *ast.RangeStmt, erange *Expr, jump *rangeJump) {
@@ -289,6 +290,10 @@ func (c *Comp) rangeSlice(node *ast.RangeStmt, erange *Expr, jump *rangeJump) {
 		// we need an interation variable, even if user code ignores it
 		placekey = c.DeclVar0("", c.TypeOfInt(), nil).AsVar(0, PlaceSettable).AsPlace()
 	}
+	if placekey.Desc.Class() != IntBind {
+		c.Errorf("internal error: for-range counter variable allocated with class = %v, expecting class = %v",
+			placekey.Desc.Class(), IntBind)
+	}
 
 	jump.Start = c.Code.Len()
 
@@ -441,7 +446,7 @@ func (c *Comp) rangeString(node *ast.RangeStmt, erange *Expr, jump *rangeJump) {
 
 // rangeVars compiles the key and value iteration variables in a for-range
 func (c *Comp) rangeVars(node *ast.RangeStmt, tkey xr.Type, tval xr.Type) (*Place, *Place) {
-	var place [2]*Place
+	place := [2]*Place{nil, nil}
 	t := [2]xr.Type{tkey, tval}
 
 	for i, expr := range [2]ast.Expr{node.Key, node.Value} {
@@ -463,6 +468,10 @@ func (c *Comp) rangeVars(node *ast.RangeStmt, tkey xr.Type, tval xr.Type) (*Plac
 				c.Errorf("non-name %v on left side of :=", expr)
 			}
 		} else {
+			if ident, ok := expr.(*ast.Ident); ok && ident.Name == "_" {
+				// ignore range variable "_"
+				continue
+			}
 			place[i] = c.Place(expr)
 			if !t[i].AssignableTo(place[i].Type) {
 				c.Errorf("cannot assign type <%v> to %v <%v> in range", t[i], expr, place[i].Type)
