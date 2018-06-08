@@ -823,7 +823,7 @@ func init() {
 		"ST_VISIBILITY":	ValueOf(elf.ST_VISIBILITY),
 		"Sym32Size":	ValueOf(elf.Sym32Size),
 		"Sym64Size":	ValueOf(elf.Sym64Size),
-	},Types: map[string]Type{
+	}, Types: map[string]Type{
 		"Chdr32":	TypeOf((*elf.Chdr32)(nil)).Elem(),
 		"Chdr64":	TypeOf((*elf.Chdr64)(nil)).Elem(),
 		"Class":	TypeOf((*elf.Class)(nil)).Elem(),
@@ -877,7 +877,7 @@ func init() {
 		"Symbol":	TypeOf((*elf.Symbol)(nil)).Elem(),
 		"Type":	TypeOf((*elf.Type)(nil)).Elem(),
 		"Version":	TypeOf((*elf.Version)(nil)).Elem(),
-	},Untypeds: map[string]string{
+	}, Untypeds: map[string]string{
 		"ARM_MAGIC_TRAMP_NUMBER":	"int:1543503875",
 		"EI_ABIVERSION":	"int:8",
 		"EI_CLASS":	"int:4",
@@ -889,6 +889,6 @@ func init() {
 		"ELFMAG":	"string:\u007fELF",
 		"Sym32Size":	"int:16",
 		"Sym64Size":	"int:24",
-	},
+	}, 
 	}
 }

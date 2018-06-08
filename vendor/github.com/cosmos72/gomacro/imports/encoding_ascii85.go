@@ -17,8 +17,8 @@ func init() {
 		"MaxEncodedLen":	ValueOf(ascii85.MaxEncodedLen),
 		"NewDecoder":	ValueOf(ascii85.NewDecoder),
 		"NewEncoder":	ValueOf(ascii85.NewEncoder),
-	},Types: map[string]Type{
+	}, Types: map[string]Type{
 		"CorruptInputError":	TypeOf((*ascii85.CorruptInputError)(nil)).Elem(),
-	},
+	}, 
 	}
 }

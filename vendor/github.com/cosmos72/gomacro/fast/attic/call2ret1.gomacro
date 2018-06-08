@@ -1,0 +1,249 @@
+// +build !gomacro_fast_compact
+
+/*
+ * gomacro - A Go interpreter with Lisp-like macros
+ *
+ * Copyright (C) 2017 Massimiliano Ghilardi
+ *
+ *     This Source Code Form is subject to the terms of the Mozilla Public
+ *     License, v. 2.0. If a copy of the MPL was not distributed with this
+ *     file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ *
+ *
+ * call2ret1.go
+ *
+ *  Created on Apr 15, 2017
+ *      Author Massimiliano Ghilardi
+ */
+
+package fast
+
+import (
+	r "reflect"
+	. "github.com/cosmos72/gomacro/base"
+)
+
+:import (
+	"go/ast"
+	"go/token"
+	r "reflect"
+)
+
+:func upcasefirstbyte(str string) string {
+	if len(str) > 0 && str[0] >= 'a' && str[0] <= 'z' {
+		bytes := []byte(str)
+		bytes[0] -= 'a' - 'A'
+		return string(bytes)
+	}
+	return str
+}
+
+:func convertret0(typ ast.Node) (ast.Node, ast.Node) {
+	var t r.Type = EvalType(typ)
+	var ret0 ast.Node = ~'{ret0} // set type ast.Node: classic interpreter is too clever and deduces *ast.Ident
+	if t == nil {
+		// keep the result wrapped in a reflect.Value
+		typ = ~'{r.Value}
+	} else {
+		// unwrap the result
+		tname := t.Name()
+		// remove final digits from t.Name()
+		// needed to convert Uint64 -> Uint etc. to calls reflect.Value.{tname}
+		for len(tname) != 0 {
+			ch := tname[len(tname)-1]
+			if ch < '0' || ch > '9' {
+				break
+			}
+			tname = tname[0:len(tname)-1]
+		}
+		if tname == "uintptr" {
+			tname = "uint" // use reflect.Value.Uint()
+		}
+		sel := ~"{~,ret0 . foo} // we modify it destructively
+		sel.Sel = &ast.Ident{Name: upcasefirstbyte(tname)}
+
+		switch t.Kind() {
+		case r.Bool, r.Int64, r.Uint64, r.Float64, r.Complex128, r.String:
+			// result of reflect.Value.{tname} is already the correct type
+			ret0 = ~"{~,sel ()}
+		default:
+			// convert int64, uint64... to the correct type
+			ret0 = ~"{~,typ ( ~,sel () )}
+		}
+	}
+	return typ, ret0
+}
+
+:macro mcall2ret1(arg0typ, arg1typ, rettyp ast.Node) ast.Node {
+	if EvalType(rettyp) == nil {
+		// keep the arguments and result wrapped in a reflect.Value
+		return ~"{
+			ret = func(env *Env) r.Value {
+				funv := exprfun(env)
+				argv := []r.Value{
+					argfuns[0](env),
+					argfuns[1](env),
+				}
+				return funv.Call(argv)[0]
+			}
+		}
+	}
+	var ret0 ast.Node // unused
+	rettyp, ret0 = convertret0(rettyp)
+
+	if EvalType(arg0typ) == nil || EvalType(arg1typ) == nil {
+		return ~"{
+			ret = func(env *Env) ~,rettyp {
+				funv := exprfun(env)
+				argv := []r.Value{
+					argfuns[0](env),
+					argfuns[1](env),
+				}
+				// Debugf("calling %v with args [%v]", r.TypeOf(funv), argv)
+				ret0 := funv.Call(argv)[0]
+				return ~,ret0
+			}
+		}
+	}
+
+	cachefun := ~"{
+		if cachedfunv != funv {
+			cachedfunv = funv
+			cachedfun = funv.Interface().(func(~,arg0typ , ~,arg1typ) ~,rettyp)
+		}
+	}
+
+	return ~"{
+		arg0fun := args[0].WithFun().(func(env *Env) ~,arg0typ)
+		arg1fun := args[1].WithFun().(func(env *Env) ~,arg1typ)
+		if funsym != nil && funupn == maxdepth - 1 {
+			var cachedfun func(~,arg0typ, ~,arg1typ) ~,rettyp
+			ret = func(env *Env) ~,rettyp {
+				funv := env.ThreadGlobals.FileEnv.Binds[funindex]
+				~,cachefun
+				arg0 := arg0fun(env)
+				arg1 := arg1fun(env)
+				// Debugf("calling %v with args [%v %v]", r.TypeOf(fun), arg0, arg1)
+				return cachedfun(arg0, arg1)
+			}
+		} else {
+			ret = func(env *Env) ~,rettyp {
+				fun := exprfun(env).Interface().(func(~,arg0typ , ~,arg1typ) ~,rettyp)
+				arg0 := arg0fun(env)
+				arg1 := arg1fun(env)
+				// Debugf("calling %v with args [%v %v]", r.TypeOf(fun), arg0, arg1)
+				return fun(arg0, arg1)
+			}
+		}
+	}
+}
+
+// not used, see comment below in mcallxy2ret1
+:macro __mcallx2ret1(arg1typ, rettyp ast.Node) ast.Node {
+	return ~"{
+		switch karg0 {
+			case r.Bool:      {mcall2ret1; bool;       ~,arg1typ; ~,rettyp}
+			case r.Int:       {mcall2ret1; int;        ~,arg1typ; ~,rettyp}
+			case r.Int8:      {mcall2ret1; int8;       ~,arg1typ; ~,rettyp}
+			case r.Int16:     {mcall2ret1; int16;      ~,arg1typ; ~,rettyp}
+			case r.Int32:     {mcall2ret1; int32;      ~,arg1typ; ~,rettyp}
+			case r.Int64:     {mcall2ret1; int64;      ~,arg1typ; ~,rettyp}
+			case r.Uint:      {mcall2ret1; uint;       ~,arg1typ; ~,rettyp}
+			case r.Uint8:     {mcall2ret1; uint8;      ~,arg1typ; ~,rettyp}
+			case r.Uint16:    {mcall2ret1; uint16;     ~,arg1typ; ~,rettyp}
+			case r.Uint32:    {mcall2ret1; uint32;     ~,arg1typ; ~,rettyp}
+			case r.Uint64:    {mcall2ret1; uint64;     ~,arg1typ; ~,rettyp}
+			case r.Uintptr:   {mcall2ret1; uintptr;    ~,arg1typ; ~,rettyp}
+			case r.Float32:   {mcall2ret1; float32;    ~,arg1typ; ~,rettyp}
+			case r.Float64:   {mcall2ret1; float64;    ~,arg1typ; ~,rettyp}
+			case r.Complex64: {mcall2ret1; complex64;  ~,arg1typ; ~,rettyp}
+			case r.Complex128:{mcall2ret1; complex128; ~,arg1typ; ~,rettyp}
+			case r.String:    {mcall2ret1; string;     ~,arg1typ; ~,rettyp}
+			default:                   {mcall2ret1; nil;        ~,arg1typ; ~,rettyp}
+		}
+	}
+}
+
+:macro mcallxy2ret1(rettyp ast.Node) ast.Node {
+	// generating all combinations func(targ0,targ1) tret
+	// produces a 6MB source file... definitely too much
+	//
+	// Only optimize func(targ0,targ0) tret
+	// i.e. if the two args have the same type - still produces a 240kB source file
+	return ~"{
+		if rtarg0 == rtarg1 && KindToType(karg0) == rtarg0 {
+			switch karg0 {
+				case r.Bool:      {mcall2ret1; bool;       bool;       ~,rettyp}
+				case r.Int:       {mcall2ret1; int;        int;        ~,rettyp}
+				case r.Int8:      {mcall2ret1; int8;       int8;       ~,rettyp}
+				case r.Int16:     {mcall2ret1; int16;      int16;      ~,rettyp}
+				case r.Int32:     {mcall2ret1; int32;      int32;      ~,rettyp}
+				case r.Int64:     {mcall2ret1; int64;      int64;      ~,rettyp}
+				case r.Uint:      {mcall2ret1; uint;       uint;       ~,rettyp}
+				case r.Uint8:     {mcall2ret1; uint8;      uint8;      ~,rettyp}
+				case r.Uint16:    {mcall2ret1; uint16;     uint16;     ~,rettyp}
+				case r.Uint32:    {mcall2ret1; uint32;     uint32;     ~,rettyp}
+				case r.Uint64:    {mcall2ret1; uint64;     uint64;     ~,rettyp}
+				case r.Uintptr:   {mcall2ret1; uintptr;    uintptr;    ~,rettyp}
+				case r.Float32:   {mcall2ret1; float32;    float32;    ~,rettyp}
+				case r.Float64:   {mcall2ret1; float64;    float64;    ~,rettyp}
+				case r.Complex64: {mcall2ret1; complex64;  complex64;  ~,rettyp}
+				case r.Complex128:{mcall2ret1; complex128; complex128; ~,rettyp}
+				case r.String:    {mcall2ret1; string;     string;     ~,rettyp}
+			}
+		}
+		if ret == nil {
+			{mcall2ret1; nil; nil; ~,rettyp}
+		}
+	}
+}
+
+func (c *Comp) call2ret1(call *Call, maxdepth int) I {
+	expr := call.Fun
+	exprfun := expr.AsX1()
+	funsym := expr.Sym
+	funupn, funindex := -1, -1
+	if funsym != nil {
+		funupn = funsym.Upn
+		funindex = funsym.Desc.Index()
+		if funindex == NoIndex {
+			Errorf("internal error: call2ret1() invoked for constant function %#v. use call_builtin() instead", expr)
+		}
+	}
+	t := expr.Type
+	rtarg0, rtarg1, rtret := t.In(0).ReflectType(), t.In(1).ReflectType(), t.Out(0).ReflectType()
+	karg0, kret := rtarg0.Kind(), rtret.Kind()
+	args := call.Args
+	argfunsX1 := call.MakeArgfunsX1()
+	argfuns := [2]func(*Env) r.Value {
+		argfunsX1[0],
+		argfunsX1[1],
+	}
+	var cachedfunv r.Value
+	var ret I
+	if KindToType(kret) == rtret {
+		switch kret {
+		case r.Bool:      {mcallxy2ret1; bool}
+		case r.Int:       {mcallxy2ret1; int}
+		case r.Int8:      {mcallxy2ret1; int8}
+		case r.Int16:     {mcallxy2ret1; int16}
+		case r.Int32:     {mcallxy2ret1; int32}
+		case r.Int64:     {mcallxy2ret1; int64}
+		case r.Uint:      {mcallxy2ret1; uint}
+		case r.Uint8:     {mcallxy2ret1; uint8}
+		case r.Uint16:    {mcallxy2ret1; uint16}
+		case r.Uint32:    {mcallxy2ret1; uint32}
+		case r.Uint64:    {mcallxy2ret1; uint64}
+		case r.Uintptr:   {mcallxy2ret1; uintptr}
+		case r.Float32:   {mcallxy2ret1; float32}
+		case r.Float64:   {mcallxy2ret1; float64}
+		case r.Complex64: {mcallxy2ret1; complex64}
+		case r.Complex128:{mcallxy2ret1; complex128}
+		case r.String:    {mcallxy2ret1; string}
+		}
+	}
+	if ret == nil {
+		{mcall2ret1;   nil; nil; nil} // cannot optimize more this one...
+	}
+	return ret
+}

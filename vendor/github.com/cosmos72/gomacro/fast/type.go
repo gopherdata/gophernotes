@@ -1,20 +1,11 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017 Massimiliano Ghilardi
+ * Copyright (C) 2017-2018 Massimiliano Ghilardi
  *
- *     This program is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU Lesser General Public License as published
- *     by the Free Software Foundation, either version 3 of the License, or
- *     (at your option) any later version.
- *
- *     This program is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU Lesser General Public License for more details.
- *
- *     You should have received a copy of the GNU Lesser General Public License
- *     along with this program.  If not, see <https://www.gnu.org/licenses/lgpl>.
+ *     This Source Code Form is subject to the terms of the Mozilla Public
+ *     License, v. 2.0. If a copy of the MPL was not distributed with this
+ *     file, You can obtain one at http://mozilla.org/MPL/2.0/.
  *
  *
  * type.go
@@ -32,19 +23,19 @@ import (
 	r "reflect"
 
 	. "github.com/cosmos72/gomacro/base"
+	"github.com/cosmos72/gomacro/base/untyped"
 	xr "github.com/cosmos72/gomacro/xreflect"
 )
 
 // DeclType compiles a type declaration.
 func (c *Comp) DeclType(node ast.Spec) {
-	switch node := node.(type) {
-	case *ast.TypeSpec:
+	if node, ok := node.(*ast.TypeSpec); ok {
 		name := node.Name.Name
-		// PATCH: support type aliases
-		if unary, ok := node.Type.(*ast.UnaryExpr); ok && unary.Op == token.ASSIGN {
-			t := c.Type(unary.X)
+		// support type aliases
+		if node.Assign != token.NoPos {
+			t := c.Type(node.Type)
 			c.DeclTypeAlias(name, t)
-			break
+			return
 		}
 		// support self-referencing types, as for example: type List struct { First int; Rest *List }
 		oldt := c.Types[name]
@@ -65,8 +56,8 @@ func (c *Comp) DeclType(node ast.Spec) {
 			c.SetUnderlyingType(t, u)
 		}
 		panicking = false
-	default:
-		c.Errorf("Compile: unexpected type declaration, expecting <*ast.TypeSpec>, found: %v <%v>", node, r.TypeOf(node))
+	} else {
+		c.Errorf("unexpected declaration type, expecting <*ast.TypeSpec>, found: %v <%v>", node, r.TypeOf(node))
 	}
 }
 
@@ -76,8 +67,11 @@ func (c *Comp) DeclTypeAlias(name string, t xr.Type) xr.Type {
 	if name == "_" {
 		return t
 	}
-	if _, ok := c.Types[name]; ok {
-		c.Warnf("redefined type alias: %v", name)
+	if et := c.Types[name]; et != nil {
+		// forward-declared types have kind == r.Invalid, see Comp.DeclNamedType() below
+		if et.Kind() != r.Invalid {
+			c.Warnf("redefined type alias: %v", name)
+		}
 		c.Universe.InvalidateCache()
 	} else if c.Types == nil {
 		c.Types = make(map[string]xr.Type)
@@ -88,13 +82,15 @@ func (c *Comp) DeclTypeAlias(name string, t xr.Type) xr.Type {
 
 // DeclNamedType executes a named type forward declaration.
 // Returns nil if name == "_"
-// Otherwise it must be followed by Comp.SetUnderlyingType()
+// Otherwise it must be followed by Comp.SetUnderlyingType(t) where t is the returned type
 func (c *Comp) DeclNamedType(name string) xr.Type {
 	if name == "_" {
 		return nil
 	}
-	if t, ok := c.Types[name]; ok {
-		c.Warnf("redefined type: %v", name)
+	if t := c.Types[name]; t != nil {
+		if t.Kind() != r.Invalid {
+			c.Warnf("redefined type: %v", name)
+		}
 		if xr.QName1(t) != xr.QName2(name, c.FileComp().Path) {
 			// the current type "name" is an alias, discard it
 			c.Universe.InvalidateCache()
@@ -105,7 +101,7 @@ func (c *Comp) DeclNamedType(name string) xr.Type {
 	} else if c.Types == nil {
 		c.Types = make(map[string]xr.Type)
 	}
-	t := c.Universe.NamedOf(name, c.FileComp().Path)
+	t := c.Universe.NamedOf(name, c.FileComp().Path, r.Invalid /*kind not yet known*/)
 	c.Types[name] = t
 	return t
 }
@@ -211,7 +207,7 @@ func (c *Comp) compileType2(node ast.Expr, allowEllipsis bool) (t xr.Type, ellip
 	case *ast.FuncType:
 		t, _, _ = c.TypeFunction(node)
 	case *ast.Ident:
-		t = c.TypeIdent(node.Name)
+		t = c.ResolveType(node.Name)
 	case *ast.InterfaceType:
 		t = c.TypeInterface(node)
 	case *ast.MapType:
@@ -234,10 +230,10 @@ func (c *Comp) compileType2(node ast.Expr, allowEllipsis bool) (t xr.Type, ellip
 		}
 		if bind == nil {
 			c.Errorf("undefined %q in %v <%v>", name, node, r.TypeOf(node))
-		} else if !bind.Const() || bind.Type.ReflectType() != rtypeOfImport {
+		} else if !bind.Const() || bind.Type.ReflectType() != rtypeOfPtrImport {
 			c.Errorf("not a package: %q in %v <%v>", name, node, r.TypeOf(node))
 		}
-		imp, ok := bind.Value.(Import)
+		imp, ok := bind.Value.(*Import)
 		if !ok {
 			c.Errorf("not a package: %q in %v <%v>", name, node, r.TypeOf(node))
 		}
@@ -261,7 +257,7 @@ func (c *Comp) compileType2(node ast.Expr, allowEllipsis bool) (t xr.Type, ellip
 		// type can be omitted in many case - then we must perform type inference
 		break
 	default:
-		// TODO which types are still missing?
+		// which types are still missing?
 		c.Errorf("unimplemented type: %v <%v>", node, r.TypeOf(node))
 	}
 	if t != nil {
@@ -291,14 +287,14 @@ func (c *Comp) TypeArray(node *ast.ArrayType) (t xr.Type, ellipsis bool) {
 		// "The length is part of the array's type; it must evaluate to a non-negative constant
 		// representable by a value of type int. "
 		var count int
-		init := c.Expr(n)
+		init := c.Expr(n, nil)
 		if !init.Const() {
 			c.Errorf("array length is not a constant: %v", node)
 			return
 		} else if init.Untyped() {
 			count = init.ConstTo(c.TypeOfInt()).(int)
 		} else {
-			count = convertLiteralCheckOverflow(init.Value, c.TypeOfInt()).(int)
+			count = untyped.ConvertLiteralCheckOverflow(init.Value, c.TypeOfInt()).(int)
 		}
 		if count < 0 {
 			c.Errorf("array length [%v] is negative: %v", count, node)
@@ -375,14 +371,22 @@ func (c *Comp) typeFieldsOrParams(list []*ast.Field, allowEllipsis bool) (types 
 	return types, names, ellipsis
 }
 
-func (c *Comp) TypeIdent(name string) xr.Type {
-	for co := c; co != nil; co = co.Outer {
-		if t, ok := co.Types[name]; ok {
-			return t
+func (c *Comp) TryResolveType(name string) xr.Type {
+	var t xr.Type
+	for ; c != nil; c = c.Outer {
+		if t = c.Types[name]; t != nil {
+			break
 		}
 	}
-	c.Errorf("undefined identifier: %v", name)
-	return nil
+	return t
+}
+
+func (c *Comp) ResolveType(name string) xr.Type {
+	t := c.TryResolveType(name)
+	if t == nil {
+		c.Errorf("undefined identifier: %v", name)
+	}
+	return t
 }
 
 func (c *Comp) makeStructFields(pkg *xr.Package, names []string, types []xr.Type) []xr.StructField {
@@ -401,9 +405,16 @@ func (c *Comp) makeStructFields(pkg *xr.Package, names []string, types []xr.Type
 	return fields
 }
 
+func rtypeof(v r.Value, t xr.Type) r.Type {
+	if t != nil {
+		return t.ReflectType()
+	}
+	return ValueType(v)
+}
+
 // TypeAssert2 compiles a multi-valued type assertion
 func (c *Comp) TypeAssert2(node *ast.TypeAssertExpr) *Expr {
-	val := c.Expr1(node.X)
+	val := c.Expr1(node.X, nil)
 	tin := val.Type
 	tout := c.Type(node.Type)
 	rtout := tout.ReflectType()
@@ -411,88 +422,104 @@ func (c *Comp) TypeAssert2(node *ast.TypeAssertExpr) *Expr {
 		c.Errorf("invalid type assertion: %v (non-interface type <%v> on left)", node, tin)
 		return nil
 	}
-	kin := tin.Kind()
 	kout := tout.Kind()
 	if kout != r.Interface && !tout.Implements(tin) {
 		c.Errorf("impossible type assertion: <%v> does not implement <%v>", tout, tin)
 	}
-	fun := val.Fun.(func(*Env) r.Value)     // val returns an interface... must be already wrapped in a reflect.Value
-	fail := []r.Value{xr.Zero(tout), False} // returned by type assertion in case of failure
+	// extractor to unwrap value from proxy or emulated interface
+	extractor := c.extractor(tin)
+
+	fun := val.Fun.(func(*Env) r.Value) // val returns an interface... must be already wrapped in a reflect.Value
 
 	var ret func(env *Env) (r.Value, []r.Value)
 
-	if IsOptimizedKind(kout) {
+	fail := []r.Value{xr.Zero(tout), False} // returned by type assertion in case of failure
+	switch {
+	case IsOptimizedKind(kout):
 		ret = func(env *Env) (r.Value, []r.Value) {
-			v := fun(env)
-			v = r.ValueOf(v.Interface()) // rebuild reflect.Value with concrete type
-			if v.Type() != rtout {
+			v, t := extractor(fun(env))
+			if ValueType(v) != rtout || (t != nil && !t.AssignableTo(tout)) {
 				return fail[0], fail
 			}
 			return v, []r.Value{v, True}
 		}
-	} else if tout.ReflectType() == TypeOfInterface {
-		// special case, nil is a valid interface{}
-		ret = func(env *Env) (r.Value, []r.Value) {
-			v := fun(env).Convert(TypeOfInterface)
-			return v, []r.Value{v, True}
+
+	case kout == r.Interface:
+		if tout.NumMethod() == 0 {
+			// type assertion to empty interface.
+			// everything, excluding nil, implements an empty interface
+			ret = func(env *Env) (r.Value, []r.Value) {
+				v, _ := extractor(fun(env))
+				if v == Nil {
+					return fail[0], fail
+				}
+				v = v.Convert(rtout)
+				return v, []r.Value{v, True}
+			}
+			break
 		}
-	} else if kout == r.Interface && tin.Implements(tout) {
+		if tin.Implements(tout) {
+			// type assertion to interface.
+			// expression type implements such interface, can only fail if value is nil
+			ret = func(env *Env) (r.Value, []r.Value) {
+				v, _ := extractor(fun(env))
+				// nil is not a valid tout, check for it.
+				// IsNil() can be invoked only on nillable types...
+				if IsNillableKind(v.Kind()) && (v == Nil || v.IsNil()) {
+					return fail[0], fail
+				}
+				v = v.Convert(rtout)
+				return v, []r.Value{v, True}
+			}
+			break
+		}
+		// type assertion to interface
+		// must check at runtime whether concrete type implements asserted interface
 		ret = func(env *Env) (r.Value, []r.Value) {
-			v := fun(env)
+			v, t := extractor(fun(env))
 			// nil is not a valid tout, check for it.
 			// IsNil() can be invoked only on nillable types...
-			// but v.Type().Kind() should be r.Interface, which is nillable :)
-			if v.IsNil() {
+			if IsNillableKind(v.Kind()) && (v == Nil || v.IsNil()) {
+				return fail[0], fail
+			}
+			rt := rtypeof(v, t)
+			if (rt != rtout && !rt.Implements(rtout)) ||
+				(t != nil && !t.IdenticalTo(tout) && !t.Implements(tout)) {
 				return fail[0], fail
 			}
 			v = v.Convert(rtout)
 			return v, []r.Value{v, True}
 		}
-	} else if kout == r.Interface {
+
+	case IsNillableKind(kout):
+		// type assertion to concrete (nillable) type
 		ret = func(env *Env) (r.Value, []r.Value) {
-			v := fun(env)
+			v, t := extractor(fun(env))
 			// nil is not a valid tout, check for it.
 			// IsNil() can be invoked only on nillable types...
-			// but v.Type().Kind() should be r.Interface, which is nillable :)
-			if v.IsNil() {
+			if IsNillableKind(v.Kind()) && (v == Nil || v.IsNil()) {
 				return fail[0], fail
 			}
-			v = r.ValueOf(v.Interface()) // rebuild reflect.Value with concrete type
-			rtconcr := v.Type()
-			if rtconcr != rtout && !rtconcr.Implements(rtout) {
-				return fail[0], fail
-			}
-			v = v.Convert(rtout)
-			return v, []r.Value{v, True}
-		}
-	} else if IsNillableKind(kin) {
-		ret = func(env *Env) (r.Value, []r.Value) {
-			v := fun(env)
-			// nil is not a valid tout, check for it.
-			// IsNil() can be invoked only on nillable types...
-			// but we just checked IsNillableKind(kin)
-			if v.IsNil() {
-				return fail[0], fail
-			}
-			v = r.ValueOf(v.Interface()) // rebuild reflect.Value with concrete type
-			rtconcr := v.Type()
-			if rtconcr != rtout {
+			rt := rtypeof(v, t)
+			if rt != rtout || (t != nil && !t.IdenticalTo(tout)) {
 				return fail[0], fail
 			}
 			return v, []r.Value{v, True}
 		}
-	} else {
+	default:
+		// type assertion to concrete (non-nillable) type
 		ret = func(env *Env) (r.Value, []r.Value) {
-			v := fun(env)
-			v = r.ValueOf(v.Interface()) // rebuild reflect.Value with concrete type
-			rtconcr := v.Type()
-			if rtconcr != rtout {
+			v, t := extractor(fun(env))
+			rt := rtypeof(v, t)
+			if rt != rtout || (t != nil && !t.IdenticalTo(tout)) {
 				return fail[0], fail
 			}
 			return v, []r.Value{v, True}
 		}
 	}
-	return exprXV([]xr.Type{tout, c.TypeOfBool()}, ret)
+	e := exprXV([]xr.Type{tout, c.TypeOfBool()}, ret)
+	e.EFlags = EIsTypeAssert
+	return e
 }
 
 // TypeAssert1 compiles a single-valued type assertion
@@ -500,7 +527,7 @@ func (c *Comp) TypeAssert1(node *ast.TypeAssertExpr) *Expr {
 	if node.Type == nil {
 		c.Errorf("invalid type assertion: expecting actual type, found type switch: %v", node)
 	}
-	val := c.Expr1(node.X)
+	val := c.Expr1(node.X, nil)
 	tin := val.Type
 	tout := c.Type(node.Type)
 	kout := tout.Kind()
@@ -511,241 +538,307 @@ func (c *Comp) TypeAssert1(node *ast.TypeAssertExpr) *Expr {
 	if tout.Kind() != r.Interface && !tout.Implements(tin) {
 		c.Errorf("impossible type assertion: <%v> does not implement <%v>", tout, tin)
 	}
+	// extractor to unwrap value from proxy or emulated interface
+	extractor := c.extractor(tin)
+
 	fun := val.Fun.(func(*Env) r.Value) // val returns an interface... must be already wrapped in a reflect.Value
-	rtin := tin.ReflectType()
+
 	rtout := tout.ReflectType()
 	var ret I
 	switch kout {
 	case r.Bool:
 		ret = func(env *Env) bool {
-			v := typeassert(fun(env), rtin, rtout)
+			v, t := extractor(fun(env))
+			v = typeassert(v, t, tin, tout)
 			return v.Bool()
 		}
 	case r.Int:
 		ret = func(env *Env) int {
-			v := typeassert(fun(env), rtin, rtout)
+			v, t := extractor(fun(env))
+			v = typeassert(v, t, tin, tout)
 			return int(v.Int())
 		}
 	case r.Int8:
 		ret = func(env *Env) int8 {
-			v := typeassert(fun(env), rtin, rtout)
+			v, t := extractor(fun(env))
+			v = typeassert(v, t, tin, tout)
 			return int8(v.Int())
 		}
 	case r.Int16:
 		ret = func(env *Env) int16 {
-			v := typeassert(fun(env), rtin, rtout)
+			v, t := extractor(fun(env))
+			v = typeassert(v, t, tin, tout)
 			return int16(v.Int())
 		}
 	case r.Int32:
 		ret = func(env *Env) int32 {
-			v := typeassert(fun(env), rtin, rtout)
+			v, t := extractor(fun(env))
+			v = typeassert(v, t, tin, tout)
 			return int32(v.Int())
 		}
 	case r.Int64:
 		ret = func(env *Env) int64 {
-			v := typeassert(fun(env), rtin, rtout)
+			v, t := extractor(fun(env))
+			v = typeassert(v, t, tin, tout)
 			return v.Int()
 		}
 	case r.Uint:
 		ret = func(env *Env) uint {
-			v := typeassert(fun(env), rtin, rtout)
+			v, t := extractor(fun(env))
+			v = typeassert(v, t, tin, tout)
 			return uint(v.Uint())
 		}
 	case r.Uint8:
 		ret = func(env *Env) uint8 {
-			v := typeassert(fun(env), rtin, rtout)
+			v, t := extractor(fun(env))
+			v = typeassert(v, t, tin, tout)
 			return uint8(v.Uint())
 		}
 	case r.Uint16:
 		ret = func(env *Env) uint16 {
-			v := typeassert(fun(env), rtin, rtout)
+			v, t := extractor(fun(env))
+			v = typeassert(v, t, tin, tout)
 			return uint16(v.Uint())
 		}
 	case r.Uint32:
 		ret = func(env *Env) uint32 {
-			v := typeassert(fun(env), rtin, rtout)
+			v, t := extractor(fun(env))
+			v = typeassert(v, t, tin, tout)
 			return uint32(v.Uint())
 		}
 	case r.Uint64:
 		ret = func(env *Env) uint64 {
-			v := typeassert(fun(env), rtin, rtout)
+			v, t := extractor(fun(env))
+			v = typeassert(v, t, tin, tout)
 			return v.Uint()
 		}
 	case r.Uintptr:
 		ret = func(env *Env) uintptr {
-			v := typeassert(fun(env), rtin, rtout)
+			v, t := extractor(fun(env))
+			v = typeassert(v, t, tin, tout)
 			return uintptr(v.Uint())
 		}
 	case r.Float32:
 		ret = func(env *Env) float32 {
-			v := typeassert(fun(env), rtin, rtout)
+			v, t := extractor(fun(env))
+			v = typeassert(v, t, tin, tout)
 			return float32(v.Float())
 		}
 	case r.Float64:
 		ret = func(env *Env) float64 {
-			v := typeassert(fun(env), rtin, rtout)
+			v, t := extractor(fun(env))
+			v = typeassert(v, t, tin, tout)
 			return v.Float()
 		}
 	case r.Complex64:
 		ret = func(env *Env) complex64 {
-			v := typeassert(fun(env), rtin, rtout)
+			v, t := extractor(fun(env))
+			v = typeassert(v, t, tin, tout)
 			return complex64(v.Complex())
 		}
 	case r.Complex128:
 		ret = func(env *Env) complex128 {
-			v := typeassert(fun(env), rtin, rtout)
-			return v.Convert(rtout).Complex()
+			v, t := extractor(fun(env))
+			v = typeassert(v, t, tin, tout)
+			return v.Complex()
 		}
 	case r.String:
 		ret = func(env *Env) string {
-			v := typeassert(fun(env), rtin, rtout)
+			v, t := extractor(fun(env))
+			v = typeassert(v, t, tin, tout)
 			return v.String()
 		}
-	default:
-		if tout.ReflectType() == TypeOfInterface {
-			// special case, nil is a valid interface{}
+	case r.Interface:
+		if tout.NumMethod() == 0 {
+			// type assertion to empty interface.
+			// everything, excluding untyped nil, implements an empty interface
 			ret = func(env *Env) r.Value {
-				return fun(env).Convert(TypeOfInterface)
-			}
-			break
-		}
-		if tout.Kind() == r.Interface && tin.Implements(tout) {
-			ret = func(env *Env) r.Value {
-				v := fun(env)
-				// nil is not a valid tout, check for it.
-				// IsNil() can be invoked only on nillable types...
-				// but v.Type().Kind() should be r.Interface, which is nillable :)
-				if v.IsNil() {
-					panic(&TypeAssertionError{
-						Interface: rtin,
-						Concrete:  nil,
-						Asserted:  rtout,
-					})
+				v, _ := extractor(fun(env))
+				if v == Nil {
+					typeassertpanic(nil, nil, tin, tout)
 				}
 				return v.Convert(rtout)
 			}
-			break
+		} else if tin.Implements(tout) {
+			// type assertion to interface.
+			// expression type implements such interface, can only fail if value is nil
+			ret = func(env *Env) r.Value {
+				v, _ := extractor(fun(env))
+				// nil is not a valid tout, check for it.
+				// IsNil() can be invoked only on nillable types...
+				if IsNillableKind(v.Kind()) && (v == Nil || v.IsNil()) {
+					typeassertpanic(nil, nil, tin, tout)
+				}
+				return v.Convert(rtout)
+			}
+		} else {
+			// type assertion to interface.
+			// must check at runtime whether concrete type implements asserted interface
+			ret = func(env *Env) r.Value {
+				v, t := extractor(fun(env))
+				// nil is not a valid tout, check for it.
+				// IsNil() can be invoked only on nillable types...
+				if IsNillableKind(v.Kind()) && (v == Nil || v.IsNil()) {
+					typeassertpanic(nil, nil, tin, tout)
+				}
+				rt := rtypeof(v, t)
+				if (rt != rtout && !rt.AssignableTo(rtout) && !rt.Implements(rtout)) ||
+					(t != nil && !t.AssignableTo(tout) && !t.Implements(tout)) {
+					typeassertpanic(rt, t, tin, tout)
+				}
+				return v.Convert(rtout)
+			}
 		}
-		ret = func(env *Env) r.Value {
-			v := fun(env)
-			// nil is not a valid tout, check for it.
-			// IsNil() can be invoked only on nillable types...
-			// but v.Type().Kind() should be r.Interface, which is nillable :)
-			if v.IsNil() {
-				panic(&TypeAssertionError{
-					Interface: rtin,
-					Concrete:  nil,
-					Asserted:  rtout,
-				})
+	default:
+		if IsNillableKind(kout) {
+			// type assertion to concrete (nillable) type
+			ret = func(env *Env) r.Value {
+				v, t := extractor(fun(env))
+				// nil is not a valid tout, check for it.
+				// IsNil() can be invoked only on nillable types...
+				if IsNillableKind(v.Kind()) && (v == Nil || v.IsNil()) {
+					typeassertpanic(nil, nil, tin, tout)
+				}
+				rt := rtypeof(v, t)
+				if rt != rtout || (t != nil && !t.IdenticalTo(tout)) {
+					panic(&TypeAssertionError{
+						Interface:       tin,
+						Concrete:        t,
+						ReflectConcrete: rt,
+						Asserted:        tout,
+					})
+				}
+				return v
 			}
-			v = r.ValueOf(v.Interface()) // rebuild reflect.Value with concrete type
-			rtconcr := v.Type()
-			if rtconcr != rtout && (rtout.Kind() != r.Interface || !rtconcr.Implements(rtout)) {
-				panic(&TypeAssertionError{
-					Interface: rtin,
-					Concrete:  rtconcr,
-					Asserted:  rtout,
-				})
+		} else {
+			// type assertion to concrete (non-nillable) type
+			ret = func(env *Env) r.Value {
+				v, t := extractor(fun(env))
+				rt := rtypeof(v, t)
+				if rt != rtout || (t != nil && !t.IdenticalTo(tout)) {
+					panic(&TypeAssertionError{
+						Interface:       tin,
+						Concrete:        t,
+						ReflectConcrete: rt,
+						Asserted:        tout,
+					})
+				}
+				return v
 			}
-			return v.Convert(rtout)
 		}
 	}
-	return exprFun(tout, ret)
+	e := exprFun(tout, ret)
+	e.EFlags = EIsTypeAssert
+	return e
 }
 
-func typeassert(v r.Value, rtin r.Type, rtout r.Type) r.Value {
-	v = r.ValueOf(v.Interface()) // extract concrete type
-	rtconcr := v.Type()
-	if rtconcr != rtout {
+func typeassert(v r.Value, t xr.Type, tin xr.Type, tout xr.Type) r.Value {
+	rt := rtypeof(v, t)
+	if rt != tout.ReflectType() || t != nil && !t.IdenticalTo(tout) {
 		panic(&TypeAssertionError{
-			Interface: rtin,
-			Concrete:  rtconcr,
-			Asserted:  rtout,
+			Interface:       tin,
+			Concrete:        t,
+			ReflectConcrete: rt,
+			Asserted:        tout,
 		})
 	}
 	return v
 }
 
-func (g *CompThreadGlobals) TypeOfBool() xr.Type {
+func typeassertpanic(rt r.Type, t xr.Type, tin xr.Type, tout xr.Type) {
+	var missingmethod *xr.Method
+	if t != nil && tout.Kind() == r.Interface {
+		missingmethod = xr.MissingMethod(t, tout)
+	}
+	panic(&TypeAssertionError{
+		Interface:       tin,
+		Concrete:        t,
+		ReflectConcrete: rt,
+		Asserted:        tout,
+		MissingMethod:   missingmethod,
+	})
+}
+
+func (g *CompGlobals) TypeOfBool() xr.Type {
 	return g.Universe.BasicTypes[r.Bool]
 }
 
-func (g *CompThreadGlobals) TypeOfInt() xr.Type {
+func (g *CompGlobals) TypeOfInt() xr.Type {
 	return g.Universe.BasicTypes[r.Int]
 }
 
-func (g *CompThreadGlobals) TypeOfInt8() xr.Type {
+func (g *CompGlobals) TypeOfInt8() xr.Type {
 	return g.Universe.BasicTypes[r.Int8]
 }
 
-func (g *CompThreadGlobals) TypeOfInt16() xr.Type {
+func (g *CompGlobals) TypeOfInt16() xr.Type {
 	return g.Universe.BasicTypes[r.Int16]
 }
 
-func (g *CompThreadGlobals) TypeOfInt32() xr.Type {
+func (g *CompGlobals) TypeOfInt32() xr.Type {
 	return g.Universe.BasicTypes[r.Int32]
 }
 
-func (g *CompThreadGlobals) TypeOfInt64() xr.Type {
+func (g *CompGlobals) TypeOfInt64() xr.Type {
 	return g.Universe.BasicTypes[r.Int64]
 }
 
-func (g *CompThreadGlobals) TypeOfUint() xr.Type {
+func (g *CompGlobals) TypeOfUint() xr.Type {
 	return g.Universe.BasicTypes[r.Uint]
 }
 
-func (g *CompThreadGlobals) TypeOfUint8() xr.Type {
+func (g *CompGlobals) TypeOfUint8() xr.Type {
 	return g.Universe.BasicTypes[r.Uint8]
 }
 
-func (g *CompThreadGlobals) TypeOfUint16() xr.Type {
+func (g *CompGlobals) TypeOfUint16() xr.Type {
 	return g.Universe.BasicTypes[r.Uint16]
 }
 
-func (g *CompThreadGlobals) TypeOfUint32() xr.Type {
+func (g *CompGlobals) TypeOfUint32() xr.Type {
 	return g.Universe.BasicTypes[r.Uint32]
 }
 
-func (g *CompThreadGlobals) TypeOfUint64() xr.Type {
+func (g *CompGlobals) TypeOfUint64() xr.Type {
 	return g.Universe.BasicTypes[r.Uint64]
 }
 
-func (g *CompThreadGlobals) TypeOfUintptr() xr.Type {
+func (g *CompGlobals) TypeOfUintptr() xr.Type {
 	return g.Universe.BasicTypes[r.Uintptr]
 }
 
-func (g *CompThreadGlobals) TypeOfFloat32() xr.Type {
+func (g *CompGlobals) TypeOfFloat32() xr.Type {
 	return g.Universe.BasicTypes[r.Float32]
 }
 
-func (g *CompThreadGlobals) TypeOfFloat64() xr.Type {
+func (g *CompGlobals) TypeOfFloat64() xr.Type {
 	return g.Universe.BasicTypes[r.Float64]
 }
 
-func (g *CompThreadGlobals) TypeOfComplex64() xr.Type {
+func (g *CompGlobals) TypeOfComplex64() xr.Type {
 	return g.Universe.BasicTypes[r.Complex64]
 }
 
-func (g *CompThreadGlobals) TypeOfComplex128() xr.Type {
+func (g *CompGlobals) TypeOfComplex128() xr.Type {
 	return g.Universe.BasicTypes[r.Complex128]
 }
 
-func (g *CompThreadGlobals) TypeOfString() xr.Type {
+func (g *CompGlobals) TypeOfString() xr.Type {
 	return g.Universe.BasicTypes[r.String]
 }
 
-func (g *CompThreadGlobals) TypeOfError() xr.Type {
+func (g *CompGlobals) TypeOfError() xr.Type {
 	return g.Universe.TypeOfError
 }
 
-func (g *CompThreadGlobals) TypeOfInterface() xr.Type {
+func (g *CompGlobals) TypeOfInterface() xr.Type {
 	return g.Universe.TypeOfInterface
 }
 
 var (
 	rtypeOfBuiltin     = r.TypeOf(Builtin{})
 	rtypeOfFunction    = r.TypeOf(Function{})
-	rtypeOfImport      = r.TypeOf(Import{})
+	rtypeOfPtrImport   = r.TypeOf((*Import)(nil))
 	rtypeOfMacro       = r.TypeOf(Macro{})
 	rtypeOfUntypedLit  = r.TypeOf(UntypedLit{})
 	rtypeOfReflectType = r.TypeOf((*r.Type)(nil)).Elem()
@@ -753,44 +846,50 @@ var (
 	zeroOfReflectType = r.Zero(rtypeOfReflectType)
 )
 
-func (g *CompThreadGlobals) TypeOfBuiltin() xr.Type {
+func (g *CompGlobals) TypeOfBuiltin() xr.Type {
 	return g.Universe.ReflectTypes[rtypeOfBuiltin]
 }
 
-func (g *CompThreadGlobals) TypeOfFunction() xr.Type {
+func (g *CompGlobals) TypeOfFunction() xr.Type {
 	return g.Universe.ReflectTypes[rtypeOfFunction]
 }
 
-func (g *CompThreadGlobals) TypeOfImport() xr.Type {
-	return g.Universe.ReflectTypes[rtypeOfImport]
+func (g *CompGlobals) TypeOfPtrImport() xr.Type {
+	return g.Universe.ReflectTypes[rtypeOfPtrImport]
 }
 
-func (g *CompThreadGlobals) TypeOfMacro() xr.Type {
+func (g *CompGlobals) TypeOfMacro() xr.Type {
 	return g.Universe.ReflectTypes[rtypeOfMacro]
 }
 
-func (g *CompThreadGlobals) TypeOfUntypedLit() xr.Type {
+func (g *CompGlobals) TypeOfUntypedLit() xr.Type {
 	return g.Universe.ReflectTypes[rtypeOfUntypedLit]
 }
 
 // A TypeAssertionError explains a failed type assertion.
 type TypeAssertionError struct {
-	Interface     r.Type
-	Concrete      r.Type
-	Asserted      r.Type
-	MissingMethod string // one method needed by Interface, missing from Concrete
+	Interface       xr.Type
+	Concrete        xr.Type
+	ReflectConcrete r.Type // in case Concrete is not available
+	Asserted        xr.Type
+	MissingMethod   *xr.Method // one method needed by Interface, missing from Concrete
 }
 
 func (*TypeAssertionError) RuntimeError() {}
 
 func (e *TypeAssertionError) Error() string {
 	in := e.Interface
-	concr := e.Concrete
+	var concr interface{}
+	if e.Concrete != nil {
+		concr = e.Concrete
+	} else if e.ReflectConcrete != nil {
+		concr = e.ReflectConcrete
+	}
 	if concr == nil {
 		return fmt.Sprintf("interface conversion: <%v> is nil, not <%v>", in, e.Asserted)
 	}
-	if len(e.MissingMethod) == 0 {
+	if e.MissingMethod == nil {
 		return fmt.Sprintf("interface conversion: <%v> is <%v>, not <%v>", in, concr, e.Asserted)
 	}
-	return fmt.Sprintf("interface conversion: <%v> is not <%v>: missing method ", concr, e.Asserted, e.MissingMethod)
+	return fmt.Sprintf("interface conversion: <%v> does not implement <%v>: missing method %s", concr, e.Asserted, e.MissingMethod.String())
 }

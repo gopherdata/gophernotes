@@ -70,7 +70,7 @@ func init() {
 		"VersionTLS12":	ValueOf(tls.VersionTLS12),
 		"X25519":	ValueOf(tls.X25519),
 		"X509KeyPair":	ValueOf(tls.X509KeyPair),
-	},Types: map[string]Type{
+	}, Types: map[string]Type{
 		"Certificate":	TypeOf((*tls.Certificate)(nil)).Elem(),
 		"CertificateRequestInfo":	TypeOf((*tls.CertificateRequestInfo)(nil)).Elem(),
 		"ClientAuthType":	TypeOf((*tls.ClientAuthType)(nil)).Elem(),
@@ -84,26 +84,26 @@ func init() {
 		"RecordHeaderError":	TypeOf((*tls.RecordHeaderError)(nil)).Elem(),
 		"RenegotiationSupport":	TypeOf((*tls.RenegotiationSupport)(nil)).Elem(),
 		"SignatureScheme":	TypeOf((*tls.SignatureScheme)(nil)).Elem(),
-	},Proxies: map[string]Type{
-		"ClientSessionCache":	TypeOf((*ClientSessionCache_crypto_tls)(nil)).Elem(),
-	},Untypeds: map[string]string{
+	}, Proxies: map[string]Type{
+		"ClientSessionCache":	TypeOf((*P_crypto_tls_ClientSessionCache)(nil)).Elem(),
+	}, Untypeds: map[string]string{
 		"VersionSSL30":	"int:768",
 		"VersionTLS10":	"int:769",
 		"VersionTLS11":	"int:770",
 		"VersionTLS12":	"int:771",
-	},
+	}, 
 	}
 }
 
 // --------------- proxy for crypto/tls.ClientSessionCache ---------------
-type ClientSessionCache_crypto_tls struct {
+type P_crypto_tls_ClientSessionCache struct {
 	Object	interface{}
 	Get_	func(_proxy_obj_ interface{}, sessionKey string) (session *tls.ClientSessionState, ok bool)
 	Put_	func(_proxy_obj_ interface{}, sessionKey string, cs *tls.ClientSessionState) 
 }
-func (Proxy *ClientSessionCache_crypto_tls) Get(sessionKey string) (session *tls.ClientSessionState, ok bool) {
-	return Proxy.Get_(Proxy.Object, sessionKey)
+func (P *P_crypto_tls_ClientSessionCache) Get(sessionKey string) (session *tls.ClientSessionState, ok bool) {
+	return P.Get_(P.Object, sessionKey)
 }
-func (Proxy *ClientSessionCache_crypto_tls) Put(sessionKey string, cs *tls.ClientSessionState)  {
-	Proxy.Put_(Proxy.Object, sessionKey, cs)
+func (P *P_crypto_tls_ClientSessionCache) Put(sessionKey string, cs *tls.ClientSessionState)  {
+	P.Put_(P.Object, sessionKey, cs)
 }

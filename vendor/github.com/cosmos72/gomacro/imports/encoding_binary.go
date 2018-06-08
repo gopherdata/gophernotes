@@ -26,20 +26,20 @@ func init() {
 		"Uvarint":	ValueOf(binary.Uvarint),
 		"Varint":	ValueOf(binary.Varint),
 		"Write":	ValueOf(binary.Write),
-	},Types: map[string]Type{
+	}, Types: map[string]Type{
 		"ByteOrder":	TypeOf((*binary.ByteOrder)(nil)).Elem(),
-	},Proxies: map[string]Type{
-		"ByteOrder":	TypeOf((*ByteOrder_encoding_binary)(nil)).Elem(),
-	},Untypeds: map[string]string{
+	}, Proxies: map[string]Type{
+		"ByteOrder":	TypeOf((*P_encoding_binary_ByteOrder)(nil)).Elem(),
+	}, Untypeds: map[string]string{
 		"MaxVarintLen16":	"int:3",
 		"MaxVarintLen32":	"int:5",
 		"MaxVarintLen64":	"int:10",
-	},
+	}, 
 	}
 }
 
 // --------------- proxy for encoding/binary.ByteOrder ---------------
-type ByteOrder_encoding_binary struct {
+type P_encoding_binary_ByteOrder struct {
 	Object	interface{}
 	PutUint16_	func(interface{}, []byte, uint16) 
 	PutUint32_	func(interface{}, []byte, uint32) 
@@ -49,24 +49,24 @@ type ByteOrder_encoding_binary struct {
 	Uint32_	func(interface{}, []byte) uint32
 	Uint64_	func(interface{}, []byte) uint64
 }
-func (Proxy *ByteOrder_encoding_binary) PutUint16(unnamed0 []byte, unnamed1 uint16)  {
-	Proxy.PutUint16_(Proxy.Object, unnamed0, unnamed1)
+func (P *P_encoding_binary_ByteOrder) PutUint16(unnamed0 []byte, unnamed1 uint16)  {
+	P.PutUint16_(P.Object, unnamed0, unnamed1)
 }
-func (Proxy *ByteOrder_encoding_binary) PutUint32(unnamed0 []byte, unnamed1 uint32)  {
-	Proxy.PutUint32_(Proxy.Object, unnamed0, unnamed1)
+func (P *P_encoding_binary_ByteOrder) PutUint32(unnamed0 []byte, unnamed1 uint32)  {
+	P.PutUint32_(P.Object, unnamed0, unnamed1)
 }
-func (Proxy *ByteOrder_encoding_binary) PutUint64(unnamed0 []byte, unnamed1 uint64)  {
-	Proxy.PutUint64_(Proxy.Object, unnamed0, unnamed1)
+func (P *P_encoding_binary_ByteOrder) PutUint64(unnamed0 []byte, unnamed1 uint64)  {
+	P.PutUint64_(P.Object, unnamed0, unnamed1)
 }
-func (Proxy *ByteOrder_encoding_binary) String() string {
-	return Proxy.String_(Proxy.Object)
+func (P *P_encoding_binary_ByteOrder) String() string {
+	return P.String_(P.Object)
 }
-func (Proxy *ByteOrder_encoding_binary) Uint16(unnamed0 []byte) uint16 {
-	return Proxy.Uint16_(Proxy.Object, unnamed0)
+func (P *P_encoding_binary_ByteOrder) Uint16(unnamed0 []byte) uint16 {
+	return P.Uint16_(P.Object, unnamed0)
 }
-func (Proxy *ByteOrder_encoding_binary) Uint32(unnamed0 []byte) uint32 {
-	return Proxy.Uint32_(Proxy.Object, unnamed0)
+func (P *P_encoding_binary_ByteOrder) Uint32(unnamed0 []byte) uint32 {
+	return P.Uint32_(P.Object, unnamed0)
 }
-func (Proxy *ByteOrder_encoding_binary) Uint64(unnamed0 []byte) uint64 {
-	return Proxy.Uint64_(Proxy.Object, unnamed0)
+func (P *P_encoding_binary_ByteOrder) Uint64(unnamed0 []byte) uint64 {
+	return P.Uint64_(P.Object, unnamed0)
 }

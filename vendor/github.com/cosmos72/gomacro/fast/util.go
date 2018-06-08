@@ -1,20 +1,11 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017 Massimiliano Ghilardi
+ * Copyright (C) 2017-2018 Massimiliano Ghilardi
  *
- *     This program is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU Lesser General Public License as published
- *     by the Free Software Foundation, either version 3 of the License, or
- *     (at your option) any later version.
- *
- *     This program is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU Lesser General Public License for more details.
- *
- *     You should have received a copy of the GNU Lesser General Public License
- *     along with this program.  If not, see <https://www.gnu.org/licenses/lgpl>.
+ *     This Source Code Form is subject to the terms of the Mozilla Public
+ *     License, v. 2.0. If a copy of the MPL was not distributed with this
+ *     file, You can obtain one at http://mozilla.org/MPL/2.0/.
  *
  *
  * identifier.go
@@ -42,9 +33,6 @@ func eTrue(*Env) bool {
 	return true
 }
 
-func eNone(*Env) {
-}
-
 func eNil(*Env) r.Value {
 	return Nil
 }
@@ -58,6 +46,33 @@ func nop() {
 
 var valueOfNopFunc = r.ValueOf(nop)
 
+// opaqueType returns an xr.Type corresponding to rtype but without fields or methods and with the given pkgpath
+func (g *CompGlobals) opaqueType(rtype r.Type, pkgpath string) xr.Type {
+	return g.opaqueNamedType(rtype, rtype.Name(), pkgpath)
+}
+
+// opaqueNamedType returns an xr.Type corresponding to rtype but without fields or methods and with the given name and pkgpath
+func (g *CompGlobals) opaqueNamedType(rtype r.Type, name string, pkgpath string) xr.Type {
+	v := g.Universe
+	switch k := rtype.Kind(); k {
+	case r.Ptr:
+		telem := g.opaqueType(rtype.Elem(), pkgpath)
+		t := v.PtrTo(telem)
+		v.ReflectTypes[rtype] = t
+		return t
+	case r.Struct:
+		break
+	default:
+		g.Errorf("internal error: unimplemented opaqueNamedType for kind=%v, expecting kind=Struct", k)
+	}
+	t := v.NamedOf(name, pkgpath, r.Struct)
+	t.SetUnderlying(v.TypeOf(struct{}{}))
+	t.UnsafeForceReflectType(rtype)
+	v.ReflectTypes[rtype] = t // also cache Type in g.Universe.ReflectTypes
+	// g.Debugf("initialized opaque type %v <%v> <%v>", t.Kind(), t.GoType(), t.ReflectType())
+	return t
+}
+
 func asIdent(node ast.Expr) *ast.Ident {
 	ident, _ := node.(*ast.Ident)
 	return ident
@@ -69,7 +84,7 @@ func (e *Expr) TryAsPred() (value bool, fun func(*Env) bool, err bool) {
 		if untyp.Kind != r.Bool {
 			return false, nil, true
 		}
-		return constant.BoolVal(untyp.Obj), nil, false
+		return constant.BoolVal(untyp.Val), nil, false
 	}
 	if e.Type.Kind() != r.Bool {
 		return false, nil, true
@@ -223,7 +238,7 @@ func (e *Expr) AsX1() func(*Env) r.Value {
 		return eNil
 	}
 	if e.Const() {
-		return valueAsX1(e.Value, e.Type, OptDefaults)
+		return valueAsX1(e.Value, e.Type, COptDefaults)
 	}
 	e.CheckX1()
 	return funAsX1(e.Fun, e.Type)
@@ -240,14 +255,14 @@ func (e *Expr) AsXV(opts CompileOptions) func(*Env) (r.Value, []r.Value) {
 }
 
 func valueAsX1(any I, t xr.Type, opts CompileOptions) func(*Env) r.Value {
-	convertuntyped := opts&OptKeepUntyped == 0
+	convertuntyped := opts&COptKeepUntyped == 0
 	untyp, untyped := any.(UntypedLit)
 	if untyped && convertuntyped {
 		if t == nil || t.ReflectType() == rtypeOfUntypedLit {
 			t = untyp.DefaultType()
 		}
 		// Debugf("late conversion of untyped constant %v <%v> to <%v>", untyp, r.TypeOf(untyp), t)
-		any = untyp.ConstTo(t)
+		any = untyp.Convert(t)
 	}
 	v := r.ValueOf(any)
 	if t != nil {
@@ -264,7 +279,7 @@ func valueAsX1(any I, t xr.Type, opts CompileOptions) func(*Env) r.Value {
 }
 
 func valueAsXV(any I, t xr.Type, opts CompileOptions) func(*Env) (r.Value, []r.Value) {
-	convertuntyped := opts&OptKeepUntyped == 0
+	convertuntyped := opts&COptKeepUntyped == 0
 	untyp, untyped := any.(UntypedLit)
 	if convertuntyped {
 		if untyped {
@@ -274,7 +289,7 @@ func valueAsXV(any I, t xr.Type, opts CompileOptions) func(*Env) (r.Value, []r.V
 			} else {
 				// Debugf("valueAsXV: late conversion of untyped constant %v <%v> to <%v>", untyp, r.TypeOf(untyp), t.ReflectType())
 			}
-			any = untyp.ConstTo(t)
+			any = untyp.Convert(t)
 		}
 	}
 	v := r.ValueOf(any)
@@ -989,6 +1004,110 @@ func funAsXV(fun I, t xr.Type) func(*Env) (r.Value, []r.Value) {
 	return nil
 }
 
+func (e *Expr) exprXVAsI() *Expr {
+	// Debugf("exprXVAsI() %v -> %v", e.Types, e.Type)
+	e.CheckX1()
+	if e.NumOut() <= 1 {
+		return e
+	}
+	fun := e.Fun.(func(*Env) (r.Value, []r.Value))
+	t := e.Type
+	var ret I
+	switch t.Kind() {
+	case r.Bool:
+		ret = func(env *Env) bool {
+			v, _ := fun(env)
+			return v.Bool()
+		}
+	case r.Int:
+		ret = func(env *Env) int {
+			v, _ := fun(env)
+			return int(v.Int())
+		}
+	case r.Int8:
+		ret = func(env *Env) int8 {
+			v, _ := fun(env)
+			return int8(v.Int())
+		}
+	case r.Int16:
+		ret = func(env *Env) int16 {
+			v, _ := fun(env)
+			return int16(v.Int())
+		}
+	case r.Int32:
+		ret = func(env *Env) int32 {
+			v, _ := fun(env)
+			return int32(v.Int())
+		}
+	case r.Int64:
+		ret = func(env *Env) int64 {
+			v, _ := fun(env)
+			return v.Int()
+		}
+	case r.Uint:
+		ret = func(env *Env) uint {
+			v, _ := fun(env)
+			return uint(v.Uint())
+		}
+	case r.Uint8:
+		ret = func(env *Env) uint8 {
+			v, _ := fun(env)
+			return uint8(v.Uint())
+		}
+	case r.Uint16:
+		ret = func(env *Env) uint16 {
+			v, _ := fun(env)
+			return uint16(v.Uint())
+		}
+	case r.Uint32:
+		ret = func(env *Env) uint32 {
+			v, _ := fun(env)
+			return uint32(v.Uint())
+		}
+	case r.Uint64:
+		ret = func(env *Env) uint64 {
+			v, _ := fun(env)
+			return v.Uint()
+		}
+	case r.Uintptr:
+		ret = func(env *Env) uintptr {
+			v, _ := fun(env)
+			return uintptr(v.Uint())
+		}
+	case r.Float32:
+		ret = func(env *Env) float32 {
+			v, _ := fun(env)
+			return float32(v.Float())
+		}
+	case r.Float64:
+		ret = func(env *Env) float64 {
+			v, _ := fun(env)
+			return v.Float()
+		}
+	case r.Complex64:
+		ret = func(env *Env) complex64 {
+			v, _ := fun(env)
+			return complex64(v.Complex())
+		}
+	case r.Complex128:
+		ret = func(env *Env) complex128 {
+			v, _ := fun(env)
+			return v.Complex()
+		}
+	case r.String:
+		ret = func(env *Env) string {
+			v, _ := fun(env)
+			return v.String()
+		}
+	default:
+		ret = func(env *Env) r.Value {
+			v, _ := fun(env)
+			return v
+		}
+	}
+	return exprFun(t, ret)
+}
+
 func (e *Expr) AsStmt() Stmt {
 	if e == nil || e.Const() {
 		return nil
@@ -1190,7 +1309,7 @@ func funList(funs []func(*Env), last *Expr, opts CompileOptions) I {
 	var rt r.Type
 	if last.Type != nil {
 		// keep untyped constants only if requested
-		if opts != OptKeepUntyped && last.Untyped() {
+		if opts != COptKeepUntyped && last.Untyped() {
 			last.ConstTo(last.DefaultType())
 		}
 		rt = last.Type.ReflectType()
@@ -1559,77 +1678,77 @@ func unwrapBind(bind *Bind, t xr.Type) *Expr {
 	switch t.Kind() {
 	case r.Bool:
 		ret = func(env *Env) bool {
-			return env.Binds[idx].Bool()
+			return env.Vals[idx].Bool()
 		}
 	case r.Int:
 		ret = func(env *Env) int {
-			return int(env.Binds[idx].Int())
+			return int(env.Vals[idx].Int())
 		}
 	case r.Int8:
 		ret = func(env *Env) int8 {
-			return int8(env.Binds[idx].Int())
+			return int8(env.Vals[idx].Int())
 		}
 	case r.Int16:
 		ret = func(env *Env) int16 {
-			return int16(env.Binds[idx].Int())
+			return int16(env.Vals[idx].Int())
 		}
 	case r.Int32:
 		ret = func(env *Env) int32 {
-			return int32(env.Binds[idx].Int())
+			return int32(env.Vals[idx].Int())
 		}
 	case r.Int64:
 		ret = func(env *Env) int64 {
-			return env.Binds[idx].Int()
+			return env.Vals[idx].Int()
 		}
 	case r.Uint:
 		ret = func(env *Env) uint {
-			return uint(env.Binds[idx].Uint())
+			return uint(env.Vals[idx].Uint())
 		}
 	case r.Uint8:
 		ret = func(env *Env) uint8 {
-			return uint8(env.Binds[idx].Uint())
+			return uint8(env.Vals[idx].Uint())
 		}
 	case r.Uint16:
 		ret = func(env *Env) uint16 {
-			return uint16(env.Binds[idx].Uint())
+			return uint16(env.Vals[idx].Uint())
 		}
 	case r.Uint32:
 		ret = func(env *Env) uint32 {
-			return uint32(env.Binds[idx].Uint())
+			return uint32(env.Vals[idx].Uint())
 		}
 	case r.Uint64:
 		ret = func(env *Env) uint64 {
-			return env.Binds[idx].Uint()
+			return env.Vals[idx].Uint()
 		}
 	case r.Uintptr:
 		ret = func(env *Env) uintptr {
-			return uintptr(env.Binds[idx].Uint())
+			return uintptr(env.Vals[idx].Uint())
 		}
 	case r.Float32:
 		ret = func(env *Env) float32 {
-			return float32(env.Binds[idx].Float())
+			return float32(env.Vals[idx].Float())
 		}
 	case r.Float64:
 		ret = func(env *Env) float64 {
-			return env.Binds[idx].Float()
+			return env.Vals[idx].Float()
 		}
 	case r.Complex64:
 		ret = func(env *Env) complex64 {
-			return complex64(env.Binds[idx].Complex())
+			return complex64(env.Vals[idx].Complex())
 		}
 	case r.Complex128:
 		ret = func(env *Env) complex128 {
-			return env.Binds[idx].Complex()
+			return env.Vals[idx].Complex()
 		}
 	case r.String:
 		ret = func(env *Env) string {
-			return env.Binds[idx].String()
+			return env.Vals[idx].String()
 		}
 	default:
 		rtype := t.ReflectType()
 		zero := r.Zero(rtype)
 		ret = func(env *Env) r.Value {
-			v := env.Binds[idx]
+			v := env.Vals[idx]
 			if !v.IsValid() {
 				v = zero
 			} else if v.Type() != rtype {
@@ -1649,77 +1768,77 @@ func unwrapBindUp1(bind *Bind, t xr.Type) *Expr {
 	switch t.Kind() {
 	case r.Bool:
 		ret = func(env *Env) bool {
-			return env.Outer.Binds[idx].Bool()
+			return env.Outer.Vals[idx].Bool()
 		}
 	case r.Int:
 		ret = func(env *Env) int {
-			return int(env.Outer.Binds[idx].Int())
+			return int(env.Outer.Vals[idx].Int())
 		}
 	case r.Int8:
 		ret = func(env *Env) int8 {
-			return int8(env.Outer.Binds[idx].Int())
+			return int8(env.Outer.Vals[idx].Int())
 		}
 	case r.Int16:
 		ret = func(env *Env) int16 {
-			return int16(env.Outer.Binds[idx].Int())
+			return int16(env.Outer.Vals[idx].Int())
 		}
 	case r.Int32:
 		ret = func(env *Env) int32 {
-			return int32(env.Outer.Binds[idx].Int())
+			return int32(env.Outer.Vals[idx].Int())
 		}
 	case r.Int64:
 		ret = func(env *Env) int64 {
-			return env.Outer.Binds[idx].Int()
+			return env.Outer.Vals[idx].Int()
 		}
 	case r.Uint:
 		ret = func(env *Env) uint {
-			return uint(env.Outer.Binds[idx].Uint())
+			return uint(env.Outer.Vals[idx].Uint())
 		}
 	case r.Uint8:
 		ret = func(env *Env) uint8 {
-			return uint8(env.Outer.Binds[idx].Uint())
+			return uint8(env.Outer.Vals[idx].Uint())
 		}
 	case r.Uint16:
 		ret = func(env *Env) uint16 {
-			return uint16(env.Outer.Binds[idx].Uint())
+			return uint16(env.Outer.Vals[idx].Uint())
 		}
 	case r.Uint32:
 		ret = func(env *Env) uint32 {
-			return uint32(env.Outer.Binds[idx].Uint())
+			return uint32(env.Outer.Vals[idx].Uint())
 		}
 	case r.Uint64:
 		ret = func(env *Env) uint64 {
-			return env.Outer.Binds[idx].Uint()
+			return env.Outer.Vals[idx].Uint()
 		}
 	case r.Uintptr:
 		ret = func(env *Env) uintptr {
-			return uintptr(env.Outer.Binds[idx].Uint())
+			return uintptr(env.Outer.Vals[idx].Uint())
 		}
 	case r.Float32:
 		ret = func(env *Env) float32 {
-			return float32(env.Outer.Binds[idx].Float())
+			return float32(env.Outer.Vals[idx].Float())
 		}
 	case r.Float64:
 		ret = func(env *Env) float64 {
-			return env.Outer.Binds[idx].Float()
+			return env.Outer.Vals[idx].Float()
 		}
 	case r.Complex64:
 		ret = func(env *Env) complex64 {
-			return complex64(env.Outer.Binds[idx].Complex())
+			return complex64(env.Outer.Vals[idx].Complex())
 		}
 	case r.Complex128:
 		ret = func(env *Env) complex128 {
-			return env.Outer.Binds[idx].Complex()
+			return env.Outer.Vals[idx].Complex()
 		}
 	case r.String:
 		ret = func(env *Env) string {
-			return env.Outer.Binds[idx].String()
+			return env.Outer.Vals[idx].String()
 		}
 	default:
 		rtype := t.ReflectType()
 		zero := r.Zero(rtype)
 		ret = func(env *Env) r.Value {
-			v := env.Outer.Binds[idx]
+			v := env.Outer.Vals[idx]
 			if !v.IsValid() {
 				v = zero
 			} else if v.Type() != rtype {

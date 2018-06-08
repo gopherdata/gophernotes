@@ -14,9 +14,9 @@ func init() {
 	Binds: map[string]Value{
 		"NewReader":	ValueOf(quotedprintable.NewReader),
 		"NewWriter":	ValueOf(quotedprintable.NewWriter),
-	},Types: map[string]Type{
+	}, Types: map[string]Type{
 		"Reader":	TypeOf((*quotedprintable.Reader)(nil)).Elem(),
 		"Writer":	TypeOf((*quotedprintable.Writer)(nil)).Elem(),
-	},
+	}, 
 	}
 }

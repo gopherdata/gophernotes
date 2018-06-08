@@ -31,16 +31,16 @@ func init() {
 		"ScanLines":	ValueOf(bufio.ScanLines),
 		"ScanRunes":	ValueOf(bufio.ScanRunes),
 		"ScanWords":	ValueOf(bufio.ScanWords),
-	},Types: map[string]Type{
+	}, Types: map[string]Type{
 		"ReadWriter":	TypeOf((*bufio.ReadWriter)(nil)).Elem(),
 		"Reader":	TypeOf((*bufio.Reader)(nil)).Elem(),
 		"Scanner":	TypeOf((*bufio.Scanner)(nil)).Elem(),
 		"SplitFunc":	TypeOf((*bufio.SplitFunc)(nil)).Elem(),
 		"Writer":	TypeOf((*bufio.Writer)(nil)).Elem(),
-	},Untypeds: map[string]string{
+	}, Untypeds: map[string]string{
 		"MaxScanTokenSize":	"int:65536",
-	},Wrappers: map[string][]string{
+	}, Wrappers: map[string][]string{
 		"ReadWriter":	[]string{"Available","Buffered","Discard","Flush","Peek","Read","ReadByte","ReadBytes","ReadFrom","ReadLine","ReadRune","ReadSlice","ReadString","Reset","UnreadByte","UnreadRune","Write","WriteByte","WriteRune","WriteString","WriteTo",},
-	},
+	}, 
 	}
 }

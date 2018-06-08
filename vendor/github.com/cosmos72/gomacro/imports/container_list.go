@@ -13,9 +13,9 @@ func init() {
 	Packages["container/list"] = Package{
 	Binds: map[string]Value{
 		"New":	ValueOf(list.New),
-	},Types: map[string]Type{
+	}, Types: map[string]Type{
 		"Element":	TypeOf((*list.Element)(nil)).Elem(),
 		"List":	TypeOf((*list.List)(nil)).Elem(),
-	},
+	}, 
 	}
 }

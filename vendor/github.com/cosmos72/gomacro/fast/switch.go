@@ -1,20 +1,11 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017 Massimiliano Ghilardi
+ * Copyright (C) 2017-2018 Massimiliano Ghilardi
  *
- *     This program is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU Lesser General Public License as published
- *     by the Free Software Foundation, either version 3 of the License, or
- *     (at your option) any later version.
- *
- *     This program is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU Lesser General Public License for more details.
- *
- *     You should have received a copy of the GNU Lesser General Public License
- *     along with this program.  If not, see <https://www.gnu.org/licenses/lgpl>.
+ *     This Source Code Form is subject to the terms of the Mozilla Public
+ *     License, v. 2.0. If a copy of the MPL was not distributed with this
+ *     file, You can obtain one at http://mozilla.org/MPL/2.0/.
  *
  *
  * switch.go
@@ -84,7 +75,7 @@ func (c *Comp) Switch(node *ast.SwitchStmt, labels []string) {
 		tag = c.exprUntypedLit(r.Bool, constant.MakeBool(true))
 		tagnode = &ast.Ident{NamePos: node.Pos() + 6, Name: "true"} // only for error messages
 	} else {
-		tag = c.Expr1(tagnode)
+		tag = c.Expr1(tagnode, nil)
 	}
 	if !tag.Const() {
 		// cannot invoke tag.Fun() multiple times because side effects must be applied only once!
@@ -172,7 +163,7 @@ func (c *Comp) switchCase(node *ast.CaseClause, tagnode ast.Expr, tag *Expr, can
 	// compile a comparison of tag against each expression
 	sometrue := false
 	for _, enode := range node.List {
-		e := c.Expr1(enode)
+		e := c.Expr1(enode, nil)
 		if e.Const() {
 			e.ConstTo(tag.Type)
 		}
@@ -183,7 +174,7 @@ func (c *Comp) switchCase(node *ast.CaseClause, tagnode ast.Expr, tag *Expr, can
 			seen.add(c, e.Value, caseEntry{Pos: enode.Pos(), IP: ibody})
 			if tag.Const() {
 				// constant propagation
-				flag := cmp.EvalConst(OptDefaults)
+				flag := cmp.EvalConst(COptDefaults)
 				if r.ValueOf(flag).Bool() {
 					sometrue = true
 					break // always matches, no need to check further expressions

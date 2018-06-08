@@ -6,20 +6,11 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017 Massimiliano Ghilardi
+ * Copyright (C) 2017-2018 Massimiliano Ghilardi
  *
- *     This program is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU Lesser General Public License as published
- *     by the Free Software Foundation, either version 3 of the License, or
- *     (at your option) any later version.
- *
- *     This program is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU Lesser General Public License for more details.
- *
- *     You should have received a copy of the GNU Lesser General Public License
- *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *     This Source Code Form is subject to the terms of the Mozilla Public
+ *     License, v. 2.0. If a copy of the MPL was not distributed with this
+ *     file, You can obtain one at http://mozilla.org/MPL/2.0/.
  *
  *
  * binary_ops.go
@@ -4961,7 +4952,9 @@ func (c *Comp) exprZero(xe *Expr) *Expr {
 	case r.Bool:
 		{
 			x := x.(func(*Env) bool)
-			fun = func(env *Env) (zero bool) {
+			fun = func(env *Env) (zero bool,
+
+			) {
 				x(env)
 				return
 
@@ -4970,7 +4963,9 @@ func (c *Comp) exprZero(xe *Expr) *Expr {
 	case r.Int:
 		{
 			x := x.(func(*Env) int)
-			fun = func(env *Env) (zero int) {
+			fun = func(env *Env) (zero int,
+
+			) {
 				x(env)
 				return
 
@@ -4979,7 +4974,9 @@ func (c *Comp) exprZero(xe *Expr) *Expr {
 	case r.Int8:
 		{
 			x := x.(func(*Env) int8)
-			fun = func(env *Env) (zero int8) {
+			fun = func(env *Env) (zero int8,
+
+			) {
 				x(env)
 				return
 
@@ -4988,7 +4985,9 @@ func (c *Comp) exprZero(xe *Expr) *Expr {
 	case r.Int16:
 		{
 			x := x.(func(*Env) int16)
-			fun = func(env *Env) (zero int16) {
+			fun = func(env *Env) (zero int16,
+
+			) {
 				x(env)
 				return
 
@@ -4997,7 +4996,9 @@ func (c *Comp) exprZero(xe *Expr) *Expr {
 	case r.Int32:
 		{
 			x := x.(func(*Env) int32)
-			fun = func(env *Env) (zero int32) {
+			fun = func(env *Env) (zero int32,
+
+			) {
 				x(env)
 				return
 
@@ -5006,7 +5007,9 @@ func (c *Comp) exprZero(xe *Expr) *Expr {
 	case r.Int64:
 		{
 			x := x.(func(*Env) int64)
-			fun = func(env *Env) (zero int64) {
+			fun = func(env *Env) (zero int64,
+
+			) {
 				x(env)
 				return
 
@@ -5070,7 +5073,9 @@ func (c *Comp) exprZero(xe *Expr) *Expr {
 	case r.Float32:
 		{
 			x := x.(func(*Env) float32)
-			fun = func(env *Env) (zero float32) {
+			fun = func(env *Env) (zero float32,
+
+			) {
 				x(env)
 				return
 
@@ -5080,7 +5085,9 @@ func (c *Comp) exprZero(xe *Expr) *Expr {
 	case r.Float64:
 		{
 			x := x.(func(*Env) float64)
-			fun = func(env *Env) (zero float64) {
+			fun = func(env *Env) (zero float64,
+
+			) {
 				x(env)
 				return
 
@@ -5090,7 +5097,9 @@ func (c *Comp) exprZero(xe *Expr) *Expr {
 	case r.Complex64:
 		{
 			x := x.(func(*Env) complex64)
-			fun = func(env *Env) (zero complex64) {
+			fun = func(env *Env) (zero complex64,
+
+			) {
 				x(env)
 				return
 
@@ -5100,7 +5109,9 @@ func (c *Comp) exprZero(xe *Expr) *Expr {
 	case r.Complex128:
 		{
 			x := x.(func(*Env) complex128)
-			fun = func(env *Env) (zero complex128) {
+			fun = func(env *Env) (zero complex128,
+
+			) {
 				x(env)
 				return
 
@@ -5110,7 +5121,9 @@ func (c *Comp) exprZero(xe *Expr) *Expr {
 	case r.String:
 		{
 			x := x.(func(*Env) string)
-			fun = func(env *Env) (zero string) {
+			fun = func(env *Env) (zero string,
+
+			) {
 				x(env)
 				return
 

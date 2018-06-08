@@ -12,14 +12,21 @@ import (
 func init() {
 	Packages["runtime/pprof"] = Package{
 	Binds: map[string]Value{
+		"Do":	ValueOf(pprof.Do),
+		"ForLabels":	ValueOf(pprof.ForLabels),
+		"Label":	ValueOf(pprof.Label),
+		"Labels":	ValueOf(pprof.Labels),
 		"Lookup":	ValueOf(pprof.Lookup),
 		"NewProfile":	ValueOf(pprof.NewProfile),
 		"Profiles":	ValueOf(pprof.Profiles),
+		"SetGoroutineLabels":	ValueOf(pprof.SetGoroutineLabels),
 		"StartCPUProfile":	ValueOf(pprof.StartCPUProfile),
 		"StopCPUProfile":	ValueOf(pprof.StopCPUProfile),
+		"WithLabels":	ValueOf(pprof.WithLabels),
 		"WriteHeapProfile":	ValueOf(pprof.WriteHeapProfile),
-	},Types: map[string]Type{
+	}, Types: map[string]Type{
+		"LabelSet":	TypeOf((*pprof.LabelSet)(nil)).Elem(),
 		"Profile":	TypeOf((*pprof.Profile)(nil)).Elem(),
-	},
+	}, 
 	}
 }

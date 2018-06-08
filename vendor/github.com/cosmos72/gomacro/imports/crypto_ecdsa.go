@@ -15,9 +15,9 @@ func init() {
 		"GenerateKey":	ValueOf(ecdsa.GenerateKey),
 		"Sign":	ValueOf(ecdsa.Sign),
 		"Verify":	ValueOf(ecdsa.Verify),
-	},Types: map[string]Type{
+	}, Types: map[string]Type{
 		"PrivateKey":	TypeOf((*ecdsa.PrivateKey)(nil)).Elem(),
 		"PublicKey":	TypeOf((*ecdsa.PublicKey)(nil)).Elem(),
-	},
+	}, 
 	}
 }

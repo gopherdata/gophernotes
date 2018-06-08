@@ -1,20 +1,11 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017 Massimiliano Ghilardi
+ * Copyright (C) 2017-2018 Massimiliano Ghilardi
  *
- *     This program is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU Lesser General Public License as published
- *     by the Free Software Foundation, either version 3 of the License, or
- *     (at your option) any later version.
- *
- *     This program is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU Lesser General Public License for more details.
- *
- *     You should have received a copy of the GNU Lesser General Public License
- *     along with this program.  If not, see <https://www.gnu.org/licenses/lgpl>.
+ *     This Source Code Form is subject to the terms of the Mozilla Public
+ *     License, v. 2.0. If a copy of the MPL was not distributed with this
+ *     file, You can obtain one at http://mozilla.org/MPL/2.0/.
  *
  *
  * range.go
@@ -44,9 +35,10 @@ type rangeJump struct {
 // Range compiles a "for-range" statement
 func (c *Comp) Range(node *ast.RangeStmt, labels []string) {
 	var nbinds [2]int
+	flag := true // node.Tok == token.DEFINE || (node.Body != nil && containLocalBinds(node.Body.List...))
 
-	c, _ = c.pushEnvIfFlag(&nbinds, true)
-	erange := c.Expr1(node.X)
+	c, _ = c.pushEnvIfFlag(&nbinds, flag)
+	erange := c.Expr1(node.X, nil)
 	t := erange.Type
 	if erange.Untyped() {
 		t = erange.DefaultType()
@@ -55,7 +47,7 @@ func (c *Comp) Range(node *ast.RangeStmt, labels []string) {
 	var jump rangeJump
 
 	sort.Strings(labels)
-	// we need a fresh Comp here... created above by c.pushEnvIfLocalBinds()
+	// we need a fresh Comp here... created above by c.pushEnvIfFlag()
 	c.Loop = &LoopInfo{
 		Continue:   &jump.Continue,
 		Break:      &jump.Break,
@@ -74,12 +66,12 @@ func (c *Comp) Range(node *ast.RangeStmt, labels []string) {
 			return efun(env).Elem()
 		})
 		fallthrough
+	case r.Array, r.Slice:
+		c.rangeSlice(node, erange, &jump)
 	case r.Chan:
 		c.rangeChan(node, erange, &jump)
 	case r.Map:
 		c.rangeMap(node, erange, &jump)
-	case r.Array, r.Slice:
-		c.rangeSlice(node, erange, &jump)
 	case r.String:
 		c.rangeString(node, erange, &jump)
 	default:
@@ -88,7 +80,7 @@ func (c *Comp) Range(node *ast.RangeStmt, labels []string) {
 
 	jump.Break = c.Code.Len()
 
-	c = c.popEnvIfFlag(&nbinds, true)
+	c = c.popEnvIfFlag(&nbinds, flag)
 }
 
 func (c *Comp) rangeChan(node *ast.RangeStmt, erange *Expr, jump *rangeJump) {
@@ -105,7 +97,7 @@ func (c *Comp) rangeChan(node *ast.RangeStmt, erange *Expr, jump *rangeJump) {
 
 	if placekey == nil {
 		c.append(func(env *Env) (Stmt, *Env) {
-			_, ok := env.Binds[idxchan].Recv()
+			_, ok := env.Vals[idxchan].Recv()
 			var ip int
 			if ok {
 				ip = env.IP + 1
@@ -117,14 +109,14 @@ func (c *Comp) rangeChan(node *ast.RangeStmt, erange *Expr, jump *rangeJump) {
 		})
 	} else {
 		// unnamed bind, contains last received value
-		bindrecv := c.AddBind("", VarBind, c.TypeOfInterface())
+		bindrecv := c.NewBind("", VarBind, c.TypeOfInterface())
 		idxrecv := bindrecv.Desc.Index()
 
 		c.append(func(env *Env) (Stmt, *Env) {
-			v, ok := env.Binds[idxchan].Recv()
+			v, ok := env.Vals[idxchan].Recv()
 			var ip int
 			if ok {
-				env.Binds[idxrecv] = v
+				env.Vals[idxrecv] = v
 				ip = env.IP + 1
 			} else {
 				ip = jump.Break
@@ -147,11 +139,9 @@ func (c *Comp) rangeChan(node *ast.RangeStmt, erange *Expr, jump *rangeJump) {
 }
 
 func (c *Comp) rangeMap(node *ast.RangeStmt, erange *Expr, jump *rangeJump) {
-	c.ErrorIfCompiled(node)
-
 	t := erange.Type
 	tkey, tval := t.Key(), t.Elem()
-	tkeyslice := xr.SliceOf(tkey)
+	tkeyslice := c.Universe.SliceOf(tkey)
 	rtkeyslice := tkeyslice.ReflectType()
 
 	// unnamed bind, contains map
@@ -159,16 +149,16 @@ func (c *Comp) rangeMap(node *ast.RangeStmt, erange *Expr, jump *rangeJump) {
 	idxmap := bindmap.Desc.Index()
 
 	// unnamed bind, contains map keys
-	bindkeys := c.AddBind("", VarBind, tkeyslice)
+	bindkeys := c.NewBind("", VarBind, tkeyslice)
 	idxkeys := bindkeys.Desc.Index()
 	c.append(func(env *Env) (Stmt, *Env) {
 		// convert []r.Value slice into a []rtkey slice, to avoid reflect.Value.Interface() while iterating
-		vkeys := env.Binds[idxmap].MapKeys()
+		vkeys := env.Vals[idxmap].MapKeys()
 		keys := r.MakeSlice(rtkeyslice, len(vkeys), len(vkeys))
 		for i, vkey := range vkeys {
 			keys.Index(i).Set(vkey)
 		}
-		env.Binds[idxkeys] = keys
+		env.Vals[idxkeys] = keys
 		env.IP++
 		return env.Code[env.IP], env
 	})
@@ -192,8 +182,8 @@ func (c *Comp) rangeMap(node *ast.RangeStmt, erange *Expr, jump *rangeJump) {
 	if bindkey == nil {
 		// check iteration index against # of keys
 		c.append(func(env *Env) (Stmt, *Env) {
-			n := env.Binds[idxkeys].Len()
-			i := *(*int)(unsafe.Pointer(&env.IntBinds[idxnext]))
+			n := env.Vals[idxkeys].Len()
+			i := *(*int)(unsafe.Pointer(&env.Ints[idxnext]))
 			var ip int
 			if i < n {
 				ip = env.IP + 1
@@ -208,12 +198,12 @@ func (c *Comp) rangeMap(node *ast.RangeStmt, erange *Expr, jump *rangeJump) {
 		// and copy current map key into bindkey
 		idxkey := bindkey.Desc.Index()
 		c.append(func(env *Env) (Stmt, *Env) {
-			vkeys := env.Binds[idxkeys]
+			vkeys := env.Vals[idxkeys]
 			n := vkeys.Len()
-			i := *(*int)(unsafe.Pointer(&env.IntBinds[idxnext]))
+			i := *(*int)(unsafe.Pointer(&env.Ints[idxnext]))
 			var ip int
 			if i < n {
-				env.Binds[idxkey] = vkeys.Index(i)
+				env.Vals[idxkey] = vkeys.Index(i)
 				ip = env.IP + 1
 			} else {
 				ip = jump.Break
@@ -237,8 +227,8 @@ func (c *Comp) rangeMap(node *ast.RangeStmt, erange *Expr, jump *rangeJump) {
 		rtype := tval.ReflectType()
 		zero := r.Zero(rtype)
 		c.append(func(env *Env) (Stmt, *Env) {
-			vmap := env.Binds[idxmap]
-			key := env.Binds[idxkey]
+			vmap := env.Vals[idxmap]
+			key := env.Vals[idxkey]
 			o := env
 			for j := 0; j < upval; j++ {
 				o = o.Outer
@@ -249,12 +239,12 @@ func (c *Comp) rangeMap(node *ast.RangeStmt, erange *Expr, jump *rangeJump) {
 			} else if val.Type() != rtype {
 				val = val.Convert(rtype)
 			}
-			o.Binds[idxval].Set(val)
+			o.Vals[idxval].Set(val)
 			env.IP++
 			return env.Code[env.IP], env
 		})
 	} else {
-		emap := c.Symbol(bindmap.AsSymbol(0))
+		emap := c.Bind(bindmap)
 		c.SetPlace(placeval, token.ASSIGN, c.mapIndex1(nil, emap, ekey))
 	}
 
@@ -263,7 +253,7 @@ func (c *Comp) rangeMap(node *ast.RangeStmt, erange *Expr, jump *rangeJump) {
 
 	// increase iteration index and jump back to start
 	c.append(func(env *Env) (Stmt, *Env) {
-		(*(*int)(unsafe.Pointer(&env.IntBinds[idxnext])))++
+		(*(*int)(unsafe.Pointer(&env.Ints[idxnext])))++
 		ip := jump.Start
 		env.IP = ip
 		return env.Code[ip], env
@@ -278,8 +268,8 @@ func (c *Comp) rangeSlice(node *ast.RangeStmt, erange *Expr, jump *rangeJump) {
 	if node.Value != nil || t.Kind() != r.Array {
 		// Go spec: one-variable range on array ONLY evaluates the array length, not the array itself
 		// save range variable in an unnamed bind
-		sym := c.DeclVar0("", nil, erange).AsSymbol(0)
-		erange = c.Symbol(sym)
+		bind := c.DeclVar0("", nil, erange)
+		erange = c.Bind(bind)
 	}
 
 	if t.Kind() == r.Array {
@@ -290,8 +280,8 @@ func (c *Comp) rangeSlice(node *ast.RangeStmt, erange *Expr, jump *rangeJump) {
 		elen0 := exprFun(c.TypeOfInt(), func(env *Env) int {
 			return rangefun(env).Len()
 		})
-		symlen := c.DeclVar0("", nil, elen0).AsSymbol(0)
-		elen = c.Symbol(symlen)
+		bindlen := c.DeclVar0("", nil, elen0)
+		elen = c.Bind(bindlen)
 	}
 
 	placekey, placeval := c.rangeVars(node, c.TypeOfInt(), t.Elem())
@@ -299,6 +289,10 @@ func (c *Comp) rangeSlice(node *ast.RangeStmt, erange *Expr, jump *rangeJump) {
 	if placekey == nil {
 		// we need an interation variable, even if user code ignores it
 		placekey = c.DeclVar0("", c.TypeOfInt(), nil).AsVar(0, PlaceSettable).AsPlace()
+	}
+	if placekey.Desc.Class() != IntBind {
+		c.Errorf("internal error: for-range counter variable allocated with class = %v, expecting class = %v",
+			placekey.Desc.Class(), IntBind)
 	}
 
 	jump.Start = c.Code.Len()
@@ -371,12 +365,12 @@ func (c *Comp) rangeString(node *ast.RangeStmt, erange *Expr, jump *rangeJump) {
 	jump.Start = c.Code.Len()
 
 	if placekey != nil {
-		c.SetPlace(placekey, token.ASSIGN, c.Symbol(bindnext.AsSymbol(0)))
+		c.SetPlace(placekey, token.ASSIGN, c.Bind(bindnext))
 	}
 	if placeval == nil {
 		c.append(func(env *Env) (Stmt, *Env) {
-			s := env.Binds[idxrange].String()
-			pnext := (*int)(unsafe.Pointer(&env.IntBinds[idxnext]))
+			s := env.Vals[idxrange].String()
+			pnext := (*int)(unsafe.Pointer(&env.Ints[idxnext]))
 			next := *pnext
 
 			_, size := utf8.DecodeRuneInString(s[next:])
@@ -395,8 +389,8 @@ func (c *Comp) rangeString(node *ast.RangeStmt, erange *Expr, jump *rangeJump) {
 		idxval := placeval.Var.Desc.Index()
 		upval := placeval.Var.Upn
 		c.append(func(env *Env) (Stmt, *Env) {
-			s := env.Binds[idxrange].String()
-			pnext := (*int)(unsafe.Pointer(&env.IntBinds[idxnext]))
+			s := env.Vals[idxrange].String()
+			pnext := (*int)(unsafe.Pointer(&env.Ints[idxnext]))
 			next := *pnext
 
 			r, size := utf8.DecodeRuneInString(s[next:])
@@ -408,7 +402,7 @@ func (c *Comp) rangeString(node *ast.RangeStmt, erange *Expr, jump *rangeJump) {
 				for i := 0; i < upval; i++ {
 					o = o.Outer
 				}
-				*(*int32)(unsafe.Pointer(&env.IntBinds[idxval])) = r
+				*(*int32)(unsafe.Pointer(&env.Ints[idxval])) = r
 				ip = env.IP + 1
 			} else {
 				ip = jump.Break
@@ -419,8 +413,8 @@ func (c *Comp) rangeString(node *ast.RangeStmt, erange *Expr, jump *rangeJump) {
 	} else {
 		idxrune := bindrune.Desc.Index()
 		c.append(func(env *Env) (Stmt, *Env) {
-			s := env.Binds[idxrange].String()
-			pnext := (*int)(unsafe.Pointer(&env.IntBinds[idxnext]))
+			s := env.Vals[idxrange].String()
+			pnext := (*int)(unsafe.Pointer(&env.Ints[idxnext]))
 			next := *pnext
 
 			r, size := utf8.DecodeRuneInString(s[next:])
@@ -428,7 +422,7 @@ func (c *Comp) rangeString(node *ast.RangeStmt, erange *Expr, jump *rangeJump) {
 			if size != 0 {
 				next += size
 				*pnext = next
-				*(*int32)(unsafe.Pointer(&env.IntBinds[idxrune])) = r
+				*(*int32)(unsafe.Pointer(&env.Ints[idxrune])) = r
 				ip = env.IP + 1
 			} else {
 				ip = jump.Break
@@ -436,7 +430,7 @@ func (c *Comp) rangeString(node *ast.RangeStmt, erange *Expr, jump *rangeJump) {
 			env.IP = ip
 			return env.Code[ip], env
 		})
-		c.SetPlace(placeval, token.ASSIGN, c.Symbol(bindrune.AsSymbol(0)))
+		c.SetPlace(placeval, token.ASSIGN, c.Bind(bindrune))
 	}
 
 	// compile the body
@@ -452,7 +446,7 @@ func (c *Comp) rangeString(node *ast.RangeStmt, erange *Expr, jump *rangeJump) {
 
 // rangeVars compiles the key and value iteration variables in a for-range
 func (c *Comp) rangeVars(node *ast.RangeStmt, tkey xr.Type, tval xr.Type) (*Place, *Place) {
-	var place [2]*Place
+	place := [2]*Place{nil, nil}
 	t := [2]xr.Type{tkey, tval}
 
 	for i, expr := range [2]ast.Expr{node.Key, node.Value} {
@@ -474,6 +468,10 @@ func (c *Comp) rangeVars(node *ast.RangeStmt, tkey xr.Type, tval xr.Type) (*Plac
 				c.Errorf("non-name %v on left side of :=", expr)
 			}
 		} else {
+			if ident, ok := expr.(*ast.Ident); ok && ident.Name == "_" {
+				// ignore range variable "_"
+				continue
+			}
 			place[i] = c.Place(expr)
 			if !t[i].AssignableTo(place[i].Type) {
 				c.Errorf("cannot assign type <%v> to %v <%v> in range", t[i], expr, place[i].Type)

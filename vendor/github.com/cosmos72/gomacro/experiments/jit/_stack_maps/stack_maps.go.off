@@ -1,0 +1,209 @@
+/*
+ * gomacro - A Go interpreter with Lisp-like macros
+ *
+ * Copyright (C) 2018 Massimiliano Ghilardi
+ *
+ *     This Source Code Form is subject to the terms of the Mozilla Public
+ *     License, v. 2.0. If a copy of the MPL was not distributed with this
+ *     file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ *
+ *
+ * stack_maps.go
+ *
+ *  Created on May 23, 2018
+ *      Author Massimiliano Ghilardi
+ */
+
+package stack_maps
+
+import (
+	"unsafe"
+)
+
+var _0 *int
+
+func pointer0_0(a int) int {
+	return a
+}
+
+func func1_argptr1_0(a *int) int {
+	if a == _0 {
+		return 1
+	} else {
+		return 0
+	}
+}
+
+func func2_argptr2_0(a, b *int) int {
+	ret := 0
+	if a == b {
+		ret++
+	}
+	return ret
+}
+
+func func2_argptr2_2(a, b *int) (A, B **int) {
+	return &a, &b
+}
+
+func func3_argptr3_0(a, b, c *int) int {
+	ret := 0
+	if a == b {
+		ret++
+	}
+	if b == c {
+		ret++
+	}
+	return ret
+}
+
+func func3_argptr3_3(a, b, c *int) (A, B, C *int) {
+	return (*int)(unsafe.Pointer(uintptr(16))),
+		(*int)(unsafe.Pointer(uintptr(32))),
+		(*int)(unsafe.Pointer(uintptr(64)))
+}
+
+func func4_argptr4_0(a, b, c, d *int) int {
+	ret := 0
+	if a == b {
+		ret++
+	}
+	if c == d {
+		ret++
+	}
+	return ret
+}
+
+func func5_argptr5_0(a, b, c, d, e *int) int {
+	ret := 0
+	if a == b {
+		ret++
+	} else if c == d {
+		ret++
+	}
+	return ret
+}
+
+func func5_argptr0_0(a, b, c, d, e int) int {
+	ret := 0
+	if a == b {
+		ret++
+	} else if c == d {
+		ret++
+	} else if c == e {
+		ret++
+	}
+	return ret
+}
+
+func func7_argptr7_0(a, b, c, d, e, f, g *int) int {
+	ret := 0
+	if a == b {
+		ret++
+	} else if c == d {
+		ret++
+	} else if e == f {
+		ret++
+	} else if g == a {
+		ret++
+	}
+	return ret
+}
+
+func func7_argptr7_7(a, b, c, d, e, f, g *int) (A, B, C, D, E, F, G **int) {
+	return &a, &b, &c, &d, &e, &f, &g
+}
+
+func func8_argptr8_0(a, b, c, d, e, f, g, h *int) int {
+	ret := 0
+	if a == b {
+		ret++
+	} else if c == d {
+		ret++
+	} else if e == f {
+		ret++
+	} else if g == h {
+		ret++
+	}
+	return ret
+}
+
+func func31_argptr31_0(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z, aa, ab, ac, ad, ae *int) int {
+	ret := 0
+	if a == b {
+		ret++
+	} else if c == d {
+		ret++
+	} else if e == f {
+		ret++
+	} else if g == h {
+		ret++
+	} else if i == j {
+		ret++
+	} else if k == l {
+		ret++
+	} else if m == n {
+		ret++
+	} else if o == p {
+		ret++
+	} else if q == r {
+		ret++
+	} else if s == t {
+		ret++
+	} else if u == v {
+		ret++
+	} else if w == x {
+		ret++
+	} else if y == z {
+		ret++
+	} else if aa == ab {
+		ret++
+	} else if ac == ad {
+		ret++
+	} else if ae == a {
+		ret++
+	}
+	return ret
+}
+
+func func32_argptr32_0(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z, aa, ab, ac, ad, ae, af *int) int {
+	ret := 0
+	if a == b {
+		ret++
+	} else if c == d {
+		ret++
+	} else if e == f {
+		ret++
+	} else if g == h {
+		ret++
+	} else if i == j {
+		ret++
+	} else if k == l {
+		ret++
+	} else if m == n {
+		ret++
+	} else if o == p {
+		ret++
+	} else if q == r {
+		ret++
+	} else if s == t {
+		ret++
+	} else if u == v {
+		ret++
+	} else if w == x {
+		ret++
+	} else if y == z {
+		ret++
+	} else if aa == ab {
+		ret++
+	} else if ac == ad {
+		ret++
+	} else if ae == af {
+		ret++
+	}
+	return ret
+}
+
+func func1_argptr0_1(a int) *int {
+	return _0
+}

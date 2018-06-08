@@ -15,8 +15,8 @@ func init() {
 		"Decode":	ValueOf(pem.Decode),
 		"Encode":	ValueOf(pem.Encode),
 		"EncodeToMemory":	ValueOf(pem.EncodeToMemory),
-	},Types: map[string]Type{
+	}, Types: map[string]Type{
 		"Block":	TypeOf((*pem.Block)(nil)).Elem(),
-	},
+	}, 
 	}
 }

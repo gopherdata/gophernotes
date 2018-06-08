@@ -1,20 +1,11 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017 Massimiliano Ghilardi
+ * Copyright (C) 2017-2018 Massimiliano Ghilardi
  *
- *     This program is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU Lesser General Public License as published
- *     by the Free Software Foundation, either version 3 of the License, or
- *     (at your option) any later version.
- *
- *     This program is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU Lesser General Public License for more details.
- *
- *     You should have received a copy of the GNU Lesser General Public License
- *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ *     This Source Code Form is subject to the terms of the Mozilla Public
+ *     License, v. 2.0. If a copy of the MPL was not distributed with this
+ *     file, You can obtain one at http://mozilla.org/MPL/2.0/.
  *
  *
  * quasiquote.go
@@ -83,23 +74,23 @@ func (c *Comp) Quasiquote(in Ast) *Expr {
 	return c.Compile(in)
 }
 
-func (c *Comp) quasiquote1(in Ast, depth int, can_splice bool) *Expr {
-	expr, _ := c.quasiquote(in, depth, can_splice)
+func (c *Comp) quasiquote1(in Ast, depth int, canSplice bool) *Expr {
+	expr, _ := c.quasiquote(in, depth, canSplice)
 	return expr
 }
 
 // quasiquote expands and compiles the contents of a ~quasiquote
-func (c *Comp) quasiquote(in Ast, depth int, can_splice bool) (*Expr, bool) {
+func (c *Comp) quasiquote(in Ast, depth int, canSplice bool) (*Expr, bool) {
 	if in == nil || in.Interface() == nil {
 		return nil, false
 	}
 	debug := c.Options&OptDebugQuasiquote != 0
 	var label string
-	if can_splice {
+	if canSplice {
 		label = " splice"
 	}
 	if debug {
-		c.Debugf("Quasiquote[%d]%s expanding %s: %v <%v>", depth, label, mt.String(mt.QUASIQUOTE), in.Interface(), r.TypeOf(in.Interface()))
+		c.Debugf("Quasiquote[%d]%s expanding %s: %v // %T", depth, label, mt.String(mt.QUASIQUOTE), in.Interface(), in.Interface())
 	}
 
 	switch in := in.(type) {
@@ -114,7 +105,7 @@ func (c *Comp) quasiquote(in Ast, depth int, can_splice bool) (*Expr, bool) {
 				expr, splice := c.quasiquote(form, depth, true)
 				fun := expr.AsX1()
 				if fun == nil {
-					c.Warnf("Quasiquote[%d]%s: node expanded to nil: %v <%v>", depth, label, form.Interface(), r.TypeOf(form.Interface()))
+					c.Warnf("Quasiquote[%d]%s: node expanded to nil: %v // %T", depth, label, form.Interface(), form.Interface())
 					continue
 				}
 				funs = append(funs, fun)
@@ -136,12 +127,12 @@ func (c *Comp) quasiquote(in Ast, depth int, can_splice bool) (*Expr, bool) {
 			for i, fun := range funs {
 				x := ValueInterface(fun(env))
 				if debug {
-					Debugf("Quasiquote: env=%p, append to AstWithSlice: <%v> returned %v <%v>", env, r.TypeOf(fun), x, r.TypeOf(x))
+					Debugf("Quasiquote: env=%p, append to AstWithSlice: <%v> returned %v // %T", env, r.TypeOf(fun), x, x)
 				}
 				if x == nil {
 					continue
 				} else if !splices[i] {
-					out = out.Append(AnyToAst(x, positions[i]))
+					out = out.Append(anyToAst(x, positions[i]))
 				} else {
 					xs := AnyToAstWithSlice(x, positions[i])
 					n := xs.Size()
@@ -157,7 +148,52 @@ func (c *Comp) quasiquote(in Ast, depth int, can_splice bool) (*Expr, bool) {
 	case UnaryExpr:
 		unary := in.X
 		switch op := unary.Op; op {
-		case mt.QUOTE, mt.QUASIQUOTE, mt.UNQUOTE, mt.UNQUOTE_SPLICE:
+		case mt.UNQUOTE, mt.UNQUOTE_SPLICE:
+			inner, unquoteDepth := DescendNestedUnquotes(in)
+			if debug {
+				c.Debugf("Quasiquote[%d]%s deep splice expansion? %v. unquoteDepth = %d, inner.Op() = %s: %v // %T",
+					depth, label, unquoteDepth > 1 && unquoteDepth >= depth && inner.Op() == mt.UNQUOTE_SPLICE,
+					unquoteDepth, mt.String(inner.Op()), inner, inner)
+			}
+			if unquoteDepth > 1 && unquoteDepth >= depth && inner.Op() == mt.UNQUOTE_SPLICE {
+				// complication: in Common Lisp, the right-most unquote pairs with the left-most comma!
+				// we implement the same mechanics, so we must drill down to the last unquote/unquote_splice
+				// and, for unquote_splice, create a copy of the unquote/unquote_splice stack for each result.
+				// Example:
+				//   x:=quote{7; 8}
+				//   quasiquote{quasiquote{1; unquote{2}; unquote{unquote_splice{x}}}}
+				// must return
+				//   quasiquote{1; unquote{2}; unquote{7}; unquote{8}}
+
+				depth -= unquoteDepth
+				node := SimplifyNodeForQuote(inner.X.X.(*ast.FuncLit).Body, true)
+				form := ToAst(node)
+				if debug {
+					c.Debugf("Quasiquote[%d]%s deep splice compiling %s: %v // %T", depth, label, mt.String(inner.Op()), node, node)
+				}
+				fun := c.compileExpr(form).AsX1()
+				toks, pos := CollectNestedUnquotes(in)
+				position := c.Fileset.Position(pos[0])
+				pos0 := pos[0]
+				end := unary.End()
+				toks = toks[:unquoteDepth-1]
+				pos = pos[:unquoteDepth-1]
+
+				return exprX1(c.Universe.FromReflectType(rtypeOfBlockStmt), func(env *Env) r.Value {
+					x := ValueInterface(fun(env))
+					// Debugf("Quasiquote: runtime deep expansion returned: %v // %T", x, x)
+					form := AnyToAstWithSlice(x, position)
+					out := BlockStmt{&ast.BlockStmt{Lbrace: pos0, Rbrace: end}}
+					for i, ni := 0, form.Size(); i < ni; i++ {
+						// cheat: BlockStmt.Append() does not modify the receiver
+						formi := AnyToAstWithNode(form.Get(i), position)
+						out.Append(MakeNestedQuote(formi, toks, pos))
+					}
+					return r.ValueOf(out.X)
+				}), true
+			}
+			fallthrough
+		case mt.QUOTE, mt.QUASIQUOTE:
 			node := SimplifyNodeForQuote(unary.X.(*ast.FuncLit).Body, true)
 			form := ToAst(node)
 
@@ -168,13 +204,13 @@ func (c *Comp) quasiquote(in Ast, depth int, can_splice bool) (*Expr, bool) {
 			}
 			if depth <= 0 {
 				if debug {
-					c.Debugf("Quasiquote[%d]%s compiling %s: %v <%v>", depth, label, mt.String(op), node, r.TypeOf(node))
+					c.Debugf("Quasiquote[%d]%s compiling %s: %v // %T", depth, label, mt.String(op), node, node)
 				}
 				return c.compileExpr(form), op == mt.UNQUOTE_SPLICE
 			}
 			fun := c.quasiquote1(form, depth, true).AsX1()
 			if fun == nil {
-				c.Warnf("Quasiquote[%d]%s: node expanded to nil: %v <%v>", depth, label, node, r.TypeOf(node))
+				c.Warnf("Quasiquote[%d]%s: node expanded to nil: %v // %T", depth, label, node, node)
 			}
 			var pos token.Pos
 			var position token.Position
@@ -249,7 +285,7 @@ func (c *Comp) quasiquote(in Ast, depth int, can_splice bool) (*Expr, bool) {
 				if debug {
 					Debugf("Quasiquote: env = %p, <%v> returned %v <%v>", env, r.TypeOf(fun), x, r.TypeOf(x))
 				}
-				out.Set(i, AnyToAst(x, positions[i]))
+				out.Set(i, anyToAst(x, positions[i]))
 			}
 		}
 		return r.ValueOf(out.Interface()).Convert(rtype)
@@ -261,7 +297,7 @@ func (c *Comp) quoteUnquoteSplice(op token.Token, pos token.Pos, position token.
 		var node ast.Node
 		if fun != nil {
 			x := ValueInterface(fun(env))
-			form := AnyToAst(x, position)
+			form := anyToAst(x, position)
 			switch form := form.(type) {
 			case AstWithNode:
 				node = form.Node()
