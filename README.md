@@ -188,16 +188,10 @@ $ docker run -it -p 8888:8888 -v /path/to/local/notebooks:/path/to/notebooks/in/
 gophernotes uses [gomacro](https://github.com/cosmos72/gomacro) under the hood to evaluate Go code interactively. You can evaluate most any Go code with gomacro, but there are some limitation, which are discussed in further detail [here](https://github.com/cosmos72/gomacro#current-status).  Most noteably, gophernotes does NOT support:
 
 - third party packages when running natively on Mac and Windows - This is a current limitation of the Go `plugin` package.
-- unexported struct fields
-- interfaces - They can be declared, but nothing more: there is no way to implement them or call their methods
-- extracting methods from types - For example time.Duration.String should return a func(time.Duration) string but currently gives an error. Instead extracting methods from objects is supported: time.Duration(1s).String correctly returns a func() string
-- goto
-- named return values
-- named imports like:
-
-    ```
-    import tf "github.com/tensorflow/tensorflow/tensorflow/go"
-    ```
+- some corner cases on interpreted interfaces, as interface -&gt; interface type switch and type assertion, are not implemented yet.
+- conversion from typed constant to interpreted interface is not implemented. Workaround: assign the constant to a variable, then convert the variable to the interpreted interface type.
+- goto is only partially implemented.
+- out-of-order code in the same cell is supported, but not heavily tested. It has some known limitations for composite literals.
 
 ## Troubleshooting
 
