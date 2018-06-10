@@ -42,7 +42,7 @@ type msgReceipt struct {
 // at least a "text/plain" representation with a string value.
 type BundledMIMEData map[string]interface{}
 
-type DisplayData struct {
+type Data struct {
 	Data      BundledMIMEData `json:"data"`
 	Metadata  BundledMIMEData `json:"metadata"`
 	Transient BundledMIMEData `json:"transient"`
@@ -274,7 +274,7 @@ func (receipt *msgReceipt) PublishExecutionError(err string, trace []string) err
 }
 
 // PublishDisplayData publishes a single image.
-func (receipt *msgReceipt) PublishDisplayData(data DisplayData) error {
+func (receipt *msgReceipt) PublishDisplayData(data Data) error {
 	if data.Metadata == nil {
 		data.Metadata = make(BundledMIMEData)
 	}

@@ -9,10 +9,10 @@ import (
 
 // Image converts an image.Image to DisplayData containing PNG []byte,
 // or to DisplayData containing error if the conversion fails
-func Image(img image.Image) DisplayData {
+func Image(img image.Image) Data {
 	data, err := image0(img)
 	if err != nil {
-		return DisplayData{
+		return Data{
 			Data: BundledMIMEData{
 				"ename":     "ERROR",
 				"evalue":    err.Error(),
@@ -24,14 +24,14 @@ func Image(img image.Image) DisplayData {
 	return data
 }
 
-// image0 converts an image.Image to DisplayData containing PNG []byte,
+// Image converts an image.Image to Data containing PNG []byte,
 // or error if the conversion fails
-func image0(img image.Image) (DisplayData, error) {
+func image0(img image.Image) (Data, error) {
 	bytes, mime, err := encodePng(img)
 	if err != nil {
-		return DisplayData{}, err
+		return Data{}, err
 	}
-	return DisplayData{
+	return Data{
 		Data: BundledMIMEData{
 			mime: bytes,
 		},
@@ -60,8 +60,8 @@ func imageMetadata(img image.Image) BundledMIMEData {
 	}
 }
 
-// publishImages sends a "display_data" broadcast message for given image.Image.
-func publishImage(img image.Image, receipt *msgReceipt) error {
+// PublishImage sends a "display_data" broadcast message for given image.Image.
+func (receipt *msgReceipt) PublishImage(img image.Image) error {
 	data, err := image0(img)
 	if err != nil {
 		return err
@@ -69,34 +69,43 @@ func publishImage(img image.Image, receipt *msgReceipt) error {
 	return receipt.PublishDisplayData(data)
 }
 
-// publishImagesAndDisplayData sends a "display_data" broadcast message for each
-// image.Image and DisplayData found in vals, then replaces it with nil
-// to avoid overloading the front-end with huge amounts of output text:
+// if vals[] contain a single non-nil value which is an image.Image
+// or a display.Data, publishImageOrDisplayData sends a "display_data"
+// broadcast message for such value, then returns nil to avoid overloading
+// the front-end with huge amounts of output text:
 // fmt.Sprint(val) is often very large for an image and other multimedia data.
-func publishImagesAndDisplayData(vals []interface{}, receipt *msgReceipt) []interface{} {
-	for i, val := range vals {
+func (receipt *msgReceipt) PublishImageOrDisplayData(vals []interface{}) []interface{} {
+	var nilcount int
+	var data interface{}
+	for _, val := range vals {
 		switch obj := val.(type) {
+		case image.Image, Data:
+			data = obj
+		case nil:
+			nilcount++
+		}
+	}
+	if data != nil && nilcount == len(vals)-1 {
+		switch obj := data.(type) {
 		case image.Image:
-			err := publishImage(obj, receipt)
+			err := receipt.PublishImage(obj)
 			if err != nil {
 				log.Printf("Error publishing image.Image: %v\n", err)
 			} else {
-				vals[i] = nil
+				nilcount++
 			}
-		case DisplayData:
+		case Data:
 			err := receipt.PublishDisplayData(obj)
 			if err != nil {
-				log.Printf("Error publishing DisplayData: %v\n", err)
+				log.Printf("Error publishing Data: %v\n", err)
 			} else {
-				vals[i] = nil
+				nilcount++
 			}
 		}
 	}
-	// if all values are nil, return empty slice
-	for _, val := range vals {
-		if val != nil {
-			return vals
-		}
+	if nilcount == len(vals) {
+		// if all values are nil, return empty slice
+		return nil
 	}
-	return nil
+	return vals
 }

@@ -27,14 +27,14 @@ const (
 
 // injected as placeholder in the interpreter, it's then replaced at runtime
 // by a closure that knows how to talk with Jupyter
-func stubDisplay(DisplayData) error {
-	return errors.New("cannot display: connection with Jupiter not registered")
+func stubDisplay(Data) error {
+	return errors.New("cannot display: connection with Jupyter not available")
 }
 
 // TODO handle the metadata
 
-func MakeDisplayData(mimeType string, data interface{}) DisplayData {
-	return DisplayData{
+func MakeData(mimeType string, data interface{}) Data {
+	return Data{
 		Data: BundledMIMEData{
 			"text/plain": fmt.Sprint(data),
 			mimeType:     data,
@@ -42,8 +42,8 @@ func MakeDisplayData(mimeType string, data interface{}) DisplayData {
 	}
 }
 
-func MakeDisplayData3(mimeType string, plaintext string, data interface{}) DisplayData {
-	return DisplayData{
+func MakeData3(mimeType string, plaintext string, data interface{}) Data {
+	return Data{
 		Data: BundledMIMEData{
 			"text/plain": plaintext,
 			mimeType:     data,
@@ -51,63 +51,63 @@ func MakeDisplayData3(mimeType string, plaintext string, data interface{}) Displ
 	}
 }
 
-func Bytes(mimeType string, bytes []byte) DisplayData {
-	return MakeDisplayData3(mimeType, mimeType, bytes)
+func Bytes(mimeType string, bytes []byte) Data {
+	return MakeData3(mimeType, mimeType, bytes)
 }
 
-func HTML(html string) DisplayData {
-	return MakeDisplayData(MIMETypeHTML, html)
+func HTML(html string) Data {
+	return MakeData(MIMETypeHTML, html)
 }
 
-func JSON(json map[string]interface{}) DisplayData {
-	return MakeDisplayData(MIMETypeJSON, json)
+func JSON(json map[string]interface{}) Data {
+	return MakeData(MIMETypeJSON, json)
 }
 
-func JavaScript(javascript string) DisplayData {
-	return MakeDisplayData(MIMETypeJavaScript, javascript)
+func JavaScript(javascript string) Data {
+	return MakeData(MIMETypeJavaScript, javascript)
 }
 
-func JPEG(jpeg []byte) DisplayData {
-	return MakeDisplayData3(MIMETypeJPEG, "jpeg image", jpeg) // []byte are encoded as base64 by the marshaller
+func JPEG(jpeg []byte) Data {
+	return MakeData3(MIMETypeJPEG, "jpeg image", jpeg) // []byte are encoded as base64 by the marshaller
 }
 
-func Latex(latex string) DisplayData {
-	return MakeDisplayData3(MIMETypeLatex, latex, "$"+strings.Trim(latex, "$")+"$")
+func Latex(latex string) Data {
+	return MakeData3(MIMETypeLatex, latex, "$"+strings.Trim(latex, "$")+"$")
 }
 
-func Markdown(markdown string) DisplayData {
-	return MakeDisplayData(MIMETypeMarkdown, markdown)
+func Markdown(markdown string) Data {
+	return MakeData(MIMETypeMarkdown, markdown)
 }
 
-func Math(latex string) DisplayData {
-	return MakeDisplayData3(MIMETypeLatex, latex, "$$"+strings.Trim(latex, "$")+"$$")
+func Math(latex string) Data {
+	return MakeData3(MIMETypeLatex, latex, "$$"+strings.Trim(latex, "$")+"$$")
 }
 
-func PDF(pdf []byte) DisplayData {
-	return MakeDisplayData3(MIMETypePDF, "pdf document", pdf) // []byte are encoded as base64 by the marshaller
+func PDF(pdf []byte) Data {
+	return MakeData3(MIMETypePDF, "pdf document", pdf) // []byte are encoded as base64 by the marshaller
 }
 
-func PNG(png []byte) DisplayData {
-	return MakeDisplayData3(MIMETypePNG, "png image", png) // []byte are encoded as base64 by the marshaller
+func PNG(png []byte) Data {
+	return MakeData3(MIMETypePNG, "png image", png) // []byte are encoded as base64 by the marshaller
 }
 
-func String(mimeType string, s string) DisplayData {
-	return MakeDisplayData(mimeType, s)
+func String(mimeType string, s string) Data {
+	return MakeData(mimeType, s)
 }
 
-func SVG(svg string) DisplayData {
-	return MakeDisplayData(MIMETypeSVG, svg)
+func SVG(svg string) Data {
+	return MakeData(MIMETypeSVG, svg)
 }
 
-// MIME encapsulates the data and metadata into a DisplayData.
+// MIME encapsulates the data and metadata into a Data.
 // The 'data' map is expected to contain at least one {key,value} pair,
 // with value being a string, []byte or some other JSON serializable representation,
 // and key equal to the MIME type of such value.
 // The exact structure of value is determined by what the frontend expects.
 // Some easier-to-use functions for common formats supported by the Jupyter frontend
 // are provided by the various functions above.
-func MIME(data, metadata map[string]interface{}) DisplayData {
-	return DisplayData{data, metadata, nil}
+func MIME(data, metadata map[string]interface{}) Data {
+	return Data{data, metadata, nil}
 }
 
 // prepare imports.Package for interpreted code
@@ -120,8 +120,8 @@ var display = imports.Package{
 		"JSON":               r.ValueOf(JSON),
 		"JavaScript":         r.ValueOf(JavaScript),
 		"Latex":              r.ValueOf(Latex),
-		"MakeDisplayData":    r.ValueOf(MakeDisplayData),
-		"MakeDisplayData3":   r.ValueOf(MakeDisplayData3),
+		"MakeData":           r.ValueOf(MakeData),
+		"MakeData3":          r.ValueOf(MakeData3),
 		"Markdown":           r.ValueOf(Markdown),
 		"Math":               r.ValueOf(Math),
 		"MIME":               r.ValueOf(MIME),
@@ -141,7 +141,7 @@ var display = imports.Package{
 	},
 	Types: map[string]r.Type{
 		"BundledMIMEData": r.TypeOf((*BundledMIMEData)(nil)).Elem(),
-		"DisplayData":     r.TypeOf((*DisplayData)(nil)).Elem(),
+		"Data":            r.TypeOf((*Data)(nil)).Elem(),
 	},
 }
 

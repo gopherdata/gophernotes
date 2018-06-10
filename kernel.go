@@ -399,7 +399,7 @@ func handleExecuteRequest(ir *interp.Interp, receipt msgReceipt) error {
 
 	if executionErr == nil {
 		// if one or more value is image.Image or DisplayData, display it instead
-		vals = publishImagesAndDisplayData(vals, &receipt)
+		vals = receipt.PublishImageOrDisplayData(vals)
 
 		content["status"] = "ok"
 		content["user_expressions"] = make(map[string]string)
