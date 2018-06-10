@@ -2,9 +2,9 @@ package main
 
 import (
 	"bytes"
+	"fmt"
 	"image"
 	"image/png"
-	"log"
 )
 
 // Image converts an image.Image to DisplayData containing PNG []byte,
@@ -69,43 +69,35 @@ func (receipt *msgReceipt) PublishImage(img image.Image) error {
 	return receipt.PublishDisplayData(data)
 }
 
-// if vals[] contain a single non-nil value which is an image.Image
-// or a display.Data, publishImageOrDisplayData sends a "display_data"
-// broadcast message for such value, then returns nil to avoid overloading
-// the front-end with huge amounts of output text:
-// fmt.Sprint(val) is often very large for an image and other multimedia data.
-func (receipt *msgReceipt) PublishImageOrDisplayData(vals []interface{}) []interface{} {
+// if vals[] contain a single non-nil value which is an image.Image,
+// convert it to Data and return it.
+// if instead the single non-nil value is a Data, return it.
+// otherwise return MakeData("text/plain", fmt.Sprint(vals...))
+func renderResults(vals []interface{}) Data {
 	var nilcount int
-	var data interface{}
+	var obj interface{}
 	for _, val := range vals {
-		switch obj := val.(type) {
+		switch val.(type) {
 		case image.Image, Data:
-			data = obj
+			obj = val
 		case nil:
 			nilcount++
 		}
 	}
-	if data != nil && nilcount == len(vals)-1 {
-		switch obj := data.(type) {
+	if obj != nil && nilcount == len(vals)-1 {
+		switch val := obj.(type) {
 		case image.Image:
-			err := receipt.PublishImage(obj)
-			if err != nil {
-				log.Printf("Error publishing image.Image: %v\n", err)
-			} else {
-				nilcount++
+			data, err := image0(val)
+			if err == nil {
+				return data
 			}
 		case Data:
-			err := receipt.PublishDisplayData(obj)
-			if err != nil {
-				log.Printf("Error publishing Data: %v\n", err)
-			} else {
-				nilcount++
-			}
+			return val
 		}
 	}
 	if nilcount == len(vals) {
-		// if all values are nil, return empty slice
-		return nil
+		// if all values are nil, return empty Data
+		return Data{}
 	}
-	return vals
+	return MakeData("text/plain", fmt.Sprint(vals...))
 }

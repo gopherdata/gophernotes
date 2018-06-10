@@ -398,15 +398,15 @@ func handleExecuteRequest(ir *interp.Interp, receipt msgReceipt) error {
 	writersWG.Wait()
 
 	if executionErr == nil {
-		// if one or more value is image.Image or DisplayData, display it instead
-		vals = receipt.PublishImageOrDisplayData(vals)
+		// if the only non-nil value is image.Image or Data, render it
+		data := renderResults(vals)
 
 		content["status"] = "ok"
 		content["user_expressions"] = make(map[string]string)
 
-		if !silent && vals != nil {
+		if !silent && len(data.Data) != 0 {
 			// Publish the result of the execution.
-			if err := receipt.PublishExecutionResult(ExecCounter, fmt.Sprint(vals...)); err != nil {
+			if err := receipt.PublishExecutionResult(ExecCounter, data); err != nil {
 				log.Printf("Error publishing execution result: %v\n", err)
 			}
 		}
