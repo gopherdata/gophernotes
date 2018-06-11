@@ -223,7 +223,7 @@ import (
 }
 
 :macro setplace_expr(opnode, depth, typ ast.Node) ast.Node {
-	return fsetplace(opnode, depth, typ, ~'{fun(env)}, ~'{fun(env).Convert(t)})
+	return fsetplace(opnode, depth, typ, ~'{fun(env)}, ~'{convert(fun(env), t)})
 }
 
 :macro setplace_depth_const(opnode, typ ast.Node) ast.Node {
@@ -666,7 +666,7 @@ func (c *Comp) SetVar(va *Var, op token.Token, init *Expr) {
 			v = r.Zero(rt)
 			val = v.Interface()
 		} else if v.Type() != rt && !shift {
-			v = v.Convert(rt)
+			v = convert(v, rt)
 			val = v.Interface()
 		}
 		switch op {

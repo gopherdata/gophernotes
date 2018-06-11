@@ -1123,7 +1123,7 @@ func (c *Comp) call1ret0(call *Call, maxdepth int) func(env *Env) {
 			argv := []r.Value{
 				argfun(env),
 			}
-			funv.Call(argv)
+			callxr(funv, argv)
 		}
 	}
 	return ret
@@ -1736,7 +1736,7 @@ func (c *Comp) call2ret0(call *Call, maxdepth int) func(env *Env) {
 				argfuns[0](env),
 				argfuns[1](env),
 			}
-			funv.Call(argv)
+			callxr(funv, argv)
 		}
 	}
 	return ret

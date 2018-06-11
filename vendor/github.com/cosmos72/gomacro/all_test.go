@@ -466,7 +466,7 @@ var testcases = []TestCase{
 		B string
 	}{}, nil},
 	TestCase{F, "field_anonymous_2", "type Z struct { *Z }; Z{}", struct {
-		Z *xr.Forward
+		Z xr.Forward
 	}{}, nil},
 	TestCase{F, "field_embedded_1", "triple.A", rune(0), nil},
 	TestCase{F, "field_embedded_2", "triple.B", "", nil},
@@ -475,7 +475,9 @@ var testcases = []TestCase{
 	TestCase{F, "field_embedded_4", "tp.A", panics, nil},
 	TestCase{F, "field_embedded_5", "tp.Pair = &triple.Pair; tp.B", "", nil},
 
-	TestCase{F, "self_embedded_1", "type X struct { *X }; X{}.X", (*xr.Forward)(nil), nil},
+	TestCase{F, "self_embedded_1", "type X struct { *X }; X{}.X", (xr.Forward)(nil), nil},
+	TestCase{F, "self_embedded_2", "var x X; x.X = &x; x.X.X.X.X.X.X.X.X == &x", true, nil},
+	TestCase{F, "self_embedded_3", "x.X.X.X == x.X.X.X.X.X", true, nil},
 
 	TestCase{A, "address_0", "var vf = 1.25; *&vf == vf", true, nil},
 	TestCase{A, "address_1", "var pvf = &vf; *pvf", 1.25, nil},
@@ -577,9 +579,12 @@ var testcases = []TestCase{
 	TestCase{A, "fibonacci", fibonacci_source_string + "; fibonacci(13)", 233, nil},
 	TestCase{A, "function_literal", "adder := func(a,b int) int { return a+b }; adder(-7,-9)", -16, nil},
 
-	TestCase{F, "y_combinator_1", "type F func(F); var f F; f", *new(func(xr.Forward)), nil},
-	TestCase{F, "y_combinator_2", "func Y(f F) { /*f(f)*/ }; Y", func(func(xr.Forward)) {}, nil}, // avoid the infinite recursion, only check the types
-	TestCase{F, "y_combinator_3", "Y(Y)", nil, []interface{}{}},                                  // also check actual invokation
+	TestCase{F, "y_combinator_1", "type F func(F); var f F; &f", new(xr.Forward), nil},     // xr.Forward is contagious
+	TestCase{F, "y_combinator_2", "func Y(f F) { /*f(f)*/ }; Y", func(xr.Forward) {}, nil}, // avoid the infinite recursion, only check the types
+	TestCase{F, "y_combinator_3", "Y(Y)", nil, []interface{}{}},                            // also check actual invokations
+	TestCase{F, "y_combinator_4", "f=Y; f(Y)", nil, []interface{}{}},
+	TestCase{F, "y_combinator_5", "Y(f)", nil, []interface{}{}},
+	TestCase{F, "y_combinator_6", "f(f)", nil, []interface{}{}},
 
 	TestCase{A, "closure_1", `
 		func test_closure_1() int {

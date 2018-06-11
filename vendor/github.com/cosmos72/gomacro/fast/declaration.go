@@ -522,14 +522,14 @@ func (c *Comp) DeclBindRuntimeValue(bind *Bind) func(*Env, r.Value) {
 	case FuncBind:
 		// declaring a function in Env.Binds[], the reflect.Value must not be addressable or settable
 		return func(env *Env, v r.Value) {
-			env.Vals[index] = v.Convert(rtype)
+			env.Vals[index] = convert(v, rtype)
 		}
 	case VarBind:
 		// declaring a variable in Env.Binds[], we must create a settable and addressable reflect.Value
 		return func(env *Env, v r.Value) {
 			place := r.New(rtype).Elem()
 			if v.Type() != rtype {
-				v = v.Convert(rtype)
+				v = convert(v, rtype)
 			}
 			place.Set(v)
 			env.Vals[index] = place

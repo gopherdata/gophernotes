@@ -84,7 +84,7 @@ import (
 				argv := []r.Value{
 					argfun(env),
 				}
-				return funv.Call(argv)[0]
+				return callxr(funv, argv)[0]
 			}
 		}
 	}
@@ -98,7 +98,7 @@ import (
 					argfun(env),
 				}
 				// Debugf("calling %v with args [%v]", r.TypeOf(funv), argv)
-				ret0 := funv.Call(argv)[0]
+				ret0 := callxr(funv, argv)[0]
 				return ~,ret0
 			}
 		}
@@ -200,7 +200,7 @@ import (
 			case r.Complex64: {mcall1ret1; complex64;  ~,rettyp}
 			case r.Complex128:{mcall1ret1; complex128; ~,rettyp}
 			case r.String:    {mcall1ret1; string;     ~,rettyp}
-			default:              {mcall1ret1; nil;        ~,rettyp}
+			default:          {mcall1ret1; nil;        ~,rettyp}
 		}
 	}
 }
@@ -298,7 +298,7 @@ func (c *Comp) call1ret1(call *Call, maxdepth int) I {
 			argv := []r.Value{
 				argfun(env),
 			}
-			retv := funv.Call(argv)[0]
+			retv := callxr(funv, argv)[0]
 			return ~,retconv
 		}
 	}

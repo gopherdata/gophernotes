@@ -40,7 +40,8 @@ func (t *xtype) IsVariadic() bool {
 	if t.Kind() != reflect.Func {
 		xerrorf(t, "In of non-func type %v", t)
 	}
-	return t.rtype.IsVariadic()
+	gtype := t.gunderlying().(*types.Signature)
+	return gtype.Variadic()
 }
 
 // In returns the type of a function type's i'th input parameter.
@@ -64,7 +65,12 @@ func (t *xtype) In(i int) Type {
 		va = gtype.Params().At(i)
 	}
 	t.NumIn() // for consistency check
-	return t.universe.MakeType(va.Type(), t.rtype.In(i))
+	// contagion: if func reflect.Type is Forward, set whole function type to Forward
+	rt := t.rtype
+	if rt != rTypeOfForward {
+		rt = rt.In(i)
+	}
+	return t.universe.MakeType(va.Type(), rt)
 }
 
 // NumIn returns a function type's input parameter count.
@@ -114,7 +120,12 @@ func (t *xtype) Out(i int) Type {
 	}
 	gtype := t.gunderlying().(*types.Signature)
 	va := gtype.Results().At(i)
-	return t.universe.MakeType(va.Type(), t.rtype.Out(i))
+	// contagion: if func reflect.Type is Forward, return Forward
+	rt := t.rtype
+	if rt != rTypeOfForward {
+		rt = rt.Out(i)
+	}
+	return t.universe.MakeType(va.Type(), rt)
 }
 
 func (v *Universe) FuncOf(in []Type, out []Type, variadic bool) Type {
@@ -149,8 +160,28 @@ func (v *Universe) MethodOf(recv Type, in []Type, out []Type, variadic bool) Typ
 		rin = append([]reflect.Type{recv.ReflectType()}, rin...)
 		grecv = toGoParam(recv)
 	}
+	// contagion: if one or more in/out reflect.Type is Forward,
+	// set the whole func reflect.Type to Forward
+	var rfunc reflect.Type
+loop:
+	for {
+		for _, rt := range rin {
+			if rt == rTypeOfForward {
+				rfunc = rTypeOfForward
+				break loop
+			}
+		}
+		for _, rt := range rout {
+			if rt == rTypeOfForward {
+				rfunc = rTypeOfForward
+				break loop
+			}
+		}
+		rfunc = reflect.FuncOf(rin, rout, variadic)
+		break
+	}
 	return v.MakeType(
 		types.NewSignature(grecv, gin, gout, variadic),
-		reflect.FuncOf(rin, rout, variadic),
+		rfunc,
 	)
 }

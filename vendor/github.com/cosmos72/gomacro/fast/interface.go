@@ -82,7 +82,7 @@ func (c *Comp) converterToProxy(tin xr.Type, tout xr.Type) func(val r.Value) r.V
 			vproxy := vaddr.Elem()
 			vproxy.Set(vtable)
 			vproxy.Field(0).Set(r.ValueOf(xr.MakeInterfaceHeader(val, tin)))
-			return vaddr.Convert(rtout)
+			return convert(vaddr, rtout)
 		}
 	}
 	// extract object from tin proxy or emulated interface (if any),
@@ -93,7 +93,7 @@ func (c *Comp) converterToProxy(tin xr.Type, tout xr.Type) func(val r.Value) r.V
 		vproxy := vaddr.Elem()
 		vproxy.Set(vtable)
 		vproxy.Field(0).Set(r.ValueOf(xr.MakeInterfaceHeader(v, t)))
-		return vaddr.Convert(rtout)
+		return convert(vaddr, rtout)
 	}
 }
 
@@ -116,25 +116,29 @@ func setProxyField(place r.Value, mtd r.Value) {
 // this is the inverse of the function returned by Comp.converterToProxy() above
 func (g *CompGlobals) extractFromProxy(v r.Value) (r.Value, xr.Type) {
 	// base.Debugf("type assertion: value = %v <%v>", v, base.ValueType(v))
-	if v == base.Nil || v == base.None || !v.IsValid() || !v.CanInterface() {
-		// cannot rebuild with concrete type
+
+	// v.Kind() is allowed also on invalid r.Value, and it returns r.Invalid
+	if v.Kind() == r.Interface {
+		v = v.Elem() // extract concrete type
+	}
+	if !v.IsValid() || v == base.None {
+		// cannot extract concrete type
 		return v, nil
 	}
-	i := v.Interface()
-	v = r.ValueOf(i) // rebuild with concrete type
-	rt := r.TypeOf(i)
+	rt := v.Type()
 	var xt xr.Type
 	// base.Debugf("type assertion: concrete value = %v <%v>", i, t)
 	if rt != nil && rt.Kind() == r.Ptr && g.proxy2interf[rt.Elem()] != nil {
 		v = v.Elem().Field(0)
-		i = base.ValueInterface(v)
-		if j, ok := i.(xr.InterfaceHeader); ok {
+		if j, ok := base.ValueInterface(v).(xr.InterfaceHeader); ok {
 			// base.Debugf("type assertion: unwrapped value = %v <%T>", j, j)
 			v = j.Value()
 			xt = j.Type()
 		} else {
 			// base.Debugf("type assertion: failed to unwrap value = %v <%T>", i, i)
-			v = r.ValueOf(i) // rebuild with concrete type
+			if v.Kind() == r.Interface {
+				v = v.Elem() // extract concrete type
+			}
 		}
 	}
 	return v, xt

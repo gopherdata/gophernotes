@@ -989,7 +989,7 @@ func (c *Comp) call_builtin(call *Call) I {
 				// arg0 is "assignable to []byte"
 				arg0 := arg0fun(env)
 				if arg0.Type() != rtypeOfSliceOfByte {
-					arg0 = arg0.Convert(rtypeOfSliceOfByte)
+					arg0 = convert(arg0, rtypeOfSliceOfByte)
 				}
 				return fun(arg0.Interface().([]byte), arg1const)
 			}
@@ -999,7 +999,7 @@ func (c *Comp) call_builtin(call *Call) I {
 				// arg0 is "assignable to []byte"
 				arg0 := arg0fun(env)
 				if arg0.Type() != rtypeOfSliceOfByte {
-					arg0 = arg0.Convert(rtypeOfSliceOfByte)
+					arg0 = convert(arg0, rtypeOfSliceOfByte)
 				}
 				arg1 := arg1fun(env)
 				return fun(arg0.Interface().([]byte), arg1)

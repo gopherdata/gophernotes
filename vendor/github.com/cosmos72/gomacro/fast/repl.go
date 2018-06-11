@@ -129,7 +129,7 @@ func (ir *Interp) RunExpr(e *Expr) ([]r.Value, []xr.Type) {
 
 	fun := e.AsXV(COptKeepUntyped)
 	v, vs := fun(env)
-	return PackValuesAndTypes(v, vs, e.Type, e.Types)
+	return PackValues(v, vs), PackTypes(e.Type, e.Types)
 }
 
 // execute with single-step debugging. to run without debugging, use Interp.RunExpr() instead
@@ -159,7 +159,7 @@ func (ir *Interp) DebugExpr(e *Expr) ([]r.Value, []xr.Type) {
 
 	fun := e.AsXV(COptKeepUntyped)
 	v, vs := fun(env)
-	return PackValuesAndTypes(v, vs, e.Type, e.Types)
+	return PackValues(v, vs), PackTypes(e.Type, e.Types)
 }
 
 // combined Parse + Compile + DebugExpr

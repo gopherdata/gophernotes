@@ -88,7 +88,7 @@ func (c *Comp) compositeLitArray(t xr.Type, ellipsis bool, node *ast.CompositeLi
 			if val == Nil || val == None {
 				val = zeroval
 			} else if val.Type() != rtval {
-				val = val.Convert(rtval)
+				val = convert(val, rtval)
 			}
 			obj.Index(keys[i]).Set(val)
 		}
@@ -116,7 +116,7 @@ func (c *Comp) compositeLitSlice(t xr.Type, node *ast.CompositeLit) *Expr {
 			if val == Nil || val == None {
 				val = zeroval
 			} else if val.Type() != rtval {
-				val = val.Convert(rtval)
+				val = convert(val, rtval)
 			}
 			obj.Index(keys[i]).Set(val)
 		}
@@ -327,7 +327,7 @@ func (c *Comp) compositeLitStruct(t xr.Type, node *ast.CompositeLit) *Expr {
 			field = obj.Field(indexes[i])
 			tfield = field.Type()
 			if val.Type() != tfield {
-				val = val.Convert(tfield)
+				val = convert(val, tfield)
 			}
 			field.Set(val)
 		}

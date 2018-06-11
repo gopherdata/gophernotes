@@ -52,7 +52,7 @@ func (c *Comp) call0ret1(call *Call, maxdepth int) I {
 				ret = func(env *Env) bool {
 					fun := exprfun(env)
 
-					ret := fun.Call(base.ZeroValues)[0]
+					ret := callxr(fun, base.ZeroValues)[0]
 					return ret.Bool()
 
 				}
@@ -103,7 +103,7 @@ func (c *Comp) call0ret1(call *Call, maxdepth int) I {
 				ret = func(env *Env) int {
 					fun := exprfun(env)
 
-					ret := fun.Call(base.ZeroValues)[0]
+					ret := callxr(fun, base.ZeroValues)[0]
 					return int(ret.Int())
 				}
 			} else if funsym != nil {
@@ -153,7 +153,7 @@ func (c *Comp) call0ret1(call *Call, maxdepth int) I {
 				ret = func(env *Env) int8 {
 					fun := exprfun(env)
 
-					ret := fun.Call(base.ZeroValues)[0]
+					ret := callxr(fun, base.ZeroValues)[0]
 					return int8(ret.Int())
 				}
 			} else if funsym != nil {
@@ -202,7 +202,7 @@ func (c *Comp) call0ret1(call *Call, maxdepth int) I {
 				ret = func(env *Env) int16 {
 					fun := exprfun(env)
 
-					ret := fun.Call(base.ZeroValues)[0]
+					ret := callxr(fun, base.ZeroValues)[0]
 					return int16(ret.Int())
 				}
 			} else if funsym != nil {
@@ -251,7 +251,7 @@ func (c *Comp) call0ret1(call *Call, maxdepth int) I {
 				ret = func(env *Env) int32 {
 					fun := exprfun(env)
 
-					ret := fun.Call(base.ZeroValues)[0]
+					ret := callxr(fun, base.ZeroValues)[0]
 					return int32(ret.Int())
 				}
 			} else if funsym != nil {
@@ -300,7 +300,7 @@ func (c *Comp) call0ret1(call *Call, maxdepth int) I {
 				ret = func(env *Env) int64 {
 					fun := exprfun(env)
 
-					ret := fun.Call(base.ZeroValues)[0]
+					ret := callxr(fun, base.ZeroValues)[0]
 					return ret.Int()
 
 				}
@@ -350,7 +350,7 @@ func (c *Comp) call0ret1(call *Call, maxdepth int) I {
 				ret = func(env *Env) uint {
 					fun := exprfun(env)
 
-					ret := fun.Call(base.ZeroValues)[0]
+					ret := callxr(fun, base.ZeroValues)[0]
 					return uint(ret.Uint())
 				}
 			} else if funsym != nil {
@@ -399,7 +399,7 @@ func (c *Comp) call0ret1(call *Call, maxdepth int) I {
 				ret = func(env *Env) uint8 {
 					fun := exprfun(env)
 
-					ret := fun.Call(base.ZeroValues)[0]
+					ret := callxr(fun, base.ZeroValues)[0]
 					return uint8(ret.Uint())
 				}
 			} else if funsym != nil {
@@ -448,7 +448,7 @@ func (c *Comp) call0ret1(call *Call, maxdepth int) I {
 				ret = func(env *Env) uint16 {
 					fun := exprfun(env)
 
-					ret := fun.Call(base.ZeroValues)[0]
+					ret := callxr(fun, base.ZeroValues)[0]
 					return uint16(ret.Uint())
 				}
 			} else if funsym != nil {
@@ -497,7 +497,7 @@ func (c *Comp) call0ret1(call *Call, maxdepth int) I {
 				ret = func(env *Env) uint32 {
 					fun := exprfun(env)
 
-					ret := fun.Call(base.ZeroValues)[0]
+					ret := callxr(fun, base.ZeroValues)[0]
 					return uint32(ret.Uint())
 				}
 			} else if funsym != nil {
@@ -546,7 +546,7 @@ func (c *Comp) call0ret1(call *Call, maxdepth int) I {
 				ret = func(env *Env) uint64 {
 					fun := exprfun(env)
 
-					ret := fun.Call(base.ZeroValues)[0]
+					ret := callxr(fun, base.ZeroValues)[0]
 					return ret.Uint()
 
 				}
@@ -596,7 +596,7 @@ func (c *Comp) call0ret1(call *Call, maxdepth int) I {
 				ret = func(env *Env) uintptr {
 					fun := exprfun(env)
 
-					ret := fun.Call(base.ZeroValues)[0]
+					ret := callxr(fun, base.ZeroValues)[0]
 					return uintptr(ret.Uint())
 				}
 			} else if funsym != nil {
@@ -645,7 +645,7 @@ func (c *Comp) call0ret1(call *Call, maxdepth int) I {
 				ret = func(env *Env) float32 {
 					fun := exprfun(env)
 
-					ret := fun.Call(base.ZeroValues)[0]
+					ret := callxr(fun, base.ZeroValues)[0]
 					return float32(ret.Float())
 				}
 			} else if funsym != nil {
@@ -694,7 +694,7 @@ func (c *Comp) call0ret1(call *Call, maxdepth int) I {
 				ret = func(env *Env) float64 {
 					fun := exprfun(env)
 
-					ret := fun.Call(base.ZeroValues)[0]
+					ret := callxr(fun, base.ZeroValues)[0]
 					return ret.Float()
 
 				}
@@ -744,7 +744,7 @@ func (c *Comp) call0ret1(call *Call, maxdepth int) I {
 				ret = func(env *Env) complex64 {
 					fun := exprfun(env)
 
-					ret := fun.Call(base.ZeroValues)[0]
+					ret := callxr(fun, base.ZeroValues)[0]
 					return complex64(ret.Complex())
 				}
 			} else if funsym != nil {
@@ -793,7 +793,7 @@ func (c *Comp) call0ret1(call *Call, maxdepth int) I {
 				ret = func(env *Env) complex128 {
 					fun := exprfun(env)
 
-					ret := fun.Call(base.ZeroValues)[0]
+					ret := callxr(fun, base.ZeroValues)[0]
 					return ret.Complex()
 
 				}
@@ -842,7 +842,7 @@ func (c *Comp) call0ret1(call *Call, maxdepth int) I {
 				ret = func(env *Env) string {
 					fun := exprfun(env)
 
-					ret := fun.Call(base.ZeroValues)[0]
+					ret := callxr(fun, base.ZeroValues)[0]
 					return ret.String()
 
 				}
@@ -887,7 +887,7 @@ func (c *Comp) call0ret1(call *Call, maxdepth int) I {
 	default:
 		ret = func(env *Env) r.Value {
 			funv := exprfun(env)
-			return funv.Call(base.ZeroValues)[0]
+			return callxr(funv, base.ZeroValues)[0]
 		}
 
 	}

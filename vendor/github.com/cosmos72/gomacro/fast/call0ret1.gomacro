@@ -85,7 +85,7 @@ import (
 		return ~"{
 			ret = func(env *Env) r.Value {
 				funv := exprfun(env)
-				return funv.Call(base.ZeroValues)[0]
+				return callxr(funv, base.ZeroValues)[0]
 			}
 		}
 	}
@@ -105,7 +105,7 @@ import (
 			ret = func(env *Env) ~,rettyp {
 				fun := exprfun(env)
 				// Debugf("calling %v with args []", fun.Type())
-				ret := fun.Call(base.ZeroValues)[0]
+				ret := callxr(fun, base.ZeroValues)[0]
 				return ~,retconv
 			}
 		} else if funsym != nil {

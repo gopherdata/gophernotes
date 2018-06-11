@@ -329,12 +329,12 @@ func (c *Comp) funcCreate(t xr.Type, info *FuncInfo, resultfuns []I, funcbody fu
 
 	m := c.funcMaker(info, resultfuns, funcbody)
 
-	rtype := t.ReflectType() // has receiver as first parameter
-	nin := rtype.NumIn()
-	nout := rtype.NumOut()
+	rtype := t.ReflectType() // has receiver as first parameter (unless it's xreflect.Forward)
+	nin := t.NumIn()
+	nout := t.NumOut()
 
 	// do not create optimized functions if arguments or results are named types
-	optimize := true
+	optimize := rtype != rtypeOfForward
 	for i := 0; optimize && i < nin; i++ {
 		rt := rtype.In(i)
 		k := rt.Kind()
@@ -376,6 +376,19 @@ func (c *Comp) funcCreate(t xr.Type, info *FuncInfo, resultfuns []I, funcbody fu
 	return fun
 }
 
+var cacheSliceXrForward []r.Type
+
+func sliceOfXrForward(n int) []r.Type {
+	for len(cacheSliceXrForward) < n {
+		cacheSliceXrForward = append(cacheSliceXrForward, rtypeOfForward)
+	}
+	return cacheSliceXrForward[:n]
+}
+
+func funcOfXrForward(nin int, nout int, variadic bool) r.Type {
+	return r.FuncOf(sliceOfXrForward(nin), sliceOfXrForward(nout), variadic)
+}
+
 // fallback: create a non-optimized function
 func (c *Comp) funcGeneric(t xr.Type, m *funcMaker) func(*Env) r.Value {
 
@@ -384,6 +397,9 @@ func (c *Comp) funcGeneric(t xr.Type, m *funcMaker) func(*Env) r.Value {
 	nintbinds := m.nintbind
 	funcbody := m.funcbody
 	rtype := t.ReflectType()
+	if rtype == rtypeOfForward {
+		rtype = funcOfXrForward(t.NumIn(), t.NumOut(), t.IsVariadic())
+	}
 
 	if funcbody == nil {
 		// pre-fill rets with zero values

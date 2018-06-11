@@ -1172,7 +1172,7 @@ func (c *Comp) call1ret1(call *Call, maxdepth int) I {
 					argfun(env),
 				}
 
-				ret0 := funv.Call(argv)[0]
+				ret0 := callxr(funv, argv)[0]
 				return ret0.Bool()
 			}
 		}
@@ -2296,7 +2296,7 @@ func (c *Comp) call1ret1(call *Call, maxdepth int) I {
 					argfun(env),
 				}
 
-				ret0 := funv.Call(argv)[0]
+				ret0 := callxr(funv, argv)[0]
 				return int(ret0.Int())
 			}
 		}
@@ -2374,7 +2374,7 @@ func (c *Comp) call1ret1(call *Call, maxdepth int) I {
 					argfun(env),
 				}
 
-				ret0 := funv.Call(argv)[0]
+				ret0 := callxr(funv, argv)[0]
 				return int8(ret0.Int())
 			}
 		}
@@ -2452,7 +2452,7 @@ func (c *Comp) call1ret1(call *Call, maxdepth int) I {
 					argfun(env),
 				}
 
-				ret0 := funv.Call(argv)[0]
+				ret0 := callxr(funv, argv)[0]
 				return int16(ret0.Int())
 			}
 		}
@@ -2530,7 +2530,7 @@ func (c *Comp) call1ret1(call *Call, maxdepth int) I {
 					argfun(env),
 				}
 
-				ret0 := funv.Call(argv)[0]
+				ret0 := callxr(funv, argv)[0]
 				return int32(ret0.Int())
 			}
 		}
@@ -3654,7 +3654,7 @@ func (c *Comp) call1ret1(call *Call, maxdepth int) I {
 					argfun(env),
 				}
 
-				ret0 := funv.Call(argv)[0]
+				ret0 := callxr(funv, argv)[0]
 				return ret0.Int()
 			}
 		}
@@ -4778,7 +4778,7 @@ func (c *Comp) call1ret1(call *Call, maxdepth int) I {
 					argfun(env),
 				}
 
-				ret0 := funv.Call(argv)[0]
+				ret0 := callxr(funv, argv)[0]
 				return uint(ret0.Uint())
 			}
 		}
@@ -4852,7 +4852,7 @@ func (c *Comp) call1ret1(call *Call, maxdepth int) I {
 					argfun(env),
 				}
 
-				ret0 := funv.Call(argv)[0]
+				ret0 := callxr(funv, argv)[0]
 				return uint8(ret0.Uint())
 			}
 		}
@@ -4928,7 +4928,7 @@ func (c *Comp) call1ret1(call *Call, maxdepth int) I {
 					argfun(env),
 				}
 
-				ret0 := funv.Call(argv)[0]
+				ret0 := callxr(funv, argv)[0]
 				return uint16(ret0.Uint())
 			}
 		}
@@ -5006,7 +5006,7 @@ func (c *Comp) call1ret1(call *Call, maxdepth int) I {
 					argfun(env),
 				}
 
-				ret0 := funv.Call(argv)[0]
+				ret0 := callxr(funv, argv)[0]
 				return uint32(ret0.Uint())
 			}
 		}
@@ -6130,7 +6130,7 @@ func (c *Comp) call1ret1(call *Call, maxdepth int) I {
 					argfun(env),
 				}
 
-				ret0 := funv.Call(argv)[0]
+				ret0 := callxr(funv, argv)[0]
 				return ret0.Uint()
 			}
 		}
@@ -6208,7 +6208,7 @@ func (c *Comp) call1ret1(call *Call, maxdepth int) I {
 					argfun(env),
 				}
 
-				ret0 := funv.Call(argv)[0]
+				ret0 := callxr(funv, argv)[0]
 				return uintptr(ret0.Uint())
 			}
 		}
@@ -6286,7 +6286,7 @@ func (c *Comp) call1ret1(call *Call, maxdepth int) I {
 					argfun(env),
 				}
 
-				ret0 := funv.Call(argv)[0]
+				ret0 := callxr(funv, argv)[0]
 				return float32(ret0.Float())
 			}
 		}
@@ -6490,7 +6490,7 @@ func (c *Comp) call1ret1(call *Call, maxdepth int) I {
 					argfun(env),
 				}
 
-				ret0 := funv.Call(argv)[0]
+				ret0 := callxr(funv, argv)[0]
 				return ret0.Float()
 			}
 		}
@@ -6568,7 +6568,7 @@ func (c *Comp) call1ret1(call *Call, maxdepth int) I {
 					argfun(env),
 				}
 
-				ret0 := funv.Call(argv)[0]
+				ret0 := callxr(funv, argv)[0]
 				return complex64(ret0.Complex())
 			}
 		}
@@ -6772,7 +6772,7 @@ func (c *Comp) call1ret1(call *Call, maxdepth int) I {
 					argfun(env),
 				}
 
-				ret0 := funv.Call(argv)[0]
+				ret0 := callxr(funv, argv)[0]
 				return ret0.Complex()
 			}
 		}
@@ -7879,7 +7879,7 @@ func (c *Comp) call1ret1(call *Call, maxdepth int) I {
 					argfun(env),
 				}
 
-				ret0 := funv.Call(argv)[0]
+				ret0 := callxr(funv, argv)[0]
 				return ret0.String()
 			}
 		}
@@ -7891,7 +7891,7 @@ func (c *Comp) call1ret1(call *Call, maxdepth int) I {
 			argv := []r.Value{
 				argfun(env),
 			}
-			return funv.Call(argv)[0]
+			return callxr(funv, argv)[0]
 		}
 	}
 	return ret
@@ -7912,7 +7912,7 @@ func (c *Comp) call1ret1namedtype(call *Call, maxdepth int) I {
 			argv := []r.Value{
 				argfun(env),
 			}
-			retv := funv.Call(argv)[0]
+			retv := callxr(funv, argv)[0]
 			return retv.Bool()
 		}
 	case r.Int:
@@ -7921,7 +7921,7 @@ func (c *Comp) call1ret1namedtype(call *Call, maxdepth int) I {
 			argv := []r.Value{
 				argfun(env),
 			}
-			retv := funv.Call(argv)[0]
+			retv := callxr(funv, argv)[0]
 			return int(retv.Int())
 		}
 	case r.Int8:
@@ -7930,7 +7930,7 @@ func (c *Comp) call1ret1namedtype(call *Call, maxdepth int) I {
 			argv := []r.Value{
 				argfun(env),
 			}
-			retv := funv.Call(argv)[0]
+			retv := callxr(funv, argv)[0]
 			return int8(retv.Int())
 		}
 
@@ -7940,7 +7940,7 @@ func (c *Comp) call1ret1namedtype(call *Call, maxdepth int) I {
 			argv := []r.Value{
 				argfun(env),
 			}
-			retv := funv.Call(argv)[0]
+			retv := callxr(funv, argv)[0]
 			return int16(retv.Int())
 		}
 
@@ -7950,7 +7950,7 @@ func (c *Comp) call1ret1namedtype(call *Call, maxdepth int) I {
 			argv := []r.Value{
 				argfun(env),
 			}
-			retv := funv.Call(argv)[0]
+			retv := callxr(funv, argv)[0]
 			return int32(retv.Int())
 		}
 
@@ -7960,7 +7960,7 @@ func (c *Comp) call1ret1namedtype(call *Call, maxdepth int) I {
 			argv := []r.Value{
 				argfun(env),
 			}
-			retv := funv.Call(argv)[0]
+			retv := callxr(funv, argv)[0]
 			return retv.Int()
 		}
 
@@ -7970,7 +7970,7 @@ func (c *Comp) call1ret1namedtype(call *Call, maxdepth int) I {
 			argv := []r.Value{
 				argfun(env),
 			}
-			retv := funv.Call(argv)[0]
+			retv := callxr(funv, argv)[0]
 			return uint(retv.Uint())
 		}
 
@@ -7980,7 +7980,7 @@ func (c *Comp) call1ret1namedtype(call *Call, maxdepth int) I {
 			argv := []r.Value{
 				argfun(env),
 			}
-			retv := funv.Call(argv)[0]
+			retv := callxr(funv, argv)[0]
 			return uint8(retv.Uint())
 		}
 
@@ -7990,7 +7990,7 @@ func (c *Comp) call1ret1namedtype(call *Call, maxdepth int) I {
 			argv := []r.Value{
 				argfun(env),
 			}
-			retv := funv.Call(argv)[0]
+			retv := callxr(funv, argv)[0]
 			return uint16(retv.Uint())
 		}
 
@@ -8000,7 +8000,7 @@ func (c *Comp) call1ret1namedtype(call *Call, maxdepth int) I {
 			argv := []r.Value{
 				argfun(env),
 			}
-			retv := funv.Call(argv)[0]
+			retv := callxr(funv, argv)[0]
 			return uint32(retv.Uint())
 		}
 
@@ -8010,7 +8010,7 @@ func (c *Comp) call1ret1namedtype(call *Call, maxdepth int) I {
 			argv := []r.Value{
 				argfun(env),
 			}
-			retv := funv.Call(argv)[0]
+			retv := callxr(funv, argv)[0]
 			return retv.Uint()
 		}
 
@@ -8020,7 +8020,7 @@ func (c *Comp) call1ret1namedtype(call *Call, maxdepth int) I {
 			argv := []r.Value{
 				argfun(env),
 			}
-			retv := funv.Call(argv)[0]
+			retv := callxr(funv, argv)[0]
 			return uintptr(retv.Uint())
 		}
 
@@ -8030,7 +8030,7 @@ func (c *Comp) call1ret1namedtype(call *Call, maxdepth int) I {
 			argv := []r.Value{
 				argfun(env),
 			}
-			retv := funv.Call(argv)[0]
+			retv := callxr(funv, argv)[0]
 			return float32(retv.Float())
 		}
 
@@ -8040,7 +8040,7 @@ func (c *Comp) call1ret1namedtype(call *Call, maxdepth int) I {
 			argv := []r.Value{
 				argfun(env),
 			}
-			retv := funv.Call(argv)[0]
+			retv := callxr(funv, argv)[0]
 			return retv.Float()
 		}
 
@@ -8050,7 +8050,7 @@ func (c *Comp) call1ret1namedtype(call *Call, maxdepth int) I {
 			argv := []r.Value{
 				argfun(env),
 			}
-			retv := funv.Call(argv)[0]
+			retv := callxr(funv, argv)[0]
 			return complex64(retv.Complex())
 		}
 
@@ -8060,7 +8060,7 @@ func (c *Comp) call1ret1namedtype(call *Call, maxdepth int) I {
 			argv := []r.Value{
 				argfun(env),
 			}
-			retv := funv.Call(argv)[0]
+			retv := callxr(funv, argv)[0]
 			return retv.Complex()
 		}
 
@@ -8070,7 +8070,7 @@ func (c *Comp) call1ret1namedtype(call *Call, maxdepth int) I {
 			argv := []r.Value{
 				argfun(env),
 			}
-			retv := funv.Call(argv)[0]
+			retv := callxr(funv, argv)[0]
 			return retv.String()
 		}
 
@@ -8081,7 +8081,7 @@ func (c *Comp) call1ret1namedtype(call *Call, maxdepth int) I {
 			argv := []r.Value{
 				argfun(env),
 			}
-			return funv.Call(argv)[0]
+			return callxr(funv, argv)[0]
 		}
 	}
 	return ret

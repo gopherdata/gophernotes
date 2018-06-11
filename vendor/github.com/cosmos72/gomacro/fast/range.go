@@ -237,7 +237,7 @@ func (c *Comp) rangeMap(node *ast.RangeStmt, erange *Expr, jump *rangeJump) {
 			if !val.IsValid() {
 				val = zero
 			} else if val.Type() != rtype {
-				val = val.Convert(rtype)
+				val = convert(val, rtype)
 			}
 			o.Vals[idxval].Set(val)
 			env.IP++

@@ -270,7 +270,7 @@ func valueAsX1(any I, t xr.Type, opts CompileOptions) func(*Env) r.Value {
 		if !v.IsValid() {
 			v = r.Zero(rtype)
 		} else if convertuntyped || !untyped {
-			v = v.Convert(rtype)
+			v = convert(v, rtype)
 		}
 	}
 	return func(*Env) r.Value {
@@ -298,7 +298,7 @@ func valueAsXV(any I, t xr.Type, opts CompileOptions) func(*Env) (r.Value, []r.V
 		if ValueType(v) == nil {
 			v = r.Zero(rtype)
 		} else if convertuntyped || !untyped {
-			v = v.Convert(rtype)
+			v = convert(v, rtype)
 		}
 	}
 	return func(*Env) (r.Value, []r.Value) {
@@ -336,7 +336,7 @@ func funAsX1(fun I, t xr.Type) func(*Env) r.Value {
 			}
 		} else {
 			return func(env *Env) r.Value {
-				return r.ValueOf(fun(env)).Convert(rt)
+				return convert(r.ValueOf(fun(env)), rt)
 			}
 		}
 	case func(*Env) int:
@@ -346,7 +346,7 @@ func funAsX1(fun I, t xr.Type) func(*Env) r.Value {
 			}
 		} else {
 			return func(env *Env) r.Value {
-				return r.ValueOf(fun(env)).Convert(rt)
+				return convert(r.ValueOf(fun(env)), rt)
 			}
 		}
 	case func(*Env) int8:
@@ -356,7 +356,7 @@ func funAsX1(fun I, t xr.Type) func(*Env) r.Value {
 			}
 		} else {
 			return func(env *Env) r.Value {
-				return r.ValueOf(fun(env)).Convert(rt)
+				return convert(r.ValueOf(fun(env)), rt)
 			}
 		}
 	case func(*Env) int16:
@@ -366,7 +366,7 @@ func funAsX1(fun I, t xr.Type) func(*Env) r.Value {
 			}
 		} else {
 			return func(env *Env) r.Value {
-				return r.ValueOf(fun(env)).Convert(rt)
+				return convert(r.ValueOf(fun(env)), rt)
 			}
 		}
 	case func(*Env) int32:
@@ -376,7 +376,7 @@ func funAsX1(fun I, t xr.Type) func(*Env) r.Value {
 			}
 		} else {
 			return func(env *Env) r.Value {
-				return r.ValueOf(fun(env)).Convert(rt)
+				return convert(r.ValueOf(fun(env)), rt)
 			}
 		}
 	case func(*Env) int64:
@@ -386,7 +386,7 @@ func funAsX1(fun I, t xr.Type) func(*Env) r.Value {
 			}
 		} else {
 			return func(env *Env) r.Value {
-				return r.ValueOf(fun(env)).Convert(rt)
+				return convert(r.ValueOf(fun(env)), rt)
 			}
 		}
 	case func(*Env) uint:
@@ -396,7 +396,7 @@ func funAsX1(fun I, t xr.Type) func(*Env) r.Value {
 			}
 		} else {
 			return func(env *Env) r.Value {
-				return r.ValueOf(fun(env)).Convert(rt)
+				return convert(r.ValueOf(fun(env)), rt)
 			}
 		}
 	case func(*Env) uint8:
@@ -406,7 +406,7 @@ func funAsX1(fun I, t xr.Type) func(*Env) r.Value {
 			}
 		} else {
 			return func(env *Env) r.Value {
-				return r.ValueOf(fun(env)).Convert(rt)
+				return convert(r.ValueOf(fun(env)), rt)
 			}
 		}
 	case func(*Env) uint16:
@@ -416,7 +416,7 @@ func funAsX1(fun I, t xr.Type) func(*Env) r.Value {
 			}
 		} else {
 			return func(env *Env) r.Value {
-				return r.ValueOf(fun(env)).Convert(rt)
+				return convert(r.ValueOf(fun(env)), rt)
 			}
 		}
 	case func(*Env) uint32:
@@ -426,7 +426,7 @@ func funAsX1(fun I, t xr.Type) func(*Env) r.Value {
 			}
 		} else {
 			return func(env *Env) r.Value {
-				return r.ValueOf(fun(env)).Convert(rt)
+				return convert(r.ValueOf(fun(env)), rt)
 			}
 		}
 	case func(*Env) uint64:
@@ -436,7 +436,7 @@ func funAsX1(fun I, t xr.Type) func(*Env) r.Value {
 			}
 		} else {
 			return func(env *Env) r.Value {
-				return r.ValueOf(fun(env)).Convert(rt)
+				return convert(r.ValueOf(fun(env)), rt)
 			}
 		}
 	case func(*Env) uintptr:
@@ -446,7 +446,7 @@ func funAsX1(fun I, t xr.Type) func(*Env) r.Value {
 			}
 		} else {
 			return func(env *Env) r.Value {
-				return r.ValueOf(fun(env)).Convert(rt)
+				return convert(r.ValueOf(fun(env)), rt)
 			}
 		}
 	case func(*Env) float32:
@@ -456,7 +456,7 @@ func funAsX1(fun I, t xr.Type) func(*Env) r.Value {
 			}
 		} else {
 			return func(env *Env) r.Value {
-				return r.ValueOf(fun(env)).Convert(rt)
+				return convert(r.ValueOf(fun(env)), rt)
 			}
 		}
 	case func(*Env) float64:
@@ -466,7 +466,7 @@ func funAsX1(fun I, t xr.Type) func(*Env) r.Value {
 			}
 		} else {
 			return func(env *Env) r.Value {
-				return r.ValueOf(fun(env)).Convert(rt)
+				return convert(r.ValueOf(fun(env)), rt)
 			}
 		}
 	case func(*Env) complex64:
@@ -476,7 +476,7 @@ func funAsX1(fun I, t xr.Type) func(*Env) r.Value {
 			}
 		} else {
 			return func(env *Env) r.Value {
-				return r.ValueOf(fun(env)).Convert(rt)
+				return convert(r.ValueOf(fun(env)), rt)
 			}
 		}
 	case func(*Env) complex128:
@@ -486,7 +486,7 @@ func funAsX1(fun I, t xr.Type) func(*Env) r.Value {
 			}
 		} else {
 			return func(env *Env) r.Value {
-				return r.ValueOf(fun(env)).Convert(rt)
+				return convert(r.ValueOf(fun(env)), rt)
 			}
 		}
 	case func(*Env) string:
@@ -496,7 +496,7 @@ func funAsX1(fun I, t xr.Type) func(*Env) r.Value {
 			}
 		} else {
 			return func(env *Env) r.Value {
-				return r.ValueOf(fun(env)).Convert(rt)
+				return convert(r.ValueOf(fun(env)), rt)
 			}
 		}
 	case func(*Env) *bool:
@@ -506,7 +506,7 @@ func funAsX1(fun I, t xr.Type) func(*Env) r.Value {
 			}
 		} else {
 			return func(env *Env) r.Value {
-				return r.ValueOf(fun(env)).Convert(rt)
+				return convert(r.ValueOf(fun(env)), rt)
 			}
 		}
 	case func(*Env) *int:
@@ -516,7 +516,7 @@ func funAsX1(fun I, t xr.Type) func(*Env) r.Value {
 			}
 		} else {
 			return func(env *Env) r.Value {
-				return r.ValueOf(fun(env)).Convert(rt)
+				return convert(r.ValueOf(fun(env)), rt)
 			}
 		}
 	case func(*Env) *int8:
@@ -526,7 +526,7 @@ func funAsX1(fun I, t xr.Type) func(*Env) r.Value {
 			}
 		} else {
 			return func(env *Env) r.Value {
-				return r.ValueOf(fun(env)).Convert(rt)
+				return convert(r.ValueOf(fun(env)), rt)
 			}
 		}
 	case func(*Env) *int16:
@@ -536,7 +536,7 @@ func funAsX1(fun I, t xr.Type) func(*Env) r.Value {
 			}
 		} else {
 			return func(env *Env) r.Value {
-				return r.ValueOf(fun(env)).Convert(rt)
+				return convert(r.ValueOf(fun(env)), rt)
 			}
 		}
 	case func(*Env) *int32:
@@ -546,7 +546,7 @@ func funAsX1(fun I, t xr.Type) func(*Env) r.Value {
 			}
 		} else {
 			return func(env *Env) r.Value {
-				return r.ValueOf(fun(env)).Convert(rt)
+				return convert(r.ValueOf(fun(env)), rt)
 			}
 		}
 	case func(*Env) *int64:
@@ -556,7 +556,7 @@ func funAsX1(fun I, t xr.Type) func(*Env) r.Value {
 			}
 		} else {
 			return func(env *Env) r.Value {
-				return r.ValueOf(fun(env)).Convert(rt)
+				return convert(r.ValueOf(fun(env)), rt)
 			}
 		}
 	case func(*Env) *uint:
@@ -566,7 +566,7 @@ func funAsX1(fun I, t xr.Type) func(*Env) r.Value {
 			}
 		} else {
 			return func(env *Env) r.Value {
-				return r.ValueOf(fun(env)).Convert(rt)
+				return convert(r.ValueOf(fun(env)), rt)
 			}
 		}
 	case func(*Env) *uint8:
@@ -576,7 +576,7 @@ func funAsX1(fun I, t xr.Type) func(*Env) r.Value {
 			}
 		} else {
 			return func(env *Env) r.Value {
-				return r.ValueOf(fun(env)).Convert(rt)
+				return convert(r.ValueOf(fun(env)), rt)
 			}
 		}
 	case func(*Env) *uint16:
@@ -586,7 +586,7 @@ func funAsX1(fun I, t xr.Type) func(*Env) r.Value {
 			}
 		} else {
 			return func(env *Env) r.Value {
-				return r.ValueOf(fun(env)).Convert(rt)
+				return convert(r.ValueOf(fun(env)), rt)
 			}
 		}
 	case func(*Env) *uint32:
@@ -596,7 +596,7 @@ func funAsX1(fun I, t xr.Type) func(*Env) r.Value {
 			}
 		} else {
 			return func(env *Env) r.Value {
-				return r.ValueOf(fun(env)).Convert(rt)
+				return convert(r.ValueOf(fun(env)), rt)
 			}
 		}
 	case func(*Env) *uint64:
@@ -606,7 +606,7 @@ func funAsX1(fun I, t xr.Type) func(*Env) r.Value {
 			}
 		} else {
 			return func(env *Env) r.Value {
-				return r.ValueOf(fun(env)).Convert(rt)
+				return convert(r.ValueOf(fun(env)), rt)
 			}
 		}
 	case func(*Env) *uintptr:
@@ -616,7 +616,7 @@ func funAsX1(fun I, t xr.Type) func(*Env) r.Value {
 			}
 		} else {
 			return func(env *Env) r.Value {
-				return r.ValueOf(fun(env)).Convert(rt)
+				return convert(r.ValueOf(fun(env)), rt)
 			}
 		}
 	case func(*Env) *float32:
@@ -626,7 +626,7 @@ func funAsX1(fun I, t xr.Type) func(*Env) r.Value {
 			}
 		} else {
 			return func(env *Env) r.Value {
-				return r.ValueOf(fun(env)).Convert(rt)
+				return convert(r.ValueOf(fun(env)), rt)
 			}
 		}
 	case func(*Env) *float64:
@@ -636,7 +636,7 @@ func funAsX1(fun I, t xr.Type) func(*Env) r.Value {
 			}
 		} else {
 			return func(env *Env) r.Value {
-				return r.ValueOf(fun(env)).Convert(rt)
+				return convert(r.ValueOf(fun(env)), rt)
 			}
 		}
 	case func(*Env) *complex64:
@@ -646,7 +646,7 @@ func funAsX1(fun I, t xr.Type) func(*Env) r.Value {
 			}
 		} else {
 			return func(env *Env) r.Value {
-				return r.ValueOf(fun(env)).Convert(rt)
+				return convert(r.ValueOf(fun(env)), rt)
 			}
 		}
 	default:
@@ -684,7 +684,7 @@ func funAsXV(fun I, t xr.Type) func(*Env) (r.Value, []r.Value) {
 			}
 		} else {
 			return func(env *Env) (r.Value, []r.Value) {
-				return r.ValueOf(fun(env)).Convert(rt), nil
+				return convert(r.ValueOf(fun(env)), rt), nil
 			}
 		}
 	case func(*Env) int:
@@ -694,7 +694,7 @@ func funAsXV(fun I, t xr.Type) func(*Env) (r.Value, []r.Value) {
 			}
 		} else {
 			return func(env *Env) (r.Value, []r.Value) {
-				return r.ValueOf(fun(env)).Convert(rt), nil
+				return convert(r.ValueOf(fun(env)), rt), nil
 			}
 		}
 	case func(*Env) int8:
@@ -704,7 +704,7 @@ func funAsXV(fun I, t xr.Type) func(*Env) (r.Value, []r.Value) {
 			}
 		} else {
 			return func(env *Env) (r.Value, []r.Value) {
-				return r.ValueOf(fun(env)).Convert(rt), nil
+				return convert(r.ValueOf(fun(env)), rt), nil
 			}
 		}
 	case func(*Env) int16:
@@ -714,7 +714,7 @@ func funAsXV(fun I, t xr.Type) func(*Env) (r.Value, []r.Value) {
 			}
 		} else {
 			return func(env *Env) (r.Value, []r.Value) {
-				return r.ValueOf(fun(env)).Convert(rt), nil
+				return convert(r.ValueOf(fun(env)), rt), nil
 			}
 		}
 	case func(*Env) int32:
@@ -724,7 +724,7 @@ func funAsXV(fun I, t xr.Type) func(*Env) (r.Value, []r.Value) {
 			}
 		} else {
 			return func(env *Env) (r.Value, []r.Value) {
-				return r.ValueOf(fun(env)).Convert(rt), nil
+				return convert(r.ValueOf(fun(env)), rt), nil
 			}
 		}
 	case func(*Env) int64:
@@ -734,7 +734,7 @@ func funAsXV(fun I, t xr.Type) func(*Env) (r.Value, []r.Value) {
 			}
 		} else {
 			return func(env *Env) (r.Value, []r.Value) {
-				return r.ValueOf(fun(env)).Convert(rt), nil
+				return convert(r.ValueOf(fun(env)), rt), nil
 			}
 		}
 	case func(*Env) uint:
@@ -744,7 +744,7 @@ func funAsXV(fun I, t xr.Type) func(*Env) (r.Value, []r.Value) {
 			}
 		} else {
 			return func(env *Env) (r.Value, []r.Value) {
-				return r.ValueOf(fun(env)).Convert(rt), nil
+				return convert(r.ValueOf(fun(env)), rt), nil
 			}
 		}
 	case func(*Env) uint8:
@@ -754,7 +754,7 @@ func funAsXV(fun I, t xr.Type) func(*Env) (r.Value, []r.Value) {
 			}
 		} else {
 			return func(env *Env) (r.Value, []r.Value) {
-				return r.ValueOf(fun(env)).Convert(rt), nil
+				return convert(r.ValueOf(fun(env)), rt), nil
 			}
 		}
 	case func(*Env) uint16:
@@ -764,7 +764,7 @@ func funAsXV(fun I, t xr.Type) func(*Env) (r.Value, []r.Value) {
 			}
 		} else {
 			return func(env *Env) (r.Value, []r.Value) {
-				return r.ValueOf(fun(env)).Convert(rt), nil
+				return convert(r.ValueOf(fun(env)), rt), nil
 			}
 		}
 	case func(*Env) uint32:
@@ -774,7 +774,7 @@ func funAsXV(fun I, t xr.Type) func(*Env) (r.Value, []r.Value) {
 			}
 		} else {
 			return func(env *Env) (r.Value, []r.Value) {
-				return r.ValueOf(fun(env)).Convert(rt), nil
+				return convert(r.ValueOf(fun(env)), rt), nil
 			}
 		}
 	case func(*Env) uint64:
@@ -784,7 +784,7 @@ func funAsXV(fun I, t xr.Type) func(*Env) (r.Value, []r.Value) {
 			}
 		} else {
 			return func(env *Env) (r.Value, []r.Value) {
-				return r.ValueOf(fun(env)).Convert(rt), nil
+				return convert(r.ValueOf(fun(env)), rt), nil
 			}
 		}
 	case func(*Env) uintptr:
@@ -794,7 +794,7 @@ func funAsXV(fun I, t xr.Type) func(*Env) (r.Value, []r.Value) {
 			}
 		} else {
 			return func(env *Env) (r.Value, []r.Value) {
-				return r.ValueOf(fun(env)).Convert(rt), nil
+				return convert(r.ValueOf(fun(env)), rt), nil
 			}
 		}
 	case func(*Env) float32:
@@ -804,7 +804,7 @@ func funAsXV(fun I, t xr.Type) func(*Env) (r.Value, []r.Value) {
 			}
 		} else {
 			return func(env *Env) (r.Value, []r.Value) {
-				return r.ValueOf(fun(env)).Convert(rt), nil
+				return convert(r.ValueOf(fun(env)), rt), nil
 			}
 		}
 	case func(*Env) float64:
@@ -814,7 +814,7 @@ func funAsXV(fun I, t xr.Type) func(*Env) (r.Value, []r.Value) {
 			}
 		} else {
 			return func(env *Env) (r.Value, []r.Value) {
-				return r.ValueOf(fun(env)).Convert(rt), nil
+				return convert(r.ValueOf(fun(env)), rt), nil
 			}
 		}
 	case func(*Env) complex64:
@@ -824,7 +824,7 @@ func funAsXV(fun I, t xr.Type) func(*Env) (r.Value, []r.Value) {
 			}
 		} else {
 			return func(env *Env) (r.Value, []r.Value) {
-				return r.ValueOf(fun(env)).Convert(rt), nil
+				return convert(r.ValueOf(fun(env)), rt), nil
 			}
 		}
 	case func(*Env) complex128:
@@ -834,7 +834,7 @@ func funAsXV(fun I, t xr.Type) func(*Env) (r.Value, []r.Value) {
 			}
 		} else {
 			return func(env *Env) (r.Value, []r.Value) {
-				return r.ValueOf(fun(env)).Convert(rt), nil
+				return convert(r.ValueOf(fun(env)), rt), nil
 			}
 		}
 	case func(*Env) string:
@@ -844,7 +844,7 @@ func funAsXV(fun I, t xr.Type) func(*Env) (r.Value, []r.Value) {
 			}
 		} else {
 			return func(env *Env) (r.Value, []r.Value) {
-				return r.ValueOf(fun(env)).Convert(rt), nil
+				return convert(r.ValueOf(fun(env)), rt), nil
 			}
 		}
 	case func(*Env) *bool:
@@ -854,7 +854,7 @@ func funAsXV(fun I, t xr.Type) func(*Env) (r.Value, []r.Value) {
 			}
 		} else {
 			return func(env *Env) (r.Value, []r.Value) {
-				return r.ValueOf(fun(env)).Convert(rt), nil
+				return convert(r.ValueOf(fun(env)), rt), nil
 			}
 		}
 	case func(*Env) *int:
@@ -864,7 +864,7 @@ func funAsXV(fun I, t xr.Type) func(*Env) (r.Value, []r.Value) {
 			}
 		} else {
 			return func(env *Env) (r.Value, []r.Value) {
-				return r.ValueOf(fun(env)).Convert(rt), nil
+				return convert(r.ValueOf(fun(env)), rt), nil
 			}
 		}
 	case func(*Env) *int8:
@@ -874,7 +874,7 @@ func funAsXV(fun I, t xr.Type) func(*Env) (r.Value, []r.Value) {
 			}
 		} else {
 			return func(env *Env) (r.Value, []r.Value) {
-				return r.ValueOf(fun(env)).Convert(rt), nil
+				return convert(r.ValueOf(fun(env)), rt), nil
 			}
 		}
 	case func(*Env) *int16:
@@ -884,7 +884,7 @@ func funAsXV(fun I, t xr.Type) func(*Env) (r.Value, []r.Value) {
 			}
 		} else {
 			return func(env *Env) (r.Value, []r.Value) {
-				return r.ValueOf(fun(env)).Convert(rt), nil
+				return convert(r.ValueOf(fun(env)), rt), nil
 			}
 		}
 	case func(*Env) *int32:
@@ -894,7 +894,7 @@ func funAsXV(fun I, t xr.Type) func(*Env) (r.Value, []r.Value) {
 			}
 		} else {
 			return func(env *Env) (r.Value, []r.Value) {
-				return r.ValueOf(fun(env)).Convert(rt), nil
+				return convert(r.ValueOf(fun(env)), rt), nil
 			}
 		}
 	case func(*Env) *int64:
@@ -904,7 +904,7 @@ func funAsXV(fun I, t xr.Type) func(*Env) (r.Value, []r.Value) {
 			}
 		} else {
 			return func(env *Env) (r.Value, []r.Value) {
-				return r.ValueOf(fun(env)).Convert(rt), nil
+				return convert(r.ValueOf(fun(env)), rt), nil
 			}
 		}
 	case func(*Env) *uint:
@@ -914,7 +914,7 @@ func funAsXV(fun I, t xr.Type) func(*Env) (r.Value, []r.Value) {
 			}
 		} else {
 			return func(env *Env) (r.Value, []r.Value) {
-				return r.ValueOf(fun(env)).Convert(rt), nil
+				return convert(r.ValueOf(fun(env)), rt), nil
 			}
 		}
 	case func(*Env) *uint8:
@@ -924,7 +924,7 @@ func funAsXV(fun I, t xr.Type) func(*Env) (r.Value, []r.Value) {
 			}
 		} else {
 			return func(env *Env) (r.Value, []r.Value) {
-				return r.ValueOf(fun(env)).Convert(rt), nil
+				return convert(r.ValueOf(fun(env)), rt), nil
 			}
 		}
 	case func(*Env) *uint16:
@@ -934,7 +934,7 @@ func funAsXV(fun I, t xr.Type) func(*Env) (r.Value, []r.Value) {
 			}
 		} else {
 			return func(env *Env) (r.Value, []r.Value) {
-				return r.ValueOf(fun(env)).Convert(rt), nil
+				return convert(r.ValueOf(fun(env)), rt), nil
 			}
 		}
 	case func(*Env) *uint32:
@@ -944,7 +944,7 @@ func funAsXV(fun I, t xr.Type) func(*Env) (r.Value, []r.Value) {
 			}
 		} else {
 			return func(env *Env) (r.Value, []r.Value) {
-				return r.ValueOf(fun(env)).Convert(rt), nil
+				return convert(r.ValueOf(fun(env)), rt), nil
 			}
 		}
 	case func(*Env) *uint64:
@@ -954,7 +954,7 @@ func funAsXV(fun I, t xr.Type) func(*Env) (r.Value, []r.Value) {
 			}
 		} else {
 			return func(env *Env) (r.Value, []r.Value) {
-				return r.ValueOf(fun(env)).Convert(rt), nil
+				return convert(r.ValueOf(fun(env)), rt), nil
 			}
 		}
 	case func(*Env) *uintptr:
@@ -964,7 +964,7 @@ func funAsXV(fun I, t xr.Type) func(*Env) (r.Value, []r.Value) {
 			}
 		} else {
 			return func(env *Env) (r.Value, []r.Value) {
-				return r.ValueOf(fun(env)).Convert(rt), nil
+				return convert(r.ValueOf(fun(env)), rt), nil
 			}
 		}
 	case func(*Env) *float32:
@@ -974,7 +974,7 @@ func funAsXV(fun I, t xr.Type) func(*Env) (r.Value, []r.Value) {
 			}
 		} else {
 			return func(env *Env) (r.Value, []r.Value) {
-				return r.ValueOf(fun(env)).Convert(rt), nil
+				return convert(r.ValueOf(fun(env)), rt), nil
 			}
 		}
 	case func(*Env) *float64:
@@ -984,7 +984,7 @@ func funAsXV(fun I, t xr.Type) func(*Env) (r.Value, []r.Value) {
 			}
 		} else {
 			return func(env *Env) (r.Value, []r.Value) {
-				return r.ValueOf(fun(env)).Convert(rt), nil
+				return convert(r.ValueOf(fun(env)), rt), nil
 			}
 		}
 	case func(*Env) *complex64:
@@ -994,7 +994,7 @@ func funAsXV(fun I, t xr.Type) func(*Env) (r.Value, []r.Value) {
 			}
 		} else {
 			return func(env *Env) (r.Value, []r.Value) {
-				return r.ValueOf(fun(env)).Convert(rt), nil
+				return convert(r.ValueOf(fun(env)), rt), nil
 			}
 		}
 	default:
@@ -1355,7 +1355,7 @@ func funList(funs []func(*Env), last *Expr, opts CompileOptions) I {
 				for _, f := range funs {
 					f(env)
 				}
-				return r.ValueOf(fun(env)).Convert(rt)
+				return convert(r.ValueOf(fun(env)), rt)
 			}
 		}
 	case func(*Env) int:
@@ -1371,7 +1371,7 @@ func funList(funs []func(*Env), last *Expr, opts CompileOptions) I {
 				for _, f := range funs {
 					f(env)
 				}
-				return r.ValueOf(fun(env)).Convert(rt)
+				return convert(r.ValueOf(fun(env)), rt)
 			}
 		}
 	case func(*Env) int8:
@@ -1387,7 +1387,7 @@ func funList(funs []func(*Env), last *Expr, opts CompileOptions) I {
 				for _, f := range funs {
 					f(env)
 				}
-				return r.ValueOf(fun(env)).Convert(rt)
+				return convert(r.ValueOf(fun(env)), rt)
 			}
 		}
 	case func(*Env) int16:
@@ -1403,7 +1403,7 @@ func funList(funs []func(*Env), last *Expr, opts CompileOptions) I {
 				for _, f := range funs {
 					f(env)
 				}
-				return r.ValueOf(fun(env)).Convert(rt)
+				return convert(r.ValueOf(fun(env)), rt)
 			}
 		}
 	case func(*Env) int32:
@@ -1419,7 +1419,7 @@ func funList(funs []func(*Env), last *Expr, opts CompileOptions) I {
 				for _, f := range funs {
 					f(env)
 				}
-				return r.ValueOf(fun(env)).Convert(rt)
+				return convert(r.ValueOf(fun(env)), rt)
 			}
 		}
 	case func(*Env) int64:
@@ -1435,7 +1435,7 @@ func funList(funs []func(*Env), last *Expr, opts CompileOptions) I {
 				for _, f := range funs {
 					f(env)
 				}
-				return r.ValueOf(fun(env)).Convert(rt)
+				return convert(r.ValueOf(fun(env)), rt)
 			}
 		}
 	case func(*Env) uint:
@@ -1451,7 +1451,7 @@ func funList(funs []func(*Env), last *Expr, opts CompileOptions) I {
 				for _, f := range funs {
 					f(env)
 				}
-				return r.ValueOf(fun(env)).Convert(rt)
+				return convert(r.ValueOf(fun(env)), rt)
 			}
 		}
 	case func(*Env) uint8:
@@ -1467,7 +1467,7 @@ func funList(funs []func(*Env), last *Expr, opts CompileOptions) I {
 				for _, f := range funs {
 					f(env)
 				}
-				return r.ValueOf(fun(env)).Convert(rt)
+				return convert(r.ValueOf(fun(env)), rt)
 			}
 		}
 	case func(*Env) uint16:
@@ -1483,7 +1483,7 @@ func funList(funs []func(*Env), last *Expr, opts CompileOptions) I {
 				for _, f := range funs {
 					f(env)
 				}
-				return r.ValueOf(fun(env)).Convert(rt)
+				return convert(r.ValueOf(fun(env)), rt)
 			}
 		}
 	case func(*Env) uint32:
@@ -1499,7 +1499,7 @@ func funList(funs []func(*Env), last *Expr, opts CompileOptions) I {
 				for _, f := range funs {
 					f(env)
 				}
-				return r.ValueOf(fun(env)).Convert(rt)
+				return convert(r.ValueOf(fun(env)), rt)
 			}
 		}
 	case func(*Env) uint64:
@@ -1515,7 +1515,7 @@ func funList(funs []func(*Env), last *Expr, opts CompileOptions) I {
 				for _, f := range funs {
 					f(env)
 				}
-				return r.ValueOf(fun(env)).Convert(rt)
+				return convert(r.ValueOf(fun(env)), rt)
 			}
 		}
 	case func(*Env) uintptr:
@@ -1531,7 +1531,7 @@ func funList(funs []func(*Env), last *Expr, opts CompileOptions) I {
 				for _, f := range funs {
 					f(env)
 				}
-				return r.ValueOf(fun(env)).Convert(rt)
+				return convert(r.ValueOf(fun(env)), rt)
 			}
 		}
 	case func(*Env) float32:
@@ -1547,7 +1547,7 @@ func funList(funs []func(*Env), last *Expr, opts CompileOptions) I {
 				for _, f := range funs {
 					f(env)
 				}
-				return r.ValueOf(fun(env)).Convert(rt)
+				return convert(r.ValueOf(fun(env)), rt)
 			}
 		}
 	case func(*Env) float64:
@@ -1563,7 +1563,7 @@ func funList(funs []func(*Env), last *Expr, opts CompileOptions) I {
 				for _, f := range funs {
 					f(env)
 				}
-				return r.ValueOf(fun(env)).Convert(rt)
+				return convert(r.ValueOf(fun(env)), rt)
 			}
 		}
 	case func(*Env) complex64:
@@ -1579,7 +1579,7 @@ func funList(funs []func(*Env), last *Expr, opts CompileOptions) I {
 				for _, f := range funs {
 					f(env)
 				}
-				return r.ValueOf(fun(env)).Convert(rt)
+				return convert(r.ValueOf(fun(env)), rt)
 			}
 		}
 	case func(*Env) complex128:
@@ -1595,7 +1595,7 @@ func funList(funs []func(*Env), last *Expr, opts CompileOptions) I {
 				for _, f := range funs {
 					f(env)
 				}
-				return r.ValueOf(fun(env)).Convert(rt)
+				return convert(r.ValueOf(fun(env)), rt)
 			}
 		}
 	case func(*Env) string:
@@ -1611,7 +1611,7 @@ func funList(funs []func(*Env), last *Expr, opts CompileOptions) I {
 				for _, f := range funs {
 					f(env)
 				}
-				return r.ValueOf(fun(env)).Convert(rt)
+				return convert(r.ValueOf(fun(env)), rt)
 			}
 		}
 	default:
@@ -1638,7 +1638,7 @@ func funList(funs []func(*Env), last *Expr, opts CompileOptions) I {
 				if ret == Nil {
 					ret = zero
 				} else if rt != nil && rt != ret.Type() {
-					ret = ret.Convert(rt)
+					ret = convert(ret, rt)
 				}
 				return ret
 			}
@@ -1661,7 +1661,7 @@ func funList(funs []func(*Env), last *Expr, opts CompileOptions) I {
 					if ret == Nil {
 						rets[i] = zero[i]
 					} else if rt != nil && rt[i] != ret.Type() {
-						rets[i] = ret.Convert(rt[i])
+						rets[i] = convert(ret, rt[i])
 					}
 				}
 				return rets[0], rets
@@ -1752,7 +1752,7 @@ func unwrapBind(bind *Bind, t xr.Type) *Expr {
 			if !v.IsValid() {
 				v = zero
 			} else if v.Type() != rtype {
-				v = v.Convert(rtype)
+				v = convert(v, rtype)
 			}
 			return v
 		}
@@ -1842,7 +1842,7 @@ func unwrapBindUp1(bind *Bind, t xr.Type) *Expr {
 			if !v.IsValid() {
 				v = zero
 			} else if v.Type() != rtype {
-				v = v.Convert(rtype)
+				v = convert(v, rtype)
 			}
 			return v
 		}

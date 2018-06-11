@@ -88,7 +88,7 @@ func (lit *Lit) ConstValue() r.Value {
 		if !v.IsValid() {
 			v = r.Zero(rtype)
 		} else if !lit.Untyped() && v.Type() != rtype {
-			v = v.Convert(rtype)
+			v = convert(v, rtype)
 		}
 	}
 	return v

@@ -183,7 +183,7 @@ import (
 			}
 		}
 	}
-	ret := fsetplace(depth, typ, ~'{fun(env)}, ~'{fun(env).Convert(rt)})
+	ret := fsetplace(depth, typ, ~'{fun(env)}, ~'{convert(fun(env), rt)})
 	return ~"{
 		fun := fun.(func(*Env) ~,typ)
 		~,ret
@@ -257,7 +257,7 @@ func (c *Comp) varSetConst(va *Var, val I) {
 	if ValueType(v) == nil {
 		v = r.Zero(rt)
 	} else {
-		v = v.Convert(rt)
+		v = convert(v, rt)
 	}
 	var ret func(env *Env) (Stmt, *Env)
 	intbinds := va.Desc.Class() == IntBind

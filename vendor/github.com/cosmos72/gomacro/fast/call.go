@@ -266,7 +266,7 @@ func (c *Comp) call_ret0(call *Call, maxdepth int) func(env *Env) {
 				argfuns[1](env),
 				argfuns[2](env),
 			}
-			funv.Call(argv)
+			callxr(funv, argv)
 		}
 	}
 	if ret == nil {
@@ -277,7 +277,7 @@ func (c *Comp) call_ret0(call *Call, maxdepth int) func(env *Env) {
 			for i, argfun := range argfunsX1 {
 				argv[i] = argfun(env)
 			}
-			funv.Call(argv)
+			callxr(funv, argv)
 		}
 	}
 	return ret
@@ -321,7 +321,7 @@ func (c *Comp) call_ret2plus(call *Call, maxdepth int) func(env *Env) (r.Value, 
 	case 0:
 		ret = func(env *Env) (r.Value, []r.Value) {
 			funv := exprfun(env)
-			retv := funv.Call(base.ZeroValues)
+			retv := callxr(funv, base.ZeroValues)
 			return retv[0], retv
 		}
 	case 1:
@@ -331,7 +331,7 @@ func (c *Comp) call_ret2plus(call *Call, maxdepth int) func(env *Env) (r.Value, 
 			argv := []r.Value{
 				argfun(env),
 			}
-			retv := funv.Call(argv)
+			retv := callxr(funv, argv)
 			return retv[0], retv
 		}
 	case 2:
@@ -345,7 +345,7 @@ func (c *Comp) call_ret2plus(call *Call, maxdepth int) func(env *Env) (r.Value, 
 				argfuns[0](env),
 				argfuns[1](env),
 			}
-			retv := funv.Call(argv)
+			retv := callxr(funv, argv)
 			return retv[0], retv
 		}
 	case 3:
@@ -361,7 +361,7 @@ func (c *Comp) call_ret2plus(call *Call, maxdepth int) func(env *Env) (r.Value, 
 				argfuns[1](env),
 				argfuns[2](env),
 			}
-			retv := funv.Call(argv)
+			retv := callxr(funv, argv)
 			return retv[0], retv
 		}
 	default:
@@ -372,11 +372,20 @@ func (c *Comp) call_ret2plus(call *Call, maxdepth int) func(env *Env) (r.Value, 
 			for i, argfun := range argfunsX1 {
 				argv[i] = argfun(env)
 			}
-			retv := funv.Call(argv)
+			retv := callxr(funv, argv)
 			return retv[0], retv
 		}
 	}
 	return ret
+}
+
+// replacement for reflect.Value.Call() that correctly handles
+// functions wrapped in xr.Forward
+func callxr(fun r.Value, args []r.Value) []r.Value {
+	if fun.Kind() == r.Interface {
+		fun = fun.Elem()
+	}
+	return fun.Call(args)
 }
 
 func (c *Comp) badCallArgNum(fun ast.Expr, t xr.Type, args []*Expr) *Call {

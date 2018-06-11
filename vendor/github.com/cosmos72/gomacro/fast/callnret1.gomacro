@@ -84,7 +84,7 @@ import (
 				argv[i] = argfun(env)
 			}
 			// Debugf("calling %v with args %v", funv.Type(), argv)
-			ret0 := funv.Call(argv)[0]
+			ret0 := callxr(funv, argv)[0]
 			return ~,ret0
 		}
 	}

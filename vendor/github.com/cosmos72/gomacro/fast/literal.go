@@ -164,7 +164,7 @@ func (lit *Lit) ConstTo(t xr.Type) I {
 	if tfrom != nil && t != nil && (tfrom.AssignableTo(t) || t.Kind() == r.Interface && tfrom.Implements(t)) {
 		lit.Type = t
 		// FIXME: use (*Comp).Converter(), requires a *Comp parameter
-		lit.Value = r.ValueOf(value).Convert(t.ReflectType()).Interface()
+		lit.Value = convert(r.ValueOf(value), t.ReflectType()).Interface()
 		return lit.Value
 	}
 	Errorf("cannot convert typed constant %v <%v> to <%v>%s", value, lit.Type, t, interfaceMissingMethod(lit.Type, t))
@@ -340,7 +340,7 @@ again:
 	rtexpected := t.ReflectType()
 	if rtexpected != rtactual {
 		if rtexpected.Kind() == r.Interface && rtactual.Implements(rtexpected) {
-			v = v.Convert(rtexpected)
+			v = convert(v, rtexpected)
 		} else {
 			Errorf("internal error: constant %v <%v> was assumed to have type <%v>", value, rtactual, rtexpected)
 		}

@@ -38,7 +38,7 @@ func (c *Comp) placeSetConst(place *Place, val I) {
 	if ValueType(v) == nil {
 		v = r.Zero(rt)
 	} else {
-		v = v.Convert(rt)
+		v = convert(v, rt)
 	}
 
 	lhs := place.Fun
@@ -156,7 +156,7 @@ func (c *Comp) placeSetExpr(place *Place, fun I) {
 			key := mapkey(env)
 			val := rhs(env)
 			if val.Type() != rt {
-				val = val.Convert(rt)
+				val = convert(val, rt)
 			}
 
 			obj.SetMapIndex(key, val)
@@ -416,7 +416,7 @@ func (c *Comp) placeSetExpr(place *Place, fun I) {
 				if value == Nil || value == None {
 					value = zero
 				} else if value.Type() != rt {
-					value = value.Convert(rt)
+					value = convert(value, rt)
 				}
 
 				place.Set(value)

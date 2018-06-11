@@ -574,7 +574,7 @@ func (c *Comp) typeswitchVar(varname string, t xr.Type, sym *Symbol) {
 			if !v.IsValid() {
 				v = zero
 			} else if v.Type() != rtype {
-				v = v.Convert(rtype)
+				v = convert(v, rtype)
 			}
 			place.Set(v)
 			env.Vals[idx] = place

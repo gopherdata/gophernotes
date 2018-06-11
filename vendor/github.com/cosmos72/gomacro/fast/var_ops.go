@@ -32251,7 +32251,7 @@ func (c *Comp) SetVar(va *Var, op token.Token, init *Expr) {
 			v = r.Zero(rt)
 			val = v.Interface()
 		} else if v.Type() != rt && !shift {
-			v = v.Convert(rt)
+			v = convert(v, rt)
 			val = v.Interface()
 		}
 		switch op {

@@ -132,7 +132,7 @@ import (
 				}
 				v := r.ValueOf(~,shift)
 				if v.Type() != rt {
-					v = v.Convert(rt)
+					v = convert(v, rt)
 				}
 				lhs.SetMapIndex(key, v)
 				env.IP++
@@ -147,7 +147,7 @@ import (
 				result := ~,get
 				v := r.ValueOf(~,shift)
 				if v.Type() != rt {
-					v = v.Convert(rt)
+					v = convert(v, rt)
 				}
 				lhs.SetMapIndex(key, v)
 				env.IP++

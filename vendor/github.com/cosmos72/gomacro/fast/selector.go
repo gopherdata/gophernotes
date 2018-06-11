@@ -177,9 +177,10 @@ func (c *Comp) LookupMethod(t xr.Type, name string) (mtd xr.Method, numfound int
 // field0 is a variant of reflect.Value.Field, also accepts pointer values
 // and dereferences pointer ONLY if index < 0 (actually used index will be ^index)
 func field0(v r.Value, index int) r.Value {
-	if index < 0 {
+	switch v.Kind() {
+	// also accept interface xr.Forward and extract concrete type from it
+	case r.Ptr, r.Interface:
 		v = v.Elem()
-		index = ^index
 	}
 	return v.Field(index)
 }
@@ -188,8 +189,9 @@ func field0(v r.Value, index int) r.Value {
 // and dereferences pointers ONLY if index[i] < 0 (actually used index will be ^index[i])
 func fieldByIndex(v r.Value, index []int) r.Value {
 	for _, x := range index {
-		if x < 0 {
-			x = ^x
+		switch v.Kind() {
+		// also accept interface xr.Forward and extract concrete type from it
+		case r.Ptr, r.Interface:
 			v = v.Elem()
 		}
 		v = v.Field(x)
@@ -199,25 +201,8 @@ func fieldByIndex(v r.Value, index []int) r.Value {
 
 // descend embedded fields, detect any pointer-to-struct that must be dereferenced
 func descendEmbeddedFields(t xr.Type, field xr.StructField) []int {
-	index := field.Index
-	n := len(index)
-	var copied bool
-
-	for i, x := range field.Index {
-		// dereference pointer-to-struct
-		if t.Kind() == r.Ptr {
-			if !copied {
-				// make a copy before modifying it
-				index = make([]int, n)
-				copy(index, field.Index)
-				copied = true
-			}
-			index[i] = ^x // remember we will need a dereference at runtime
-			t = t.Elem()
-		}
-		t = t.Field(x).Type
-	}
-	return index
+	// currently a no-op
+	return field.Index
 }
 
 func (c *Comp) compileField(e *Expr, field xr.StructField) *Expr {

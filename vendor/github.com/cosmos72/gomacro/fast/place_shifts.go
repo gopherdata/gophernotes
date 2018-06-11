@@ -83,7 +83,7 @@ func (c *Comp) placeShlConst(place *Place, val I) {
 						val,
 					)
 					if v.Type() != rt {
-						v = v.Convert(rt)
+						v = convert(v, rt)
 					}
 
 					lhs.SetMapIndex(key, v)
@@ -101,7 +101,7 @@ func (c *Comp) placeShlConst(place *Place, val I) {
 						val,
 					)
 					if v.Type() != rt {
-						v = v.Convert(rt)
+						v = convert(v, rt)
 					}
 
 					lhs.SetMapIndex(key, v)
@@ -296,7 +296,7 @@ func (c *Comp) placeShlExpr(place *Place, fun I) {
 						fun(env),
 					)
 					if v.Type() != rt {
-						v = v.Convert(rt)
+						v = convert(v, rt)
 					}
 
 					lhs.SetMapIndex(key, v)
@@ -314,7 +314,7 @@ func (c *Comp) placeShlExpr(place *Place, fun I) {
 						fun(env),
 					)
 					if v.Type() != rt {
-						v = v.Convert(rt)
+						v = convert(v, rt)
 					}
 
 					lhs.SetMapIndex(key, v)
@@ -332,7 +332,7 @@ func (c *Comp) placeShlExpr(place *Place, fun I) {
 						fun(env),
 					)
 					if v.Type() != rt {
-						v = v.Convert(rt)
+						v = convert(v, rt)
 					}
 
 					lhs.SetMapIndex(key, v)
@@ -350,7 +350,7 @@ func (c *Comp) placeShlExpr(place *Place, fun I) {
 						fun(env),
 					)
 					if v.Type() != rt {
-						v = v.Convert(rt)
+						v = convert(v, rt)
 					}
 
 					lhs.SetMapIndex(key, v)
@@ -368,7 +368,7 @@ func (c *Comp) placeShlExpr(place *Place, fun I) {
 						fun(env),
 					)
 					if v.Type() != rt {
-						v = v.Convert(rt)
+						v = convert(v, rt)
 					}
 
 					lhs.SetMapIndex(key, v)
@@ -386,7 +386,7 @@ func (c *Comp) placeShlExpr(place *Place, fun I) {
 						fun(env),
 					)
 					if v.Type() != rt {
-						v = v.Convert(rt)
+						v = convert(v, rt)
 					}
 
 					lhs.SetMapIndex(key, v)
@@ -407,7 +407,7 @@ func (c *Comp) placeShlExpr(place *Place, fun I) {
 						fun(env),
 					)
 					if v.Type() != rt {
-						v = v.Convert(rt)
+						v = convert(v, rt)
 					}
 
 					lhs.SetMapIndex(key, v)
@@ -425,7 +425,7 @@ func (c *Comp) placeShlExpr(place *Place, fun I) {
 						fun(env),
 					)
 					if v.Type() != rt {
-						v = v.Convert(rt)
+						v = convert(v, rt)
 					}
 
 					lhs.SetMapIndex(key, v)
@@ -443,7 +443,7 @@ func (c *Comp) placeShlExpr(place *Place, fun I) {
 						fun(env),
 					)
 					if v.Type() != rt {
-						v = v.Convert(rt)
+						v = convert(v, rt)
 					}
 
 					lhs.SetMapIndex(key, v)
@@ -461,7 +461,7 @@ func (c *Comp) placeShlExpr(place *Place, fun I) {
 						fun(env),
 					)
 					if v.Type() != rt {
-						v = v.Convert(rt)
+						v = convert(v, rt)
 					}
 
 					lhs.SetMapIndex(key, v)
@@ -479,7 +479,7 @@ func (c *Comp) placeShlExpr(place *Place, fun I) {
 						fun(env),
 					)
 					if v.Type() != rt {
-						v = v.Convert(rt)
+						v = convert(v, rt)
 					}
 
 					lhs.SetMapIndex(key, v)
@@ -497,7 +497,7 @@ func (c *Comp) placeShlExpr(place *Place, fun I) {
 						fun(env),
 					)
 					if v.Type() != rt {
-						v = v.Convert(rt)
+						v = convert(v, rt)
 					}
 
 					lhs.SetMapIndex(key, v)
@@ -570,7 +570,7 @@ func (c *Comp) placeShrConst(place *Place, val I) {
 						val,
 					)
 					if v.Type() != rt {
-						v = v.Convert(rt)
+						v = convert(v, rt)
 					}
 
 					lhs.SetMapIndex(key, v)
@@ -588,7 +588,7 @@ func (c *Comp) placeShrConst(place *Place, val I) {
 						val,
 					)
 					if v.Type() != rt {
-						v = v.Convert(rt)
+						v = convert(v, rt)
 					}
 
 					lhs.SetMapIndex(key, v)
@@ -783,7 +783,7 @@ func (c *Comp) placeShrExpr(place *Place, fun I) {
 						fun(env),
 					)
 					if v.Type() != rt {
-						v = v.Convert(rt)
+						v = convert(v, rt)
 					}
 
 					lhs.SetMapIndex(key, v)
@@ -801,7 +801,7 @@ func (c *Comp) placeShrExpr(place *Place, fun I) {
 						fun(env),
 					)
 					if v.Type() != rt {
-						v = v.Convert(rt)
+						v = convert(v, rt)
 					}
 
 					lhs.SetMapIndex(key, v)
@@ -819,7 +819,7 @@ func (c *Comp) placeShrExpr(place *Place, fun I) {
 						fun(env),
 					)
 					if v.Type() != rt {
-						v = v.Convert(rt)
+						v = convert(v, rt)
 					}
 
 					lhs.SetMapIndex(key, v)
@@ -837,7 +837,7 @@ func (c *Comp) placeShrExpr(place *Place, fun I) {
 						fun(env),
 					)
 					if v.Type() != rt {
-						v = v.Convert(rt)
+						v = convert(v, rt)
 					}
 
 					lhs.SetMapIndex(key, v)
@@ -855,7 +855,7 @@ func (c *Comp) placeShrExpr(place *Place, fun I) {
 						fun(env),
 					)
 					if v.Type() != rt {
-						v = v.Convert(rt)
+						v = convert(v, rt)
 					}
 
 					lhs.SetMapIndex(key, v)
@@ -873,7 +873,7 @@ func (c *Comp) placeShrExpr(place *Place, fun I) {
 						fun(env),
 					)
 					if v.Type() != rt {
-						v = v.Convert(rt)
+						v = convert(v, rt)
 					}
 
 					lhs.SetMapIndex(key, v)
@@ -894,7 +894,7 @@ func (c *Comp) placeShrExpr(place *Place, fun I) {
 						fun(env),
 					)
 					if v.Type() != rt {
-						v = v.Convert(rt)
+						v = convert(v, rt)
 					}
 
 					lhs.SetMapIndex(key, v)
@@ -912,7 +912,7 @@ func (c *Comp) placeShrExpr(place *Place, fun I) {
 						fun(env),
 					)
 					if v.Type() != rt {
-						v = v.Convert(rt)
+						v = convert(v, rt)
 					}
 
 					lhs.SetMapIndex(key, v)
@@ -930,7 +930,7 @@ func (c *Comp) placeShrExpr(place *Place, fun I) {
 						fun(env),
 					)
 					if v.Type() != rt {
-						v = v.Convert(rt)
+						v = convert(v, rt)
 					}
 
 					lhs.SetMapIndex(key, v)
@@ -948,7 +948,7 @@ func (c *Comp) placeShrExpr(place *Place, fun I) {
 						fun(env),
 					)
 					if v.Type() != rt {
-						v = v.Convert(rt)
+						v = convert(v, rt)
 					}
 
 					lhs.SetMapIndex(key, v)
@@ -966,7 +966,7 @@ func (c *Comp) placeShrExpr(place *Place, fun I) {
 						fun(env),
 					)
 					if v.Type() != rt {
-						v = v.Convert(rt)
+						v = convert(v, rt)
 					}
 
 					lhs.SetMapIndex(key, v)
@@ -984,7 +984,7 @@ func (c *Comp) placeShrExpr(place *Place, fun I) {
 						fun(env),
 					)
 					if v.Type() != rt {
-						v = v.Convert(rt)
+						v = convert(v, rt)
 					}
 
 					lhs.SetMapIndex(key, v)
@@ -1101,7 +1101,7 @@ func (c *Comp) placeQuoPow2(place *Place, val I) bool {
 						val,
 					)
 					if v.Type() != rt {
-						v = v.Convert(rt)
+						v = convert(v, rt)
 					}
 
 					lhs.SetMapIndex(key, v)
@@ -1119,7 +1119,7 @@ func (c *Comp) placeQuoPow2(place *Place, val I) bool {
 						val,
 					)
 					if v.Type() != rt {
-						v = v.Convert(rt)
+						v = convert(v, rt)
 					}
 
 					lhs.SetMapIndex(key, v)

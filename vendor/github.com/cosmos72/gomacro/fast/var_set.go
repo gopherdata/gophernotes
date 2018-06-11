@@ -43,7 +43,7 @@ func (c *Comp) varSetConst(va *Var, val I) {
 	if ValueType(v) == nil {
 		v = r.Zero(rt)
 	} else {
-		v = v.Convert(rt)
+		v = convert(v, rt)
 	}
 
 	var ret func(env *Env) (Stmt, *Env)

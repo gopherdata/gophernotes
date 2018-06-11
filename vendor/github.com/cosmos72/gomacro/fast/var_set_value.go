@@ -74,7 +74,7 @@ func (c *Comp) varSetValue(va *Var) func(*Env, r.Value) {
 			case r.String:
 				ret = func(env *Env, v r.Value) {
 					if v.Kind() != r.String {
-						v = v.Convert(TypeOfString)
+						v = convert(v, TypeOfString)
 					}
 					env.Vals[index].SetString(v.String())
 				}
@@ -83,14 +83,14 @@ func (c *Comp) varSetValue(va *Var) func(*Env, r.Value) {
 					if v == Nil || v == None {
 						v = zero
 					} else if v.Type() != rt {
-						v = v.Convert(rt)
+						v = convert(v, rt)
 					}
 					env.Vals[index].Set(v)
 				}
 			default:
 				ret = func(env *Env, v r.Value) {
 					if v.Type() != rt {
-						v = v.Convert(rt)
+						v = convert(v, rt)
 					}
 					env.Vals[index].Set(v)
 				}
@@ -120,7 +120,7 @@ func (c *Comp) varSetValue(va *Var) func(*Env, r.Value) {
 			case r.String:
 				ret = func(env *Env, v r.Value) {
 					if v.Kind() != r.String {
-						v = v.Convert(TypeOfString)
+						v = convert(v, TypeOfString)
 					}
 					env.Outer.Vals[index].SetString(v.String())
 				}
@@ -129,14 +129,14 @@ func (c *Comp) varSetValue(va *Var) func(*Env, r.Value) {
 					if v == Nil || v == None {
 						v = zero
 					} else if v.Type() != rt {
-						v = v.Convert(rt)
+						v = convert(v, rt)
 					}
 					env.Outer.Vals[index].Set(v)
 				}
 			default:
 				ret = func(env *Env, v r.Value) {
 					if v.Type() != rt {
-						v = v.Convert(rt)
+						v = convert(v, rt)
 					}
 					env.Outer.Vals[index].Set(v)
 				}
@@ -166,7 +166,7 @@ func (c *Comp) varSetValue(va *Var) func(*Env, r.Value) {
 			case r.String:
 				ret = func(env *Env, v r.Value) {
 					if v.Kind() != r.String {
-						v = v.Convert(TypeOfString)
+						v = convert(v, TypeOfString)
 					}
 					env.Outer.Outer.Vals[index].SetString(v.String())
 				}
@@ -175,14 +175,14 @@ func (c *Comp) varSetValue(va *Var) func(*Env, r.Value) {
 					if v == Nil || v == None {
 						v = zero
 					} else if v.Type() != rt {
-						v = v.Convert(rt)
+						v = convert(v, rt)
 					}
 					env.Outer.Outer.Vals[index].Set(v)
 				}
 			default:
 				ret = func(env *Env, v r.Value) {
 					if v.Type() != rt {
-						v = v.Convert(rt)
+						v = convert(v, rt)
 					}
 					env.Outer.Outer.Vals[index].Set(v)
 				}
@@ -212,7 +212,7 @@ func (c *Comp) varSetValue(va *Var) func(*Env, r.Value) {
 			case r.String:
 				ret = func(env *Env, v r.Value) {
 					if v.Kind() != r.String {
-						v = v.Convert(TypeOfString)
+						v = convert(v, TypeOfString)
 					}
 					env.FileEnv.Vals[index].SetString(v.String())
 				}
@@ -221,14 +221,14 @@ func (c *Comp) varSetValue(va *Var) func(*Env, r.Value) {
 					if v == Nil || v == None {
 						v = zero
 					} else if v.Type() != rt {
-						v = v.Convert(rt)
+						v = convert(v, rt)
 					}
 					env.FileEnv.Vals[index].Set(v)
 				}
 			default:
 				ret = func(env *Env, v r.Value) {
 					if v.Type() != rt {
-						v = v.Convert(rt)
+						v = convert(v, rt)
 					}
 					env.FileEnv.Vals[index].Set(v)
 				}
@@ -282,7 +282,7 @@ func (c *Comp) varSetValue(va *Var) func(*Env, r.Value) {
 						o = o.Outer
 					}
 					if v.Kind() != r.String {
-						v = v.Convert(TypeOfString)
+						v = convert(v, TypeOfString)
 					}
 					o.Vals[index].SetString(v.String())
 				}
@@ -295,7 +295,7 @@ func (c *Comp) varSetValue(va *Var) func(*Env, r.Value) {
 					if v == Nil || v == None {
 						v = zero
 					} else if v.Type() != rt {
-						v = v.Convert(rt)
+						v = convert(v, rt)
 					}
 					o.Vals[index].Set(v)
 				}
@@ -306,7 +306,7 @@ func (c *Comp) varSetValue(va *Var) func(*Env, r.Value) {
 						o = o.Outer
 					}
 					if v.Type() != rt {
-						v = v.Convert(rt)
+						v = convert(v, rt)
 					}
 					o.Vals[index].Set(v)
 				}

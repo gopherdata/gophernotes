@@ -51,7 +51,12 @@ func (t *xtype) elem() Type {
 	case *types.Map:
 		return t.universe.maketype(gtype.Elem(), rtype.Elem())
 	case *types.Pointer:
-		return t.universe.maketype(gtype.Elem(), rtype.Elem())
+		// if reflect type is xreflect.Forward due to contagion,
+		// we do not know the element type -> return xreflect.Forward
+		if rtype != rTypeOfForward {
+			rtype = rtype.Elem()
+		}
+		return t.universe.maketype(gtype.Elem(), rtype)
 	case *types.Slice:
 		return t.universe.maketype(gtype.Elem(), rtype.Elem())
 	default:
@@ -99,9 +104,18 @@ func (v *Universe) MapOf(key, elem Type) Type {
 }
 
 func (v *Universe) PtrTo(elem Type) Type {
+	rtyp := elem.ReflectType()
+
+	// do not create the reflect type *xreflect.Forward
+	// because it hurts the implementation of recursive types.
+	// Instead, consider xreflect.Forward as slightly contagious.
+	if rtyp != rTypeOfForward {
+		rtyp = reflect.PtrTo(rtyp)
+	}
+
 	return v.MakeType(
 		types.NewPointer(elem.GoType()),
-		reflect.PtrTo(elem.ReflectType()))
+		rtyp)
 }
 
 func (v *Universe) SliceOf(elem Type) Type {

@@ -469,7 +469,7 @@ func (c *Comp) func1ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 						if param0index != NoIndex {
 							place := r.New(rtarg0).Elem()
 							if arg0 := args[0]; arg0 != Nil && arg0 != None {
-								place.Set(arg0.Convert(rtarg0))
+								place.Set(convert(arg0, rtarg0))
 							}
 
 							env.Vals[param0index] = place
