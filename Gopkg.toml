@@ -27,7 +27,7 @@
 
 [[constraint]]
   branch = "master"
-  name = "github.com/nu7hatch/gouuid"
+  name = "github.com/satori/go.uuid"
 
 [[constraint]]
   branch = "master"

@@ -4,14 +4,18 @@
 [[projects]]
   branch = "master"
   name = "github.com/cosmos72/gomacro"
-  packages = ["ast2","base","classic","fast","imports","parser","scanner","token","typeutil","xreflect"]
+  packages = [
+    "ast2",
+    "base",
+    "fast",
+    "imports",
+    "parser",
+    "scanner",
+    "token",
+    "typeutil",
+    "xreflect"
+  ]
   revision = "b90dd5143957e920ac0ce87f9a3277bbc3ce1641"
-
-[[projects]]
-  branch = "master"
-  name = "github.com/nu7hatch/gouuid"
-  packages = ["."]
-  revision = "179d4d0c4d8d407a32af483c2354df1d2c91e6c3"
 
 [[projects]]
   branch = "master"
@@ -21,13 +25,13 @@
 
 [[projects]]
   branch = "master"
-  name = "golang.org/x/sync"
-  packages = ["syncmap"]
-  revision = "f52d1811a62927559de87708c8913c1650ce4f26"
+  name = "github.com/satori/go.uuid"
+  packages = ["."]
+  revision = "36e9d2ebbde5e3f13ab2e25625fd453271d6522e"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "fa5d7d9ec51b9210ed3ca68de1105ddbbc070a941c737b3955518eaee951d10c"
+  inputs-digest = "53e3da38a3acce499a02845a078f89024d8ff6be247ace4f231a8e540cab4b99"
   solver-name = "gps-cdcl"
   solver-version = 1
