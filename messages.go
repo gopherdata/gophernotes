@@ -7,7 +7,7 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/nu7hatch/gouuid"
+	"github.com/satori/go.uuid"
 	zmq "github.com/pebbe/zmq4"
 )
 
