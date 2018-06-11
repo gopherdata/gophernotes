@@ -2,26 +2,44 @@
 
 
 [[projects]]
-  branch = "master"
+  branch = "stable"
   name = "github.com/cosmos72/gomacro"
   packages = [
     "ast2",
+    "atomic",
     "base",
+    "base/dep",
+    "base/untyped",
     "fast",
+    "gls",
     "imports",
+    "imports/syscall",
+    "imports/thirdparty",
     "parser",
     "scanner",
     "token",
     "typeutil",
     "xreflect"
   ]
-  revision = "b90dd5143957e920ac0ce87f9a3277bbc3ce1641"
+  revision = "515faf9893ffc98ff66aab992cefbd8065aab308"
+
+[[projects]]
+  name = "github.com/mattn/go-runewidth"
+  packages = ["."]
+  revision = "9e777a8366cce605130a531d2cd6363d07ad7317"
+  version = "v0.0.2"
 
 [[projects]]
   branch = "master"
   name = "github.com/pebbe/zmq4"
   packages = ["."]
   revision = "90d69e412a09549f2e90bac70fbb449081f1e5c1"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/peterh/liner"
+  packages = ["."]
+  revision = "80ce870644db1b043e8dc2cf836bde5c347e2701"
 
 [[projects]]
   branch = "master"
@@ -32,6 +50,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "53e3da38a3acce499a02845a078f89024d8ff6be247ace4f231a8e540cab4b99"
+  inputs-digest = "65df4a5ef3cdf2edcf3356750f546516353199cef62ac39c6a9f163b5487cb35"
   solver-name = "gps-cdcl"
   solver-version = 1

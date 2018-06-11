@@ -1,18 +1,11 @@
-// +build !windows,!js
-
 package runewidth
 
 import (
-	"os"
 	"sort"
 	"testing"
 )
 
 var _ sort.Interface = (*table)(nil)
-
-func init() {
-	os.Setenv("RUNEWIDTH_EASTASIAN", "")
-}
 
 func (t table) Len() int {
 	return len(t)
@@ -59,13 +52,10 @@ var runewidthtests = []struct {
 	{'\x00', 0, 0},
 	{'\x01', 0, 0},
 	{'\u0300', 0, 0},
-	{'\u2028', 0, 0},
-	{'\u2029', 0, 0},
 }
 
 func TestRuneWidth(t *testing.T) {
 	c := NewCondition()
-	c.EastAsianWidth = false
 	for _, tt := range runewidthtests {
 		if out := c.RuneWidth(tt.in); out != tt.out {
 			t.Errorf("RuneWidth(%q) = %d, want %d", tt.in, out, tt.out)
@@ -131,16 +121,15 @@ var stringwidthtests = []struct {
 
 func TestStringWidth(t *testing.T) {
 	c := NewCondition()
-	c.EastAsianWidth = false
 	for _, tt := range stringwidthtests {
 		if out := c.StringWidth(tt.in); out != tt.out {
-			t.Errorf("StringWidth(%q) = %d, want %d", tt.in, out, tt.out)
+			t.Errorf("StringWidth(%q) = %q, want %q", tt.in, out, tt.out)
 		}
 	}
 	c.EastAsianWidth = true
 	for _, tt := range stringwidthtests {
 		if out := c.StringWidth(tt.in); out != tt.eaout {
-			t.Errorf("StringWidth(%q) = %d, want %d", tt.in, out, tt.eaout)
+			t.Errorf("StringWidth(%q) = %q, want %q", tt.in, out, tt.eaout)
 		}
 	}
 }
@@ -148,7 +137,7 @@ func TestStringWidth(t *testing.T) {
 func TestStringWidthInvalid(t *testing.T) {
 	s := "こんにちわ\x00世界"
 	if out := StringWidth(s); out != 14 {
-		t.Errorf("StringWidth(%q) = %d, want %d", s, out, 14)
+		t.Errorf("StringWidth(%q) = %q, want %q", s, out, 14)
 	}
 }
 
@@ -282,16 +271,5 @@ func TestFillRightFit(t *testing.T) {
 
 	if out := FillRight(s, 10); out != expected {
 		t.Errorf("FillRight(%q) = %q, want %q", s, out, expected)
-	}
-}
-
-func TestEnv(t *testing.T) {
-	old := os.Getenv("RUNEWIDTH_EASTASIAN")
-	defer os.Setenv("RUNEWIDTH_EASTASIAN", old)
-
-	os.Setenv("RUNEWIDTH_EASTASIAN", "1")
-
-	if w := RuneWidth('│'); w != 1 {
-		t.Errorf("RuneWidth('│') = %d, want %d", w, 1)
 	}
 }

@@ -22,7 +22,7 @@
 
 
 [[constraint]]
-  branch = "master"
+  branch = "stable"
   name = "github.com/cosmos72/gomacro"
 
 [[constraint]]
