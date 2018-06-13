@@ -386,7 +386,12 @@ func sliceOfXrForward(n int) []r.Type {
 }
 
 func funcOfXrForward(nin int, nout int, variadic bool) r.Type {
-	return r.FuncOf(sliceOfXrForward(nin), sliceOfXrForward(nout), variadic)
+	touts := sliceOfXrForward(nout)
+	if variadic {
+		touts = append([]r.Type{}, touts...) // make a copy
+		touts[nout-1] = r.SliceOf(rtypeOfForward)
+	}
+	return r.FuncOf(sliceOfXrForward(nin), touts, variadic)
 }
 
 // fallback: create a non-optimized function

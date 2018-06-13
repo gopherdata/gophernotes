@@ -33,7 +33,7 @@ func call_ellipsis_ret0(c *Call, maxdepth int) func(env *Env) {
 			argv := []r.Value{
 				argfun(env),
 			}
-			funv.CallSlice(argv)
+			callslicexr(funv, argv)
 		}
 	case 2:
 		argfuns := [2]func(env *Env) r.Value{
@@ -46,7 +46,7 @@ func call_ellipsis_ret0(c *Call, maxdepth int) func(env *Env) {
 				argfuns[0](env),
 				argfuns[1](env),
 			}
-			funv.CallSlice(argv)
+			callslicexr(funv, argv)
 		}
 	case 3:
 		argfuns := [3]func(env *Env) r.Value{
@@ -61,7 +61,7 @@ func call_ellipsis_ret0(c *Call, maxdepth int) func(env *Env) {
 				argfuns[1](env),
 				argfuns[2](env),
 			}
-			funv.CallSlice(argv)
+			callslicexr(funv, argv)
 		}
 	}
 	if call == nil {
@@ -71,7 +71,7 @@ func call_ellipsis_ret0(c *Call, maxdepth int) func(env *Env) {
 			for i, argfun := range argfunsX1 {
 				argv[i] = argfun(env)
 			}
-			funv.CallSlice(argv)
+			callslicexr(funv, argv)
 		}
 	}
 	return call
@@ -94,7 +94,7 @@ func call_ellipsis_ret1(c *Call, maxdepth int) I {
 				argv := []r.Value{
 					argfun(env),
 				}
-				retv := funv.CallSlice(argv)[0]
+				retv := callslicexr(funv, argv)[0]
 				return retv.Bool()
 			}
 		case r.Int:
@@ -103,7 +103,7 @@ func call_ellipsis_ret1(c *Call, maxdepth int) I {
 				argv := []r.Value{
 					argfun(env),
 				}
-				retv := funv.CallSlice(argv)[0]
+				retv := callslicexr(funv, argv)[0]
 				return int(retv.Int())
 			}
 		case r.Int8:
@@ -112,7 +112,7 @@ func call_ellipsis_ret1(c *Call, maxdepth int) I {
 				argv := []r.Value{
 					argfun(env),
 				}
-				retv := funv.CallSlice(argv)[0]
+				retv := callslicexr(funv, argv)[0]
 				return int8(retv.Int())
 			}
 		case r.Int16:
@@ -121,7 +121,7 @@ func call_ellipsis_ret1(c *Call, maxdepth int) I {
 				argv := []r.Value{
 					argfun(env),
 				}
-				retv := funv.CallSlice(argv)[0]
+				retv := callslicexr(funv, argv)[0]
 				return int16(retv.Int())
 			}
 		case r.Int32:
@@ -130,7 +130,7 @@ func call_ellipsis_ret1(c *Call, maxdepth int) I {
 				argv := []r.Value{
 					argfun(env),
 				}
-				retv := funv.CallSlice(argv)[0]
+				retv := callslicexr(funv, argv)[0]
 				return int32(retv.Int())
 			}
 		case r.Int64:
@@ -139,7 +139,7 @@ func call_ellipsis_ret1(c *Call, maxdepth int) I {
 				argv := []r.Value{
 					argfun(env),
 				}
-				retv := funv.CallSlice(argv)[0]
+				retv := callslicexr(funv, argv)[0]
 				return retv.Int()
 			}
 		case r.Uint:
@@ -148,7 +148,7 @@ func call_ellipsis_ret1(c *Call, maxdepth int) I {
 				argv := []r.Value{
 					argfun(env),
 				}
-				retv := funv.CallSlice(argv)[0]
+				retv := callslicexr(funv, argv)[0]
 				return uint(retv.Uint())
 			}
 		case r.Uint8:
@@ -157,7 +157,7 @@ func call_ellipsis_ret1(c *Call, maxdepth int) I {
 				argv := []r.Value{
 					argfun(env),
 				}
-				retv := funv.CallSlice(argv)[0]
+				retv := callslicexr(funv, argv)[0]
 				return uint8(retv.Uint())
 			}
 		case r.Uint16:
@@ -166,7 +166,7 @@ func call_ellipsis_ret1(c *Call, maxdepth int) I {
 				argv := []r.Value{
 					argfun(env),
 				}
-				retv := funv.CallSlice(argv)[0]
+				retv := callslicexr(funv, argv)[0]
 				return uint16(retv.Uint())
 			}
 		case r.Uint32:
@@ -175,7 +175,7 @@ func call_ellipsis_ret1(c *Call, maxdepth int) I {
 				argv := []r.Value{
 					argfun(env),
 				}
-				retv := funv.CallSlice(argv)[0]
+				retv := callslicexr(funv, argv)[0]
 				return uint32(retv.Uint())
 			}
 		case r.Uint64:
@@ -184,7 +184,7 @@ func call_ellipsis_ret1(c *Call, maxdepth int) I {
 				argv := []r.Value{
 					argfun(env),
 				}
-				retv := funv.CallSlice(argv)[0]
+				retv := callslicexr(funv, argv)[0]
 				return retv.Uint()
 			}
 		case r.Uintptr:
@@ -193,7 +193,7 @@ func call_ellipsis_ret1(c *Call, maxdepth int) I {
 				argv := []r.Value{
 					argfun(env),
 				}
-				retv := funv.CallSlice(argv)[0]
+				retv := callslicexr(funv, argv)[0]
 				return uintptr(retv.Uint())
 			}
 		case r.Float32:
@@ -202,7 +202,7 @@ func call_ellipsis_ret1(c *Call, maxdepth int) I {
 				argv := []r.Value{
 					argfun(env),
 				}
-				retv := funv.CallSlice(argv)[0]
+				retv := callslicexr(funv, argv)[0]
 				return float32(retv.Float())
 			}
 		case r.Float64:
@@ -211,7 +211,7 @@ func call_ellipsis_ret1(c *Call, maxdepth int) I {
 				argv := []r.Value{
 					argfun(env),
 				}
-				retv := funv.CallSlice(argv)[0]
+				retv := callslicexr(funv, argv)[0]
 				return retv.Float()
 			}
 		case r.Complex64:
@@ -220,7 +220,7 @@ func call_ellipsis_ret1(c *Call, maxdepth int) I {
 				argv := []r.Value{
 					argfun(env),
 				}
-				retv := funv.CallSlice(argv)[0]
+				retv := callslicexr(funv, argv)[0]
 				return complex64(retv.Complex())
 			}
 		case r.Complex128:
@@ -229,7 +229,7 @@ func call_ellipsis_ret1(c *Call, maxdepth int) I {
 				argv := []r.Value{
 					argfun(env),
 				}
-				retv := funv.CallSlice(argv)[0]
+				retv := callslicexr(funv, argv)[0]
 				return retv.Complex()
 			}
 		case r.String:
@@ -238,7 +238,7 @@ func call_ellipsis_ret1(c *Call, maxdepth int) I {
 				argv := []r.Value{
 					argfun(env),
 				}
-				retv := funv.CallSlice(argv)[0]
+				retv := callslicexr(funv, argv)[0]
 				return retv.String()
 			}
 		default:
@@ -247,7 +247,7 @@ func call_ellipsis_ret1(c *Call, maxdepth int) I {
 				argv := []r.Value{
 					argfun(env),
 				}
-				return funv.CallSlice(argv)[0]
+				return callslicexr(funv, argv)[0]
 			}
 		}
 	case 2:
@@ -263,7 +263,7 @@ func call_ellipsis_ret1(c *Call, maxdepth int) I {
 					argfuns[0](env),
 					argfuns[1](env),
 				}
-				retv := funv.CallSlice(argv)[0]
+				retv := callslicexr(funv, argv)[0]
 				return retv.Bool()
 			}
 		case r.Int:
@@ -273,7 +273,7 @@ func call_ellipsis_ret1(c *Call, maxdepth int) I {
 					argfuns[0](env),
 					argfuns[1](env),
 				}
-				retv := funv.CallSlice(argv)[0]
+				retv := callslicexr(funv, argv)[0]
 				return int(retv.Int())
 			}
 		case r.Int8:
@@ -283,7 +283,7 @@ func call_ellipsis_ret1(c *Call, maxdepth int) I {
 					argfuns[0](env),
 					argfuns[1](env),
 				}
-				retv := funv.CallSlice(argv)[0]
+				retv := callslicexr(funv, argv)[0]
 				return int8(retv.Int())
 			}
 		case r.Int16:
@@ -293,7 +293,7 @@ func call_ellipsis_ret1(c *Call, maxdepth int) I {
 					argfuns[0](env),
 					argfuns[1](env),
 				}
-				retv := funv.CallSlice(argv)[0]
+				retv := callslicexr(funv, argv)[0]
 				return int16(retv.Int())
 			}
 		case r.Int32:
@@ -303,7 +303,7 @@ func call_ellipsis_ret1(c *Call, maxdepth int) I {
 					argfuns[0](env),
 					argfuns[1](env),
 				}
-				retv := funv.CallSlice(argv)[0]
+				retv := callslicexr(funv, argv)[0]
 				return int32(retv.Int())
 			}
 		case r.Int64:
@@ -313,7 +313,7 @@ func call_ellipsis_ret1(c *Call, maxdepth int) I {
 					argfuns[0](env),
 					argfuns[1](env),
 				}
-				retv := funv.CallSlice(argv)[0]
+				retv := callslicexr(funv, argv)[0]
 				return retv.Int()
 			}
 		case r.Uint:
@@ -323,7 +323,7 @@ func call_ellipsis_ret1(c *Call, maxdepth int) I {
 					argfuns[0](env),
 					argfuns[1](env),
 				}
-				retv := funv.CallSlice(argv)[0]
+				retv := callslicexr(funv, argv)[0]
 				return uint(retv.Uint())
 			}
 		case r.Uint8:
@@ -333,7 +333,7 @@ func call_ellipsis_ret1(c *Call, maxdepth int) I {
 					argfuns[0](env),
 					argfuns[1](env),
 				}
-				retv := funv.CallSlice(argv)[0]
+				retv := callslicexr(funv, argv)[0]
 				return uint8(retv.Uint())
 			}
 		case r.Uint16:
@@ -343,7 +343,7 @@ func call_ellipsis_ret1(c *Call, maxdepth int) I {
 					argfuns[0](env),
 					argfuns[1](env),
 				}
-				retv := funv.CallSlice(argv)[0]
+				retv := callslicexr(funv, argv)[0]
 				return uint16(retv.Uint())
 			}
 		case r.Uint32:
@@ -353,7 +353,7 @@ func call_ellipsis_ret1(c *Call, maxdepth int) I {
 					argfuns[0](env),
 					argfuns[1](env),
 				}
-				retv := funv.CallSlice(argv)[0]
+				retv := callslicexr(funv, argv)[0]
 				return uint32(retv.Uint())
 			}
 		case r.Uint64:
@@ -363,7 +363,7 @@ func call_ellipsis_ret1(c *Call, maxdepth int) I {
 					argfuns[0](env),
 					argfuns[1](env),
 				}
-				retv := funv.CallSlice(argv)[0]
+				retv := callslicexr(funv, argv)[0]
 				return retv.Uint()
 			}
 		case r.Uintptr:
@@ -373,7 +373,7 @@ func call_ellipsis_ret1(c *Call, maxdepth int) I {
 					argfuns[0](env),
 					argfuns[1](env),
 				}
-				retv := funv.CallSlice(argv)[0]
+				retv := callslicexr(funv, argv)[0]
 				return uintptr(retv.Uint())
 			}
 		case r.Float32:
@@ -383,7 +383,7 @@ func call_ellipsis_ret1(c *Call, maxdepth int) I {
 					argfuns[0](env),
 					argfuns[1](env),
 				}
-				retv := funv.CallSlice(argv)[0]
+				retv := callslicexr(funv, argv)[0]
 				return float32(retv.Float())
 			}
 		case r.Float64:
@@ -393,7 +393,7 @@ func call_ellipsis_ret1(c *Call, maxdepth int) I {
 					argfuns[0](env),
 					argfuns[1](env),
 				}
-				retv := funv.CallSlice(argv)[0]
+				retv := callslicexr(funv, argv)[0]
 				return retv.Float()
 			}
 		case r.Complex64:
@@ -403,7 +403,7 @@ func call_ellipsis_ret1(c *Call, maxdepth int) I {
 					argfuns[0](env),
 					argfuns[1](env),
 				}
-				retv := funv.CallSlice(argv)[0]
+				retv := callslicexr(funv, argv)[0]
 				return complex64(retv.Complex())
 			}
 		case r.Complex128:
@@ -413,7 +413,7 @@ func call_ellipsis_ret1(c *Call, maxdepth int) I {
 					argfuns[0](env),
 					argfuns[1](env),
 				}
-				retv := funv.CallSlice(argv)[0]
+				retv := callslicexr(funv, argv)[0]
 				return retv.Complex()
 			}
 		case r.String:
@@ -423,7 +423,7 @@ func call_ellipsis_ret1(c *Call, maxdepth int) I {
 					argfuns[0](env),
 					argfuns[1](env),
 				}
-				retv := funv.CallSlice(argv)[0]
+				retv := callslicexr(funv, argv)[0]
 				return retv.String()
 			}
 		default:
@@ -433,7 +433,7 @@ func call_ellipsis_ret1(c *Call, maxdepth int) I {
 					argfuns[0](env),
 					argfuns[1](env),
 				}
-				return funv.CallSlice(argv)[0]
+				return callslicexr(funv, argv)[0]
 			}
 		}
 	default:
@@ -445,7 +445,7 @@ func call_ellipsis_ret1(c *Call, maxdepth int) I {
 				for i, argfun := range argfunsX1 {
 					argv[i] = argfun(env)
 				}
-				retv := funv.CallSlice(argv)[0]
+				retv := callslicexr(funv, argv)[0]
 				return retv.Bool()
 			}
 		case r.Int:
@@ -455,7 +455,7 @@ func call_ellipsis_ret1(c *Call, maxdepth int) I {
 				for i, argfun := range argfunsX1 {
 					argv[i] = argfun(env)
 				}
-				retv := funv.CallSlice(argv)[0]
+				retv := callslicexr(funv, argv)[0]
 				return int(retv.Int())
 			}
 		case r.Int8:
@@ -465,7 +465,7 @@ func call_ellipsis_ret1(c *Call, maxdepth int) I {
 				for i, argfun := range argfunsX1 {
 					argv[i] = argfun(env)
 				}
-				retv := funv.CallSlice(argv)[0]
+				retv := callslicexr(funv, argv)[0]
 				return int8(retv.Int())
 			}
 		case r.Int16:
@@ -475,7 +475,7 @@ func call_ellipsis_ret1(c *Call, maxdepth int) I {
 				for i, argfun := range argfunsX1 {
 					argv[i] = argfun(env)
 				}
-				retv := funv.CallSlice(argv)[0]
+				retv := callslicexr(funv, argv)[0]
 				return int16(retv.Int())
 			}
 		case r.Int32:
@@ -485,7 +485,7 @@ func call_ellipsis_ret1(c *Call, maxdepth int) I {
 				for i, argfun := range argfunsX1 {
 					argv[i] = argfun(env)
 				}
-				retv := funv.CallSlice(argv)[0]
+				retv := callslicexr(funv, argv)[0]
 				return int32(retv.Int())
 			}
 		case r.Int64:
@@ -495,7 +495,7 @@ func call_ellipsis_ret1(c *Call, maxdepth int) I {
 				for i, argfun := range argfunsX1 {
 					argv[i] = argfun(env)
 				}
-				retv := funv.CallSlice(argv)[0]
+				retv := callslicexr(funv, argv)[0]
 				return retv.Int()
 			}
 		case r.Uint:
@@ -505,7 +505,7 @@ func call_ellipsis_ret1(c *Call, maxdepth int) I {
 				for i, argfun := range argfunsX1 {
 					argv[i] = argfun(env)
 				}
-				retv := funv.CallSlice(argv)[0]
+				retv := callslicexr(funv, argv)[0]
 				return uint(retv.Uint())
 			}
 		case r.Uint8:
@@ -515,7 +515,7 @@ func call_ellipsis_ret1(c *Call, maxdepth int) I {
 				for i, argfun := range argfunsX1 {
 					argv[i] = argfun(env)
 				}
-				retv := funv.CallSlice(argv)[0]
+				retv := callslicexr(funv, argv)[0]
 				return uint8(retv.Uint())
 			}
 		case r.Uint16:
@@ -525,7 +525,7 @@ func call_ellipsis_ret1(c *Call, maxdepth int) I {
 				for i, argfun := range argfunsX1 {
 					argv[i] = argfun(env)
 				}
-				retv := funv.CallSlice(argv)[0]
+				retv := callslicexr(funv, argv)[0]
 				return uint16(retv.Uint())
 			}
 		case r.Uint32:
@@ -535,7 +535,7 @@ func call_ellipsis_ret1(c *Call, maxdepth int) I {
 				for i, argfun := range argfunsX1 {
 					argv[i] = argfun(env)
 				}
-				retv := funv.CallSlice(argv)[0]
+				retv := callslicexr(funv, argv)[0]
 				return uint32(retv.Uint())
 			}
 		case r.Uint64:
@@ -545,7 +545,7 @@ func call_ellipsis_ret1(c *Call, maxdepth int) I {
 				for i, argfun := range argfunsX1 {
 					argv[i] = argfun(env)
 				}
-				retv := funv.CallSlice(argv)[0]
+				retv := callslicexr(funv, argv)[0]
 				return retv.Uint()
 			}
 		case r.Uintptr:
@@ -555,7 +555,7 @@ func call_ellipsis_ret1(c *Call, maxdepth int) I {
 				for i, argfun := range argfunsX1 {
 					argv[i] = argfun(env)
 				}
-				retv := funv.CallSlice(argv)[0]
+				retv := callslicexr(funv, argv)[0]
 				return uintptr(retv.Uint())
 			}
 		case r.Float32:
@@ -565,7 +565,7 @@ func call_ellipsis_ret1(c *Call, maxdepth int) I {
 				for i, argfun := range argfunsX1 {
 					argv[i] = argfun(env)
 				}
-				retv := funv.CallSlice(argv)[0]
+				retv := callslicexr(funv, argv)[0]
 				return float32(retv.Float())
 			}
 		case r.Float64:
@@ -575,7 +575,7 @@ func call_ellipsis_ret1(c *Call, maxdepth int) I {
 				for i, argfun := range argfunsX1 {
 					argv[i] = argfun(env)
 				}
-				retv := funv.CallSlice(argv)[0]
+				retv := callslicexr(funv, argv)[0]
 				return retv.Float()
 			}
 		case r.Complex64:
@@ -585,7 +585,7 @@ func call_ellipsis_ret1(c *Call, maxdepth int) I {
 				for i, argfun := range argfunsX1 {
 					argv[i] = argfun(env)
 				}
-				retv := funv.CallSlice(argv)[0]
+				retv := callslicexr(funv, argv)[0]
 				return complex64(retv.Complex())
 			}
 		case r.Complex128:
@@ -595,7 +595,7 @@ func call_ellipsis_ret1(c *Call, maxdepth int) I {
 				for i, argfun := range argfunsX1 {
 					argv[i] = argfun(env)
 				}
-				retv := funv.CallSlice(argv)[0]
+				retv := callslicexr(funv, argv)[0]
 				return retv.Complex()
 			}
 		case r.String:
@@ -605,7 +605,7 @@ func call_ellipsis_ret1(c *Call, maxdepth int) I {
 				for i, argfun := range argfunsX1 {
 					argv[i] = argfun(env)
 				}
-				retv := funv.CallSlice(argv)[0]
+				retv := callslicexr(funv, argv)[0]
 				return retv.String()
 			}
 		default:
@@ -615,7 +615,7 @@ func call_ellipsis_ret1(c *Call, maxdepth int) I {
 				for i, argfun := range argfunsX1 {
 					argv[i] = argfun(env)
 				}
-				return funv.CallSlice(argv)[0]
+				return callslicexr(funv, argv)[0]
 			}
 		}
 
@@ -639,7 +639,7 @@ func call_ellipsis_ret2plus(callexpr *Call, maxdepth int) func(env *Env) (r.Valu
 			argv := []r.Value{
 				argfun(env),
 			}
-			retv := funv.CallSlice(argv)
+			retv := callslicexr(funv, argv)
 			return retv[0], retv
 		}
 	case 2:
@@ -653,7 +653,7 @@ func call_ellipsis_ret2plus(callexpr *Call, maxdepth int) func(env *Env) (r.Valu
 				argfuns[0](env),
 				argfuns[1](env),
 			}
-			retv := funv.CallSlice(argv)
+			retv := callslicexr(funv, argv)
 			return retv[0], retv
 		}
 	case 3:
@@ -669,7 +669,7 @@ func call_ellipsis_ret2plus(callexpr *Call, maxdepth int) func(env *Env) (r.Valu
 				argfuns[1](env),
 				argfuns[2](env),
 			}
-			retv := funv.CallSlice(argv)
+			retv := callslicexr(funv, argv)
 			return retv[0], retv
 		}
 	default:
@@ -680,7 +680,7 @@ func call_ellipsis_ret2plus(callexpr *Call, maxdepth int) func(env *Env) (r.Valu
 			for i, argfun := range argfunsX1 {
 				argv[i] = argfun(env)
 			}
-			retv := funv.CallSlice(argv)
+			retv := callslicexr(funv, argv)
 			return retv[0], retv
 		}
 	}

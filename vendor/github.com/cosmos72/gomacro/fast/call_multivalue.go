@@ -34,13 +34,13 @@ func call_multivalue(call *Call, maxdepth int) I {
 			ret = func(env *Env) {
 				funv := exprfun(env)
 				_, argv := argfun(env)
-				funv.CallSlice(argv)
+				callslicexr(funv, argv)
 			}
 		} else {
 			ret = func(env *Env) {
 				funv := exprfun(env)
 				_, argv := argfun(env)
-				funv.Call(argv)
+				callxr(funv, argv)
 			}
 		}
 	case 1:
@@ -54,14 +54,14 @@ func call_multivalue(call *Call, maxdepth int) I {
 			ret = func(env *Env) (r.Value, []r.Value) {
 				funv := exprfun(env)
 				_, argv := argfun(env)
-				rets := funv.CallSlice(argv)
+				rets := callslicexr(funv, argv)
 				return rets[0], rets
 			}
 		} else {
 			ret = func(env *Env) (r.Value, []r.Value) {
 				funv := exprfun(env)
 				_, argv := argfun(env)
-				rets := funv.Call(argv)
+				rets := callxr(funv, argv)
 				return rets[0], rets
 			}
 		}
@@ -81,126 +81,126 @@ func call_multivalue_ret1(call *Call, maxdepth int) I {
 		ret = func(env *Env) bool {
 			funv := exprfun(env)
 			_, argv := argfun(env)
-			retv := funv.Call(argv)[0]
+			retv := callxr(funv, argv)[0]
 			return retv.Bool()
 		}
 	case r.Int:
 		ret = func(env *Env) int {
 			funv := exprfun(env)
 			_, argv := argfun(env)
-			retv := funv.Call(argv)[0]
+			retv := callxr(funv, argv)[0]
 			return int(retv.Int())
 		}
 	case r.Int8:
 		ret = func(env *Env) int8 {
 			funv := exprfun(env)
 			_, argv := argfun(env)
-			retv := funv.Call(argv)[0]
+			retv := callxr(funv, argv)[0]
 			return int8(retv.Int())
 		}
 	case r.Int16:
 		ret = func(env *Env) int16 {
 			funv := exprfun(env)
 			_, argv := argfun(env)
-			retv := funv.Call(argv)[0]
+			retv := callxr(funv, argv)[0]
 			return int16(retv.Int())
 		}
 	case r.Int32:
 		ret = func(env *Env) int32 {
 			funv := exprfun(env)
 			_, argv := argfun(env)
-			retv := funv.Call(argv)[0]
+			retv := callxr(funv, argv)[0]
 			return int32(retv.Int())
 		}
 	case r.Int64:
 		ret = func(env *Env) int64 {
 			funv := exprfun(env)
 			_, argv := argfun(env)
-			retv := funv.Call(argv)[0]
+			retv := callxr(funv, argv)[0]
 			return retv.Int()
 		}
 	case r.Uint:
 		ret = func(env *Env) uint {
 			funv := exprfun(env)
 			_, argv := argfun(env)
-			retv := funv.Call(argv)[0]
+			retv := callxr(funv, argv)[0]
 			return uint(retv.Uint())
 		}
 	case r.Uint8:
 		ret = func(env *Env) uint8 {
 			funv := exprfun(env)
 			_, argv := argfun(env)
-			retv := funv.Call(argv)[0]
+			retv := callxr(funv, argv)[0]
 			return uint8(retv.Uint())
 		}
 	case r.Uint16:
 		ret = func(env *Env) uint16 {
 			funv := exprfun(env)
 			_, argv := argfun(env)
-			retv := funv.Call(argv)[0]
+			retv := callxr(funv, argv)[0]
 			return uint16(retv.Uint())
 		}
 	case r.Uint32:
 		ret = func(env *Env) uint32 {
 			funv := exprfun(env)
 			_, argv := argfun(env)
-			retv := funv.Call(argv)[0]
+			retv := callxr(funv, argv)[0]
 			return uint32(retv.Uint())
 		}
 	case r.Uint64:
 		ret = func(env *Env) uint64 {
 			funv := exprfun(env)
 			_, argv := argfun(env)
-			retv := funv.Call(argv)[0]
+			retv := callxr(funv, argv)[0]
 			return retv.Uint()
 		}
 	case r.Uintptr:
 		ret = func(env *Env) uintptr {
 			funv := exprfun(env)
 			_, argv := argfun(env)
-			retv := funv.Call(argv)[0]
+			retv := callxr(funv, argv)[0]
 			return uintptr(retv.Uint())
 		}
 	case r.Float32:
 		ret = func(env *Env) float32 {
 			funv := exprfun(env)
 			_, argv := argfun(env)
-			retv := funv.Call(argv)[0]
+			retv := callxr(funv, argv)[0]
 			return float32(retv.Float())
 		}
 	case r.Float64:
 		ret = func(env *Env) float64 {
 			funv := exprfun(env)
 			_, argv := argfun(env)
-			retv := funv.Call(argv)[0]
+			retv := callxr(funv, argv)[0]
 			return retv.Float()
 		}
 	case r.Complex64:
 		ret = func(env *Env) complex64 {
 			funv := exprfun(env)
 			_, argv := argfun(env)
-			retv := funv.Call(argv)[0]
+			retv := callxr(funv, argv)[0]
 			return complex64(retv.Complex())
 		}
 	case r.Complex128:
 		ret = func(env *Env) complex128 {
 			funv := exprfun(env)
 			_, argv := argfun(env)
-			retv := funv.Call(argv)[0]
+			retv := callxr(funv, argv)[0]
 			return retv.Complex()
 		}
 	case r.String:
 		ret = func(env *Env) string {
 			funv := exprfun(env)
 			_, argv := argfun(env)
-			retv := funv.Call(argv)[0]
+			retv := callxr(funv, argv)[0]
 			return retv.String()
 		}
 	default:
 		ret = func(env *Env) r.Value {
 			funv := exprfun(env)
 			_, argv := argfun(env)
-			return funv.Call(argv)[0]
+			return callxr(funv, argv)[0]
 		}
 	}
 	return ret
@@ -218,126 +218,126 @@ func call_multivalue_ellipsis_ret1(call *Call, maxdepth int) I {
 		ret = func(env *Env) bool {
 			funv := exprfun(env)
 			_, argv := argfun(env)
-			retv := funv.CallSlice(argv)[0]
+			retv := callslicexr(funv, argv)[0]
 			return retv.Bool()
 		}
 	case r.Int:
 		ret = func(env *Env) int {
 			funv := exprfun(env)
 			_, argv := argfun(env)
-			retv := funv.CallSlice(argv)[0]
+			retv := callslicexr(funv, argv)[0]
 			return int(retv.Int())
 		}
 	case r.Int8:
 		ret = func(env *Env) int8 {
 			funv := exprfun(env)
 			_, argv := argfun(env)
-			retv := funv.CallSlice(argv)[0]
+			retv := callslicexr(funv, argv)[0]
 			return int8(retv.Int())
 		}
 	case r.Int16:
 		ret = func(env *Env) int16 {
 			funv := exprfun(env)
 			_, argv := argfun(env)
-			retv := funv.CallSlice(argv)[0]
+			retv := callslicexr(funv, argv)[0]
 			return int16(retv.Int())
 		}
 	case r.Int32:
 		ret = func(env *Env) int32 {
 			funv := exprfun(env)
 			_, argv := argfun(env)
-			retv := funv.CallSlice(argv)[0]
+			retv := callslicexr(funv, argv)[0]
 			return int32(retv.Int())
 		}
 	case r.Int64:
 		ret = func(env *Env) int64 {
 			funv := exprfun(env)
 			_, argv := argfun(env)
-			retv := funv.CallSlice(argv)[0]
+			retv := callslicexr(funv, argv)[0]
 			return retv.Int()
 		}
 	case r.Uint:
 		ret = func(env *Env) uint {
 			funv := exprfun(env)
 			_, argv := argfun(env)
-			retv := funv.CallSlice(argv)[0]
+			retv := callslicexr(funv, argv)[0]
 			return uint(retv.Uint())
 		}
 	case r.Uint8:
 		ret = func(env *Env) uint8 {
 			funv := exprfun(env)
 			_, argv := argfun(env)
-			retv := funv.CallSlice(argv)[0]
+			retv := callslicexr(funv, argv)[0]
 			return uint8(retv.Uint())
 		}
 	case r.Uint16:
 		ret = func(env *Env) uint16 {
 			funv := exprfun(env)
 			_, argv := argfun(env)
-			retv := funv.CallSlice(argv)[0]
+			retv := callslicexr(funv, argv)[0]
 			return uint16(retv.Uint())
 		}
 	case r.Uint32:
 		ret = func(env *Env) uint32 {
 			funv := exprfun(env)
 			_, argv := argfun(env)
-			retv := funv.CallSlice(argv)[0]
+			retv := callslicexr(funv, argv)[0]
 			return uint32(retv.Uint())
 		}
 	case r.Uint64:
 		ret = func(env *Env) uint64 {
 			funv := exprfun(env)
 			_, argv := argfun(env)
-			retv := funv.CallSlice(argv)[0]
+			retv := callslicexr(funv, argv)[0]
 			return retv.Uint()
 		}
 	case r.Uintptr:
 		ret = func(env *Env) uintptr {
 			funv := exprfun(env)
 			_, argv := argfun(env)
-			retv := funv.CallSlice(argv)[0]
+			retv := callslicexr(funv, argv)[0]
 			return uintptr(retv.Uint())
 		}
 	case r.Float32:
 		ret = func(env *Env) float32 {
 			funv := exprfun(env)
 			_, argv := argfun(env)
-			retv := funv.CallSlice(argv)[0]
+			retv := callslicexr(funv, argv)[0]
 			return float32(retv.Float())
 		}
 	case r.Float64:
 		ret = func(env *Env) float64 {
 			funv := exprfun(env)
 			_, argv := argfun(env)
-			retv := funv.CallSlice(argv)[0]
+			retv := callslicexr(funv, argv)[0]
 			return retv.Float()
 		}
 	case r.Complex64:
 		ret = func(env *Env) complex64 {
 			funv := exprfun(env)
 			_, argv := argfun(env)
-			retv := funv.CallSlice(argv)[0]
+			retv := callslicexr(funv, argv)[0]
 			return complex64(retv.Complex())
 		}
 	case r.Complex128:
 		ret = func(env *Env) complex128 {
 			funv := exprfun(env)
 			_, argv := argfun(env)
-			retv := funv.CallSlice(argv)[0]
+			retv := callslicexr(funv, argv)[0]
 			return retv.Complex()
 		}
 	case r.String:
 		ret = func(env *Env) string {
 			funv := exprfun(env)
 			_, argv := argfun(env)
-			retv := funv.CallSlice(argv)[0]
+			retv := callslicexr(funv, argv)[0]
 			return retv.String()
 		}
 	default:
 		ret = func(env *Env) r.Value {
 			funv := exprfun(env)
 			_, argv := argfun(env)
-			return funv.CallSlice(argv)[0]
+			return callslicexr(funv, argv)[0]
 		}
 	}
 	return ret

@@ -140,8 +140,12 @@ func (c *Comp) call_any(call *Call) *Expr {
 
 	if expr.Fun != nil {
 		// done already
-	} else if len(call.Args) == 1 && call.Fun.Type.NumIn() > 1 {
-		// support foo(bar()) where bar() returns multiple values
+	} else if len(call.Args) == 1 && call.Args[0].NumOut() > 1 {
+		// support foo(bar()) where bar() returns multiple values.
+		//
+		// do NOT use this case for calls like fmt.Printf("foo") where the function
+		// formally expects two args but is variadic => accepts one arg too:
+		// fixes gophernotes issue 118
 		expr.Fun = call_multivalue(call, maxdepth)
 	} else if nout == 0 {
 		expr.Fun = c.call_ret0(call, maxdepth)
@@ -386,6 +390,13 @@ func callxr(fun r.Value, args []r.Value) []r.Value {
 		fun = fun.Elem()
 	}
 	return fun.Call(args)
+}
+
+func callslicexr(fun r.Value, args []r.Value) []r.Value {
+	if fun.Kind() == r.Interface {
+		fun = fun.Elem()
+	}
+	return fun.CallSlice(args)
 }
 
 func (c *Comp) badCallArgNum(fun ast.Expr, t xr.Type, args []*Expr) *Call {

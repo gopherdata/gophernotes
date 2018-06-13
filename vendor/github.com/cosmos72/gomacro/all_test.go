@@ -766,6 +766,9 @@ var testcases = []TestCase{
 	TestCase{A, "multiple_values_3", "f1, f2 := twins(23.0); list_args(f1, f2)", []interface{}{float32(23.0), float32(24.0)}, nil},
 	TestCase{A, "multiple_values_4", "fm := make(map[int]float32); fm[1], fm[2] = twins(3.0); fm", map[int]float32{1: 3.0, 2: 4.0}, nil},
 	TestCase{A, "multiple_values_5", "swap(swap(3,4))", nil, []interface{}{3, 4}},
+	TestCase{F, "multiple_values_6", `fmt.Sprintf("foo")`, "foo", nil},
+	TestCase{A, "multiple_values_7", `func args() (string, interface{}, interface{}) { return "%v %v", 5, 6 }; nil`, nil, nil},
+	TestCase{A, "multiple_values_8", `fmt.Sprintf(args())`, "5 6", nil},
 
 	TestCase{A, "pred_bool_1", "false==false && true==true && true!=false", true, nil},
 	TestCase{A, "pred_bool_2", "false!=false || true!=true || true==false", false, nil},
