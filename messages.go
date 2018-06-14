@@ -7,8 +7,8 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/satori/go.uuid"
 	zmq "github.com/pebbe/zmq4"
+	"github.com/satori/go.uuid"
 )
 
 // MsgHeader encodes header info for ZMQ messages.
@@ -38,7 +38,7 @@ type msgReceipt struct {
 }
 
 // bundledMIMEData holds data that can be presented in multiple formats. The keys are MIME types
-// and the values are the data formatted with respect to it's MIME type. All bundles should contain
+// and the values are the data formatted with respect to its MIME type. All bundles should contain
 // at least a "text/plain" representation with a string value.
 type BundledMIMEData map[string]interface{}
 

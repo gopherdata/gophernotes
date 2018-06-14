@@ -31,6 +31,7 @@
 - [Worker Pools](examples/Worker_Pools.ipynb)
 - [Matrix Operations](examples/Matrix_Operations.ipynb)
 - [Facial Recognition](examples/Facial_Recognition_MachineBox.ipynb)
+- [Display Images, HTML, LaTeX...](examples/Display.ipynb)
 
 ## Installation
 
