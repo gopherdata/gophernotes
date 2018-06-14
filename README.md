@@ -4,7 +4,7 @@
 
 `gophernotes` is a Go kernel for [Jupyter](http://jupyter.org/) notebooks and [nteract](https://nteract.io/).  It lets you use Go interactively in a browser-based notebook or desktop app.  Use `gophernotes` to create and share documents that contain live Go code, equations, visualizations and explanatory text.  These notebooks, with the live Go code, can then be shared with others via email, Dropbox, GitHub and the [Jupyter Notebook Viewer](http://nbviewer.jupyter.org/). Go forth and do data science, or anything else interesting, with Go notebooks!
 
-**Acknowledgements** - This project utilizes a Go interpreter called [gomacro](https://github.com/cosmos72/gomacro) under the hood to evaluate Go code interactively. The gophernotes logo was designed by the brilliant [Marcus Olsson](https://github.com/marcusolsson) and was inspired by Renee French's original Go Gopher design. 
+**Acknowledgements** - This project utilizes a Go interpreter called [gomacro](https://github.com/cosmos72/gomacro) under the hood to evaluate Go code interactively. The gophernotes logo was designed by the brilliant [Marcus Olsson](https://github.com/marcusolsson) and was inspired by Renee French's original Go Gopher design.
 
 - [Examples](#examples)
 - Install gophernotes:
@@ -19,9 +19,9 @@
 
 ## Examples
 
-### Jupyter Notebook:  
+### Jupyter Notebook:
 
-![](files/jupyter.gif)  
+![](files/jupyter.gif)
 
 ### nteract:
 
@@ -46,7 +46,7 @@
 ```sh
 $ go get -u github.com/gopherdata/gophernotes
 $ mkdir -p ~/.local/share/jupyter/kernels/gophernotes
-$ cp $GOPATH/src/github.com/gopherdata/gophernotes/kernel/* ~/.local/share/jupyter/kernels/gophernotes  
+$ cp $GOPATH/src/github.com/gopherdata/gophernotes/kernel/* ~/.local/share/jupyter/kernels/gophernotes
 ```
 
 To confirm that the `gophernotes` binary is installed and in your PATH, you should see the following when running `gophernotes` directly:
@@ -57,7 +57,7 @@ $ gophernotes
 ```
 
 **Note** - if you have the `JUPYTER_PATH` environmental variable set or if you are using an older version of Jupyter, you may need to copy this kernel config to another directory.  You can check which directories will be searched by executing:
-  
+
 ```sh
 $ jupyter --data-dir
 ```
@@ -80,7 +80,7 @@ $ gophernotes
 ```
 
 **Note** - if you have the `JUPYTER_PATH` environmental variable set or if you are using an older version of Jupyter, you may need to copy this kernel config to another directory.  You can check which directories will be searched by executing:
-  
+
 ```sh
 $ jupyter --data-dir
 ```
@@ -102,12 +102,12 @@ Then:
     REM Download w/o building.
     go get -d github.com/gopherdata/gophernotes
     cd %GOPATH%\src\github.com\gopherdata\gophernotes\zmq-win
-    
+
     REM Build x64 version.
     build.bat amd64
     move gophernotes.exe %GOPATH%\bin
     copy lib-amd64\libzmq.dll %GOPATH%\bin
-    
+
     REM Build x86 version.
     build.bat 386
     move gophernotes.exe %GOPATH%\bin
@@ -120,9 +120,9 @@ Then:
     mkdir %APPDATA%\jupyter\kernels\gophernotes
     xcopy %GOPATH%\src\github.com\gopherdata\gophernotes\kernel %APPDATA%\jupyter\kernels\gophernotes /s
     ```
-  
+
     Note, if you have the `JUPYTER_PATH` environmental variable set or if you are using an older version of Jupyter, you may need to copy this kernel config to another directory.  You can check which directories will be searched by executing:
-  
+
     ```
     jupyter --data-dir
     ```
@@ -143,7 +143,7 @@ Then:
 
 ### Docker
 
-You can try out or run Jupyter + gophernotes without installing anything using Docker. To run a Go notebook that only needs things from the standard library, run: 
+You can try out or run Jupyter + gophernotes without installing anything using Docker. To run a Go notebook that only needs things from the standard library, run:
 
 ```
 $ docker run -it -p 8888:8888 gopherdata/gophernotes
@@ -159,7 +159,7 @@ In either case, running this command should output a link that you can follow to
 
 ```
 $ docker run -it -p 8888:8888 -v /path/to/local/notebooks:/path/to/notebooks/in/docker gopherdata/gophernotes
-```  
+```
 
 ## Getting Started
 

@@ -40,7 +40,13 @@ type msgReceipt struct {
 // bundledMIMEData holds data that can be presented in multiple formats. The keys are MIME types
 // and the values are the data formatted with respect to it's MIME type. All bundles should contain
 // at least a "text/plain" representation with a string value.
-type bundledMIMEData map[string]interface{}
+type BundledMIMEData map[string]interface{}
+
+type Data struct {
+	Data      BundledMIMEData `json:"data"`
+	Metadata  BundledMIMEData `json:"metadata"`
+	Transient BundledMIMEData `json:"transient"`
+}
 
 // InvalidSignatureError is returned when the signature on a received message does not
 // validate.
@@ -189,7 +195,9 @@ func (receipt *msgReceipt) Publish(msgType string, content interface{}) error {
 	}
 
 	msg.Content = content
-	return receipt.SendResponse(receipt.Sockets.IOPubSocket, msg)
+	return receipt.Sockets.IOPubSocket.RunWithSocket(func(iopub *zmq.Socket) error {
+		return receipt.SendResponse(iopub, msg)
+	})
 }
 
 // Reply creates a new ComposedMsg and sends it back to the return identities over the
@@ -202,15 +210,9 @@ func (receipt *msgReceipt) Reply(msgType string, content interface{}) error {
 	}
 
 	msg.Content = content
-	return receipt.SendResponse(receipt.Sockets.ShellSocket, msg)
-}
-
-// newTextMIMEDataBundle creates a bundledMIMEData that only contains a text representation described
-// by the value parameter.
-func newTextBundledMIMEData(value string) bundledMIMEData {
-	return bundledMIMEData{
-		"text/plain": value,
-	}
+	return receipt.Sockets.ShellSocket.RunWithSocket(func(shell *zmq.Socket) error {
+		return receipt.SendResponse(shell, msg)
+	})
 }
 
 // PublishKernelStatus publishes a status message notifying front-ends of the state the kernel is in. Supports
@@ -240,16 +242,19 @@ func (receipt *msgReceipt) PublishExecutionInput(execCount int, code string) err
 }
 
 // PublishExecuteResult publishes the result of the `execCount` execution as a string.
-func (receipt *msgReceipt) PublishExecutionResult(execCount int, output string) error {
+func (receipt *msgReceipt) PublishExecutionResult(execCount int, data Data) error {
+	if data.Metadata == nil {
+		data.Metadata = make(BundledMIMEData)
+	}
 	return receipt.Publish("execute_result",
 		struct {
 			ExecCount int             `json:"execution_count"`
-			Data      bundledMIMEData `json:"data"`
-			Metadata  bundledMIMEData `json:"metadata"`
+			Data      BundledMIMEData `json:"data"`
+			Metadata  BundledMIMEData `json:"metadata"`
 		}{
 			ExecCount: execCount,
-			Data:      newTextBundledMIMEData(output),
-			Metadata:  make(bundledMIMEData),
+			Data:      data.Data,
+			Metadata:  data.Metadata,
 		},
 	)
 }
@@ -267,6 +272,17 @@ func (receipt *msgReceipt) PublishExecutionError(err string, trace []string) err
 			Trace: trace,
 		},
 	)
+}
+
+// PublishDisplayData publishes a single image.
+func (receipt *msgReceipt) PublishDisplayData(data Data) error {
+	if data.Metadata == nil {
+		data.Metadata = make(BundledMIMEData)
+	}
+	if data.Transient == nil {
+		data.Transient = make(BundledMIMEData)
+	}
+	return receipt.Publish("display_data", data)
 }
 
 const (
