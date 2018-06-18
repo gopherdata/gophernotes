@@ -31,10 +31,10 @@ Gomacro can be used as:
 
 * an interactive tool to make science more productive and more fun.
   If you use compiled Go with scientific libraries (physics, bioinformatics, statistics...)
-  you can import the same libraries from gomacro REPL (immediate on Go 1.8+ and Linux,
-  requires restarting on other platforms, see [Importing packages](#importing-packages) below),
-  call them interactively, inspect the results, feed them to other functions/libraries,
-  all in a single session.
+  you can import the same libraries from gomacro REPL (immediate on Go 1.8+ and Linux
+  or Go 1.10.2+ and Mac OS X, requires restarting on other platforms,
+  see [Importing packages](#importing-packages) below), call them interactively,
+  inspect the results, feed them to other functions/libraries, all in a single session.
   The imported libraries will be **compiled**, not interpreted,
   so they will be as fast as in compiled Go.
 
@@ -108,7 +108,7 @@ Gomacro can be used as:
 Gomacro is pure Go, and in theory it should work on any platform supported by the Go compiler.
 The following combinations are tested and known to work:
 
-- Linux: amd64, 386, arm64, arm, mips, ppc64le (on Linux it can also import 3<sup>rd</sup> party libraries at runtime)
+- Linux: amd64, 386, arm64, arm, mips, ppc64le
 - Mac OS X: amd64, 386 (386 binaries running on amd64 system)
 - Windows: amd64, 386
 - FreeBSD: amd64, 386
@@ -128,7 +128,8 @@ Almost complete.
 
 The main limitations and missing features are:
 
-* importing 3<sup>rd</sup> party libraries on non-Linux systems is cumbersome - see [Importing packages](#importing-packages).
+* freely importing 3<sup>rd</sup> party libraries at runtime currently only works on Linux and Mac OS X.
+  On other systems as Windows, Android and *BSD it is cumbersome and requires recompiling - see [Importing packages](#importing-packages).
 * some corner cases using interpreted interfaces, as interface -> interface type assertions and type switches, are not implemented yet.
 * goto can only jump backward, not forward
 * out-of-order code is under testing - some corner cases, as for example out-of-order declarations
@@ -230,9 +231,9 @@ To install a package, follow its installation procedure: quite often it is the c
 
 The next steps depend on the system you are running gomacro on:
 
-### Linux
+### Linux and Mac OS X
 
-If you are running gomacro on Linux, `import` will then just work. Example:
+If you are running gomacro on Linux or Mac OS X, `import` will then just work. Example:
 ```
 $ go get gonum.org/v1/plot
 $ gomacro
@@ -247,12 +248,15 @@ gomacro> plot.New()
 ```
 
 Note: internally, gomacro will compile and load a Go plugin containing the package's exported declarations.
-Currently, Go plugins are fully functional only on Linux.
+Go plugins require Go 1.8+ on Linux and Go 1.10.2+ on Mac OS X.
+
+**WARNING** On Mac OS X, **never** execute `strip gomacro`: it breaks plugin support,
+            and loading third party packages stops working.
 
 
 ### Other systems
 
-On Mac OS X, Windows, Android and *BSD you can still use `import`, but there are some more steps.
+On all other systems as Windows, Android and *BSD you can still use `import`, but there are some more steps.
 Example:
 ```
 $ go get gonum.org/v1/plot

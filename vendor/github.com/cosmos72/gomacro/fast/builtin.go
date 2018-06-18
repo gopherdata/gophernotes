@@ -515,10 +515,18 @@ func compileLen(c *Comp, sym Symbol, node *ast.CallExpr) *Call {
 	if tin.Kind() == r.String {
 		fun.Value = callLenString // optimization
 	}
-	// length of arrays is part of their type: cannot change at runtime, we could optimize it.
+	// length of arrays is part of their type: cannot change at runtime,
+	// so perform constant propagation on it.
 	// TODO https://golang.org/ref/spec#Length_and_capacity specifies
 	// when the array passed to len() is evaluated and when is not...
-	return newCall1(fun, arg, arg.Const(), tout)
+	isarray := tin.Kind() == r.Array
+	if isarray {
+		n := tin.Len()
+		fun.Value = func(_ r.Value) int {
+			return n
+		}
+	}
+	return newCall1(fun, arg, isarray || arg.Const(), tout)
 }
 
 // --- MacroExpand(), MacroExpand1(), MacroExpandCodeWalk() ---
