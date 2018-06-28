@@ -22,6 +22,7 @@ import (
 	"go/token"
 	"math/big"
 	r "reflect"
+	"sync"
 	"testing"
 	"time"
 
@@ -739,8 +740,10 @@ var testcases = []TestCase{
 	TestCase{F, "method_embedded=ptr_recv=val", `tp.SetAV('3'); tp.A`, '1', nil}, // set by triple.SetA('1') above
 	TestCase{F, "method_embedded=ptr_recv=ptr", `tp.SetA('4'); tp.A`, '4', nil},
 
-	TestCase{F, "concrete_method_to_func", "cf0 := time.Duration.Seconds; cf0(time.Hour)", 3600.0, nil},
-	TestCase{F, "concrete_method_to_closure", "cl1 := time.Hour.Seconds; cl1()", 3600.0, nil},
+	TestCase{F, "concrete_method_to_func_1", `cf0 := time.Duration.Seconds; cf0(time.Hour)`, 3600.0, nil},
+	TestCase{F, "concrete_method_to_closure_1", `cl1 := time.Hour.Seconds; cl1()`, 3600.0, nil},
+	TestCase{F, "concrete_method_to_func_2", `import "sync"; sync.WaitGroup.Done`, (*sync.WaitGroup).Done, nil},
+	TestCase{F, "concrete_method_to_closure_2", `var wg sync.WaitGroup; wg.Done`, func() {}, nil},
 
 	// tricky because Comp.compileObjGetMethod() asks for the package path of 'error', which has nil package
 	TestCase{A, "interface_0", `errors.New("abc").Error()`, "abc", nil},

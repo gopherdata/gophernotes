@@ -148,7 +148,7 @@ func (v *Universe) fromReflectType(rtype reflect.Type) Type {
 			t.UnsafeForceReflectType(rtype)
 		}
 	}
-	if rtype.NumMethod() != 0 {
+	if rtype.NumMethod() != 0 || rtype.Kind() != reflect.Ptr && reflect.PtrTo(rtype).NumMethod() != 0 {
 		// FromReflectType() will invoke addmethods(t, t.ReflectType()) on all v.partialTypes
 		v.partialTypes.add(t)
 	}
@@ -156,13 +156,17 @@ func (v *Universe) fromReflectType(rtype reflect.Type) Type {
 }
 
 func (v *Universe) addmethods(t Type, rtype reflect.Type) Type {
-	n := rtype.NumMethod()
-	if n == 0 {
-		return t
-	}
 	xt := unwrap(t)
 	if xt.kind == reflect.Interface {
 		// fromReflectInterface() already added methods to interface.
+		return t
+	}
+	if rtype.Kind() != reflect.Ptr {
+		// use pointer-to-type to get methods with both value and pointer receiver
+		rtype = reflect.PtrTo(rtype)
+	}
+	n := rtype.NumMethod()
+	if n == 0 {
 		return t
 	}
 	if xt.kind == reflect.Ptr {
