@@ -89,7 +89,7 @@ type xtype struct {
 // To compare two names, build two QNames with the functions QName*
 // then compare the two QName structs with ==
 type QName struct {
-	name, pkgpath string
+	pkgpath, name string
 }
 
 func (q QName) Name() string {
@@ -98,6 +98,10 @@ func (q QName) Name() string {
 
 func (q QName) PkgPath() string {
 	return q.pkgpath
+}
+
+func QLess(p, q QName) bool {
+	return p.pkgpath < q.pkgpath || (p.pkgpath == q.pkgpath && p.name < q.name)
 }
 
 type QNameI interface {
@@ -109,7 +113,7 @@ func QName2(name, pkgpath string) QName {
 	if ast.IsExported(name) {
 		pkgpath = ""
 	}
-	return QName{name, pkgpath}
+	return QName{pkgpath, name}
 }
 
 func QName1(q QNameI) QName {
@@ -118,10 +122,15 @@ func QName1(q QNameI) QName {
 
 func QNameGo2(name string, pkg *types.Package) QName {
 	var pkgpath string
-	if pkg != nil && !ast.IsExported(name) {
-		pkgpath = pkg.Path()
+	if !ast.IsExported(name) {
+		if pkg != nil {
+			pkgpath = pkg.Path()
+		}
+		if len(pkgpath) == 0 {
+			pkgpath = "_"
+		}
 	}
-	return QName{name, pkgpath}
+	return QName{pkgpath, name}
 }
 
 func QNameGo(obj types.Object) QName {

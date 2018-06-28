@@ -501,24 +501,22 @@ func (c *Comp) compileObjGetMethod(t xr.Type, mtd xr.Method) (ret func(r.Value) 
 		tname := t.Name()
 		methodname := mtd.Name
 
-		if c.Options&OptDebugMethod != 0 {
-			c.Debugf("compiling method %v.%s: method declared by interpreted code, manually building the closure",
-				tname, methodname)
-		}
 		// method declared by interpreted code, manually build the closure.
 		//
 		// It's not possible to call r.MakeFunc() only once at compile-time,
 		// because the closure passed to it needs access to a variable holding the receiver.
-		// such variable would be allocated only once at compile-time,
-		// not once per goroutine!
+		// such variable would be evaluated only once at compile-time,
+		// not once per method extraction!
 		funs := mtd.Funs
-		nin := tfunc.NumIn()
 		variadic := tfunc.IsVariadic()
 
 		if funs == nil {
 			c.Errorf("method declared but not yet implemented: %s.%s", tname, methodname)
 		} else if len(*funs) <= index || (*funs)[index].Kind() != r.Func {
 			// c.Warnf("method declared but not yet implemented: %s.%s", tname, methodname)
+		} else if c.Options&OptDebugMethod != 0 {
+			c.Debugf("compiling method %v.%s <%v>: method declared by interpreted code, manually building the closure reflect.Type <%v>",
+				tname, methodname, mtd.Type, rtclosure)
 		}
 		// Go compiled code crashes when extracting a method from nil interface,
 		// NOT later when calling the method.
@@ -543,14 +541,12 @@ func (c *Comp) compileObjGetMethod(t xr.Type, mtd xr.Method) (ret func(r.Value) 
 						Errorf("method is declared but not yet implemented: %s.%s", tname, methodname)
 					}
 					return r.MakeFunc(rtclosure, func(args []r.Value) []r.Value {
-						fullargs := make([]r.Value, nin)
-						fullargs[0] = obj
-						copy(fullargs[1:], args)
+						args = append([]r.Value{obj}, args...)
 						// Debugf("invoking <%v> with args %v", fun.Type(), fullargs
 						if variadic {
-							return fun.CallSlice(fullargs)
+							return fun.CallSlice(args)
 						} else {
-							return fun.Call(fullargs)
+							return fun.Call(args)
 						}
 					})
 				}
@@ -569,14 +565,12 @@ func (c *Comp) compileObjGetMethod(t xr.Type, mtd xr.Method) (ret func(r.Value) 
 						Errorf("method is declared but not yet implemented: %s.%s", tname, methodname)
 					}
 					return r.MakeFunc(rtclosure, func(args []r.Value) []r.Value {
-						fullargs := make([]r.Value, nin)
-						fullargs[0] = obj
-						copy(fullargs[1:], args)
+						args = append([]r.Value{obj}, args...)
 						// Debugf("invoking <%v> with args %v", fun.Type(), fullargs)
 						if variadic {
-							return fun.CallSlice(fullargs)
+							return fun.CallSlice(args)
 						} else {
-							return fun.Call(fullargs)
+							return fun.Call(args)
 						}
 					})
 				}
@@ -593,14 +587,12 @@ func (c *Comp) compileObjGetMethod(t xr.Type, mtd xr.Method) (ret func(r.Value) 
 						Errorf("method is declared but not yet implemented: %s.%s", tname, methodname)
 					}
 					return r.MakeFunc(rtclosure, func(args []r.Value) []r.Value {
-						fullargs := make([]r.Value, nin)
-						fullargs[0] = obj
-						copy(fullargs[1:], args)
+						args = append([]r.Value{obj}, args...)
 						// Debugf("invoking <%v> with args %v", fun.Type(), fullargs)
 						if variadic {
-							return fun.CallSlice(fullargs)
+							return fun.CallSlice(args)
 						} else {
-							return fun.Call(fullargs)
+							return fun.Call(args)
 						}
 					})
 				}

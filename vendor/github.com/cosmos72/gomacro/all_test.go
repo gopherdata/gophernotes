@@ -45,6 +45,8 @@ const (
 	A = C | F             // test for both interpreters
 )
 
+var none = []interface{}{}
+
 type TestCase struct {
 	testfor TestFor
 	name    string
@@ -752,6 +754,14 @@ var testcases = []TestCase{
 	TestCase{F, "interface_3", "type IStringer interface { String() string }; nil", nil, nil},
 	TestCase{F, "interface_method_to_closure_4", "var ist IStringer; nil", nil, nil},
 	TestCase{F, "interface_method_to_closure_5", "ist.String", panics, nil},
+	TestCase{F, "interface_4", `
+		type IncAdd interface { Inc(int); Add(int) int }
+		type Int int
+		func (i Int)  Add(j int) int { return int(i) + j }
+		func (i *Int) Inc(j int) { *i += Int(j) }
+		var ia IncAdd
+		var ii Int = 7`, nil, none},
+	TestCase{F, "interface_5", `ia = &ii`, nil, none},
 
 	TestCase{F, "interface_method_to_func_1", "f1 := fmt.Stringer.String; f1(time.Hour)", "1h0m0s", nil},
 	TestCase{F, "interface_method_to_func_2", "f2 := io.ReadWriter.Read; f2 != nil", true, nil},

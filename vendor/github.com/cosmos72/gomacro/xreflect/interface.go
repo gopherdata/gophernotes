@@ -20,6 +20,7 @@ import (
 	"go/token"
 	"go/types"
 	"reflect"
+	"sort"
 )
 
 func IsEmulatedInterface(t Type) bool {
@@ -42,7 +43,8 @@ func ToEmulatedInterface(rtypeinterf reflect.Type, v reflect.Value,
 	place := addr.Elem()
 	place.Field(0).Set(reflect.ValueOf(InterfaceHeader{v, t}))
 	for i := range obj2methods {
-		place.Field(i + 1).Set(obj2methods[i](v))
+		mtd := obj2methods[i](v)
+		place.Field(i + 1).Set(mtd)
 	}
 	return addr
 }
@@ -55,13 +57,13 @@ func EmulatedInterfaceGetMethod(obj reflect.Value, index int) reflect.Value {
 // create []*types.Func suitable for types.NewInterface.
 // makes a copy of each methods[i].gunderlying().(*types.Signature)
 // because types.NewInterface will destructively modify them!
-func toGoFuncs(names []string, methods []Type) []*types.Func {
+func toGoFuncs(pkg *Package, names []string, methods []Type) []*types.Func {
 	gfuns := make([]*types.Func, len(methods))
 	for i, t := range methods {
 		switch gsig := t.gunderlying().(type) {
 		case *types.Signature:
 			gsig = cloneGoSignature(gsig)
-			gfuns[i] = types.NewFunc(token.NoPos, nil, names[i], gsig)
+			gfuns[i] = types.NewFunc(token.NoPos, (*types.Package)(pkg), names[i], gsig)
 		default:
 			errorf(t, "interface contains non-function: %s %v", names[i], t)
 		}
@@ -89,16 +91,52 @@ func toGoNamedTypes(ts []Type) []*types.Named {
 	return gnameds
 }
 
+type byQName struct {
+	qname  []QName
+	method []Type
+}
+
+func (a *byQName) Len() int { return len(a.qname) }
+
+func (a *byQName) Less(i, j int) bool {
+	return QLess(a.qname[i], a.qname[j])
+}
+
+func (a *byQName) Swap(i, j int) {
+	a.qname[i], a.qname[j] = a.qname[j], a.qname[i]
+	a.method[i], a.method[j] = a.method[j], a.method[i]
+}
+
 // InterfaceOf returns a new interface for the given methods and embedded types.
 // After the methods and embeddeds are fully defined, call Complete() to mark
 // the interface as complete and compute wrapper methods for embedded fields.
+//
+// unexported method names are created in 'pkg'.
 //
 // WARNING: the Type returned by InterfaceOf is not complete,
 // i.e. its method set is not computed yet.
 // Once you know that methods and embedded interfaces are complete,
 // call Complete() to compute the method set and mark this Type as complete.
-func (v *Universe) InterfaceOf(methodnames []string, methodtypes []Type, embeddeds []Type) Type {
-	gmethods := toGoFuncs(methodnames, methodtypes)
+func (v *Universe) InterfaceOf(pkg *Package, methodnames []string, methodtypes []Type, embeddeds []Type) Type {
+	methodnames = append(([]string)(nil), methodnames...) // dup before modifying
+	methodtypes = append(([]Type)(nil), methodtypes...)   // dup before modifying
+	embeddeds = append(([]Type)(nil), embeddeds...)       // dup before modifying
+
+	// types.NewInterface() sorts methodtypes and embeddeds by Id().
+	// We must do the same to keep the method and embedded order in sync.
+	qnames := make([]QName, len(methodnames))
+	for i, name := range methodnames {
+		qnames[i] = QNameGo2(name, (*types.Package)(pkg))
+	}
+	sort.Sort(&byQName{qnames, methodtypes})
+	sort.Slice(embeddeds, func(i, j int) bool {
+		return embeddeds[i].GoType().(*types.Named).Obj().Id() < embeddeds[j].GoType().(*types.Named).Obj().Id()
+	})
+	for i, qname := range qnames {
+		methodnames[i] = qname.name
+	}
+
+	gmethods := toGoFuncs(pkg, methodnames, methodtypes)
 	gembeddeds := toGoNamedTypes(embeddeds)
 
 	gtype := types.NewInterface(gmethods, gembeddeds)

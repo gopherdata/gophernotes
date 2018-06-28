@@ -146,17 +146,38 @@ func (c *Comp) Expr(in ast.Expr, t xr.Type) *Expr {
 	}
 }
 
-// Expr1OrType compiles an single-valued expression or a type
-// FIXME lookup simultaneously for both types and expressions
-func (c *Comp) Expr1OrType(node ast.Expr) (e *Expr, t xr.Type) {
+// Expr1OrType compiles an single-valued expression or a type.
+// looks up simultaneously for both types and expressions
+func (c *Comp) Expr1OrType(expr ast.Expr) (e *Expr, t xr.Type) {
+	node := expr
+	for {
+		switch n := node.(type) {
+		case *ast.StarExpr:
+			node = n.X
+			continue
+		case *ast.ParenExpr:
+			node = n.X
+			continue
+		case *ast.Ident:
+			name := n.Name
+			for o := c; o != nil; o = o.Outer {
+				if _, ok := o.Binds[name]; ok {
+					return c.Expr1(expr, nil), nil
+				} else if _, ok := o.Types[name]; ok {
+					return nil, c.Type(expr)
+				}
+			}
+		}
+		break
+	}
 	panicking := true
 	defer func() {
 		if panicking {
 			recover()
-			t = c.Type(node)
+			t = c.Type(expr)
 		}
 	}()
-	e = c.Expr1(node, nil)
+	e = c.Expr1(expr, nil)
 	panicking = false
 	return
 }

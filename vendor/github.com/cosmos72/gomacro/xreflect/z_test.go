@@ -154,7 +154,7 @@ func TestFunction(t *testing.T) {
 
 func TestInterface1(t *testing.T) {
 	methodtyp := u.FuncOf(nil, []Type{u.BasicTypes[r.Int]}, false)
-	typ := u.InterfaceOf([]string{"Cap", "Len"}, []Type{methodtyp, methodtyp}, nil).Complete()
+	typ := u.InterfaceOf(nil, []string{"Cap", "Len"}, []Type{methodtyp, methodtyp}, nil).Complete()
 
 	is(t, typ.Kind(), r.Interface)
 	is(t, typ.Name(), "")
@@ -180,7 +180,7 @@ func TestInterface1(t *testing.T) {
 // test implementing 'error' interface
 func TestInterfaceError(t *testing.T) {
 	methodtyp := u.FuncOf(nil, []Type{u.BasicTypes[r.String]}, false)
-	typ := u.InterfaceOf([]string{"Error"}, []Type{methodtyp}, nil).Complete()
+	typ := u.InterfaceOf(nil, []string{"Error"}, []Type{methodtyp}, nil).Complete()
 
 	is(t, typ.Kind(), r.Interface)
 	is(t, typ.Name(), "")
@@ -483,7 +483,7 @@ func TestInterfaceIoReader(t *testing.T) {
 	in := []Type{u.SliceOf(u.BasicTypes[r.Uint8])}
 	out := []Type{u.BasicTypes[r.Int], u.TypeOfError}
 	methodtyp := u.FuncOf(in, out, false)
-	typ := u.InterfaceOf([]string{"Read"}, []Type{methodtyp}, nil).Complete()
+	typ := u.InterfaceOf(nil, []string{"Read"}, []Type{methodtyp}, nil).Complete()
 	gtyp := typ.GoType()
 
 	is(t, typ.Kind(), r.Interface)
@@ -557,13 +557,13 @@ func makeIoReaderWriterType() Type {
 	in := []Type{u.SliceOf(u.BasicTypes[r.Uint8])}
 	out := []Type{u.BasicTypes[r.Int], u.TypeOfError}
 	method := u.FuncOf(in, out, false)
-	read_interf := u.InterfaceOf([]string{"Read"}, []Type{method}, nil).Complete()
+	read_interf := u.InterfaceOf(nil, []string{"Read"}, []Type{method}, nil).Complete()
 	reader := u.NamedOf("Reader", "io", r.Interface)
 	reader.SetUnderlying(read_interf)
-	write_interf := u.InterfaceOf([]string{"Write"}, []Type{method}, nil).Complete()
+	write_interf := u.InterfaceOf(nil, []string{"Write"}, []Type{method}, nil).Complete()
 	writer := u.NamedOf("Writer", "io", r.Interface)
 	writer.SetUnderlying(write_interf)
-	rw_interf := u.InterfaceOf(nil, nil, []Type{reader, writer}).Complete()
+	rw_interf := u.InterfaceOf(nil, nil, nil, []Type{reader, writer}).Complete()
 	readwriter := u.NamedOf("ReadWriter", "io", r.Interface)
 	readwriter.SetUnderlying(rw_interf)
 	return readwriter
