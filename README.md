@@ -1,5 +1,7 @@
 ![alt tag](files/gophernotes-logo.png)
 
+[![Build Status](https://travis-ci.org/gopherdata/gophernotes.svg?branch=master)](https://travis-ci.org/gopherdata/gophernotes)
+
 # gophernotes - Use Go in Jupyter notebooks and nteract
 
 `gophernotes` is a Go kernel for [Jupyter](http://jupyter.org/) notebooks and [nteract](https://nteract.io/).  It lets you use Go interactively in a browser-based notebook or desktop app.  Use `gophernotes` to create and share documents that contain live Go code, equations, visualizations and explanatory text.  These notebooks, with the live Go code, can then be shared with others via email, Dropbox, GitHub and the [Jupyter Notebook Viewer](http://nbviewer.jupyter.org/). Go forth and do data science, or anything else interesting, with Go notebooks!
