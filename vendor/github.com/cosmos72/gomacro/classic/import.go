@@ -41,8 +41,6 @@ func (env *Env) evalImport(imp *ast.ImportSpec) (r.Value, []r.Value) {
 	var name string
 	if imp.Name != nil {
 		name = imp.Name.Name
-	} else {
-		name = FileName(path)
 	}
 	pkg := env.ImportPackage(name, path)
 	if pkg != nil {
@@ -51,6 +49,12 @@ func (env *Env) evalImport(imp *ast.ImportSpec) (r.Value, []r.Value) {
 			// dot import, i.e. import . "the/package/path"
 			env.MergePackage(pkg.Package)
 		} else {
+			// https://golang.org/ref/spec#Package_clause states:
+			// If the PackageName is omitted, it defaults to the identifier
+			// specified in the package clause of the imported package
+			if len(name) == 0 {
+				name = pkg.Name
+			}
 			env.DefineConst(name, r.TypeOf(pkg), r.ValueOf(pkg))
 		}
 	}

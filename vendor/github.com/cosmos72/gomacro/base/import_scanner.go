@@ -225,7 +225,7 @@ func (o *Output) CollectPackageImportsWithRename(pkg *types.Package, requireAllI
 
 	// do NOT rename the package we are scanning!
 	path := pkg.Path()
-	name := FileName(path)
+	name := sanitizeIdentifier(FileName(path))
 	if name2 := pathtoname[path]; name2 != name {
 		// some *other* path may be associated to name.
 		// in case, swap the names of the two packages
@@ -251,7 +251,7 @@ func renamePackages(in []string) map[string]string {
 // given a path and a map[name]path, extract the path last name.
 // Change it (if needed) to a value that is NOT in map and return it.
 func renamePackage(path string, out map[string]string) string {
-	name := FileName(path)
+	name := sanitizeIdentifier(FileName(path))
 	if _, exists := out[name]; !exists {
 		return name
 	}

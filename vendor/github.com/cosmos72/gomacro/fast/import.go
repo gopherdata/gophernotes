@@ -120,8 +120,6 @@ func (c *Comp) Import(node ast.Spec) {
 		var name string
 		if node.Name != nil {
 			name = node.Name.Name
-		} else {
-			name = FileName(path)
 		}
 		// yes, we support local imports
 		// i.e. a function or block can import packages
@@ -166,6 +164,12 @@ func (c *Comp) ImportPackageOrError(name, path string) (*Import, error) {
 	if name == "." {
 		c.declDotImport0(imp)
 	} else if name != "_" {
+		// https://golang.org/ref/spec#Package_clause states:
+		// If the PackageName is omitted, it defaults to the identifier
+		// specified in the package clause of the imported package
+		if len(name) == 0 {
+			name = imp.Name
+		}
 		c.declImport0(name, imp)
 	}
 	g.KnownImports[path] = imp

@@ -107,6 +107,9 @@ func (g *Globals) LookupPackage(name, path string) *PackageRef {
 	if !found {
 		return nil
 	}
+	if len(name) == 0 {
+		name = TailIdentifier(FileName(path))
+	}
 	return &PackageRef{Package: pkg, Name: name, Path: path}
 }
 
@@ -138,6 +141,9 @@ func (g *Globals) ImportPackageOrError(name, path string) (*PackageRef, error) {
 	case "_3":
 		mode = ImThirdParty
 	default:
+		if len(name) == 0 {
+			name = gpkg.Name()
+		}
 		havePluginOpen := g.Importer.setPluginOpen()
 		if havePluginOpen {
 			mode = ImPlugin
