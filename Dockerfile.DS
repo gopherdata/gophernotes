@@ -23,7 +23,7 @@ RUN set -x \
         musl-dev \
         mercurial \
     && pip3 install --upgrade pip==9.0.3 \
-    && cp /usr/bin/python3.5 /usr/bin/python \
+    && cp /usr/bin/python3.6 /usr/bin/python \
     ## install Go
     && apk --update-cache --allow-untrusted \
         --repository http://dl-4.alpinelinux.org/alpine/edge/community \
@@ -60,7 +60,7 @@ RUN set -x \
     && go get github.com/pkg/errors \
     && go get github.com/stretchr/testify/assert \
     ## clean
-    && find /usr/lib/python3.5 -name __pycache__ | xargs rm -r \
+    && find /usr/lib/python3.6 -name __pycache__ | xargs rm -r \
     && rm -rf \
         /root/.[acpw]* \
         ipaexg00301* \

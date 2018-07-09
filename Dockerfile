@@ -22,7 +22,7 @@ RUN set -x \
         zeromq-dev \
         musl-dev \
     && pip3 install --upgrade pip==9.0.3 \
-    && ln -s /usr/bin/python3.5 /usr/bin/python \
+    && ln -s /usr/bin/python3.6 /usr/bin/python \
     ## install Go
     && apk --update-cache --allow-untrusted \
         --repository http://dl-4.alpinelinux.org/alpine/edge/community \
@@ -38,7 +38,7 @@ RUN set -x \
     && mkdir -p ~/.local/share/jupyter/kernels/gophernotes \
     && cp -r /go/src/github.com/gopherdata/gophernotes/kernel/* ~/.local/share/jupyter/kernels/gophernotes \
     ## clean
-    && find /usr/lib/python3.5 -name __pycache__ | xargs rm -r \
+    && find /usr/lib/python3.6 -name __pycache__ | xargs rm -r \
     && rm -rf \
         /root/.[acpw]* \
         ipaexg00301* \
