@@ -8,8 +8,10 @@ ADD . /go/src/github.com/gopherdata/gophernotes/
 RUN set -x \
     # install python and dependencies
     && apk update \
-    && apk --no-cache add \
-        ca-certificates \
+    && apk --no-cache \
+        --repository http://dl-4.alpinelinux.org/alpine/v3.7/community \
+        --repository http://dl-4.alpinelinux.org/alpine/v3.7/main \
+        --arch=x86_64 add \
         python3 \
         su-exec \
         gcc \
@@ -20,7 +22,7 @@ RUN set -x \
         zeromq-dev \
         musl-dev \
         mercurial \
-    && pip3 install --upgrade pip \
+    && pip3 install --upgrade pip==9.0.3 \
     && cp /usr/bin/python3.5 /usr/bin/python \
     ## install Go
     && apk --update-cache --allow-untrusted \
@@ -29,7 +31,8 @@ RUN set -x \
         go \
     ## jupyter notebook 
     && ln -s /usr/include/locale.h /usr/include/xlocale.h \
-    && pip3 install jupyter notebook \
+    ### fix pyzmq to v16.0.2 as that is what is distributed with py3-zmq
+    && pip3 install jupyter notebook pyzmq==16.0.2 \
     ## install gophernotes
     && export GOPATH=/go \
     && go install github.com/gopherdata/gophernotes \
