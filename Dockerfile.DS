@@ -53,8 +53,8 @@ RUN set -x \
     && go get github.com/patrickmn/go-cache \
     && go get github.com/chewxy/math32 \
     && go get github.com/chewxy/hm \
-    && go get github.com/gorgonia/vecf64 \
-    && go get github.com/gorgonia/vecf32 \
+    && go get gorgonia.org/vecf64 \
+    && go get gorgonia.org/vecf32 \
     && go get github.com/awalterschulze/gographviz \
     && go get github.com/leesper/go_rng \
     && go get github.com/pkg/errors \
