@@ -19,6 +19,7 @@ package dep
 import (
 	"bytes"
 	"fmt"
+	"go/token"
 
 	"github.com/cosmos72/gomacro/base"
 )
@@ -66,24 +67,30 @@ func (g *graph) Sort() DeclList {
 }
 
 // remove from g.Nodes the nodes that have no dependencies and return them.
-// Implementation choice: remove at most a single node -> better preserves source code ordering
+// Implementation choice: remove at most a single name -> better preserves source code ordering
 func (g *graph) RemoveNodesNoDeps() DeclList {
-	var ret *Decl
-	for name, decl := range g.Nodes {
+	var ret DeclList
+	var pos token.Pos
+	var retname string
+	for name, list := range g.Nodes {
 		if len(g.Edges[name]) == 0 {
-			// among nodes with no dependencies, choose the one with smallest Pos
-			if ret == nil || decl.Pos < ret.Pos {
-				ret = decl
+			for _, decl := range list {
+				// among nodes with no dependencies, choose the one with smallest Pos
+				if ret == nil || decl.Pos < pos {
+					ret = list
+					pos = decl.Pos
+					retname = name
+					break
+				}
 			}
 		}
 	}
 	if ret == nil {
 		return nil
 	}
-	name := ret.Name
-	delete(g.Edges, name)
-	delete(g.Nodes, name)
-	return DeclList{ret}
+	delete(g.Edges, retname)
+	delete(g.Nodes, retname)
+	return ret
 }
 
 // remove from g.Edges dependencies that are not in g.Nodes
@@ -116,15 +123,17 @@ func (g *graph) RemoveDeps(m DeclMap) {
 
 // for nodes with Kind 'k', remove from g.Edges dependencies that are in m
 func (g *graph) RemoveDepsFor(k Kind, m DeclMap) {
-	for name, decl := range g.Nodes {
-		if decl.Kind != k {
-			continue
-		}
-		if edges, ok := g.Edges[name]; ok {
-			for edge := range edges {
-				if _, ok := m[edge]; ok {
-					// node in m, drop the edge
-					delete(edges, edge)
+	for name, list := range g.Nodes {
+		for _, decl := range list {
+			if decl.Kind != k {
+				continue
+			}
+			if edges, ok := g.Edges[name]; ok {
+				for edge := range edges {
+					if _, ok := m[edge]; ok {
+						// node in m, drop the edge
+						delete(edges, edge)
+					}
 				}
 			}
 		}
@@ -150,15 +159,16 @@ func (g *graph) RemoveTypeFwd() DeclList {
 	var list DeclList
 	most := 1
 	for name, count := range ctx.visited {
-		decl := g.Nodes[name]
-		if decl == nil || decl.Kind != Type || count < most {
-			continue
+		for _, decl := range g.Nodes[name] {
+			if decl == nil || decl.Kind != Type || count < most {
+				continue
+			}
+			if count > most {
+				list = nil // discard  types collected so far
+			}
+			most = count
+			list = append(list, decl)
 		}
-		if count > most {
-			list = nil // discard  types collected so far
-		}
-		most = count
-		list = append(list, decl)
 	}
 	if len(list) == 0 {
 		return nil
@@ -189,7 +199,7 @@ func (g *graph) visit(node *Decl, ctx *visitCtx) {
 	}
 	ctx.visiting[name] = 0
 	for name := range g.Edges[name] {
-		if node := g.Nodes[name]; node != nil {
+		for _, node := range g.Nodes[name] {
 			g.visit(node, ctx)
 		}
 	}

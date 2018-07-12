@@ -130,6 +130,9 @@ func (c *Comp) rangeChan(node *ast.RangeStmt, erange *Expr, jump *rangeJump) {
 	// compile the body
 	c.Block(node.Body)
 
+	// "continue" is a jump to loop beginning
+	jump.Continue = jump.Start
+
 	// jump back to start
 	c.append(func(env *Env) (Stmt, *Env) {
 		ip := jump.Start
@@ -251,6 +254,9 @@ func (c *Comp) rangeMap(node *ast.RangeStmt, erange *Expr, jump *rangeJump) {
 	// compile the body
 	c.Block(node.Body)
 
+	// "continue" is a jump to the last statement below
+	jump.Continue = c.Code.Len()
+
 	// increase iteration index and jump back to start
 	c.append(func(env *Env) (Stmt, *Env) {
 		(*(*int)(unsafe.Pointer(&env.Ints[idxnext])))++
@@ -334,6 +340,9 @@ func (c *Comp) rangeSlice(node *ast.RangeStmt, erange *Expr, jump *rangeJump) {
 
 	// compile the body
 	c.Block(node.Body)
+
+	// "continue" is a jump to the increment below
+	jump.Continue = c.Code.Len()
 
 	// increment key
 	c.Pos = node.End() - 1
@@ -435,6 +444,9 @@ func (c *Comp) rangeString(node *ast.RangeStmt, erange *Expr, jump *rangeJump) {
 
 	// compile the body
 	c.Block(node.Body)
+
+	// "continue" is a jump to the iteration above
+	jump.Continue = jump.Start
 
 	// jump back to iteration
 	c.append(func(env *Env) (Stmt, *Env) {

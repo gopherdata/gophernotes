@@ -559,11 +559,12 @@ var testcases = []TestCase{
 	TestCase{A, "continue_3", "j=0; k=0; for i:=1; i<=7; i=i+1 { var ii = i; if ii==3 {j=ii; continue}; k=k+ii }; j", 3, nil},
 	TestCase{A, "continue_4", "k", 25, nil},
 
-	TestCase{A, "for_range_array", `v0 = 0; for _, s := range [2]string{"a", "bc"} { v0 += len(s) }; v0`, 3, nil},
-	TestCase{A, "for_range_chan", `v0 = 0; c := make(chan int, 2); c <- 1; c <- 2; close(c); for e := range c { v0 += e }; v0`, 3, nil},
-	TestCase{A, "for_range_map", `var vrune rune; m2 = map[rune]string{'x':"x", 'y':"y", 'z':"z"}; for k,v := range m2 { vrune += k + rune(v[0]) }; vrune`, ('x' + 'y' + 'z') * 2, nil},
-	TestCase{A, "for_range_slice", `v0 = 0; for _, s := range [ ]string{"a", "bc"} { v0 += len(s) }; v0`, 3, nil},
-	TestCase{A, "for_range_string", `vrune = 0; for i, r := range "abc\u00ff" { vrune += r << (uint8(i)*8) }; vrune`, for_range_string("abc\u00ff"), nil},
+	TestCase{A, "for_range_array", `v0 = 0; for _, s := range [2]string{"a", "bc"} { v0 += len(s); continue }; v0`, 3, nil},
+	TestCase{A, "for_range_chan", `v0 = 0; c := make(chan int, 2); c <- 1; c <- 2; close(c); for e := range c { v0 += e; continue }; v0`, 3, nil},
+	TestCase{A, "for_range_map", `var vrune rune; m2 = map[rune]string{'x':"x", 'y':"y", 'z':"z"}; for k,v := range m2 { vrune += k + rune(v[0]); continue }; vrune`,
+		('x' + 'y' + 'z') * 2, nil},
+	TestCase{A, "for_range_slice", `v0 = 0; for _, s := range [ ]string{"a", "bc"} { v0 += len(s); continue }; v0`, 3, nil},
+	TestCase{A, "for_range_string", `vrune = 0; for i, r := range "abc\u00ff" { vrune += r << (uint8(i)*8); continue }; vrune`, for_range_string("abc\u00ff"), nil},
 
 	TestCase{A, "function_0", "func nop() { }; nop()", nil, []interface{}{}},
 	TestCase{A, "function_1", "func seven() int { return 7 }; seven()", 7, nil},

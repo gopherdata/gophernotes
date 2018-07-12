@@ -154,7 +154,7 @@ loop:
 	if len(nodes) == 0 {
 		return nil
 	}
-	s.scope.Decls = make(map[string]*Decl)
+	s.scope.Decls = make(DeclMap)
 
 	s.scope.Nodes(nodes)
 	s.scope.Decls.RemoveUnresolvableDeps()

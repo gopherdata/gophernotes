@@ -95,13 +95,13 @@ type Decl struct {
 	Extra *Extra
 }
 
+type DeclList []*Decl
+
 func NewDecl(kind Kind, name string, node ast.Node, pos token.Pos, deps []string) *Decl {
 	return &Decl{Kind: kind, Name: name, Node: node, Deps: sort_unique_inplace(deps), Pos: pos}
 }
 
-type DeclMap map[string]*Decl
-
-type DeclList []*Decl
+type DeclMap map[string]DeclList
 
 type Scope struct {
 	Decls  DeclMap
@@ -111,7 +111,7 @@ type Scope struct {
 
 func NewScope(outer *Scope) *Scope {
 	return &Scope{
-		Decls: make(map[string]*Decl),
+		Decls: make(DeclMap),
 		Outer: outer,
 	}
 }
@@ -124,7 +124,7 @@ type Sorter struct {
 func NewSorter() *Sorter {
 	return &Sorter{
 		scope: Scope{
-			Decls: make(map[string]*Decl),
+			Decls: make(DeclMap),
 		},
 	}
 }

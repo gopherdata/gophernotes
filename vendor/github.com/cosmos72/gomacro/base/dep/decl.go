@@ -17,6 +17,7 @@
 package dep
 
 import (
+	"bytes"
 	"fmt"
 	"go/ast"
 	"go/token"
@@ -27,30 +28,58 @@ import (
 	"github.com/cosmos72/gomacro/base"
 )
 
+// ===================== Decl =====================
+
+func (decl *Decl) String() string {
+	return fmt.Sprintf("Decl{%s %q %T}", decl.Kind, decl.Name, decl.Node)
+}
+
+// ===================== DeclList =====================
+
+func (l DeclList) String() string {
+	var buf bytes.Buffer
+	buf.WriteByte('{')
+	for i, e := range l {
+		if i != 0 {
+			buf.WriteString(", ")
+		}
+		buf.WriteString(e.String())
+	}
+	buf.WriteByte('}')
+	return buf.String()
+}
+
 // ===================== DeclMap =====================
+
+func (m DeclMap) add(decl *Decl) *Decl {
+	name := decl.Name
+	m[name] = append(m[name], decl)
+	// /*DELETEME*/ fmt.Printf("dep/DeclMap.add() => %v\n", m[name])
+	return decl
+}
 
 func (m DeclMap) Dup() DeclMap {
 	ret := make(DeclMap, len(m))
-	for name, decl := range m {
-		ret[name] = decl
+	for name, l := range m {
+		ret[name] = append((DeclList)(nil), l...)
 	}
 	return ret
 }
 
 func (m DeclMap) List() DeclList {
-	list := make(DeclList, len(m))
-	i := 0
-	for _, e := range m {
-		list[i] = e
-		i++
+	list := make(DeclList, 0, len(m))
+	for _, l := range m {
+		list = append(list, l...)
 	}
 	return list
 }
 
 // remove all dependencies that cannot be resolved, i.e. not present among m
 func (m DeclMap) RemoveUnresolvableDeps() {
-	for _, decl := range m {
-		decl.RemoveUnresolvableDeps(m)
+	for _, l := range m {
+		for _, decl := range l {
+			decl.RemoveUnresolvableDeps(m)
+		}
 	}
 }
 
@@ -60,8 +89,12 @@ func (m DeclMap) Print() {
 
 func (m DeclMap) depMap() depMap {
 	ret := make(depMap, len(m))
-	for _, decl := range m {
-		ret[decl.Name] = decl.depSet()
+	for name, l := range m {
+		s := make(set)
+		for _, decl := range l {
+			decl.depSet(s)
+		}
+		ret[name] = s
 	}
 	return ret
 }
@@ -71,7 +104,7 @@ func (m DeclMap) depMap() depMap {
 func (list DeclList) Map() DeclMap {
 	m := make(DeclMap, len(list))
 	for _, e := range list {
-		m[e.Name] = e
+		m.add(e)
 	}
 	return m
 }
@@ -148,6 +181,10 @@ func NewDeclExpr(node ast.Expr, counter *int) *Decl {
 }
 
 func NewDeclFunc(kind Kind, name string, node *ast.FuncDecl, deps []string) *Decl {
+	// support recursive functions
+	deps = sort_unique_inplace(deps)
+	deps = remove_item_inplace(name, deps)
+
 	return NewDecl(kind, name, node, node.Name.Pos(), deps)
 }
 
@@ -180,12 +217,10 @@ func NewDeclVarMulti(ident *ast.Ident, node *ast.ValueSpec, deps []string) *Decl
 	return NewDecl(VarMulti, ident.Name, node, ident.Pos(), deps)
 }
 
-func (decl *Decl) depSet() set {
-	ret := make(set, len(decl.Deps))
+func (decl *Decl) depSet(s set) {
 	for _, dep := range decl.Deps {
-		ret[dep] = void{}
+		s[dep] = void{}
 	}
-	return ret
 }
 
 // remove all dependencies that cannot be resolved, i.e. not present among m
