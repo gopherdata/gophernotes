@@ -531,8 +531,18 @@ func TestInterfaceIoReader(t *testing.T) {
 
 	file := os.Scope().Lookup("File").Type().(*types.Named)
 
-	tfileRead := tfile.Method(6).Type.GoType().(*types.Signature)
-	fileRead := file.Method(6).Type().(*types.Signature)
+	tfileMethod, _ := tfile.MethodByName("Read", "")
+	var fileMethod *types.Func
+	for i, n := 0, file.NumMethods(); i < n; i++ {
+		fileMethod = file.Method(i)
+		if fileMethod.Name() == "Read" {
+			break
+		}
+	}
+	is(t, fileMethod.Name(), "Read")
+
+	tfileRead := tfileMethod.Type.GoType().(*types.Signature)
+	fileRead := fileMethod.Type().(*types.Signature)
 	ireaderRead := ireader.ExplicitMethod(0).Type().(*types.Signature)
 
 	if false {
