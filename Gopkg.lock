@@ -21,7 +21,7 @@
     "typeutil",
     "xreflect"
   ]
-  revision = "515faf9893ffc98ff66aab992cefbd8065aab308"
+  revision = "d4886465bdac5f12f3bd26f09b133f9e769f1cde"
 
 [[projects]]
   name = "github.com/mattn/go-runewidth"
