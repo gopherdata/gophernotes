@@ -121,7 +121,7 @@ func Subdir(dirs ...string) string {
 }
 
 var (
-	GoPkg = filepath.Join("github.com", "gopherdata", "gophernotes", "vendor", "github.com", "cosmos72", "gomacro") // vendored copies of gomacro may need to change this
+	GoPkg = filepath.Join("github.com", "cosmos72", "gomacro") // vendored copies of gomacro may need to change this
 
 	GoSrcDir = Subdir(filepath.SplitList(build.Default.GOPATH)[0], "src")
 

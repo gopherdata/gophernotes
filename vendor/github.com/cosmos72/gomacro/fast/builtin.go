@@ -146,12 +146,13 @@ func compileAppend(c *Comp, sym Symbol, node *ast.CallExpr) *Call {
 		return nil
 	}
 	telem := t0.Elem()
+	t1 := c.Universe.SliceOf(telem)
 
 	if node.Ellipsis != token.NoPos {
 		if n != 2 {
 			return c.badBuiltinCallArgNum(sym.Name+"(arg1, arg2...)", 2, 2, node.Args)
 		}
-		telem = t0 // second argument is a slice too
+		telem = t1 // second argument is a slice too
 	}
 	for i := 1; i < n; i++ {
 		argi := c.Expr1(node.Args[i], nil)
@@ -162,7 +163,7 @@ func compileAppend(c *Comp, sym Symbol, node *ast.CallExpr) *Call {
 		}
 		args[i] = argi
 	}
-	t := c.Universe.FuncOf([]xr.Type{t0, t0}, []xr.Type{t0}, true) // compile as reflect.Append(), which is variadic
+	t := c.Universe.FuncOf([]xr.Type{t0, t1}, []xr.Type{t0}, true) // compile as reflect.Append(), which is variadic
 	sym.Type = t
 	fun := exprLit(Lit{Type: t, Value: r.Append}, &sym)
 	return &Call{
@@ -909,7 +910,7 @@ func (c *Comp) call_builtin(call *Call) I {
 				return fun(arg0, arg1)
 			}
 		}
-	case func(float64, float64) complex128: // complex
+	case func(float64, float64) complex128: // complex()
 		arg0fun := argfuns[0].(func(*Env) float64)
 		arg1fun := argfuns[1].(func(*Env) float64)
 		if name == "complex" {
