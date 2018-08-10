@@ -1,6 +1,7 @@
 ![alt tag](files/gophernotes-logo.png)
 
 [![Build Status](https://travis-ci.org/gopherdata/gophernotes.svg?branch=master)](https://travis-ci.org/gopherdata/gophernotes)
+[![License](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/gopherdata/gophernotes/blob/master/LICENSE)
 
 # gophernotes - Use Go in Jupyter notebooks and nteract
 
