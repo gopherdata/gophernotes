@@ -526,6 +526,9 @@ func compileLen(c *Comp, sym Symbol, node *ast.CallExpr) *Call {
 		fun.Value = func(_ r.Value) int {
 			return n
 		}
+		// since we currently optimize len() by evaluating it at compile time,
+		// actual arg may not exist yet. optimize it away.
+		arg = exprLit(Lit{Type: tin, Value: xr.Zero(tin).Interface()}, nil)
 	}
 	return newCall1(fun, arg, isarray || arg.Const(), tout)
 }

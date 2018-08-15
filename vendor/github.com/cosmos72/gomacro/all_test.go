@@ -667,7 +667,8 @@ var testcases = []TestCase{
 	TestCase{A, "builtin_append_1", "append(vs,0,1,2)", []byte{0, 1, 2}, nil},
 	TestCase{A, "builtin_append_2", "append(vn,3,4)", []byte{3, 4}, nil},
 	TestCase{A, "builtin_cap", "cap(va)", 2, nil},
-	TestCase{A, "builtin_len", "len(v5)", len("8y57riuh@#$"), nil},
+	TestCase{A, "builtin_len_1", "len(v5)", len("8y57riuh@#$"), nil},
+	TestCase{A, "builtin_len_2", "{ a := [...]int{1,2,3}; len(a) }", nil, none},
 	TestCase{A, "builtin_new", "new(int)", new(int), nil},
 	TestCase{A, "builtin_make_1", "make(map[int]int)", make(map[int]int), nil},
 	TestCase{A, "builtin_make_2", "make(map[int]int, 10)", make(map[int]int), nil}, // capacity is ignored
