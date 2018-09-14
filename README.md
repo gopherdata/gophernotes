@@ -72,7 +72,7 @@ $ jupyter --data-dir
 If you can only compile gophernotes with Go <= 1.10.1 on Mac, consider using the [Docker](#docker) install and run gophernotes/Jupyter in Docker.
 
 ```sh
-$ go get github.com/gopherdata/gophernotes
+$ go get -u github.com/gopherdata/gophernotes
 $ mkdir -p ~/Library/Jupyter/kernels/gophernotes
 $ cp $GOPATH/src/github.com/gopherdata/gophernotes/kernel/* ~/Library/Jupyter/kernels/gophernotes
 ```
@@ -105,7 +105,7 @@ Then:
 
     ```
     REM Download w/o building.
-    go get -d github.com/gopherdata/gophernotes
+    go get -d -u github.com/gopherdata/gophernotes
     cd %GOPATH%\src\github.com\gopherdata\gophernotes\zmq-win
 
     REM Build x64 version.
