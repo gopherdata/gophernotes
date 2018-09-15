@@ -19,6 +19,7 @@ package fast
 import (
 	"go/ast"
 	r "reflect"
+	"unsafe"
 
 	. "github.com/cosmos72/gomacro/base"
 	xr "github.com/cosmos72/gomacro/xreflect"
@@ -175,18 +176,21 @@ func (c *Comp) LookupMethod(t xr.Type, name string) (mtd xr.Method, numfound int
 }
 
 // field0 is a variant of reflect.Value.Field, also accepts pointer values
-// and dereferences pointer ONLY if index < 0 (actually used index will be ^index)
 func field0(v r.Value, index int) r.Value {
 	switch v.Kind() {
 	// also accept interface xr.Forward and extract concrete type from it
 	case r.Ptr, r.Interface:
 		v = v.Elem()
 	}
-	return v.Field(index)
+	v = v.Field(index)
+	if v.IsValid() && !v.CanInterface() {
+		v = makeAccessible(v)
+	}
+	return v
 }
 
-// fieldByIndex is a variant of reflect.Value.FieldByIndex, also accepts pointer values
-// and dereferences pointers ONLY if index[i] < 0 (actually used index will be ^index[i])
+// fieldByIndex is a variant of reflect.Value.FieldByIndex,
+// also accepts pointer values and dereferences any pointer
 func fieldByIndex(v r.Value, index []int) r.Value {
 	for _, x := range index {
 		switch v.Kind() {
@@ -196,6 +200,21 @@ func fieldByIndex(v r.Value, index []int) r.Value {
 		}
 		v = v.Field(x)
 	}
+	if v.IsValid() && !v.CanInterface() {
+		v = makeAccessible(v)
+	}
+	return v
+}
+
+// unset v.flag & flagRO, to allow extracting v.Interface()
+func makeAccessible(v r.Value) r.Value {
+	type UnsafeValue struct {
+		typ  *uintptr
+		ptr  unsafe.Pointer
+		flag uintptr
+	}
+	u := (*UnsafeValue)(unsafe.Pointer(&v))
+	u.flag &^= 1<<5 | 1<<6
 	return v
 }
 
@@ -487,14 +506,38 @@ func (c *Comp) compileObjGetMethod(t xr.Type, mtd xr.Method) (ret func(r.Value) 
 			}
 		case 1:
 			fieldindex := fieldindex[0]
-			ret = func(obj r.Value) r.Value {
-				return field0(obj, fieldindex)
-				return obj.Method(index)
+			if addressof {
+				ret = func(obj r.Value) r.Value {
+					obj = field0(obj, fieldindex)
+					return obj.Addr().Method(index)
+				}
+			} else if deref {
+				ret = func(obj r.Value) r.Value {
+					obj = field0(obj, fieldindex)
+					return obj.Elem().Method(index)
+				}
+			} else {
+				ret = func(obj r.Value) r.Value {
+					obj = field0(obj, fieldindex)
+					return obj.Method(index)
+				}
 			}
 		default:
-			ret = func(obj r.Value) r.Value {
-				obj = fieldByIndex(obj, fieldindex)
-				return obj.Method(index)
+			if addressof {
+				ret = func(obj r.Value) r.Value {
+					obj = fieldByIndex(obj, fieldindex)
+					return obj.Addr().Method(index)
+				}
+			} else if deref {
+				ret = func(obj r.Value) r.Value {
+					obj = fieldByIndex(obj, fieldindex)
+					return obj.Elem().Method(index)
+				}
+			} else {
+				ret = func(obj r.Value) r.Value {
+					obj = fieldByIndex(obj, fieldindex)
+					return obj.Method(index)
+				}
 			}
 		}
 	} else {
@@ -660,7 +703,7 @@ func (c *Comp) computeMethodFieldIndex(t xr.Type, mtd xr.Method) (fieldtype xr.T
 				fieldindex = make([]int, len(mtd.FieldIndex))
 				copy(fieldindex, mtd.FieldIndex)
 			}
-			fieldindex[i] = ^x // remember we need a pointer dereference at runtime
+			fieldindex[i] = x
 		}
 		t = t.Field(x).Type
 	}
@@ -744,7 +787,7 @@ func (c *Comp) compileMethodAsFunc(t xr.Type, mtd xr.Method) *Expr {
 				fieldindex = make([]int, len(mtd.FieldIndex))
 				copy(fieldindex, mtd.FieldIndex)
 			}
-			fieldindex[i] = ^x // remember we neeed a pointer dereference at runtime
+			fieldindex[i] = x
 			t = t.Elem()
 		}
 		t = t.Field(x).Type
@@ -765,19 +808,11 @@ func (c *Comp) compileMethodAsFunc(t xr.Type, mtd xr.Method) *Expr {
 		// receiver is pointer-to-tsave
 		if tsave.Kind() != r.Ptr {
 			tsave = c.Universe.PtrTo(tsave)
-			if len(fieldindex) != 0 && fieldindex[0] >= 0 {
-				// remember we neeed a pointer dereference at runtime
-				fieldindex[0] = ^fieldindex[0]
-			}
 		}
 	} else {
 		// receiver is tsave
 		if tsave.Kind() == r.Ptr {
 			tsave = tsave.Elem()
-			if len(fieldindex) != 0 && fieldindex[0] < 0 {
-				// no pointer dereference at runtime
-				fieldindex[0] = ^fieldindex[0]
-			}
 		}
 	}
 	tfunc = c.changeFirstParam(tsave, tfunc)
