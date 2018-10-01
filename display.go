@@ -1,8 +1,12 @@
 package main
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
+	"io"
+	"io/ioutil"
+	"net/http"
 	r "reflect"
 	"strings"
 
@@ -33,13 +37,59 @@ func stubDisplay(Data) error {
 
 // TODO handle the metadata
 
-func MakeData(mimeType string, data interface{}) Data {
-	return Data{
+func read(data interface{}) ([]byte, string) {
+	var b []byte
+	var s string
+	switch x := data.(type) {
+	case string:
+		s = x
+	case []byte:
+		b = x
+	case io.Reader:
+		bb, err := ioutil.ReadAll(x)
+		if err != nil {
+			panic(err)
+		}
+		b = bb
+	case io.WriterTo:
+		var buf bytes.Buffer
+		x.WriteTo(&buf)
+		b = buf.Bytes()
+	default:
+		panic(errors.New(fmt.Sprintf("unsupported type, cannot display: expecting string, []byte, io.Reader or io.WriterTo, found %T", data)))
+	}
+	if len(s) == 0 {
+		s = fmt.Sprint(data)
+	}
+	return b, s
+}
+
+func Any(mimeType string, data interface{}) Data {
+	b, s := read(data)
+	if len(mimeType) == 0 {
+		mimeType = http.DetectContentType(b)
+	}
+	d := Data{
 		Data: BundledMIMEData{
-			"text/plain": fmt.Sprint(data),
-			mimeType:     data,
+			"text/plain": s,
 		},
 	}
+	if mimeType != "text/plain" {
+		d.Data[mimeType] = b
+	}
+	return d
+}
+
+func MakeData(mimeType string, data interface{}) Data {
+	d := Data{
+		Data: BundledMIMEData{
+			mimeType: data,
+		},
+	}
+	if mimeType != "text/plain" {
+		d.Data["text/plain"] = fmt.Sprint(data)
+	}
+	return d
 }
 
 func MakeData3(mimeType string, plaintext string, data interface{}) Data {
@@ -52,11 +102,22 @@ func MakeData3(mimeType string, plaintext string, data interface{}) Data {
 }
 
 func Bytes(mimeType string, bytes []byte) Data {
+	if len(mimeType) == 0 {
+		mimeType = http.DetectContentType(bytes)
+	}
 	return MakeData3(mimeType, mimeType, bytes)
 }
 
+func File(mimeType string, path string) Data {
+	bytes, err := ioutil.ReadFile(path)
+	if err != nil {
+		panic(err)
+	}
+	return Bytes(mimeType, bytes)
+}
+
 func HTML(html string) Data {
-	return MakeData(MIMETypeHTML, html)
+	return String(MIMETypeHTML, html)
 }
 
 func JSON(json map[string]interface{}) Data {
@@ -64,11 +125,11 @@ func JSON(json map[string]interface{}) Data {
 }
 
 func JavaScript(javascript string) Data {
-	return MakeData(MIMETypeJavaScript, javascript)
+	return String(MIMETypeJavaScript, javascript)
 }
 
 func JPEG(jpeg []byte) Data {
-	return MakeData3(MIMETypeJPEG, "jpeg image", jpeg) // []byte are encoded as base64 by the marshaller
+	return Bytes(MIMETypeJPEG, jpeg)
 }
 
 func Latex(latex string) Data {
@@ -76,7 +137,7 @@ func Latex(latex string) Data {
 }
 
 func Markdown(markdown string) Data {
-	return MakeData(MIMETypeMarkdown, markdown)
+	return String(MIMETypeMarkdown, markdown)
 }
 
 func Math(latex string) Data {
@@ -84,19 +145,39 @@ func Math(latex string) Data {
 }
 
 func PDF(pdf []byte) Data {
-	return MakeData3(MIMETypePDF, "pdf document", pdf) // []byte are encoded as base64 by the marshaller
+	return Bytes(MIMETypePDF, pdf)
 }
 
 func PNG(png []byte) Data {
-	return MakeData3(MIMETypePNG, "png image", png) // []byte are encoded as base64 by the marshaller
+	return Bytes(MIMETypePNG, png)
+}
+
+func Reader(mimeType string, r io.Reader) Data {
+	b, err := ioutil.ReadAll(r)
+	if err != nil {
+		panic(err)
+	}
+	return Bytes(mimeType, b)
 }
 
 func String(mimeType string, s string) Data {
-	return MakeData(mimeType, s)
+	if len(mimeType) == 0 {
+		mimeType = http.DetectContentType([]byte(s))
+	}
+	return MakeData3(mimeType, s, s)
 }
 
 func SVG(svg string) Data {
-	return MakeData(MIMETypeSVG, svg)
+	return String(MIMETypeSVG, svg)
+}
+
+func WriterTo(mimeType string, to io.WriterTo) Data {
+	var buf bytes.Buffer
+	_, err := to.WriteTo(&buf)
+	if err != nil {
+		panic(err)
+	}
+	return Bytes(mimeType, buf.Bytes())
 }
 
 // MIME encapsulates the data and metadata into a Data.
@@ -113,7 +194,9 @@ func MIME(data, metadata map[string]interface{}) Data {
 // prepare imports.Package for interpreted code
 var display = imports.Package{
 	Binds: map[string]r.Value{
+		"Any":                r.ValueOf(Any),
 		"Bytes":              r.ValueOf(Bytes),
+		"File":               r.ValueOf(File),
 		"HTML":               r.ValueOf(HTML),
 		"Image":              r.ValueOf(Image),
 		"JPEG":               r.ValueOf(JPEG),
@@ -136,8 +219,10 @@ var display = imports.Package{
 		"MIMETypeSVG":        r.ValueOf(MIMETypeSVG),
 		"PDF":                r.ValueOf(PDF),
 		"PNG":                r.ValueOf(PNG),
+		"Reader":             r.ValueOf(Reader),
 		"String":             r.ValueOf(String),
 		"SVG":                r.ValueOf(SVG),
+		"WriterTo":           r.ValueOf(WriterTo),
 	},
 	Types: map[string]r.Type{
 		"BundledMIMEData": r.TypeOf((*BundledMIMEData)(nil)).Elem(),
