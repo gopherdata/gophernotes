@@ -190,7 +190,7 @@ $ docker run -it -p 8888:8888 -v /path/to/local/notebooks:/path/to/notebooks/in/
 
 ## Limitations
 
-gophernotes uses [gomacro](https://github.com/cosmos72/gomacro) under the hood to evaluate Go code interactively. You can evaluate most any Go code with gomacro, but there are some limitation, which are discussed in further detail [here](https://github.com/cosmos72/gomacro#current-status).  Most noteably, gophernotes does NOT support:
+gophernotes uses [gomacro](https://github.com/cosmos72/gomacro) under the hood to evaluate Go code interactively. You can evaluate most any Go code with gomacro, but there are some limitations, which are discussed in further detail [here](https://github.com/cosmos72/gomacro#current-status).  Most notably, gophernotes does NOT support:
 
 - third party packages when running natively on Windows - This is a current limitation of the Go `plugin` package.
 - some corner cases on interpreted interfaces, as interface -&gt; interface type switch and type assertion, are not implemented yet.
