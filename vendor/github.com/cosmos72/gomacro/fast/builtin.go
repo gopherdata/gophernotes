@@ -21,7 +21,7 @@ import (
 	"go/ast"
 	"go/constant"
 	"go/token"
-	"io"
+	"os"
 	r "reflect"
 
 	"github.com/cosmos72/gomacro/ast2"
@@ -694,16 +694,25 @@ func callParse(argv r.Value, interpv r.Value) r.Value {
 
 // --- print(), println() ---
 
-func callPrint(out interface{}, args ...interface{}) {
-	fmt.Fprint(out.(io.Writer), args...)
+func callPrint(args ...interface{}) {
+	w := os.Stderr
+	for _, arg := range args {
+		fmt.Fprint(w, arg)
+	}
 }
 
-func callPrintln(out interface{}, args ...interface{}) {
-	fmt.Fprintln(out.(io.Writer), args...)
-}
-
-func getStdout(env *Env) r.Value {
-	return r.ValueOf(env.Run.Stdout)
+func callPrintln(args ...interface{}) {
+	w := os.Stderr
+	n := len(args)
+	if n > 1 {
+		for _, arg := range args[:n-1] {
+			fmt.Fprint(w, arg, " ")
+		}
+	}
+	if n >= 1 {
+		fmt.Fprint(w, args[n-1])
+	}
+	fmt.Fprintln(w)
 }
 
 func compilePrint(c *Comp, sym Symbol, node *ast.CallExpr) *Call {
@@ -711,8 +720,6 @@ func compilePrint(c *Comp, sym Symbol, node *ast.CallExpr) *Call {
 	for _, arg := range args {
 		arg.To(c, c.TypeOfInterface())
 	}
-	arg0 := exprFun(c.TypeOfInterface(), getStdout) // no need to build TypeOfIoWriter
-	args = append([]*Expr{arg0}, args...)
 
 	t := c.TypeOf(callPrint)
 	sym.Type = t
@@ -1031,17 +1038,13 @@ func (c *Comp) call_builtin(call *Call) I {
 				fun(arg)
 			}
 		}
-	case func(interface{}, ...interface{}): // print, println()
+	case func(...interface{}): // print, println()
 		argfunsX1 := call.MakeArgfunsX1()
 		if call.Ellipsis {
-			argfuns := [2]func(*Env) r.Value{
-				argfunsX1[0],
-				argfunsX1[1],
-			}
+			argfun := argfunsX1[0]
 			ret = func(env *Env) {
-				arg := argfuns[0](env).Interface()
-				argslice := argfuns[1](env).Interface().([]interface{})
-				fun(arg, argslice...)
+				argslice := argfun(env).Interface().([]interface{})
+				fun(argslice...)
 			}
 		} else {
 			ret = func(env *Env) {
@@ -1049,7 +1052,7 @@ func (c *Comp) call_builtin(call *Call) I {
 				for i, argfun := range argfunsX1 {
 					args[i] = argfun(env).Interface()
 				}
-				fun(args[0], args[1:]...)
+				fun(args...)
 			}
 		}
 	case func(r.Value): // close()
