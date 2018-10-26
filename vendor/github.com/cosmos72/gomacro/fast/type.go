@@ -248,9 +248,10 @@ func (c *Comp) compileType2(node ast.Expr, allowEllipsis bool) (t xr.Type, ellip
 	case *ast.StructType:
 		// c.Debugf("evalType() struct declaration: %v <%v>", node, r.TypeOf(node))
 		types, names := c.TypeFields(node.Fields)
-		// c.Debugf("evalType() struct names and types: %v %v", types, names)
+		tags := c.fieldsTags(node.Fields)
+		// c.Debugf("evalType() struct names = %v types = %v tags = %v", names, types, tags)
 		pkg := universe.LoadPackage(c.FileComp().Path)
-		fields := c.makeStructFields(pkg, names, types)
+		fields := c.makeStructFields(pkg, names, types, tags)
 		// c.Debugf("compileType2() declaring struct type. fields=%#v", fields)
 		t = universe.StructOf(fields)
 	case nil:
@@ -371,6 +372,24 @@ func (c *Comp) typeFieldsOrParams(list []*ast.Field, allowEllipsis bool) (types 
 	return types, names, ellipsis
 }
 
+func (c *Comp) fieldsTags(fields *ast.FieldList) []string {
+	var tags []string
+	if fields != nil {
+		list := fields.List
+		for _, field := range list {
+			if lit := field.Tag; lit != nil && lit.Kind == token.STRING {
+				tag := MaybeUnescapeString(lit.Value)
+				if len(tag) != 0 {
+					for range field.Names {
+						tags = append(tags, tag)
+					}
+				}
+			}
+		}
+	}
+	return tags
+}
+
 func (c *Comp) TryResolveType(name string) xr.Type {
 	var t xr.Type
 	for ; c != nil; c = c.Outer {
@@ -389,7 +408,7 @@ func (c *Comp) ResolveType(name string) xr.Type {
 	return t
 }
 
-func (c *Comp) makeStructFields(pkg *xr.Package, names []string, types []xr.Type) []xr.StructField {
+func (c *Comp) makeStructFields(pkg *xr.Package, names []string, types []xr.Type, tags []string) []xr.StructField {
 	// pkgIdentifier := sanitizeIdentifier(pkgPath)
 	fields := make([]xr.StructField, len(names))
 	for i, name := range names {
@@ -400,6 +419,9 @@ func (c *Comp) makeStructFields(pkg *xr.Package, names []string, types []xr.Type
 			Type:      t,
 			Tag:       "",
 			Anonymous: len(name) == 0,
+		}
+		if i < len(tags) {
+			fields[i].Tag = r.StructTag(tags[i])
 		}
 	}
 	return fields
