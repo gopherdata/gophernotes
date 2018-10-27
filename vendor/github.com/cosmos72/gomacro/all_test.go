@@ -308,6 +308,11 @@ type TagPair = struct { // unnamed!
 	B string `json:"bar"`
 }
 
+type TagTriple = struct { // unnamed!
+	A    rune
+	B, C string `json:"baz"`
+}
+
 var bigInt = new(big.Int)
 var bigRat = new(big.Rat)
 var bigFloat = new(big.Float)
@@ -466,6 +471,7 @@ var testcases = []TestCase{
 	TestCase{A, "type_struct_2", "type Triple struct { Pair; C float32 }; var triple Triple; triple.C", float32(0), nil},
 	TestCase{A, "type_struct_3", "type TripleP struct { *Pair; D float64 }; var tp TripleP; tp.D", float64(0), nil},
 	TestCase{F, "tagged_struct_1", "type TagPair struct { A rune `json:\"foo\"`; B string `json:\"bar\"`}; var tagpair TagPair; tagpair", TagPair{}, nil},
+	TestCase{F, "tagged_struct_2", "type TagTriple struct { A rune; B, C string `json:\"baz\"`}; TagTriple{}", TagTriple{}, nil},
 
 	TestCase{A, "field_get_1", "pair.A", rune(0), nil},
 	TestCase{A, "field_get_2", "pair.B", "", nil},

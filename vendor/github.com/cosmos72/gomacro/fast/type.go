@@ -372,24 +372,6 @@ func (c *Comp) typeFieldsOrParams(list []*ast.Field, allowEllipsis bool) (types 
 	return types, names, ellipsis
 }
 
-func (c *Comp) fieldsTags(fields *ast.FieldList) []string {
-	var tags []string
-	if fields != nil {
-		list := fields.List
-		for _, field := range list {
-			if lit := field.Tag; lit != nil && lit.Kind == token.STRING {
-				tag := MaybeUnescapeString(lit.Value)
-				if len(tag) != 0 {
-					for range field.Names {
-						tags = append(tags, tag)
-					}
-				}
-			}
-		}
-	}
-	return tags
-}
-
 func (c *Comp) TryResolveType(name string) xr.Type {
 	var t xr.Type
 	for ; c != nil; c = c.Outer {
@@ -412,19 +394,35 @@ func (c *Comp) makeStructFields(pkg *xr.Package, names []string, types []xr.Type
 	// pkgIdentifier := sanitizeIdentifier(pkgPath)
 	fields := make([]xr.StructField, len(names))
 	for i, name := range names {
-		t := types[i]
 		fields[i] = xr.StructField{
 			Name:      name,
 			Pkg:       pkg,
-			Type:      t,
-			Tag:       "",
+			Type:      types[i],
+			Tag:       r.StructTag(tags[i]),
 			Anonymous: len(name) == 0,
-		}
-		if i < len(tags) {
-			fields[i].Tag = r.StructTag(tags[i])
 		}
 	}
 	return fields
+}
+
+func (c *Comp) fieldsTags(fields *ast.FieldList) []string {
+	var tags []string
+	if fields != nil {
+		for _, field := range fields.List {
+			var tag string
+			if lit := field.Tag; lit != nil && lit.Kind == token.STRING {
+				tag = MaybeUnescapeString(lit.Value)
+			}
+			if len(field.Names) == 0 {
+				tags = append(tags, tag)
+			} else {
+				for range field.Names {
+					tags = append(tags, tag)
+				}
+			}
+		}
+	}
+	return tags
 }
 
 func rtypeof(v r.Value, t xr.Type) r.Type {
