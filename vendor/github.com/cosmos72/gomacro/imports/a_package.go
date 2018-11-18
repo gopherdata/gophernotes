@@ -19,8 +19,9 @@ package imports
 import (
 	. "reflect"
 
-	"github.com/cosmos72/gomacro/imports/syscall"
-	"github.com/cosmos72/gomacro/imports/thirdparty"
+	go1_11 "github.com/cosmos72/gomacro/imports/go1_11"
+	syscall "github.com/cosmos72/gomacro/imports/syscall"
+	thirdparty "github.com/cosmos72/gomacro/imports/thirdparty"
 )
 
 type PackageUnderlying = struct { // unnamed
@@ -52,6 +53,7 @@ func init() {
 			"Package": TypeOf((*Package)(nil)).Elem(),
 		},
 	}
+	Packages.Merge(go1_11.Packages)
 	Packages.Merge(syscall.Packages)
 	Packages.Merge(thirdparty.Packages)
 }

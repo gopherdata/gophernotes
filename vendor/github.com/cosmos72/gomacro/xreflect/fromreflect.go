@@ -363,7 +363,15 @@ func (v *Universe) fromReflectInterface(rtype reflect.Type) Type {
 		rmethod := rtype.Method(i)
 		method := v.fromReflectFunc(rmethod.Type) // do NOT add a receiver: types.NewInterface() will add it
 		pkg := v.loadPackage(rmethod.PkgPath)
-		gmethods[i] = types.NewFunc(token.NoPos, (*types.Package)(pkg), rmethod.Name, method.GoType().(*types.Signature))
+		if v.debug() {
+			debugf("fromReflectInterface: add interface method rtype: %v, gotype: %v (receiver: %v)", rmethod.Type, method.GoType(), method.GoType().(*types.Signature).Recv())
+		}
+		// types.NewInterface() below will modify method.GoType() by adding a receiver:
+		// clone it NOW in order to detach from xreflect.Type and its associated reflect.Type
+		// otherwise the modified method.GoType() will remain inside an unmodified xreflect.Type
+		// Strange bugs happen then, see https://github.com/gopherdata/gophernotes/issues/151
+		gsig := cloneGoSignature(method.GoType().(*types.Signature))
+		gmethods[i] = types.NewFunc(token.NoPos, (*types.Package)(pkg), rmethod.Name, gsig)
 	}
 	// no way to extract embedded interfaces from reflect.Type. Just collect all methods
 	if v.rebuild() {

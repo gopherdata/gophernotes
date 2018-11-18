@@ -446,6 +446,19 @@ func TestFromReflect5(t *testing.T) {
 	is(t, typ.NumAllMethod(), rtype.NumMethod())
 }
 
+func TestFromReflect6(t *testing.T) {
+	tfunc := u.FuncOf(nil, []Type{u.BasicTypes[r.Int]}, false)
+	rtfunc := r.TypeOf((*func() int)(nil)).Elem()
+	is(t, tfunc.String(), "func() int")
+	is(t, tfunc.ReflectType(), rtfunc)
+
+	rtype := r.TypeOf((*interface{ Len() int })(nil)).Elem()
+	typ := u.FromReflectType(rtype)
+	is(t, typ.String(), "interface{Len() int}")
+
+	is(t, tfunc.ReflectType(), rtfunc)
+}
+
 type Request4Test struct {
 	Header   map[string]string
 	Response *Response4Test
