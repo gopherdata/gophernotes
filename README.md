@@ -157,7 +157,7 @@ $ docker run -it -p 8888:8888 gopherdata/gophernotes
 Or to run a Go notebook with access to common Go data science packages (gonum, gota, golearn, etc.), run:
 
 ```
-$ docker run -it -p 8888:8888 gopherdata/gophernotes-ds
+$ docker run -it -p 8888:8888 gopherdata/gophernotes:latest-ds
 ```
 
 In either case, running this command should output a link that you can follow to access Jupyter in a browser. Also, to save notebooks to and/or load notebooks from a location outside of the Docker image, you should utilize a volume mount.  For example:
