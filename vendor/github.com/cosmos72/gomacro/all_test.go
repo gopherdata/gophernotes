@@ -874,6 +874,9 @@ var testcases = []TestCase{
 	TestCase{A, "select_4", "vi = nil; select { case cx<-2: vi=2; default: vi=0 }; vi", 2, nil},
 	TestCase{A, "select_5", "vi = nil; select { case cx<-3: vi=3; default: vi=0 }; vi", 0, nil},
 	TestCase{A, "select_6", "vi = nil; select { case cx<-4: vi=4; case x:=<-cx: vi=x; default: vi=0 }; vi", 1, nil},
+	// non-empty 'select' needs a local bind, and 'for' must know it
+	TestCase{A, "for_select_1", "_ = func() { for { select { }; break } }", nil, none},
+	TestCase{A, "for_select_2", "_ = func() { for { select { case <-cx: default: return } } }", nil, none},
 
 	TestCase{A, "switch_1", "vi=nil; switch { case false: ; default: vi='1' }; vi", '1', nil},
 	TestCase{A, "switch_2", "vi=nil; switch v:=20; v { case 20: vi='2'; vi='3' }; vi", '3', nil},

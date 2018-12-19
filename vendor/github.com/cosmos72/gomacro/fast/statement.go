@@ -687,6 +687,12 @@ func containLocalBinds(list ...ast.Stmt) bool {
 					}
 				}
 			}
+		case *ast.SelectStmt:
+			// Comp.Select() creates an unnamed bind
+			// to store the value received from channel.
+			if node.Body != nil && len(node.Body.List) != 0 {
+				return true
+			}
 		case nil:
 		}
 	}

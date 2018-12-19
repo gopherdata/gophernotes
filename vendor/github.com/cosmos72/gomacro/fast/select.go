@@ -42,6 +42,8 @@ func (c *Comp) Select(node *ast.SelectStmt, labels []string) {
 	}
 
 	// unnamed bind, contains received value. Nil means nothing received
+	// note: containLocalBinds knows we create a local bind,
+	// and returns true if it encounters a SelectStmt
 	bindrecv := c.NewBind("", VarBind, c.TypeOfInterface())
 	idxrecv := bindrecv.Desc.Index()
 

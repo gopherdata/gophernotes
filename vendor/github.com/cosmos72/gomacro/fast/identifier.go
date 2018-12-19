@@ -56,6 +56,7 @@ func (c *Comp) IdentPlace(name string, opt PlaceOption) *Place {
 			return nil
 		}
 		// assignment to _ is allowed: it does nothing
+		// FIXME: tell containLocalBinds() that we need a local bind
 		bind := c.NewBind(name, VarBind, c.TypeOfInterface())
 		return &Place{Var: *bind.AsVar(0, PlaceSettable)}
 	}
