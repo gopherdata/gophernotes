@@ -33,17 +33,11 @@ func (c *Comp) Select(node *ast.SelectStmt, labels []string) {
 	if node.Body == nil || len(node.Body.List) == 0 {
 		return
 	}
-
-	var ibreak int
 	sort.Strings(labels)
-	c.Loop = &LoopInfo{
-		Break:      &ibreak,
-		ThisLabels: labels,
-	}
 
 	// unnamed bind, contains received value. Nil means nothing received
 	// note: containLocalBinds knows we create a local bind,
-	// and returns true if it encounters a SelectStmt
+	// and returns true if it encounters a non-empty SelectStmt
 	bindrecv := c.NewBind("", VarBind, c.TypeOfInterface())
 	idxrecv := bindrecv.Desc.Index()
 
@@ -53,6 +47,15 @@ func (c *Comp) Select(node *ast.SelectStmt, labels []string) {
 	ips := make([]int, n)
 	defaultip := -1
 	defaultpos := token.NoPos
+
+	// restore current Comp.Loop before returning
+	defer func(loop *LoopInfo) {
+		c.Loop = loop
+	}(c.Loop)
+	c.Loop = &LoopInfo{
+		Break:      new(int),
+		ThisLabels: labels,
+	}
 
 	c.append(func(env *Env) (Stmt, *Env) {
 		cases := make([]r.SelectCase, len(entries))
@@ -93,7 +96,7 @@ func (c *Comp) Select(node *ast.SelectStmt, labels []string) {
 		}
 	}
 	// we finally know this
-	ibreak = c.Code.Len()
+	*c.Loop.Break = c.Code.Len()
 }
 
 // selectDefault compiles the default case in a switch
