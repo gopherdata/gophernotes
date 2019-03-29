@@ -3,9 +3,16 @@ package main
 import (
 	"bytes"
 	"fmt"
+	"html"
 	"image"
 	"image/png"
+	"reflect"
+	"strings"
 )
+
+type HTMLer interface {
+	HTML() string
+}
 
 // Image converts an image.Image to DisplayData containing PNG []byte,
 // or to DisplayData containing error if the conversion fails
@@ -69,11 +76,38 @@ func (receipt *msgReceipt) PublishImage(img image.Image) error {
 	return receipt.PublishDisplayData(data)
 }
 
+// makeHTML converts all arguments to HTML formatted versions.
+func makeHTML(vals []interface{}) Data {
+	out := make([]string, len(vals), len(vals))
+	for i, item := range vals {
+		if item == nil || reflect.ValueOf(item).IsNil() {
+			continue
+		}
+		if v, ok := item.(HTMLer); ok {
+			out[i] = v.HTML()
+		} else if v, ok := item.(Data); ok {
+			if t, ok := v.Data["text/html"]; ok {
+				out[i] = fmt.Sprint(t)
+			} else if t, ok := v.Data["text/plain"]; ok {
+				out[i] = html.EscapeString(fmt.Sprint(t))
+			}
+		} else {
+			out[i] = fmt.Sprintf("<pre>%s</pre>", html.EscapeString(fmt.Sprint(item)))
+		}
+	}
+	return Data{
+		Data: BundledMIMEData{
+			"text/html": strings.Join(out, " "),
+		},
+	}
+}
+
 // if vals[] contain a single non-nil value which is an image.Image,
 // convert it to Data and return it.
 // if instead the single non-nil value is a Data, return it.
 // otherwise return MakeData("text/plain", fmt.Sprint(vals...))
 func renderResults(vals []interface{}) Data {
+	hasHTML := false
 	var nilcount int
 	var obj interface{}
 	for _, val := range vals {
@@ -82,6 +116,9 @@ func renderResults(vals []interface{}) Data {
 			obj = val
 		case nil:
 			nilcount++
+		}
+		if _, ok := val.(HTMLer); ok {
+			hasHTML = true
 		}
 	}
 	if obj != nil && nilcount == len(vals)-1 {
@@ -99,5 +136,10 @@ func renderResults(vals []interface{}) Data {
 		// if all values are nil, return empty Data
 		return Data{}
 	}
-	return MakeData("text/plain", fmt.Sprint(vals...))
+	out := MakeData("text/plain", fmt.Sprint(vals...))
+	if hasHTML {
+		h := makeHTML(vals)
+		out.Data["text/html"] = h.Data["text/html"]
+	}
+	return out
 }
