@@ -13,7 +13,7 @@ func Image(img image.Image) Data {
 	data, err := image0(img)
 	if err != nil {
 		return Data{
-			Data: BundledMIMEData{
+			Data: MIMEMap{
 				"ename":     "ERROR",
 				"evalue":    err.Error(),
 				"traceback": nil,
@@ -32,10 +32,10 @@ func image0(img image.Image) (Data, error) {
 		return Data{}, err
 	}
 	return Data{
-		Data: BundledMIMEData{
+		Data: MIMEMap{
 			mime: bytes,
 		},
-		Metadata: BundledMIMEData{
+		Metadata: MIMEMap{
 			mime: imageMetadata(img),
 		},
 	}, nil
@@ -52,9 +52,9 @@ func encodePng(img image.Image) (data []byte, mime string, err error) {
 }
 
 // imageMetadata returns image size, represented as BundledMIMEData{"width": width, "height": height}
-func imageMetadata(img image.Image) BundledMIMEData {
+func imageMetadata(img image.Image) MIMEMap {
 	rect := img.Bounds()
-	return BundledMIMEData{
+	return MIMEMap{
 		"width":  rect.Dx(),
 		"height": rect.Dy(),
 	}

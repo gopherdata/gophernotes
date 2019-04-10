@@ -37,15 +37,15 @@ type msgReceipt struct {
 	Sockets    SocketGroup
 }
 
-// bundledMIMEData holds data that can be presented in multiple formats. The keys are MIME types
+// MIMEMap holds data that can be presented in multiple formats. The keys are MIME types
 // and the values are the data formatted with respect to its MIME type. All bundles should contain
 // at least a "text/plain" representation with a string value.
-type BundledMIMEData map[string]interface{}
+type MIMEMap = map[string]interface{}
 
-type Data struct {
-	Data      BundledMIMEData `json:"data"`
-	Metadata  BundledMIMEData `json:"metadata"`
-	Transient BundledMIMEData `json:"transient"`
+type Data = struct {
+	Data      MIMEMap
+	Metadata  MIMEMap
+	Transient MIMEMap
 }
 
 // InvalidSignatureError is returned when the signature on a received message does not
@@ -241,22 +241,24 @@ func (receipt *msgReceipt) PublishExecutionInput(execCount int, code string) err
 	)
 }
 
+func ensure(bundle MIMEMap) MIMEMap {
+	if bundle == nil {
+		bundle = make(MIMEMap)
+	}
+	return bundle
+}
+
 // PublishExecuteResult publishes the result of the `execCount` execution as a string.
 func (receipt *msgReceipt) PublishExecutionResult(execCount int, data Data) error {
-	if data.Metadata == nil {
-		data.Metadata = make(BundledMIMEData)
-	}
-	return receipt.Publish("execute_result",
-		struct {
-			ExecCount int             `json:"execution_count"`
-			Data      BundledMIMEData `json:"data"`
-			Metadata  BundledMIMEData `json:"metadata"`
-		}{
-			ExecCount: execCount,
-			Data:      data.Data,
-			Metadata:  data.Metadata,
-		},
-	)
+	return receipt.Publish("execute_result", struct {
+		ExecCount int     `json:"execution_count"`
+		Data      MIMEMap `json:"data"`
+		Metadata  MIMEMap `json:"metadata"`
+	}{
+		ExecCount: execCount,
+		Data:      data.Data,
+		Metadata:  ensure(data.Metadata),
+	})
 }
 
 // PublishExecuteResult publishes a serialized error that was encountered during execution.
@@ -276,13 +278,16 @@ func (receipt *msgReceipt) PublishExecutionError(err string, trace []string) err
 
 // PublishDisplayData publishes a single image.
 func (receipt *msgReceipt) PublishDisplayData(data Data) error {
-	if data.Metadata == nil {
-		data.Metadata = make(BundledMIMEData)
-	}
-	if data.Transient == nil {
-		data.Transient = make(BundledMIMEData)
-	}
-	return receipt.Publish("display_data", data)
+	// copy Data in a struct with appropriate json tags
+	return receipt.Publish("display_data", struct {
+		Data      MIMEMap `json:"data"`
+		Metadata  MIMEMap `json:"metadata"`
+		Transient MIMEMap `json:"transient"`
+	}{
+		Data:      data.Data,
+		Metadata:  ensure(data.Metadata),
+		Transient: ensure(data.Transient),
+	})
 }
 
 const (
