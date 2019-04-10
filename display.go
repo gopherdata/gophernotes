@@ -16,7 +16,7 @@ import (
 
 // Support an interface similar - but not identical - to the IPython (canonical Jupyter kernel).
 // See http://ipython.readthedocs.io/en/stable/api/generated/IPython.display.html#IPython.display.display
-// for a good overview of the support types. Note: This is missing _repr_markdown_ and _repr_javascript_.
+// for a good overview of the support types.
 
 const (
 	MIMETypeHTML       = "text/html"
@@ -29,6 +29,67 @@ const (
 	MIMETypePDF        = "application/pdf"
 	MIMETypeSVG        = "image/svg+xml"
 )
+
+/**
+ * general interface, allows libraries to fully control
+ * how their data is displayed by gophernotes.
+ * Supports multiple MIME formats.
+ *
+ * Note that Data is an alias:
+ * type Data = struct { Data, Metadata, Transient map[string]interface{} }
+ * thus libraries can implement Renderer without importing gophernotes
+ */
+type Renderer = interface {
+	Render() Data
+}
+
+/**
+ * simplified interface, allows libraries to control
+ * how their data is displayed by gophernotes.
+ * It only supports a single MIME format.
+ *
+ * Note that MIMEMap is an alias
+ * type MIMEMap = map[string]interface{}
+ * thus libraries can implement SimpleRenderer without importing gophernotes
+ */
+type SimpleRenderer = interface {
+	Render() MIMEMap
+}
+
+/**
+ * specialized interfaces, each is dedicated to a specific MIME type.
+ *
+ * They are type aliases to emphasize that method signatures
+ * are the only important thing, not the interface names.
+ * Thus libraries can implement them without importing gophernotes
+ */
+type HTMLer = interface {
+	HTML() string
+}
+type Javascripter = interface {
+	JavaScript() string
+}
+type JPEGer = interface {
+	JPEG() []byte
+}
+type JSONer = interface {
+	JSON() map[string]interface{}
+}
+type Latexer = interface {
+	Latex() string
+}
+type Markdowner = interface {
+	Markdown() string
+}
+type PNGer = interface {
+	PNG() []byte
+}
+type PDFer = interface {
+	PDF() []byte
+}
+type SVGer = interface {
+	SVG() string
+}
 
 // injected as placeholder in the interpreter, it's then replaced at runtime
 // by a closure that knows how to talk with Jupyter
@@ -122,16 +183,16 @@ func HTML(html string) Data {
 	return MakeData(MIMETypeHTML, html)
 }
 
-func JSON(json map[string]interface{}) Data {
-	return MakeData(MIMETypeJSON, json)
-}
-
 func JavaScript(javascript string) Data {
 	return MakeData(MIMETypeJavaScript, javascript)
 }
 
 func JPEG(jpeg []byte) Data {
 	return MakeData(MIMETypeJPEG, jpeg)
+}
+
+func JSON(json map[string]interface{}) Data {
+	return MakeData(MIMETypeJSON, json)
 }
 
 func Latex(latex string) Data {
