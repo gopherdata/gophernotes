@@ -28,29 +28,28 @@ const (
 	MIMETypePNG        = "image/png"
 	MIMETypePDF        = "application/pdf"
 	MIMETypeSVG        = "image/svg+xml"
+	MIMETypeText       = "text/plain"
 )
 
 /**
- * general interface, allows libraries to fully control
- * how their data is displayed by gophernotes.
+ * general interface, allows libraries to fully specify
+ * how their data is displayed by Jupyter.
  * Supports multiple MIME formats.
  *
- * Note that Data is an alias:
- * type Data = struct { Data, Metadata, Transient map[string]interface{} }
- * thus libraries can implement Renderer without importing gophernotes
+ * Note that Data defined above is an alias:
+ * libraries can implement Renderer without importing gophernotes
  */
 type Renderer = interface {
 	Render() Data
 }
 
 /**
- * simplified interface, allows libraries to control
- * how their data is displayed by gophernotes.
+ * simplified interface, allows libraries to specify
+ * how their data is displayed by Jupyter.
  * It only supports a single MIME format.
  *
- * Note that MIMEMap is an alias
- * type MIMEMap = map[string]interface{}
- * thus libraries can implement SimpleRenderer without importing gophernotes
+ * Note that MIMEMap defined above is an alias:
+ * libraries can implement SimpleRenderer without importing gophernotes
  */
 type SimpleRenderer = interface {
 	Render() MIMEMap
@@ -66,7 +65,7 @@ type SimpleRenderer = interface {
 type HTMLer = interface {
 	HTML() string
 }
-type Javascripter = interface {
+type JavaScripter = interface {
 	JavaScript() string
 }
 type JPEGer = interface {
@@ -97,57 +96,133 @@ func stubDisplay(Data) error {
 	return errors.New("cannot display: connection with Jupyter not available")
 }
 
-// TODO handle the metadata
+// return true if data type should be auto-rendered graphically
+func canAutoRender(data interface{}) bool {
+	switch data.(type) {
+	case Data, Renderer, SimpleRenderer, HTMLer, JavaScripter, JPEGer, JSONer,
+		Latexer, Markdowner, PNGer, PDFer, SVGer, image.Image:
+		return true
+	default:
+		return false
+	}
+}
 
-func read(data interface{}) ([]byte, string) {
-	var b []byte
+// detect and render data types that should be auto-rendered graphically
+func autoRender(mimeType string, data interface{}) Data {
 	var s string
-	switch x := data.(type) {
-	case string:
-		s = x
-	case []byte:
-		b = x
-	case io.Reader:
-		bb, err := ioutil.ReadAll(x)
-		if err != nil {
-			panic(err)
+	var b []byte
+	var err error
+	var ret Data
+	switch data := data.(type) {
+	case Data:
+		ret = data
+	case Renderer:
+		ret = data.Render()
+	case SimpleRenderer:
+		ret.Data = data.Render()
+	case HTMLer:
+		s = data.HTML()
+	case JavaScripter:
+		mimeType = MIMETypeJavaScript
+		s = data.JavaScript()
+	case JPEGer:
+		mimeType = MIMETypeJPEG
+		b = data.JPEG()
+	case JSONer:
+		ret.Data = MIMEMap{MIMETypeJSON: data.JSON()}
+	case Latexer:
+		mimeType = MIMETypeLatex
+		s = data.Latex()
+	case Markdowner:
+		mimeType = MIMETypeMarkdown
+		s = data.Markdown()
+	case PNGer:
+		mimeType = MIMETypePNG
+		b = data.PNG()
+	case PDFer:
+		mimeType = MIMETypePDF
+		b = data.PDF()
+	case SVGer:
+		mimeType = MIMETypeSVG
+		s = data.SVG()
+	case image.Image:
+		b, mimeType, err = encodePng(data)
+		if err == nil {
+			ret.Metadata = imageMetadata(data)
 		}
-		b = bb
+	default:
+		panic(fmt.Errorf("internal error, autoRender invoked on unexpected type %T", data))
+	}
+	return fillDefaults(ret, data, s, b, mimeType, err)
+}
+
+func fillDefaults(ret Data, data interface{}, s string, b []byte, mimeType string, err error) Data {
+	if err != nil {
+		return makeDataErr(err)
+	}
+	if ret.Data == nil {
+		ret.Data = make(MIMEMap)
+	}
+	if ret.Data[MIMETypeText] == "" {
+		if len(s) == 0 {
+			s = fmt.Sprint(data)
+		}
+		ret.Data[MIMETypeText] = s
+	}
+	if len(b) != 0 {
+		if len(mimeType) == 0 {
+			mimeType = http.DetectContentType(b)
+		}
+		if len(mimeType) != 0 && mimeType != MIMETypeText {
+			ret.Data[mimeType] = b
+		}
+	}
+	return ret
+}
+
+// do our best to render data graphically
+func render(mimeType string, data interface{}) Data {
+	if canAutoRender(data) {
+		return autoRender(mimeType, data)
+	}
+	var s string
+	var b []byte
+	var err error
+	switch data := data.(type) {
+	case string:
+		s = data
+	case []byte:
+		b = data
+	case io.Reader:
+		b, err = ioutil.ReadAll(data)
 	case io.WriterTo:
 		var buf bytes.Buffer
-		x.WriteTo(&buf)
+		data.WriteTo(&buf)
 		b = buf.Bytes()
 	default:
-		panic(errors.New(fmt.Sprintf("unsupported type, cannot display: expecting string, []byte, io.Reader or io.WriterTo, found %T", data)))
+		panic(fmt.Errorf("unsupported type, cannot render: %T", data))
 	}
-	if len(s) == 0 {
-		s = fmt.Sprint(data)
+	return fillDefaults(Data{}, data, s, b, mimeType, err)
+}
+
+func makeDataErr(err error) Data {
+	return Data{
+		Data: MIMEMap{
+			"ename":     "ERROR",
+			"evalue":    err.Error(),
+			"traceback": nil,
+			"status":    "error",
+		},
 	}
-	return b, s
 }
 
 func Any(mimeType string, data interface{}) Data {
-	if img, ok := data.(image.Image); ok {
-		return Image(img)
-	}
-	b, s := read(data)
-	if len(mimeType) == 0 {
-		mimeType = http.DetectContentType(b)
-	}
-	d := Data{
-		Data: MIMEMap{
-			"text/plain": s,
-		},
-	}
-	if mimeType != "text/plain" {
-		d.Data[mimeType] = b
-	}
-	return d
+	return render(mimeType, data)
 }
 
 // same as Any("", data), autodetects MIME type
 func Auto(data interface{}) Data {
-	return Any("", data)
+	return render("", data)
 }
 
 func MakeData(mimeType string, data interface{}) Data {
@@ -156,8 +231,8 @@ func MakeData(mimeType string, data interface{}) Data {
 			mimeType: data,
 		},
 	}
-	if mimeType != "text/plain" {
-		d.Data["text/plain"] = fmt.Sprint(data)
+	if mimeType != MIMETypeText {
+		d.Data[MIMETypeText] = fmt.Sprint(data)
 	}
 	return d
 }
@@ -165,7 +240,7 @@ func MakeData(mimeType string, data interface{}) Data {
 func MakeData3(mimeType string, plaintext string, data interface{}) Data {
 	return Data{
 		Data: MIMEMap{
-			"text/plain": plaintext,
+			MIMETypeText: plaintext,
 			mimeType:     data,
 		},
 	}

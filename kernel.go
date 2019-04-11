@@ -402,8 +402,8 @@ func handleExecuteRequest(ir *interp.Interp, receipt msgReceipt) error {
 	writersWG.Wait()
 
 	if executionErr == nil {
-		// if the only non-nil value is image.Image or Data, render it
-		data := renderResults(vals)
+		// if the only non-nil value should be auto-rendered graphically, render it
+		data := autoRenderResults(vals)
 
 		content["status"] = "ok"
 		content["user_expressions"] = make(map[string]string)
