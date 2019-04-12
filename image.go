@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"fmt"
 	"image"
 	"image/png"
 )
@@ -41,27 +40,4 @@ func imageMetadata(img image.Image) MIMEMap {
 		"width":  rect.Dx(),
 		"height": rect.Dy(),
 	}
-}
-
-// if vals[] contain a single non-nil value which is auto-renderable,
-// convert it to Data and return it.
-// otherwise return MakeData("text/plain", fmt.Sprint(vals...))
-func autoRenderResults(vals []interface{}) Data {
-	var nilcount int
-	var obj interface{}
-	for _, val := range vals {
-		if canAutoRender(val) {
-			obj = val
-		} else if val == nil {
-			nilcount++
-		}
-	}
-	if obj != nil && nilcount == len(vals)-1 {
-		return autoRender("", obj)
-	}
-	if nilcount == len(vals) {
-		// if all values are nil, return empty Data
-		return Data{}
-	}
-	return MakeData(MIMETypeText, fmt.Sprint(vals...))
 }

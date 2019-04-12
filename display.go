@@ -8,10 +8,13 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
-	r "reflect"
+	"reflect"
+	"sort"
 	"strings"
 
-	"github.com/cosmos72/gomacro/imports"
+	"github.com/cosmos72/gomacro/base"
+
+	"github.com/cosmos72/gomacro/xreflect"
 )
 
 // Support an interface similar - but not identical - to the IPython (canonical Jupyter kernel).
@@ -46,13 +49,13 @@ type Renderer = interface {
 /**
  * simplified interface, allows libraries to specify
  * how their data is displayed by Jupyter.
- * It only supports a single MIME format.
+ * Supports multiple MIME formats.
  *
  * Note that MIMEMap defined above is an alias:
  * libraries can implement SimpleRenderer without importing gophernotes
  */
 type SimpleRenderer = interface {
-	Render() MIMEMap
+	SimpleRender() MIMEMap
 }
 
 /**
@@ -96,31 +99,93 @@ func stubDisplay(Data) error {
 	return errors.New("cannot display: connection with Jupyter not available")
 }
 
+// fill kernel.renderer map used to convert interpreted types
+// to known rendering interfaces
+func (kernel *Kernel) initRenderers() {
+	type Pair = struct {
+		name string
+		typ  xreflect.Type
+	}
+	var pairs []Pair
+	for name, typ := range kernel.display.Types {
+		if typ.Kind() == reflect.Interface {
+			pairs = append(pairs, Pair{name, typ})
+		}
+	}
+	// for deterministic behaviour, sort alphabetically by name
+	sort.Slice(pairs, func(i, j int) bool {
+		return pairs[i].name < pairs[j].name
+	})
+	kernel.render = make([]xreflect.Type, len(pairs))
+	for i, pair := range pairs {
+		kernel.render[i] = pair.typ
+	}
+}
+
+// if vals[] contain a single non-nil value which is auto-renderable,
+// convert it to Data and return it.
+// otherwise return MakeData("text/plain", fmt.Sprint(vals...))
+func (kernel *Kernel) autoRenderResults(vals []interface{}, types []xreflect.Type) Data {
+	var nilcount int
+	var obj interface{}
+	var typ xreflect.Type
+	for i, val := range vals {
+		if kernel.canAutoRender(val, types[i]) {
+			obj = val
+			typ = types[i]
+		} else if val == nil {
+			nilcount++
+		}
+	}
+	if obj != nil && nilcount == len(vals)-1 {
+		return kernel.autoRender("", obj, typ)
+	}
+	if nilcount == len(vals) {
+		// if all values are nil, return empty Data
+		return Data{}
+	}
+	return MakeData(MIMETypeText, fmt.Sprint(vals...))
+}
+
 // return true if data type should be auto-rendered graphically
-func canAutoRender(data interface{}) bool {
+func (kernel *Kernel) canAutoRender(data interface{}, typ xreflect.Type) bool {
 	switch data.(type) {
 	case Data, Renderer, SimpleRenderer, HTMLer, JavaScripter, JPEGer, JSONer,
 		Latexer, Markdowner, PNGer, PDFer, SVGer, image.Image:
 		return true
-	default:
+	}
+	if kernel == nil || typ == nil {
 		return false
 	}
+	// in gomacro, methods of interpreted types are emulated,
+	// thus type-asserting them to interface types as done above cannot succeed.
+	// Manually check if emulated type "pretends" to implement
+	// one of the interfaces above
+	for _, xtyp := range kernel.render {
+		if typ.Implements(xtyp) {
+			return true
+		}
+	}
+	return false
 }
 
 // detect and render data types that should be auto-rendered graphically
-func autoRender(mimeType string, data interface{}) Data {
+func (kernel *Kernel) autoRender(mimeType string, arg interface{}, typ xreflect.Type) Data {
 	var s string
 	var b []byte
 	var err error
 	var ret Data
-	switch data := data.(type) {
+	datain := arg
+again:
+	switch data := datain.(type) {
 	case Data:
 		ret = data
 	case Renderer:
 		ret = data.Render()
 	case SimpleRenderer:
-		ret.Data = data.Render()
+		ret.Data = data.SimpleRender()
 	case HTMLer:
+		mimeType = MIMETypeHTML
 		s = data.HTML()
 	case JavaScripter:
 		mimeType = MIMETypeJavaScript
@@ -151,9 +216,29 @@ func autoRender(mimeType string, data interface{}) Data {
 			ret.Metadata = imageMetadata(data)
 		}
 	default:
+		if kernel != nil && typ != nil {
+			// in gomacro, methods of interpreted types are emulated.
+			// Thus type-asserting them to interface types as done above cannot succeed.
+			// Manually check if emulated type "pretends" to implement one of the above interfaces
+			// and, in case, tell the interpreter to convert to them
+			for _, xtyp := range kernel.render {
+				if typ.Implements(xtyp) {
+					fun := kernel.ir.Comp.Converter(typ, xtyp)
+					data = base.ValueInterface(fun(reflect.ValueOf(datain)))
+					if data != nil {
+						s = fmt.Sprint(data)
+						datain = data
+						// avoid infinite recursion
+						kernel = nil
+						typ = nil
+						goto again
+					}
+				}
+			}
+		}
 		panic(fmt.Errorf("internal error, autoRender invoked on unexpected type %T", data))
 	}
-	return fillDefaults(ret, data, s, b, mimeType, err)
+	return fillDefaults(ret, arg, s, b, mimeType, err)
 }
 
 func fillDefaults(ret Data, data interface{}, s string, b []byte, mimeType string, err error) Data {
@@ -163,12 +248,18 @@ func fillDefaults(ret Data, data interface{}, s string, b []byte, mimeType strin
 	if ret.Data == nil {
 		ret.Data = make(MIMEMap)
 	}
+	// cannot autodetect the mime type of a string
+	if len(s) != 0 && len(mimeType) != 0 {
+		ret.Data[mimeType] = s
+	}
+	// ensure plain text is set
 	if ret.Data[MIMETypeText] == "" {
 		if len(s) == 0 {
 			s = fmt.Sprint(data)
 		}
 		ret.Data[MIMETypeText] = s
 	}
+	// if []byte is available, use it
 	if len(b) != 0 {
 		if len(mimeType) == 0 {
 			mimeType = http.DetectContentType(b)
@@ -182,8 +273,9 @@ func fillDefaults(ret Data, data interface{}, s string, b []byte, mimeType strin
 
 // do our best to render data graphically
 func render(mimeType string, data interface{}) Data {
-	if canAutoRender(data) {
-		return autoRender(mimeType, data)
+	var kernel *Kernel // intentionally nil
+	if kernel.canAutoRender(data, nil) {
+		return kernel.autoRender(mimeType, data, nil)
 	}
 	var s string
 	var b []byte
@@ -303,46 +395,4 @@ func SVG(svg string) Data {
 // are provided by the various functions above.
 func MIME(data, metadata MIMEMap) Data {
 	return Data{data, metadata, nil}
-}
-
-// prepare imports.Package for interpreted code
-var display = imports.Package{
-	Binds: map[string]r.Value{
-		"Any":                r.ValueOf(Any),
-		"Auto":               r.ValueOf(Auto),
-		"File":               r.ValueOf(File),
-		"HTML":               r.ValueOf(HTML),
-		"Image":              r.ValueOf(Image),
-		"JPEG":               r.ValueOf(JPEG),
-		"JSON":               r.ValueOf(JSON),
-		"JavaScript":         r.ValueOf(JavaScript),
-		"Latex":              r.ValueOf(Latex),
-		"MakeData":           r.ValueOf(MakeData),
-		"MakeData3":          r.ValueOf(MakeData3),
-		"Markdown":           r.ValueOf(Markdown),
-		"Math":               r.ValueOf(Math),
-		"MIME":               r.ValueOf(MIME),
-		"MIMETypeHTML":       r.ValueOf(MIMETypeHTML),
-		"MIMETypeJavaScript": r.ValueOf(MIMETypeJavaScript),
-		"MIMETypeJPEG":       r.ValueOf(MIMETypeJPEG),
-		"MIMETypeJSON":       r.ValueOf(MIMETypeJSON),
-		"MIMETypeLatex":      r.ValueOf(MIMETypeLatex),
-		"MIMETypeMarkdown":   r.ValueOf(MIMETypeMarkdown),
-		"MIMETypePDF":        r.ValueOf(MIMETypePDF),
-		"MIMETypePNG":        r.ValueOf(MIMETypePNG),
-		"MIMETypeSVG":        r.ValueOf(MIMETypeSVG),
-		"PDF":                r.ValueOf(PDF),
-		"PNG":                r.ValueOf(PNG),
-		"SVG":                r.ValueOf(SVG),
-	},
-	Types: map[string]r.Type{
-		"Data":    r.TypeOf((*Data)(nil)).Elem(),
-		"MIMEMap": r.TypeOf((*MIMEMap)(nil)).Elem(),
-	},
-}
-
-// allow importing "display" and "github.com/gopherdata/gophernotes" packages
-func init() {
-	imports.Packages["display"] = display
-	imports.Packages["github.com/gopherdata/gophernotes"] = display
 }
