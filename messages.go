@@ -250,6 +250,19 @@ func ensure(bundle MIMEMap) MIMEMap {
 	return bundle
 }
 
+func merge(a MIMEMap, b MIMEMap) MIMEMap {
+	if len(b) == 0 {
+		return a
+	}
+	if a == nil {
+		a = make(MIMEMap)
+	}
+	for k, v := range b {
+		a[k] = v
+	}
+	return a
+}
+
 // PublishExecuteResult publishes the result of the `execCount` execution as a string.
 func (receipt *msgReceipt) PublishExecutionResult(execCount int, data Data) error {
 	return receipt.Publish("execute_result", struct {

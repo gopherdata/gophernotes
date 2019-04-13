@@ -103,9 +103,9 @@ func (s *Socket) RunWithSocket(run func(socket *zmq.Socket) error) error {
 type Kernel struct {
 	ir      *interp.Interp
 	display *interp.Import
-	// array of types HTMLer, JSONer, Renderer...
+	// map name -> HTMLer, JSONer, Renderer...
 	// used to convert interpreted types to one of these interfaces
-	render []xreflect.Type
+	render map[string]xreflect.Type
 }
 
 // runKernel is the main entry point to start the kernel.

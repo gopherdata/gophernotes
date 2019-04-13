@@ -9,7 +9,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"reflect"
-	"sort"
 	"strings"
 
 	"github.com/cosmos72/gomacro/base"
@@ -102,23 +101,11 @@ func stubDisplay(Data) error {
 // fill kernel.renderer map used to convert interpreted types
 // to known rendering interfaces
 func (kernel *Kernel) initRenderers() {
-	type Pair = struct {
-		name string
-		typ  xreflect.Type
-	}
-	var pairs []Pair
+	kernel.render = make(map[string]xreflect.Type)
 	for name, typ := range kernel.display.Types {
 		if typ.Kind() == reflect.Interface {
-			pairs = append(pairs, Pair{name, typ})
+			kernel.render[name] = typ
 		}
-	}
-	// for deterministic behaviour, sort alphabetically by name
-	sort.Slice(pairs, func(i, j int) bool {
-		return pairs[i].name < pairs[j].name
-	})
-	kernel.render = make([]xreflect.Type, len(pairs))
-	for i, pair := range pairs {
-		kernel.render[i] = pair.typ
 	}
 }
 
@@ -160,7 +147,7 @@ func (kernel *Kernel) canAutoRender(data interface{}, typ xreflect.Type) bool {
 	// in gomacro, methods of interpreted types are emulated,
 	// thus type-asserting them to interface types as done above cannot succeed.
 	// Manually check if emulated type "pretends" to implement
-	// one of the interfaces above
+	// at least one of the interfaces above
 	for _, xtyp := range kernel.render {
 		if typ.Implements(xtyp) {
 			return true
@@ -169,95 +156,156 @@ func (kernel *Kernel) canAutoRender(data interface{}, typ xreflect.Type) bool {
 	return false
 }
 
-// detect and render data types that should be auto-rendered graphically
-func (kernel *Kernel) autoRender(mimeType string, arg interface{}, typ xreflect.Type) Data {
-	var s string
-	var b []byte
-	var err error
-	var ret Data
-	datain := arg
-again:
-	switch data := datain.(type) {
-	case Data:
-		ret = data
-	case Renderer:
-		ret = data.Render()
-	case SimpleRenderer:
-		ret.Data = data.SimpleRender()
-	case HTMLer:
-		mimeType = MIMETypeHTML
-		s = data.HTML()
-	case JavaScripter:
-		mimeType = MIMETypeJavaScript
-		s = data.JavaScript()
-	case JPEGer:
-		mimeType = MIMETypeJPEG
-		b = data.JPEG()
-	case JSONer:
-		ret.Data = MIMEMap{MIMETypeJSON: data.JSON()}
-	case Latexer:
-		mimeType = MIMETypeLatex
-		s = data.Latex()
-	case Markdowner:
-		mimeType = MIMETypeMarkdown
-		s = data.Markdown()
-	case PNGer:
-		mimeType = MIMETypePNG
-		b = data.PNG()
-	case PDFer:
-		mimeType = MIMETypePDF
-		b = data.PDF()
-	case SVGer:
-		mimeType = MIMETypeSVG
-		s = data.SVG()
-	case image.Image:
-		b, mimeType, err = encodePng(data)
-		if err == nil {
-			ret.Metadata = imageMetadata(data)
+var autoRenderers = map[string]func(Data, interface{}) Data{
+	"Data": func(d Data, i interface{}) Data {
+		if x, ok := i.(Data); ok {
+			d.Data = merge(d.Data, x.Data)
+			d.Metadata = merge(d.Metadata, x.Metadata)
+			d.Transient = merge(d.Transient, x.Transient)
 		}
-	default:
-		if kernel != nil && typ != nil {
-			// in gomacro, methods of interpreted types are emulated.
-			// Thus type-asserting them to interface types as done above cannot succeed.
-			// Manually check if emulated type "pretends" to implement one of the above interfaces
-			// and, in case, tell the interpreter to convert to them
-			for _, xtyp := range kernel.render {
-				if typ.Implements(xtyp) {
-					fun := kernel.ir.Comp.Converter(typ, xtyp)
-					data = base.ValueInterface(fun(reflect.ValueOf(datain)))
-					if data != nil {
-						s = fmt.Sprint(data)
-						datain = data
-						// avoid infinite recursion
-						kernel = nil
-						typ = nil
-						goto again
-					}
-				}
+		return d
+	},
+	"Renderer": func(d Data, i interface{}) Data {
+		if r, ok := i.(Renderer); ok {
+			x := r.Render()
+			d.Data = merge(d.Data, x.Data)
+			d.Metadata = merge(d.Metadata, x.Metadata)
+			d.Transient = merge(d.Transient, x.Transient)
+		}
+		return d
+	},
+	"SimpleRenderer": func(d Data, i interface{}) Data {
+		if r, ok := i.(SimpleRenderer); ok {
+			x := r.SimpleRender()
+			d.Data = merge(d.Data, x)
+		}
+		return d
+	},
+	"HTMLer": func(d Data, i interface{}) Data {
+		if r, ok := i.(HTMLer); ok {
+			d.Data = ensure(d.Data)
+			d.Data[MIMETypeHTML] = r.HTML()
+		}
+		return d
+	},
+	"JavaScripter": func(d Data, i interface{}) Data {
+		if r, ok := i.(JavaScripter); ok {
+			d.Data = ensure(d.Data)
+			d.Data[MIMETypeJavaScript] = r.JavaScript()
+		}
+		return d
+	},
+	"JPEGer": func(d Data, i interface{}) Data {
+		if r, ok := i.(JPEGer); ok {
+			d.Data = ensure(d.Data)
+			d.Data[MIMETypeJPEG] = r.JPEG()
+		}
+		return d
+	},
+	"JSONer": func(d Data, i interface{}) Data {
+		if r, ok := i.(JSONer); ok {
+			d.Data = ensure(d.Data)
+			d.Data[MIMETypeJSON] = r.JSON()
+		}
+		return d
+	},
+	"Latexer": func(d Data, i interface{}) Data {
+		if r, ok := i.(Latexer); ok {
+			d.Data = ensure(d.Data)
+			d.Data[MIMETypeLatex] = r.Latex()
+		}
+		return d
+	},
+	"Markdowner": func(d Data, i interface{}) Data {
+		if r, ok := i.(Markdowner); ok {
+			d.Data = ensure(d.Data)
+			d.Data[MIMETypeMarkdown] = r.Markdown()
+		}
+		return d
+	},
+	"PNGer": func(d Data, i interface{}) Data {
+		if r, ok := i.(PNGer); ok {
+			d.Data = ensure(d.Data)
+			d.Data[MIMETypePNG] = r.PNG()
+		}
+		return d
+	},
+	"PDFer": func(d Data, i interface{}) Data {
+		if r, ok := i.(PDFer); ok {
+			d.Data = ensure(d.Data)
+			d.Data[MIMETypePDF] = r.PDF()
+		}
+		return d
+	},
+	"SVGer": func(d Data, i interface{}) Data {
+		if r, ok := i.(SVGer); ok {
+			d.Data = ensure(d.Data)
+			d.Data[MIMETypeSVG] = r.SVG()
+		}
+		return d
+	},
+	"Image": func(d Data, i interface{}) Data {
+		if r, ok := i.(image.Image); ok {
+			b, mimeType, err := encodePng(r)
+			if err != nil {
+				d = makeDataErr(err)
+			} else {
+				d.Data = ensure(d.Data)
+				d.Data[mimeType] = b
+				d.Metadata = merge(d.Metadata, imageMetadata(r))
 			}
 		}
-		panic(fmt.Errorf("internal error, autoRender invoked on unexpected type %T", data))
-	}
-	return fillDefaults(ret, arg, s, b, mimeType, err)
+		return d
+	},
 }
 
-func fillDefaults(ret Data, data interface{}, s string, b []byte, mimeType string, err error) Data {
+// detect and render data types that should be auto-rendered graphically
+func (kernel *Kernel) autoRender(mimeType string, arg interface{}, typ xreflect.Type) Data {
+	var data Data
+
+	// try all autoRenderers
+	for _, fun := range autoRenderers {
+		data = fun(data, arg)
+	}
+
+	if kernel != nil && typ != nil {
+		// in gomacro, methods of interpreted types are emulated.
+		// Thus type-asserting them to interface types as done by autoRenderer functions above cannot succeed.
+		// Manually check if emulated type "pretends" to implement one of the a above interfaces
+		// and, in case, tell the interpreter to convert to them
+		for name, xtyp := range kernel.render {
+			fun := autoRenderers[name]
+			if fun == nil || !typ.Implements(xtyp) || typ.ReflectType().Implements(xtyp.ReflectType()) {
+				continue
+			}
+			conv := kernel.ir.Comp.Converter(typ, xtyp)
+			x := base.ValueInterface(conv(reflect.ValueOf(arg)))
+			if x == nil {
+				continue
+			}
+			data = fun(data, x)
+		}
+	}
+	return fillDefaults(data, arg, "", nil, "", nil)
+}
+
+func fillDefaults(data Data, arg interface{}, s string, b []byte, mimeType string, err error) Data {
 	if err != nil {
 		return makeDataErr(err)
 	}
-	if ret.Data == nil {
-		ret.Data = make(MIMEMap)
+	if data.Data == nil {
+		data.Data = make(MIMEMap)
 	}
 	// cannot autodetect the mime type of a string
 	if len(s) != 0 && len(mimeType) != 0 {
-		ret.Data[mimeType] = s
+		data.Data[mimeType] = s
 	}
 	// ensure plain text is set
-	if ret.Data[MIMETypeText] == "" {
+	if data.Data[MIMETypeText] == "" {
 		if len(s) == 0 {
-			s = fmt.Sprint(data)
+			s = fmt.Sprint(arg)
 		}
-		ret.Data[MIMETypeText] = s
+		data.Data[MIMETypeText] = s
 	}
 	// if []byte is available, use it
 	if len(b) != 0 {
@@ -265,10 +313,11 @@ func fillDefaults(ret Data, data interface{}, s string, b []byte, mimeType strin
 			mimeType = http.DetectContentType(b)
 		}
 		if len(mimeType) != 0 && mimeType != MIMETypeText {
-			ret.Data[mimeType] = b
+			data.Data[mimeType] = b
 		}
 	}
-	return ret
+	fmt.Printf("%+v\n", data)
+	return data
 }
 
 // do our best to render data graphically
