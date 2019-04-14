@@ -1,6 +1,8 @@
 package main
 
 import (
+	"image"
+	"image/color"
 	r "reflect"
 
 	"github.com/cosmos72/gomacro/imports"
@@ -40,6 +42,7 @@ var display = imports.Package{
 		"Data":           r.TypeOf((*Data)(nil)).Elem(),
 		"HTMLer":         r.TypeOf((*HTMLer)(nil)).Elem(),
 		"JavaScripter":   r.TypeOf((*JavaScripter)(nil)).Elem(),
+		"Image":          r.TypeOf((*image.Image)(nil)).Elem(),
 		"JPEGer":         r.TypeOf((*JPEGer)(nil)).Elem(),
 		"JSONer":         r.TypeOf((*JSONer)(nil)).Elem(),
 		"Latexer":        r.TypeOf((*Latexer)(nil)).Elem(),
@@ -54,6 +57,7 @@ var display = imports.Package{
 		// these are needed to allow interpreted types
 		// to implement the corresponding interfaces
 		"HTMLer":         r.TypeOf((*proxy_HTMLer)(nil)).Elem(),
+		"Image":          r.TypeOf((*proxy_image_Image)(nil)).Elem(),
 		"JPEGer":         r.TypeOf((*proxy_JPEGer)(nil)).Elem(),
 		"JSONer":         r.TypeOf((*proxy_JSONer)(nil)).Elem(),
 		"Latexer":        r.TypeOf((*proxy_Latexer)(nil)).Elem(),
@@ -164,6 +168,24 @@ type proxy_SVGer struct {
 
 func (P *proxy_SVGer) SVG() string {
 	return P.SVG_(P.Object)
+}
+
+// --------------- proxy for image.Image ---------------
+type proxy_image_Image struct {
+	Object      interface{}
+	At_         func(_proxy_obj_ interface{}, x int, y int) color.Color
+	Bounds_     func(interface{}) image.Rectangle
+	ColorModel_ func(interface{}) color.Model
+}
+
+func (P *proxy_image_Image) At(x int, y int) color.Color {
+	return P.At_(P.Object, x, y)
+}
+func (P *proxy_image_Image) Bounds() image.Rectangle {
+	return P.Bounds_(P.Object)
+}
+func (P *proxy_image_Image) ColorModel() color.Model {
+	return P.ColorModel_(P.Object)
 }
 
 // --------------------------------------------------------

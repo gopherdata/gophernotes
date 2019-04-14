@@ -157,14 +157,6 @@ func (kernel *Kernel) canAutoRender(data interface{}, typ xreflect.Type) bool {
 }
 
 var autoRenderers = map[string]func(Data, interface{}) Data{
-	"Data": func(d Data, i interface{}) Data {
-		if x, ok := i.(Data); ok {
-			d.Data = merge(d.Data, x.Data)
-			d.Metadata = merge(d.Metadata, x.Metadata)
-			d.Transient = merge(d.Transient, x.Transient)
-		}
-		return d
-	},
 	"Renderer": func(d Data, i interface{}) Data {
 		if r, ok := i.(Renderer); ok {
 			x := r.Render()
@@ -262,20 +254,24 @@ var autoRenderers = map[string]func(Data, interface{}) Data{
 // detect and render data types that should be auto-rendered graphically
 func (kernel *Kernel) autoRender(mimeType string, arg interface{}, typ xreflect.Type) Data {
 	var data Data
-
-	// try all autoRenderers
-	for _, fun := range autoRenderers {
-		data = fun(data, arg)
+	// try Data
+	if x, ok := arg.(Data); ok {
+		data = x
 	}
 
-	if kernel != nil && typ != nil {
+	if kernel == nil || typ == nil {
+		// try all autoRenderers
+		for _, fun := range autoRenderers {
+			data = fun(data, arg)
+		}
+	} else {
 		// in gomacro, methods of interpreted types are emulated.
 		// Thus type-asserting them to interface types as done by autoRenderer functions above cannot succeed.
-		// Manually check if emulated type "pretends" to implement one of the a above interfaces
+		// Manually check if emulated type "pretends" to implement one or more of the above interfaces
 		// and, in case, tell the interpreter to convert to them
 		for name, xtyp := range kernel.render {
 			fun := autoRenderers[name]
-			if fun == nil || !typ.Implements(xtyp) || typ.ReflectType().Implements(xtyp.ReflectType()) {
+			if fun == nil || !typ.Implements(xtyp) {
 				continue
 			}
 			conv := kernel.ir.Comp.Converter(typ, xtyp)
@@ -316,7 +312,6 @@ func fillDefaults(data Data, arg interface{}, s string, b []byte, mimeType strin
 			data.Data[mimeType] = b
 		}
 	}
-	fmt.Printf("%+v\n", data)
 	return data
 }
 
