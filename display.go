@@ -8,10 +8,12 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
-	r "reflect"
+	"reflect"
 	"strings"
 
-	"github.com/cosmos72/gomacro/imports"
+	"github.com/cosmos72/gomacro/base"
+
+	"github.com/cosmos72/gomacro/xreflect"
 )
 
 // Support an interface similar - but not identical - to the IPython (canonical Jupyter kernel).
@@ -28,32 +30,31 @@ const (
 	MIMETypePNG        = "image/png"
 	MIMETypePDF        = "application/pdf"
 	MIMETypeSVG        = "image/svg+xml"
+	MIMETypeText       = "text/plain"
 )
 
 /**
- * general interface, allows libraries to fully control
- * how their data is displayed by gophernotes.
+ * general interface, allows libraries to fully specify
+ * how their data is displayed by Jupyter.
  * Supports multiple MIME formats.
  *
- * Note that Data is an alias:
- * type Data = struct { Data, Metadata, Transient map[string]interface{} }
- * thus libraries can implement Renderer without importing gophernotes
+ * Note that Data defined above is an alias:
+ * libraries can implement Renderer without importing gophernotes
  */
 type Renderer = interface {
 	Render() Data
 }
 
 /**
- * simplified interface, allows libraries to control
- * how their data is displayed by gophernotes.
- * It only supports a single MIME format.
+ * simplified interface, allows libraries to specify
+ * how their data is displayed by Jupyter.
+ * Supports multiple MIME formats.
  *
- * Note that MIMEMap is an alias
- * type MIMEMap = map[string]interface{}
- * thus libraries can implement SimpleRenderer without importing gophernotes
+ * Note that MIMEMap defined above is an alias:
+ * libraries can implement SimpleRenderer without importing gophernotes
  */
 type SimpleRenderer = interface {
-	Render() MIMEMap
+	SimpleRender() MIMEMap
 }
 
 /**
@@ -66,7 +67,7 @@ type SimpleRenderer = interface {
 type HTMLer = interface {
 	HTML() string
 }
-type Javascripter = interface {
+type JavaScripter = interface {
 	JavaScript() string
 }
 type JPEGer = interface {
@@ -97,57 +98,267 @@ func stubDisplay(Data) error {
 	return errors.New("cannot display: connection with Jupyter not available")
 }
 
-// TODO handle the metadata
-
-func read(data interface{}) ([]byte, string) {
-	var b []byte
-	var s string
-	switch x := data.(type) {
-	case string:
-		s = x
-	case []byte:
-		b = x
-	case io.Reader:
-		bb, err := ioutil.ReadAll(x)
-		if err != nil {
-			panic(err)
+// fill kernel.renderer map used to convert interpreted types
+// to known rendering interfaces
+func (kernel *Kernel) initRenderers() {
+	kernel.render = make(map[string]xreflect.Type)
+	for name, typ := range kernel.display.Types {
+		if typ.Kind() == reflect.Interface {
+			kernel.render[name] = typ
 		}
-		b = bb
+	}
+}
+
+// if vals[] contain a single non-nil value which is auto-renderable,
+// convert it to Data and return it.
+// otherwise return MakeData("text/plain", fmt.Sprint(vals...))
+func (kernel *Kernel) autoRenderResults(vals []interface{}, types []xreflect.Type) Data {
+	var nilcount int
+	var obj interface{}
+	var typ xreflect.Type
+	for i, val := range vals {
+		if kernel.canAutoRender(val, types[i]) {
+			obj = val
+			typ = types[i]
+		} else if val == nil {
+			nilcount++
+		}
+	}
+	if obj != nil && nilcount == len(vals)-1 {
+		return kernel.autoRender("", obj, typ)
+	}
+	if nilcount == len(vals) {
+		// if all values are nil, return empty Data
+		return Data{}
+	}
+	return MakeData(MIMETypeText, fmt.Sprint(vals...))
+}
+
+// return true if data type should be auto-rendered graphically
+func (kernel *Kernel) canAutoRender(data interface{}, typ xreflect.Type) bool {
+	switch data.(type) {
+	case Data, Renderer, SimpleRenderer, HTMLer, JavaScripter, JPEGer, JSONer,
+		Latexer, Markdowner, PNGer, PDFer, SVGer, image.Image:
+		return true
+	}
+	if kernel == nil || typ == nil {
+		return false
+	}
+	// in gomacro, methods of interpreted types are emulated,
+	// thus type-asserting them to interface types as done above cannot succeed.
+	// Manually check if emulated type "pretends" to implement
+	// at least one of the interfaces above
+	for _, xtyp := range kernel.render {
+		if typ.Implements(xtyp) {
+			return true
+		}
+	}
+	return false
+}
+
+var autoRenderers = map[string]func(Data, interface{}) Data{
+	"Renderer": func(d Data, i interface{}) Data {
+		if r, ok := i.(Renderer); ok {
+			x := r.Render()
+			d.Data = merge(d.Data, x.Data)
+			d.Metadata = merge(d.Metadata, x.Metadata)
+			d.Transient = merge(d.Transient, x.Transient)
+		}
+		return d
+	},
+	"SimpleRenderer": func(d Data, i interface{}) Data {
+		if r, ok := i.(SimpleRenderer); ok {
+			x := r.SimpleRender()
+			d.Data = merge(d.Data, x)
+		}
+		return d
+	},
+	"HTMLer": func(d Data, i interface{}) Data {
+		if r, ok := i.(HTMLer); ok {
+			d.Data = ensure(d.Data)
+			d.Data[MIMETypeHTML] = r.HTML()
+		}
+		return d
+	},
+	"JavaScripter": func(d Data, i interface{}) Data {
+		if r, ok := i.(JavaScripter); ok {
+			d.Data = ensure(d.Data)
+			d.Data[MIMETypeJavaScript] = r.JavaScript()
+		}
+		return d
+	},
+	"JPEGer": func(d Data, i interface{}) Data {
+		if r, ok := i.(JPEGer); ok {
+			d.Data = ensure(d.Data)
+			d.Data[MIMETypeJPEG] = r.JPEG()
+		}
+		return d
+	},
+	"JSONer": func(d Data, i interface{}) Data {
+		if r, ok := i.(JSONer); ok {
+			d.Data = ensure(d.Data)
+			d.Data[MIMETypeJSON] = r.JSON()
+		}
+		return d
+	},
+	"Latexer": func(d Data, i interface{}) Data {
+		if r, ok := i.(Latexer); ok {
+			d.Data = ensure(d.Data)
+			d.Data[MIMETypeLatex] = r.Latex()
+		}
+		return d
+	},
+	"Markdowner": func(d Data, i interface{}) Data {
+		if r, ok := i.(Markdowner); ok {
+			d.Data = ensure(d.Data)
+			d.Data[MIMETypeMarkdown] = r.Markdown()
+		}
+		return d
+	},
+	"PNGer": func(d Data, i interface{}) Data {
+		if r, ok := i.(PNGer); ok {
+			d.Data = ensure(d.Data)
+			d.Data[MIMETypePNG] = r.PNG()
+		}
+		return d
+	},
+	"PDFer": func(d Data, i interface{}) Data {
+		if r, ok := i.(PDFer); ok {
+			d.Data = ensure(d.Data)
+			d.Data[MIMETypePDF] = r.PDF()
+		}
+		return d
+	},
+	"SVGer": func(d Data, i interface{}) Data {
+		if r, ok := i.(SVGer); ok {
+			d.Data = ensure(d.Data)
+			d.Data[MIMETypeSVG] = r.SVG()
+		}
+		return d
+	},
+	"Image": func(d Data, i interface{}) Data {
+		if r, ok := i.(image.Image); ok {
+			b, mimeType, err := encodePng(r)
+			if err != nil {
+				d = makeDataErr(err)
+			} else {
+				d.Data = ensure(d.Data)
+				d.Data[mimeType] = b
+				d.Metadata = merge(d.Metadata, imageMetadata(r))
+			}
+		}
+		return d
+	},
+}
+
+// detect and render data types that should be auto-rendered graphically
+func (kernel *Kernel) autoRender(mimeType string, arg interface{}, typ xreflect.Type) Data {
+	var data Data
+	// try Data
+	if x, ok := arg.(Data); ok {
+		data = x
+	}
+
+	if kernel == nil || typ == nil {
+		// try all autoRenderers
+		for _, fun := range autoRenderers {
+			data = fun(data, arg)
+		}
+	} else {
+		// in gomacro, methods of interpreted types are emulated.
+		// Thus type-asserting them to interface types as done by autoRenderer functions above cannot succeed.
+		// Manually check if emulated type "pretends" to implement one or more of the above interfaces
+		// and, in case, tell the interpreter to convert to them
+		for name, xtyp := range kernel.render {
+			fun := autoRenderers[name]
+			if fun == nil || !typ.Implements(xtyp) {
+				continue
+			}
+			conv := kernel.ir.Comp.Converter(typ, xtyp)
+			x := base.ValueInterface(conv(reflect.ValueOf(arg)))
+			if x == nil {
+				continue
+			}
+			data = fun(data, x)
+		}
+	}
+	return fillDefaults(data, arg, "", nil, "", nil)
+}
+
+func fillDefaults(data Data, arg interface{}, s string, b []byte, mimeType string, err error) Data {
+	if err != nil {
+		return makeDataErr(err)
+	}
+	if data.Data == nil {
+		data.Data = make(MIMEMap)
+	}
+	// cannot autodetect the mime type of a string
+	if len(s) != 0 && len(mimeType) != 0 {
+		data.Data[mimeType] = s
+	}
+	// ensure plain text is set
+	if data.Data[MIMETypeText] == "" {
+		if len(s) == 0 {
+			s = fmt.Sprint(arg)
+		}
+		data.Data[MIMETypeText] = s
+	}
+	// if []byte is available, use it
+	if len(b) != 0 {
+		if len(mimeType) == 0 {
+			mimeType = http.DetectContentType(b)
+		}
+		if len(mimeType) != 0 && mimeType != MIMETypeText {
+			data.Data[mimeType] = b
+		}
+	}
+	return data
+}
+
+// do our best to render data graphically
+func render(mimeType string, data interface{}) Data {
+	var kernel *Kernel // intentionally nil
+	if kernel.canAutoRender(data, nil) {
+		return kernel.autoRender(mimeType, data, nil)
+	}
+	var s string
+	var b []byte
+	var err error
+	switch data := data.(type) {
+	case string:
+		s = data
+	case []byte:
+		b = data
+	case io.Reader:
+		b, err = ioutil.ReadAll(data)
 	case io.WriterTo:
 		var buf bytes.Buffer
-		x.WriteTo(&buf)
+		data.WriteTo(&buf)
 		b = buf.Bytes()
 	default:
-		panic(errors.New(fmt.Sprintf("unsupported type, cannot display: expecting string, []byte, io.Reader or io.WriterTo, found %T", data)))
+		panic(fmt.Errorf("unsupported type, cannot render: %T", data))
 	}
-	if len(s) == 0 {
-		s = fmt.Sprint(data)
+	return fillDefaults(Data{}, data, s, b, mimeType, err)
+}
+
+func makeDataErr(err error) Data {
+	return Data{
+		Data: MIMEMap{
+			"ename":     "ERROR",
+			"evalue":    err.Error(),
+			"traceback": nil,
+			"status":    "error",
+		},
 	}
-	return b, s
 }
 
 func Any(mimeType string, data interface{}) Data {
-	if img, ok := data.(image.Image); ok {
-		return Image(img)
-	}
-	b, s := read(data)
-	if len(mimeType) == 0 {
-		mimeType = http.DetectContentType(b)
-	}
-	d := Data{
-		Data: MIMEMap{
-			"text/plain": s,
-		},
-	}
-	if mimeType != "text/plain" {
-		d.Data[mimeType] = b
-	}
-	return d
+	return render(mimeType, data)
 }
 
 // same as Any("", data), autodetects MIME type
 func Auto(data interface{}) Data {
-	return Any("", data)
+	return render("", data)
 }
 
 func MakeData(mimeType string, data interface{}) Data {
@@ -156,8 +367,8 @@ func MakeData(mimeType string, data interface{}) Data {
 			mimeType: data,
 		},
 	}
-	if mimeType != "text/plain" {
-		d.Data["text/plain"] = fmt.Sprint(data)
+	if mimeType != MIMETypeText {
+		d.Data[MIMETypeText] = fmt.Sprint(data)
 	}
 	return d
 }
@@ -165,7 +376,7 @@ func MakeData(mimeType string, data interface{}) Data {
 func MakeData3(mimeType string, plaintext string, data interface{}) Data {
 	return Data{
 		Data: MIMEMap{
-			"text/plain": plaintext,
+			MIMETypeText: plaintext,
 			mimeType:     data,
 		},
 	}
@@ -228,46 +439,4 @@ func SVG(svg string) Data {
 // are provided by the various functions above.
 func MIME(data, metadata MIMEMap) Data {
 	return Data{data, metadata, nil}
-}
-
-// prepare imports.Package for interpreted code
-var display = imports.Package{
-	Binds: map[string]r.Value{
-		"Any":                r.ValueOf(Any),
-		"Auto":               r.ValueOf(Auto),
-		"File":               r.ValueOf(File),
-		"HTML":               r.ValueOf(HTML),
-		"Image":              r.ValueOf(Image),
-		"JPEG":               r.ValueOf(JPEG),
-		"JSON":               r.ValueOf(JSON),
-		"JavaScript":         r.ValueOf(JavaScript),
-		"Latex":              r.ValueOf(Latex),
-		"MakeData":           r.ValueOf(MakeData),
-		"MakeData3":          r.ValueOf(MakeData3),
-		"Markdown":           r.ValueOf(Markdown),
-		"Math":               r.ValueOf(Math),
-		"MIME":               r.ValueOf(MIME),
-		"MIMETypeHTML":       r.ValueOf(MIMETypeHTML),
-		"MIMETypeJavaScript": r.ValueOf(MIMETypeJavaScript),
-		"MIMETypeJPEG":       r.ValueOf(MIMETypeJPEG),
-		"MIMETypeJSON":       r.ValueOf(MIMETypeJSON),
-		"MIMETypeLatex":      r.ValueOf(MIMETypeLatex),
-		"MIMETypeMarkdown":   r.ValueOf(MIMETypeMarkdown),
-		"MIMETypePDF":        r.ValueOf(MIMETypePDF),
-		"MIMETypePNG":        r.ValueOf(MIMETypePNG),
-		"MIMETypeSVG":        r.ValueOf(MIMETypeSVG),
-		"PDF":                r.ValueOf(PDF),
-		"PNG":                r.ValueOf(PNG),
-		"SVG":                r.ValueOf(SVG),
-	},
-	Types: map[string]r.Type{
-		"Data":    r.TypeOf((*Data)(nil)).Elem(),
-		"MIMEMap": r.TypeOf((*MIMEMap)(nil)).Elem(),
-	},
-}
-
-// allow importing "display" and "github.com/gopherdata/gophernotes" packages
-func init() {
-	imports.Packages["display"] = display
-	imports.Packages["github.com/gopherdata/gophernotes"] = display
 }

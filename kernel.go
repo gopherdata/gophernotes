@@ -17,6 +17,7 @@ import (
 	"github.com/cosmos72/gomacro/ast2"
 	"github.com/cosmos72/gomacro/base"
 	interp "github.com/cosmos72/gomacro/fast"
+	"github.com/cosmos72/gomacro/xreflect"
 	zmq "github.com/pebbe/zmq4"
 )
 
@@ -99,6 +100,14 @@ func (s *Socket) RunWithSocket(run func(socket *zmq.Socket) error) error {
 	return run(s.Socket)
 }
 
+type Kernel struct {
+	ir      *interp.Interp
+	display *interp.Import
+	// map name -> HTMLer, JSONer, Renderer...
+	// used to convert interpreted types to one of these interfaces
+	render map[string]xreflect.Type
+}
+
 // runKernel is the main entry point to start the kernel.
 func runKernel(connectionFile string) {
 
@@ -111,7 +120,7 @@ func runKernel(connectionFile string) {
 
 	// Inject the "display" package to render HTML, JSON, PNG, JPEG, SVG... from interpreted code
 	// maybe a dot-import is easier to use?
-	_, err := ir.Comp.ImportPackageOrError("display", "display")
+	display, err := ir.Comp.ImportPackageOrError("display", "display")
 	if err != nil {
 		log.Print(err)
 	}
@@ -154,6 +163,13 @@ func runKernel(connectionFile string) {
 	// msgParts will store a received multipart message.
 	var msgParts [][]byte
 
+	kernel := Kernel{
+		ir,
+		display,
+		nil,
+	}
+	kernel.initRenderers()
+
 	// Start a message receiving loop.
 	for {
 		polled, err := poller.Poll(-1)
@@ -179,7 +195,7 @@ func runKernel(connectionFile string) {
 					return
 				}
 
-				handleShellMsg(ir, msgReceipt{msg, ids, sockets})
+				kernel.handleShellMsg(msgReceipt{msg, ids, sockets})
 
 				// TODO Handle stdin socket.
 			case sockets.StdinSocket.Socket:
@@ -199,7 +215,7 @@ func runKernel(connectionFile string) {
 					return
 				}
 
-				handleShellMsg(ir, msgReceipt{msg, ids, sockets})
+				kernel.handleShellMsg(msgReceipt{msg, ids, sockets})
 			}
 		}
 	}
@@ -273,7 +289,7 @@ func prepareSockets(connInfo ConnectionInfo) (SocketGroup, error) {
 }
 
 // handleShellMsg responds to a message on the shell ROUTER socket.
-func handleShellMsg(ir *interp.Interp, receipt msgReceipt) {
+func (kernel *Kernel) handleShellMsg(receipt msgReceipt) {
 	// Tell the front-end that the kernel is working and when finished notify the
 	// front-end that the kernel is idle again.
 	if err := receipt.PublishKernelStatus(kernelBusy); err != nil {
@@ -285,6 +301,8 @@ func handleShellMsg(ir *interp.Interp, receipt msgReceipt) {
 		}
 	}()
 
+	ir := kernel.ir
+
 	switch receipt.Msg.Header.MsgType {
 	case "kernel_info_request":
 		if err := sendKernelInfo(receipt); err != nil {
@@ -295,7 +313,7 @@ func handleShellMsg(ir *interp.Interp, receipt msgReceipt) {
 			log.Fatal(err)
 		}
 	case "execute_request":
-		if err := handleExecuteRequest(ir, receipt); err != nil {
+		if err := kernel.handleExecuteRequest(receipt); err != nil {
 			log.Fatal(err)
 		}
 	case "shutdown_request":
@@ -328,7 +346,7 @@ func sendKernelInfo(receipt msgReceipt) error {
 
 // handleExecuteRequest runs code from an execute_request method,
 // and sends the various reply messages.
-func handleExecuteRequest(ir *interp.Interp, receipt msgReceipt) error {
+func (kernel *Kernel) handleExecuteRequest(receipt msgReceipt) error {
 
 	// Extract the data from the request.
 	reqcontent := receipt.Msg.Content.(map[string]interface{})
@@ -381,6 +399,7 @@ func handleExecuteRequest(ir *interp.Interp, receipt msgReceipt) error {
 	}()
 
 	// inject the actual "Display" closure that displays multimedia data in Jupyter
+	ir := kernel.ir
 	displayPlace := ir.ValueOf("Display")
 	displayPlace.Set(reflect.ValueOf(receipt.PublishDisplayData))
 	defer func() {
@@ -389,7 +408,7 @@ func handleExecuteRequest(ir *interp.Interp, receipt msgReceipt) error {
 	}()
 
 	// eval
-	vals, executionErr := doEval(ir, code)
+	vals, types, executionErr := doEval(ir, code)
 
 	// Close and restore the streams.
 	wOut.Close()
@@ -402,8 +421,8 @@ func handleExecuteRequest(ir *interp.Interp, receipt msgReceipt) error {
 	writersWG.Wait()
 
 	if executionErr == nil {
-		// if the only non-nil value is image.Image or Data, render it
-		data := renderResults(vals)
+		// if the only non-nil value should be auto-rendered graphically, render it
+		data := kernel.autoRenderResults(vals, types)
 
 		content["status"] = "ok"
 		content["user_expressions"] = make(map[string]string)
@@ -431,7 +450,7 @@ func handleExecuteRequest(ir *interp.Interp, receipt msgReceipt) error {
 
 // doEval evaluates the code in the interpreter. This function captures an uncaught panic
 // as well as the values of the last statement/expression.
-func doEval(ir *interp.Interp, code string) (val []interface{}, err error) {
+func doEval(ir *interp.Interp, code string) (val []interface{}, typ []xreflect.Type, err error) {
 
 	// Capture a panic from the evaluation if one occurs and store it in the `err` return parameter.
 	defer func() {
@@ -463,7 +482,7 @@ func doEval(ir *interp.Interp, code string) (val []interface{}, err error) {
 
 	// If there is no srcAst then we must be evaluating nothing. The result must be nil then.
 	if srcAst == nil {
-		return nil, nil
+		return nil, nil, nil
 	}
 
 	// Check if the last node is an expression. If the last node is not an expression then nothing
@@ -482,7 +501,7 @@ func doEval(ir *interp.Interp, code string) (val []interface{}, err error) {
 	compiledSrc := ir.CompileAst(srcAst)
 
 	// Evaluate the code.
-	results, _ := ir.RunExpr(compiledSrc)
+	results, types := ir.RunExpr(compiledSrc)
 
 	// If the source ends with an expression, then the result of the execution is the value of the expression. In the
 	// event that all return values are nil, the result is also nil.
@@ -500,11 +519,11 @@ func doEval(ir *interp.Interp, code string) (val []interface{}, err error) {
 		}
 
 		if nonNilCount > 0 {
-			return values, nil
+			return values, types, nil
 		}
 	}
 
-	return nil, nil
+	return nil, nil, nil
 }
 
 // handleShutdownRequest sends a "shutdown" message.

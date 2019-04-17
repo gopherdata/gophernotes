@@ -38,10 +38,12 @@ type msgReceipt struct {
 }
 
 // MIMEMap holds data that can be presented in multiple formats. The keys are MIME types
-// and the values are the data formatted with respect to its MIME type. All bundles should contain
-// at least a "text/plain" representation with a string value.
+// and the values are the data formatted with respect to its MIME type.
+// All maps should contain at least a "text/plain" representation with a string value.
 type MIMEMap = map[string]interface{}
 
+// Data is the exact structure returned to Jupyter.
+// It allows to fully specify how a value should be displayed.
 type Data = struct {
 	Data      MIMEMap
 	Metadata  MIMEMap
@@ -246,6 +248,19 @@ func ensure(bundle MIMEMap) MIMEMap {
 		bundle = make(MIMEMap)
 	}
 	return bundle
+}
+
+func merge(a MIMEMap, b MIMEMap) MIMEMap {
+	if len(b) == 0 {
+		return a
+	}
+	if a == nil {
+		a = make(MIMEMap)
+	}
+	for k, v := range b {
+		a[k] = v
+	}
+	return a
 }
 
 // PublishExecuteResult publishes the result of the `execCount` execution as a string.
