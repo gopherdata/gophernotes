@@ -1,7 +1,7 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017-2018 Massimiliano Ghilardi
+ * Copyright (C) 2017-2019 Massimiliano Ghilardi
  *
  *     This Source Code Form is subject to the terms of the Mozilla Public
  *     License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -20,20 +20,25 @@ import (
 	"errors"
 	"fmt"
 	"go/importer"
-	"go/types"
+	gotypes "go/types"
+
+	"github.com/cosmos72/gomacro/go/types"
 )
 
 type Importer struct {
-	from   types.ImporterFrom
-	compat types.Importer
-	srcDir string
-	mode   types.ImportMode
+	// converts from go/types to github.com/cosmos72/gomacro/go/types
+	Converter types.Converter
+	from      gotypes.ImporterFrom
+	compat    gotypes.Importer
+	srcDir    string
+	mode      gotypes.ImportMode
 }
 
 func DefaultImporter() *Importer {
 	imp := Importer{}
+	imp.Converter.Init(types.Universe)
 	compat := importer.Default()
-	if from, ok := compat.(types.ImporterFrom); ok {
+	if from, ok := compat.(gotypes.ImporterFrom); ok {
 		imp.from = from
 	} else {
 		imp.compat = compat
@@ -45,12 +50,15 @@ func (imp *Importer) Import(path string) (*types.Package, error) {
 	return imp.ImportFrom(path, imp.srcDir, imp.mode)
 }
 
-func (imp *Importer) ImportFrom(path string, srcDir string, mode types.ImportMode) (*types.Package, error) {
+func (imp *Importer) ImportFrom(path string, srcDir string, mode gotypes.ImportMode) (*types.Package, error) {
+	var pkg *gotypes.Package
+	var err error
 	if imp.from != nil {
-		return imp.from.ImportFrom(path, srcDir, mode)
+		pkg, err = imp.from.ImportFrom(path, srcDir, mode)
 	} else if imp.compat != nil {
-		return imp.compat.Import(path)
+		pkg, err = imp.compat.Import(path)
 	} else {
 		return nil, errors.New(fmt.Sprintf("importer.Default() returned nil, cannot import %q", path))
 	}
+	return imp.Converter.Package(pkg), err
 }

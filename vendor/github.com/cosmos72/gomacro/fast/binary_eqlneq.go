@@ -6,7 +6,7 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017-2018 Massimiliano Ghilardi
+ * Copyright (C) 2017-2019 Massimiliano Ghilardi
  *
  *     This Source Code Form is subject to the terms of the Mozilla Public
  *     License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -22,10 +22,11 @@
 package fast
 
 import (
-	"go/token"
 	"go/ast"
+	"go/token"
 	r "reflect"
 
+	"github.com/cosmos72/gomacro/base/reflect"
 	. "github.com/cosmos72/gomacro/base"
 )
 
@@ -1070,7 +1071,7 @@ func (c *Comp) eqlneqNil(node *ast.BinaryExpr, xe *Expr, ye *Expr) *Expr {
 		e = ye
 	}
 
-	if !IsNillableKind(e.Type.Kind()) {
+	if !reflect.IsNillableKind(e.Type.Kind()) {
 		return c.invalidBinaryExpr(node, xe, ye)
 	}
 
@@ -1080,13 +1081,13 @@ func (c *Comp) eqlneqNil(node *ast.BinaryExpr, xe *Expr, ye *Expr) *Expr {
 		if node.Op == token.EQL {
 			fun = func(env *Env) bool {
 				v, _ := f(env)
-				vnil := v == Nil || IsNillableKind(v.Kind()) && v.IsNil()
+				vnil := v == Nil || reflect.IsNillableKind(v.Kind()) && v.IsNil()
 				return vnil
 			}
 		} else {
 			fun = func(env *Env) bool {
 				v, _ := f(env)
-				vnil := v == Nil || IsNillableKind(v.Kind()) && v.IsNil()
+				vnil := v == Nil || reflect.IsNillableKind(v.Kind()) && v.IsNil()
 				return !vnil
 			}
 		}
@@ -1096,13 +1097,13 @@ func (c *Comp) eqlneqNil(node *ast.BinaryExpr, xe *Expr, ye *Expr) *Expr {
 		if node.Op == token.EQL {
 			fun = func(env *Env) bool {
 				v := f(env)
-				vnil := v == Nil || IsNillableKind(v.Kind()) && v.IsNil()
+				vnil := v == Nil || reflect.IsNillableKind(v.Kind()) && v.IsNil()
 				return vnil
 			}
 		} else {
 			fun = func(env *Env) bool {
 				v := f(env)
-				vnil := v == Nil || IsNillableKind(v.Kind()) && v.IsNil()
+				vnil := v == Nil || reflect.IsNillableKind(v.Kind()) && v.IsNil()
 				return !vnil
 			}
 		}

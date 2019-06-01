@@ -1,7 +1,7 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017-2018 Massimiliano Ghilardi
+ * Copyright (C) 2017-2019 Massimiliano Ghilardi
  *
  *     This Source Code Form is subject to the terms of the Mozilla Public
  *     License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -252,7 +252,7 @@ func (env *Env) freeEnv4Func() {
 func (env *Env) freeEnv(run *Run) {
 	// DebugCallStack Debugf("FreeEnv(%p->%p), calldepth: %d->%d", env, caller, env.CallDepth, caller.CallDepth)
 	if env.UsedByClosure {
-		// in use, cannot recycle
+		// output.Debugf("freeEnv: used by closure, cannot reuse: %p %+v", env, env)
 		return
 	}
 	n := run.PoolSize

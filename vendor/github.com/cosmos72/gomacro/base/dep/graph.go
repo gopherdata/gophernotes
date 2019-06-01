@@ -1,7 +1,7 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017-2018 Massimiliano Ghilardi
+ * Copyright (C) 2018-2019 Massimiliano Ghilardi
  *
  *     This Source Code Form is subject to the terms of the Mozilla Public
  *     License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -21,7 +21,7 @@ import (
 	"fmt"
 	"go/token"
 
-	"github.com/cosmos72/gomacro/base"
+	"github.com/cosmos72/gomacro/base/output"
 )
 
 func (f *fwdDeclList) add(decl *Decl) {
@@ -254,5 +254,5 @@ func (g *graph) circularDependencyError() {
 			fmt.Fprintf(&buf, "\t%s uses %s\n", cycle[i], name)
 		}
 	}
-	base.Errorf("%s", buf.String())
+	output.Errorf("%s", buf.String())
 }

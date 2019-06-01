@@ -6,7 +6,7 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017-2018 Massimiliano Ghilardi
+ * Copyright (C) 2017-2019 Massimiliano Ghilardi
  *
  *     This Source Code Form is subject to the terms of the Mozilla Public
  *     License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -26,11 +26,10 @@ import (
 	r "reflect"
 
 	"github.com/cosmos72/gomacro/base"
+	"github.com/cosmos72/gomacro/base/reflect"
 	xr "github.com/cosmos72/gomacro/xreflect"
 )
 
-func (c *Comp) IndexExpr(node *ast.IndexExpr) *Expr { return c.indexExpr(node, true) }
-func (c *Comp) IndexExpr1(node *ast.IndexExpr) *Expr { return c.indexExpr(node, false) }
 func (c *Comp) indexExpr(node *ast.IndexExpr, multivalued bool) *Expr {
 	obj := c.Expr1(node.X, nil)
 	idx := c.Expr1(node.Index, nil)
@@ -70,7 +69,7 @@ func (c *Comp) indexExpr(node *ast.IndexExpr, multivalued bool) *Expr {
 }
 func (c *Comp) vectorIndex(node *ast.IndexExpr, obj *Expr, idx *Expr) *Expr {
 	k := idx.Type.Kind()
-	cat := base.KindToCategory(k)
+	cat := reflect.Category(k)
 	if cat == r.Int || cat == r.Uint || idx.Untyped() {
 		if !c.TypeOfInt().IdenticalTo(idx.Type) {
 			idx = c.convert(idx, c.TypeOfInt(), node.Index)

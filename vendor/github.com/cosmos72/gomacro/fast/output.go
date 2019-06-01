@@ -1,7 +1,7 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017-2018 Massimiliano Ghilardi
+ * Copyright (C) 2018-2019 Massimiliano Ghilardi
  *
  *     This Source Code Form is subject to the terms of the Mozilla Public
  *     License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -18,12 +18,14 @@ package fast
 
 import (
 	"fmt"
-	"go/types"
 	"io"
 	r "reflect"
 	"sort"
 
 	"github.com/cosmos72/gomacro/base"
+	"github.com/cosmos72/gomacro/base/output"
+	"github.com/cosmos72/gomacro/base/paths"
+	"github.com/cosmos72/gomacro/go/types"
 	xr "github.com/cosmos72/gomacro/xreflect"
 )
 
@@ -36,7 +38,7 @@ func (imp *Import) String() string {
 }
 
 func typestringer(path string) func(xr.Type) string {
-	name := base.FileName(path)
+	name := paths.FileName(path)
 	if name == path {
 		return xr.Type.String
 	}
@@ -86,7 +88,7 @@ func (ir *Interp) ShowAsPackage() {
 	out := c.Globals.Stdout
 	stringer := typestringer(c.Path)
 	if binds := c.Binds; len(binds) > 0 {
-		base.ShowPackageHeader(out, c.Name, c.Path, "binds")
+		output.ShowPackageHeader(out, c.Name, c.Path, "binds")
 
 		keys := make([]string, len(binds))
 		i := 0
@@ -97,7 +99,7 @@ func (ir *Interp) ShowAsPackage() {
 		sort.Strings(keys)
 		for _, k := range keys {
 			if bind := binds[k]; bind != nil {
-				v := bind.RuntimeValue(env)
+				v := bind.RuntimeValue(c.CompGlobals, env)
 				showValue(out, k, v, bind.Type, stringer)
 			}
 		}
@@ -116,14 +118,14 @@ func (ir *Interp) ShowImportedPackage(name string) {
 		ir.Comp.Warnf("not an imported package: %q", name)
 		return
 	}
-	imp.Show(ir.Comp.CompGlobals)
+	imp.Show(ir.Comp.CompGlobals, ir.env)
 }
 
-func (imp *Import) Show(g *CompGlobals) {
+func (imp *Import) Show(g *CompGlobals, env *Env) {
 	stringer := typestringer(imp.Path)
 	out := g.Stdout
 	if binds := imp.Binds; len(binds) > 0 {
-		base.ShowPackageHeader(out, imp.Name, imp.Path, "binds")
+		output.ShowPackageHeader(out, imp.Name, imp.Path, "binds")
 
 		keys := make([]string, len(binds))
 		i := 0
@@ -135,7 +137,7 @@ func (imp *Import) Show(g *CompGlobals) {
 		env := imp.env
 		for _, k := range keys {
 			bind := imp.Binds[k]
-			v := bind.RuntimeValue(env)
+			v := bind.RuntimeValue(g, env)
 			showValue(out, k, v, bind.Type, stringer)
 		}
 		fmt.Fprintln(out)
@@ -145,7 +147,7 @@ func (imp *Import) Show(g *CompGlobals) {
 
 func showTypes(out io.Writer, name string, path string, types map[string]xr.Type, stringer func(xr.Type) string) {
 	if len(types) > 0 {
-		base.ShowPackageHeader(out, name, path, "types")
+		output.ShowPackageHeader(out, name, path, "types")
 
 		keys := make([]string, len(types))
 		i := 0
@@ -166,17 +168,47 @@ func showTypes(out io.Writer, name string, path string, types map[string]xr.Type
 
 const spaces15 = "               "
 
-func showValue(out io.Writer, name string, v r.Value, t xr.Type, stringer func(xr.Type) string) {
-	n := len(name) & 15
-	str := stringer(t)
-	if v == base.Nil || v == base.None {
-		fmt.Fprintf(out, "%s%s = nil\t// %s\n", name, spaces15[n:], str)
-	} else {
-		fmt.Fprintf(out, "%s%s = %v\t// %s\n", name, spaces15[n:], v, str)
-	}
-}
-
 func showType(out io.Writer, name string, t xr.Type, stringer func(xr.Type) string) {
 	n := len(name) & 15
 	fmt.Fprintf(out, "%s%s = %v\t// %v\n", name, spaces15[n:], stringer(t), t.Kind())
+}
+
+func showValue(out io.Writer, name string, v r.Value, t xr.Type, stringer func(xr.Type) string) {
+	n := len(name) & 15
+	fmt.Fprintf(out, "%s%s = %v\t// %s\n", name, spaces15[n:], valueString(v, 0), stringer(t))
+}
+
+// convert a reflect.Value to string, intercepting any panic
+func valueString(v r.Value, depth int) (s string) {
+	ok := false
+	defer func() {
+		if !ok {
+			recover()
+			s = valueString2(v, depth)
+		}
+	}()
+	if !v.IsValid() || v == base.None {
+		s = "nil"
+	} else {
+		s = fmt.Sprintf("%v", v)
+	}
+	ok = true
+	return s
+}
+
+func valueString2(v r.Value, depth int) (s string) {
+	ok := false
+	defer func() {
+		if !ok {
+			err := recover()
+			if depth == 0 {
+				s = "(error printing value: " + valueString(r.ValueOf(err), depth+1) + ")"
+			} else {
+				s = "(error printing error)"
+			}
+		}
+	}()
+	s = fmt.Sprintf("%#v", v)
+	ok = true
+	return s
 }

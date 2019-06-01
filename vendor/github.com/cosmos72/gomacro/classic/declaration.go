@@ -1,7 +1,7 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017-2018 Massimiliano Ghilardi
+ * Copyright (C) 2017-2019 Massimiliano Ghilardi
  *
  *     This Source Code Form is subject to the terms of the Mozilla Public
  *     License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -23,6 +23,7 @@ import (
 	r "reflect"
 
 	. "github.com/cosmos72/gomacro/base"
+	"github.com/cosmos72/gomacro/base/reflect"
 )
 
 func (env *Env) evalDecl(node ast.Decl) (r.Value, []r.Value) {
@@ -156,7 +157,7 @@ func (env *Env) defineConstsVarsOrFuncs(names []string, t r.Type, values []r.Val
 			values[i] = env.defineConstVarOrFunc(names[i], t, values[i], constant)
 		}
 	}
-	return UnpackValues(values)
+	return reflect.UnpackValues(values)
 }
 
 func (env *Env) DefineConst(name string, t r.Type, value r.Value) r.Value {

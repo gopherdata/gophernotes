@@ -1,7 +1,7 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017-2018 Massimiliano Ghilardi
+ * Copyright (C) 2017-2019 Massimiliano Ghilardi
  *
  *     This Source Code Form is subject to the terms of the Mozilla Public
  *     License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -20,7 +20,7 @@ import (
 	"go/token"
 	r "reflect"
 
-	. "github.com/cosmos72/gomacro/base"
+	"github.com/cosmos72/gomacro/base/reflect"
 )
 
 
@@ -226,7 +226,7 @@ import (
 
 		t := place.Type
 		rt := t.ReflectType()
-		cat := KindToCategory(t.Kind())
+		cat := reflect.Category(t.Kind())
 		if keyfun == nil {
 			switch cat {
 				~,@caselist
@@ -239,7 +239,7 @@ import (
 		if ret == nil {
 			c.Errorf("invalid operator %s= on <%v>", ~,opnode, place.Type)
 		}
-		c.append(ret)
+		return ret
 	}
 }
 
@@ -295,7 +295,7 @@ import (
 		keyfun := place.MapKey
 		t := place.Type
 		rt := t.ReflectType()
-		cat := KindToCategory(t.Kind())
+		cat := reflect.Category(t.Kind())
 		if keyfun == nil {
 			switch cat {
 				~,@caselist
@@ -308,51 +308,48 @@ import (
 		if ret == nil {
 			c.Errorf("invalid operator %s= on <%v>", ~,opnode, place.Type)
 		}
-		c.append(ret)
+		return ret
 	}
 }
 
 // placeShlConst compiles 'place <<= constant'
-func (c *Comp) placeShlConst(place *Place, val I) {
+func (c *Comp) placeShlConst(place *Place, val I) Stmt {
 	if isLiteralNumber(val, 0) {
-		c.placeForSideEffects(place)
-		return
+		return c.placeForSideEffects(place)
 	}
 	setplaces_const; token.SHL; {int; uint}; false
 }
 
 // placeShlExpr compiles 'place <<= expression'
-func (c *Comp) placeShlExpr(place *Place, fun I) {
+func (c *Comp) placeShlExpr(place *Place, fun I) Stmt {
 	setplacess_expr; token.SHL; {int; uint}; {uint}
 }
 
 // placeShrConst compiles 'place >>= constant'
-func (c *Comp) placeShrConst(place *Place, val I) {
+func (c *Comp) placeShrConst(place *Place, val I) Stmt {
 	if isLiteralNumber(val, 0) {
-		c.placeForSideEffects(place)
-		return
+		return c.placeForSideEffects(place)
 	}
 	setplaces_const; token.SHR; {int; uint}; false
 }
 
 // placeShrExpr compiles 'place >>= expression'
-func (c *Comp) placeShrExpr(place *Place, fun I) {
+func (c *Comp) placeShrExpr(place *Place, fun I) Stmt {
 	setplacess_expr; token.SHR; {int; uint}; {uint}
 }
 
 // placeQuoPow2 compiles 'place /= constant-power-of-two'
-func (c *Comp) placeQuoPow2(place *Place, val I) bool {
+func (c *Comp) placeQuoPow2(place *Place, val I) Stmt {
 	if isLiteralNumber(val, 0) {
 		c.Errorf("division by %v <%v>", val, r.TypeOf(val))
-		return false
+		return nil
 	} else if isLiteralNumber(val, 1) {
-		c.placeForSideEffects(place)
-		return true // nothing to do
+		return c.placeForSideEffects(place)
 	}
 
 	ypositive := true
 	yv := r.ValueOf(val)
-	ycat := KindToCategory(yv.Kind())
+	ycat := reflect.Category(yv.Kind())
 	var y uint64
 	switch ycat {
 	case r.Int:
@@ -367,11 +364,11 @@ func (c *Comp) placeQuoPow2(place *Place, val I) bool {
 		y = yv.Uint()
 	default:
 		// floating point or complex division
-		return false
+		return nil
 	}
 	if !isPowerOfTwo(y) {
 		// division by multiplication and shift not implemented...
-		return false
+		return nil
 	}
 	// attention: xe / (2**n) and xe >> n have different truncation rules for negative xe:
 	//    quotient / truncates toward zero
@@ -380,7 +377,7 @@ func (c *Comp) placeQuoPow2(place *Place, val I) bool {
 	shift := integerLen(y) - 1
 
 	if !ypositive {
-		return false // not yet implemented
+		return nil // not yet implemented
 	}
 
 	var roundup int64
@@ -389,7 +386,5 @@ func (c *Comp) placeQuoPow2(place *Place, val I) bool {
 		roundup = int64(y-1)
 	}
 	setplaces_const; token.SHR; {int; uint}; true
-
-	return true
 }
 

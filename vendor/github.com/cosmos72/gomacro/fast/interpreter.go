@@ -1,7 +1,7 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017-2018 Massimiliano Ghilardi
+ * Copyright (C) 2017-2019 Massimiliano Ghilardi
  *
  *     This Source Code Form is subject to the terms of the Mozilla Public
  *     License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -20,13 +20,15 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
-	"go/types"
 	"io"
 	"os"
 	r "reflect"
 
 	. "github.com/cosmos72/gomacro/base"
+	"github.com/cosmos72/gomacro/base/paths"
+	"github.com/cosmos72/gomacro/base/reflect"
 	"github.com/cosmos72/gomacro/gls"
+	"github.com/cosmos72/gomacro/go/types"
 	xr "github.com/cosmos72/gomacro/xreflect"
 )
 
@@ -47,7 +49,7 @@ func New() *Interp {
 }
 
 func newTopInterp(path string) *Interp {
-	name := FileName(path)
+	name := paths.FileName(path)
 
 	g := NewIrGlobals()
 	universe := xr.NewUniverse()
@@ -59,7 +61,9 @@ func newTopInterp(path string) *Interp {
 		interf2proxy: make(map[r.Type]r.Type),
 		proxy2interf: make(map[r.Type]xr.Type),
 		Prompt:       "gomacro> ",
+		Jit:          NewJit(),
 	}
+
 	goid := gls.GoID()
 	run := &Run{IrGlobals: g, goid: goid}
 	// early register run in goroutine-local data
@@ -85,9 +89,9 @@ func newTopInterp(path string) *Interp {
 	universe.CachePackage(types.NewPackage("fast", "fast"))
 	universe.CachePackage(types.NewPackage("main", "main"))
 
-	// no need to scavenge for Builtin, Function,  Macro and UntypedLit fields and methods.
+	// no need to scavenge for Builtin, Function, Macro, *Import, *GenericFunc, *GenericType and UntypedLit fields and methods.
 	// actually, making them opaque helps securing against malicious interpreted code.
-	for _, rtype := range []r.Type{rtypeOfBuiltin, rtypeOfFunction, rtypeOfPtrImport, rtypeOfMacro} {
+	for _, rtype := range []r.Type{rtypeOfBuiltin, rtypeOfFunction, rtypeOfMacro, rtypeOfPtrImport, rtypeOfPtrGenericFunc, rtypeOfPtrGenericType} {
 		cg.opaqueType(rtype, "fast")
 	}
 	cg.opaqueType(rtypeOfUntypedLit, "untyped")
@@ -98,7 +102,7 @@ func newTopInterp(path string) *Interp {
 
 func NewInnerInterp(outer *Interp, name string, path string) *Interp {
 	if len(name) == 0 {
-		name = FileName(path)
+		name = paths.FileName(path)
 	}
 
 	outerComp := outer.Comp
@@ -177,7 +181,7 @@ func (ir *Interp) DeclType(t xr.Type) {
 
 // DeclType declares a type alias
 func (ir *Interp) DeclTypeAlias(alias string, t xr.Type) {
-	ir.Comp.DeclTypeAlias0(alias, t)
+	ir.Comp.declTypeAlias(alias, t)
 }
 
 // DeclVar compiles a variable declaration
@@ -221,12 +225,13 @@ func (ir *Interp) TypeOf(val interface{}) xr.Type {
 }
 
 // ValueOf retrieves the value of a constant, function or variable
-// The returned value is settable and addressable only for variables
-// returns the zero value if name is not found
+// in the current package.
+// The returned value is settable and addressable only for variables.
+// Returns the zero value if name is not found
 func (ir *Interp) ValueOf(name string) (value r.Value) {
 	sym := ir.Comp.TryResolve(name)
 	if sym == nil {
-		return Nil
+		return reflect.Nil
 	}
 	switch sym.Desc.Class() {
 	case ConstBind:

@@ -6,7 +6,7 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017-2018 Massimiliano Ghilardi
+ * Copyright (C) 2017-2019 Massimiliano Ghilardi
  *
  *     This Source Code Form is subject to the terms of the Mozilla Public
  *     License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -26,7 +26,7 @@ import (
 	"go/token"
 	r "reflect"
 
-	"github.com/cosmos72/gomacro/base"
+	"github.com/cosmos72/gomacro/base/reflect"
 	xr "github.com/cosmos72/gomacro/xreflect"
 )
 
@@ -2555,7 +2555,7 @@ func (c *Comp) mulPow2(node *ast.BinaryExpr, xe *Expr, ye *Expr) *Expr {
 	ypositive := true
 	yv := r.ValueOf(ye.Value)
 	var y uint64
-	switch base.KindToCategory(yv.Kind()) {
+	switch reflect.Category(yv.Kind()) {
 	case r.Int:
 		sy := yv.Int()
 		if sy < 0 {
@@ -2933,7 +2933,7 @@ func (c *Comp) quoPow2(node *ast.BinaryExpr, xe *Expr, ye *Expr) *Expr {
 	ypositive := true
 	yv := r.ValueOf(ye.Value)
 	var y uint64
-	switch base.KindToCategory(yv.Kind()) {
+	switch reflect.Category(yv.Kind()) {
 	case r.Int:
 		sy := yv.Int()
 		if sy < 0 {
@@ -3160,7 +3160,7 @@ func (c *Comp) remPow2(node *ast.BinaryExpr, xe *Expr, ye *Expr) *Expr {
 
 	yv := r.ValueOf(ye.Value)
 	var y uint64
-	switch base.KindToCategory(yv.Kind()) {
+	switch reflect.Category(yv.Kind()) {
 	case r.Int:
 		sy := yv.Int()
 		if sy < 0 {

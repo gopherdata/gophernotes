@@ -1,7 +1,7 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017-2018 Massimiliano Ghilardi
+ * Copyright (C) 2017-2019 Massimiliano Ghilardi
  *
  *     This Source Code Form is subject to the terms of the Mozilla Public
  *     License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -34,7 +34,7 @@ func (c *Comp) ExprsMultipleValues(nodes []ast.Expr, expectedValuesN int) (inits
 				n, expectedValuesN, nodes)
 			return nil
 		}
-		e := c.Expr(nodes[0], nil)
+		e := c.expr(nodes[0], nil)
 		if actualN := e.NumOut(); actualN != expectedValuesN {
 			var plural string
 			if actualN != 1 {
@@ -44,27 +44,41 @@ func (c *Comp) ExprsMultipleValues(nodes []ast.Expr, expectedValuesN int) (inits
 		}
 		inits = []*Expr{e}
 	} else {
-		inits = c.Exprs(nodes)
+		inits = c.exprs(nodes)
 	}
 	return inits
 }
 
 // Exprs compiles multiple expressions
 func (c *Comp) Exprs(nodes []ast.Expr) []*Expr {
-	var inits []*Expr
-	if n := len(nodes); n != 0 {
-		inits = make([]*Expr, n)
-		for i := range nodes {
-			inits[i] = c.Expr1(nodes[i], nil)
-		}
+	es := c.exprs(nodes)
+	for _, e := range es {
+		c.Jit.Fun(e)
 	}
-	return inits
+	return es
 }
 
-// Expr compiles an expression that returns a single value
+// same as Exprs, but does not replace e[i].Fun with jit-compiled code
+func (c *Comp) exprs(nodes []ast.Expr) []*Expr {
+	var es []*Expr
+	if n := len(nodes); n != 0 {
+		es = make([]*Expr, n)
+		for i := range nodes {
+			es[i] = c.expr1(nodes[i], nil)
+		}
+	}
+	return es
+}
+
+// Expr1 compiles an expression that returns a single value
 // t is optional and used for type inference on composite literals,
 // see https://golang.org/ref/spec#Composite_literals
 func (c *Comp) Expr1(in ast.Expr, t xr.Type) *Expr {
+	return c.expr1(in, t)
+}
+
+// same as Expr1, but does not replace e.Fun with jit-compiled code
+func (c *Comp) expr1(in ast.Expr, t xr.Type) *Expr {
 	for {
 		if in != nil {
 			c.Pos = in.Pos()
@@ -88,7 +102,7 @@ func (c *Comp) Expr1(in ast.Expr, t xr.Type) *Expr {
 		}
 		break
 	}
-	e := c.Expr(in, t)
+	e := c.expr(in, t)
 	nout := e.NumOut()
 	switch nout {
 	case 0:
@@ -105,6 +119,12 @@ func (c *Comp) Expr1(in ast.Expr, t xr.Type) *Expr {
 // t is optional and used for type inference on composite literals,
 // see https://golang.org/ref/spec#Composite_literals
 func (c *Comp) Expr(in ast.Expr, t xr.Type) *Expr {
+	e := c.expr(in, t)
+	return c.Jit.Fun(e)
+}
+
+// same as Expr, but does not replace e.Fun with jit-compiled code
+func (c *Comp) expr(in ast.Expr, t xr.Type) *Expr {
 	for {
 		if in != nil {
 			c.Pos = in.Pos()
@@ -147,7 +167,7 @@ func (c *Comp) Expr(in ast.Expr, t xr.Type) *Expr {
 }
 
 // Expr1OrType compiles an single-valued expression or a type.
-// looks up simultaneously for both types and expressions
+// performs simultaneous lookup for type names, constants, variables and functions
 func (c *Comp) Expr1OrType(expr ast.Expr) (e *Expr, t xr.Type) {
 	node := expr
 	for {
@@ -161,10 +181,24 @@ func (c *Comp) Expr1OrType(expr ast.Expr) (e *Expr, t xr.Type) {
 		case *ast.Ident:
 			name := n.Name
 			for o := c; o != nil; o = o.Outer {
-				if _, ok := o.Binds[name]; ok {
+				bind, okb := o.Binds[name]
+				var okt bool
+				if okb && (GENERICS_V1_CXX || GENERICS_V2_CTI) {
+					_, okt = bind.Value.(*GenericType) // generic types are stored in Comp.Bind[]
+					okb = !okt
+				}
+				if okb {
 					return c.Expr1(expr, nil), nil
-				} else if _, ok := o.Types[name]; ok {
+				} else if _, ok := o.Types[name]; ok || okt {
 					return nil, c.Type(expr)
+				}
+			}
+		case *ast.IndexExpr:
+			if GENERICS_V1_CXX || GENERICS_V2_CTI {
+				if lit, ok := n.Index.(*ast.CompositeLit); ok && lit.Type == nil {
+					// foo#[a, b...] can be a generic function or a generic type
+					node = n.X
+					continue
 				}
 			}
 		}
@@ -180,4 +214,26 @@ func (c *Comp) Expr1OrType(expr ast.Expr) (e *Expr, t xr.Type) {
 	e = c.Expr1(expr, nil)
 	panicking = false
 	return
+}
+
+// IndexExpr compiles a read operation on obj[idx]
+// or a generic function name#[T1, T2...]
+func (c *Comp) IndexExpr(node *ast.IndexExpr) *Expr {
+	if GENERICS_V1_CXX || GENERICS_V2_CTI {
+		if e := c.GenericFunc(node); e != nil {
+			return e
+		}
+	}
+	return c.indexExpr(node, true)
+}
+
+// IndexExpr1 compiles a single-valued read operation on obj[idx]
+// or a generic function name#[T1, T2...]
+func (c *Comp) IndexExpr1(node *ast.IndexExpr) *Expr {
+	if GENERICS_V1_CXX || GENERICS_V2_CTI {
+		if e := c.GenericFunc(node); e != nil {
+			return e
+		}
+	}
+	return c.indexExpr(node, false)
 }

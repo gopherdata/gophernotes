@@ -1,7 +1,7 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017-2018 Massimiliano Ghilardi
+ * Copyright (C) 2017-2019 Massimiliano Ghilardi
  *
  *     This Source Code Form is subject to the terms of the Mozilla Public
  *     License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -22,29 +22,29 @@ import (
 	"go/token"
 
 	"github.com/cosmos72/gomacro/base"
-	mt "github.com/cosmos72/gomacro/token"
+	etoken "github.com/cosmos72/gomacro/go/etoken"
 )
 
 func (c *Comp) UnaryExpr(node *ast.UnaryExpr) *Expr {
 	switch node.Op {
-	case mt.QUOTE:
+	case etoken.QUOTE:
 		// surprisingly easy :)
 		block := node.X.(*ast.FuncLit).Body
 		node := base.SimplifyNodeForQuote(block, true)
 		return c.exprValue(nil, node)
 
-	case mt.QUASIQUOTE:
+	case etoken.QUASIQUOTE:
 		return c.quasiquoteUnary(node)
 
-	case mt.UNQUOTE, mt.UNQUOTE_SPLICE:
-		c.Errorf("invalid %s outside %s: %v", mt.String(node.Op), mt.String(mt.QUASIQUOTE), node)
+	case etoken.UNQUOTE, etoken.UNQUOTE_SPLICE:
+		c.Errorf("invalid %s outside %s: %v", etoken.String(node.Op), etoken.String(etoken.QUASIQUOTE), node)
 
 	case token.AND:
 		// c.Expr(node.X) is useless here... skip it
 		return c.AddressOf(node)
 	}
 
-	xe := c.Expr1(node.X, nil)
+	xe := c.expr1(node.X, nil)
 	if xe.Type == nil {
 		return c.invalidUnaryExpr(node, xe)
 	}
@@ -75,6 +75,9 @@ func (c *Comp) UnaryExpr(node *ast.UnaryExpr) *Expr {
 	if isConst {
 		// constant propagation
 		z.EvalConst(COptKeepUntyped)
+	} else {
+		// create jit expression for z
+		c.Jit.UnaryExpr(z, node.Op, xe)
 	}
 	return z
 }
@@ -102,7 +105,7 @@ func (c *Comp) unimplementedUnaryExpr(node *ast.UnaryExpr, xe *Expr) *Expr {
 }
 
 func (c *Comp) badUnaryExpr(reason string, node *ast.UnaryExpr, xe *Expr) *Expr {
-	opstr := mt.String(node.Op)
+	opstr := etoken.String(node.Op)
 	if xe != nil {
 		c.Errorf("%s unary operation %s on <%v>: %s %v",
 			reason, opstr, xe.Type, opstr, node.X)

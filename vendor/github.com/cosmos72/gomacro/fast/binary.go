@@ -1,7 +1,7 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017-2018 Massimiliano Ghilardi
+ * Copyright (C) 2017-2019 Massimiliano Ghilardi
  *
  *     This Source Code Form is subject to the terms of the Mozilla Public
  *     License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -22,14 +22,14 @@ import (
 	"go/token"
 	r "reflect"
 
-	"github.com/cosmos72/gomacro/base"
+	"github.com/cosmos72/gomacro/base/reflect"
 	"github.com/cosmos72/gomacro/base/untyped"
-	mt "github.com/cosmos72/gomacro/token"
+	etoken "github.com/cosmos72/gomacro/go/etoken"
 )
 
 func (c *Comp) BinaryExpr(node *ast.BinaryExpr) *Expr {
-	x := c.Expr1(node.X, nil)
-	y := c.Expr1(node.Y, nil)
+	x := c.expr1(node.X, nil)
+	y := c.expr1(node.Y, nil)
 	return c.BinaryExpr1(node, x, y)
 }
 
@@ -40,28 +40,29 @@ func (c *Comp) BinaryExpr1(node *ast.BinaryExpr, x *Expr, y *Expr) *Expr {
 	bothConst := x.Const() && y.Const()
 	var z *Expr
 
-	switch node.Op {
-	case token.ADD, token.ADD_ASSIGN:
+	op := tokenWithoutAssign(node.Op)
+	switch op {
+	case token.ADD:
 		z = c.Add(node, x, y)
-	case token.SUB, token.SUB_ASSIGN:
+	case token.SUB:
 		z = c.Sub(node, x, y)
-	case token.MUL, token.MUL_ASSIGN:
+	case token.MUL:
 		z = c.Mul(node, x, y)
-	case token.QUO, token.QUO_ASSIGN:
+	case token.QUO:
 		z = c.Quo(node, x, y)
-	case token.REM, token.REM_ASSIGN:
+	case token.REM:
 		z = c.Rem(node, x, y)
-	case token.AND, token.AND_ASSIGN:
+	case token.AND:
 		z = c.And(node, x, y)
-	case token.OR, token.OR_ASSIGN:
+	case token.OR:
 		z = c.Or(node, x, y)
-	case token.XOR, token.XOR_ASSIGN:
+	case token.XOR:
 		z = c.Xor(node, x, y)
-	case token.SHL, token.SHL_ASSIGN:
+	case token.SHL:
 		z = c.Shl(node, x, y)
-	case token.SHR, token.SHR_ASSIGN:
+	case token.SHR:
 		z = c.Shr(node, x, y)
-	case token.AND_NOT, token.AND_NOT_ASSIGN:
+	case token.AND_NOT:
 		z = c.Andnot(node, x, y)
 	case token.LAND:
 		z = c.Land(node, x, y)
@@ -85,6 +86,9 @@ func (c *Comp) BinaryExpr1(node *ast.BinaryExpr, x *Expr, y *Expr) *Expr {
 	if bothConst {
 		// constant propagation
 		z.EvalConst(COptKeepUntyped)
+	} else {
+		// create jit expression for z
+		c.Jit.BinaryExpr(z, op, x, y)
 	}
 	return z
 }
@@ -100,67 +104,83 @@ func (c *Comp) BinaryExprUntyped(node *ast.BinaryExpr, x UntypedLit, y UntypedLi
 		} else {
 			flag = xb || yb
 		}
-		return c.exprUntypedLit(r.Bool, constant.MakeBool(flag))
+		return c.exprUntypedLit(untyped.Bool, constant.MakeBool(flag))
 	case token.EQL, token.LSS, token.GTR, token.NEQ, token.LEQ, token.GEQ:
 		// comparison gives an untyped bool
 		flag := constant.Compare(x.Val, op, y.Val)
-		return c.exprUntypedLit(r.Bool, constant.MakeBool(flag))
+		return c.exprUntypedLit(untyped.Bool, constant.MakeBool(flag))
 	case token.SHL, token.SHL_ASSIGN:
 		return c.ShiftUntyped(node, token.SHL, x, y)
 	case token.SHR, token.SHR_ASSIGN:
 		return c.ShiftUntyped(node, token.SHR, x, y)
 	default:
 		op2 := tokenWithoutAssign(op)
-		xint := base.KindToCategory(x.Kind) == r.Int
-		yint := base.KindToCategory(y.Kind) == r.Int
+		xint := x.Kind == untyped.Int || x.Kind == untyped.Rune
+		yint := y.Kind == untyped.Int || y.Kind == untyped.Rune
 		if op2 == token.QUO && xint && yint {
 			// untyped integer division
 			op2 = token.QUO_ASSIGN
 		}
 		zobj := constant.BinaryOp(x.Val, op2, y.Val)
-		zkind := untyped.ConstantKindToUntypedLitKind(zobj.Kind())
+		zkind := untyped.MakeKind(zobj.Kind())
 		// c.Debugf("untyped binary expression %v %s %v returned {%v %v}", x, op2, y, zkind, zobj)
-		// reflect.Int32 (i.e. rune) has precedence over reflect.Int
+		// untyped.Rune has precedence over untyped.Int
 		if zobj.Kind() == constant.Int {
-			if xint && x.Kind != r.Int {
+			if xint && x.Kind != untyped.Int {
 				zkind = x.Kind
-			} else if yint && y.Kind != r.Int {
+			} else if yint && y.Kind != untyped.Int {
 				zkind = y.Kind
 			}
 		}
-		if zkind == r.Invalid {
+		if zkind == untyped.None {
 			c.Errorf("invalid binary operation: %v %v %v", x.Val, op, y.Val)
 		}
 		return c.exprUntypedLit(zkind, zobj)
 	}
 }
 
+var tokenRemoveAssign = map[token.Token]token.Token{
+	token.ADD_ASSIGN:     token.ADD,
+	token.SUB_ASSIGN:     token.SUB,
+	token.MUL_ASSIGN:     token.MUL,
+	token.QUO_ASSIGN:     token.QUO,
+	token.REM_ASSIGN:     token.REM,
+	token.AND_ASSIGN:     token.AND,
+	token.OR_ASSIGN:      token.OR,
+	token.XOR_ASSIGN:     token.XOR,
+	token.SHL_ASSIGN:     token.SHL,
+	token.SHR_ASSIGN:     token.SHR,
+	token.AND_NOT_ASSIGN: token.AND_NOT,
+}
+
+var tokenAddAssign = map[token.Token]token.Token{
+	token.ADD:     token.ADD_ASSIGN,
+	token.SUB:     token.SUB_ASSIGN,
+	token.MUL:     token.MUL_ASSIGN,
+	token.QUO:     token.QUO_ASSIGN,
+	token.REM:     token.REM_ASSIGN,
+	token.AND:     token.AND_ASSIGN,
+	token.OR:      token.OR_ASSIGN,
+	token.XOR:     token.XOR_ASSIGN,
+	token.SHL:     token.SHL_ASSIGN,
+	token.SHR:     token.SHR_ASSIGN,
+	token.AND_NOT: token.AND_NOT_ASSIGN,
+}
+
 func tokenWithoutAssign(op token.Token) token.Token {
-	switch op {
-	case token.ADD_ASSIGN:
-		op = token.ADD
-	case token.SUB_ASSIGN:
-		op = token.SUB
-	case token.MUL_ASSIGN:
-		op = token.MUL
-	case token.QUO_ASSIGN:
-		op = token.QUO
-	case token.REM_ASSIGN:
-		op = token.REM
-	case token.AND_ASSIGN:
-		op = token.AND
-	case token.OR_ASSIGN:
-		op = token.OR
-	case token.XOR_ASSIGN:
-		op = token.XOR
-	case token.SHL_ASSIGN:
-		op = token.SHL
-	case token.SHR, token.SHR_ASSIGN:
-		op = token.SHR
-	case token.AND_NOT_ASSIGN:
-		op = token.AND_NOT
+	ret, ok := tokenRemoveAssign[op]
+	if !ok {
+		ret = op
 	}
-	return op
+	return ret
+}
+
+func tokenWithAssign(op token.Token) token.Token {
+	ret, ok := tokenAddAssign[op]
+	if !ok {
+		ret = op
+	}
+	return ret
 }
 
 var warnUntypedShift, warnUntypedShift2 = true, true
@@ -190,16 +210,16 @@ func (c *Comp) ShiftUntyped(node *ast.BinaryExpr, op token.Token, x UntypedLit, 
 	xn := x.Val
 	xkind := x.Kind
 	switch xkind {
-	case r.Int, r.Int32:
+	case untyped.Int, untyped.Rune:
 		// nothing to do
-	case r.Float64, r.Complex128:
+	case untyped.Float, untyped.Complex:
 		if warnUntypedShift {
 			c.Warnf("known limitation (warned only once): untyped floating point constant shifted by untyped constant. returning untyped integer instead of deducing the type from the surrounding context: %v",
 				node)
 			warnUntypedShift = false
 		}
 		sign := constant.Sign(xn)
-		if xkind == r.Complex128 {
+		if xkind == untyped.Complex {
 			sign = constant.Sign(constant.Real(xn))
 		}
 		if sign >= 0 {
@@ -207,7 +227,7 @@ func (c *Comp) ShiftUntyped(node *ast.BinaryExpr, op token.Token, x UntypedLit, 
 		} else {
 			xn = constant.MakeInt64(x.Convert(c.TypeOfInt64()).(int64))
 		}
-		xkind = r.Int
+		xkind = untyped.Int
 	default:
 		c.Errorf("invalid shift: %v %v %v", x.Val, op, y.Val)
 	}
@@ -226,14 +246,14 @@ func (c *Comp) prepareShift(node *ast.BinaryExpr, xe *Expr, ye *Expr) *Expr {
 		return c.ShiftUntyped(node, node.Op, xe.Value.(UntypedLit), ye.Value.(UntypedLit))
 	}
 	xet, yet := xe.DefaultType(), ye.DefaultType()
-	if xet == nil || !base.IsCategory(xet.Kind(), r.Int, r.Uint) {
+	if xet == nil || !reflect.IsCategory(xet.Kind(), r.Int, r.Uint) {
 		return c.invalidBinaryExpr(node, xe, ye)
 	}
 	if xe.Untyped() {
 		xuntyp := xe.Value.(UntypedLit)
 		if ye.Const() {
 			// untyped << constant
-			yuntyp := MakeUntypedLit(r.Int, constant.MakeUint64(r.ValueOf(ye.Value).Uint()), &c.Universe.BasicTypes)
+			yuntyp := untyped.MakeLit(untyped.Int, constant.MakeUint64(r.ValueOf(ye.Value).Uint()), &c.Universe.BasicTypes)
 			return c.ShiftUntyped(node, node.Op, xuntyp, yuntyp)
 		}
 		// untyped << expression
@@ -252,12 +272,12 @@ func (c *Comp) prepareShift(node *ast.BinaryExpr, xe *Expr, ye *Expr) *Expr {
 	}
 	if ye.Untyped() {
 		// untyped constants do not distinguish between int and uint
-		if yet == nil || !base.IsCategory(yet.Kind(), r.Int) {
+		if yet == nil || !reflect.IsCategory(yet.Kind(), r.Int) {
 			return c.invalidBinaryExpr(node, xe, ye)
 		}
 		ye.ConstTo(c.TypeOfUint64())
 	} else {
-		if yet == nil || !base.IsCategory(yet.Kind(), r.Uint) {
+		if yet == nil || !reflect.IsCategory(yet.Kind(), r.Uint) {
 			return c.invalidBinaryExpr(node, xe, ye)
 		}
 	}
@@ -327,7 +347,7 @@ func (c *Comp) unimplementedBinaryExpr(node *ast.BinaryExpr, x *Expr, y *Expr) *
 }
 
 func (c *Comp) badBinaryExpr(reason string, node *ast.BinaryExpr, x *Expr, y *Expr) *Expr {
-	opstr := mt.String(node.Op)
+	opstr := etoken.String(node.Op)
 	var xstr, ystr string
 	if x.Const() {
 		xstr = x.String() + " "

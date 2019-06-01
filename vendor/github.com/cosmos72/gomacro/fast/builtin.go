@@ -1,7 +1,7 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017-2018 Massimiliano Ghilardi
+ * Copyright (C) 2017-2019 Massimiliano Ghilardi
  *
  *     This Source Code Form is subject to the terms of the Mozilla Public
  *     License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -23,6 +23,10 @@ import (
 	"go/token"
 	"os"
 	r "reflect"
+
+	"github.com/cosmos72/gomacro/base/reflect"
+
+	"github.com/cosmos72/gomacro/base/output"
 
 	"github.com/cosmos72/gomacro/ast2"
 	"github.com/cosmos72/gomacro/base"
@@ -55,7 +59,7 @@ func (top *Comp) setIota(iota int) {
 	// "Literal constants, true, false, iota, and certain constant expressions containing only untyped constant operands are untyped."
 
 	// Binds are supposed to be immutable. to avoid issues, create a new Bind every time
-	top.Binds["iota"] = top.BindUntyped(r.Int, constant.MakeInt64(int64(iota)))
+	top.Binds["iota"] = top.BindUntyped(untyped.Int, constant.MakeInt64(int64(iota)))
 }
 
 // ============================== initialization ===============================
@@ -65,8 +69,8 @@ func (ce *Interp) addBuiltins() {
 
 	// https://golang.org/ref/spec#Constants
 	// "Literal constants, true, false, iota, and certain constant expressions containing only untyped constant operands are untyped."
-	ce.DeclConst("false", nil, MakeUntypedLit(r.Bool, constant.MakeBool(false), basicTypes))
-	ce.DeclConst("true", nil, MakeUntypedLit(r.Bool, constant.MakeBool(true), basicTypes))
+	ce.DeclConst("false", nil, untyped.MakeLit(untyped.Bool, constant.MakeBool(false), basicTypes))
+	ce.DeclConst("true", nil, untyped.MakeLit(untyped.Bool, constant.MakeBool(true), basicTypes))
 
 	// https://golang.org/ref/spec#Variables : "[...] the predeclared identifier nil, which has no type"
 	ce.DeclConst("nil", nil, nil)
@@ -86,7 +90,7 @@ func (ce *Interp) addBuiltins() {
 	ce.DeclBuiltin("println", Builtin{compilePrint, 0, base.MaxUint16})
 	ce.DeclBuiltin("real", Builtin{compileRealImag, 1, 1})
 	ce.DeclBuiltin("recover", Builtin{compileRecover, 0, 0})
-	// ce.DeclBuiltin("recover", Function{callRecover, ce.Comp.TypeOf((*func() interface{})(nil)).Elem()})
+	// ce.DeclBuiltin("recover", Function{callRecover, ce.Comp.TypeOf((*func() I)(nil)).Elem()})
 
 	tfunI2_Nb := ce.Comp.TypeOf(funI2_Nb)
 
@@ -104,7 +108,7 @@ func (ce *Interp) addBuiltins() {
 		binds["ReadFile"] = r.ValueOf(callReadFile)
 		binds["ReadMultiline"] = r.ValueOf(ReadMultiline)
 		binds["Slice"] = r.ValueOf(callSlice)
-		binds["String"] = r.ValueOf(func(args ...interface{}) string {
+		binds["String"] = r.ValueOf(func(args ...I) string {
 			return env.toString("", args...)
 		})
 		// return multiple values, extracting the concrete type of each interface
@@ -241,8 +245,8 @@ func callComplex128(re float64, im float64) complex128 {
 }
 
 func compileComplex(c *Comp, sym Symbol, node *ast.CallExpr) *Call {
-	re := c.Expr1(node.Args[0], nil)
-	im := c.Expr1(node.Args[1], nil)
+	re := c.expr1(node.Args[0], nil)
+	im := c.expr1(node.Args[1], nil)
 	if re.Untyped() {
 		if im.Untyped() {
 			return compileComplexUntyped(c, sym, node, re.Value.(UntypedLit), im.Value.(UntypedLit))
@@ -253,12 +257,12 @@ func compileComplex(c *Comp, sym Symbol, node *ast.CallExpr) *Call {
 		im.ConstTo(re.Type)
 	}
 	c.toSameFuncType(node, re, im)
-	kre := base.KindToCategory(re.Type.Kind())
+	kre := reflect.Category(re.Type.Kind())
 	if re.Const() && kre != r.Float64 {
 		re.ConstTo(c.TypeOfFloat64())
 		kre = r.Float64
 	}
-	kim := base.KindToCategory(im.Type.Kind())
+	kim := reflect.Category(im.Type.Kind())
 	if im.Const() && kim != r.Float64 {
 		im.ConstTo(c.TypeOfFloat64())
 		kim = r.Float64
@@ -300,7 +304,7 @@ func compileComplexUntyped(c *Comp, sym Symbol, node *ast.CallExpr, re UntypedLi
 	checkComplexUntypedArg(c, node, im, "second")
 	rev := re.Val
 	imv := constant.BinaryOp(im.Val, token.MUL, complexImagOne)
-	val := MakeUntypedLit(r.Complex128, constant.BinaryOp(rev, token.ADD, imv), &c.Universe.BasicTypes)
+	val := untyped.MakeLit(untyped.Complex, constant.BinaryOp(rev, token.ADD, imv), &c.Universe.BasicTypes)
 	touts := []xr.Type{c.TypeOfUntypedLit()}
 	tfun := c.Universe.FuncOf(nil, touts, false)
 	sym.Type = tfun
@@ -311,9 +315,9 @@ func compileComplexUntyped(c *Comp, sym Symbol, node *ast.CallExpr, re UntypedLi
 
 func checkComplexUntypedArg(c *Comp, node *ast.CallExpr, arg UntypedLit, label string) {
 	switch arg.Kind {
-	case r.Int, r.Int32 /*rune*/, r.Float64:
+	case untyped.Int, untyped.Rune, untyped.Float:
 		return
-	case r.Complex128:
+	case untyped.Complex:
 		im := constant.Imag(arg.Val)
 		switch im.Kind() {
 		case constant.Int:
@@ -339,8 +343,8 @@ func copyStringToBytes(dst []byte, src string) int {
 
 func compileCopy(c *Comp, sym Symbol, node *ast.CallExpr) *Call {
 	args := []*Expr{
-		c.Expr1(node.Args[0], nil),
-		c.Expr1(node.Args[1], nil),
+		c.expr1(node.Args[0], nil),
+		c.expr1(node.Args[1], nil),
 	}
 	if args[1].Const() {
 		// we also accept a string literal as second argument
@@ -379,8 +383,8 @@ func callDelete(vmap r.Value, vkey r.Value) {
 }
 
 func compileDelete(c *Comp, sym Symbol, node *ast.CallExpr) *Call {
-	emap := c.Expr1(node.Args[0], nil)
-	ekey := c.Expr1(node.Args[1], nil)
+	emap := c.expr1(node.Args[0], nil)
+	ekey := c.expr1(node.Args[1], nil)
 	tmap := emap.Type
 	if tmap.Kind() != r.Map {
 		c.Errorf("first argument to delete must be map; have %v", tmap)
@@ -400,7 +404,7 @@ func compileDelete(c *Comp, sym Symbol, node *ast.CallExpr) *Call {
 
 // --- Env() ---
 
-func funI_I(interface{}) interface{} {
+func funI_I(I) I {
 	return nil
 }
 
@@ -411,7 +415,7 @@ func callIdentity(v r.Value) r.Value {
 
 // --- Eval() ---
 
-func funI2_I(interface{}, interface{}) interface{} {
+func funI2_I(I, I) I {
 	return nil
 }
 
@@ -459,7 +463,7 @@ func callEval3(argv r.Value, interpv r.Value, opt CompileOptions) r.Value {
 
 // --- EvalType() ---
 
-func funI2_T(interface{}, interface{}) r.Type {
+func funI2_T(I, I) r.Type {
 	return nil
 }
 
@@ -490,7 +494,7 @@ func callLenString(val string) int {
 }
 
 func compileLen(c *Comp, sym Symbol, node *ast.CallExpr) *Call {
-	arg := c.Expr1(node.Args[0], nil)
+	arg := c.expr1(node.Args[0], nil)
 	if arg.Const() {
 		arg.ConstTo(arg.DefaultType())
 	}
@@ -535,7 +539,7 @@ func compileLen(c *Comp, sym Symbol, node *ast.CallExpr) *Call {
 
 // --- MacroExpand(), MacroExpand1(), MacroExpandCodeWalk() ---
 
-func funI2_Nb(interface{}, interface{}) (ast.Node, bool) {
+func funI2_Nb(I, I) (ast.Node, bool) {
 	return nil, false
 }
 
@@ -621,7 +625,7 @@ func compileMake(c *Comp, sym Symbol, node *ast.CallExpr) *Call {
 	args[0] = c.exprValue(argtypes[0], tin.ReflectType()) // no need to build TypeOfReflectType
 	te := c.TypeOfInt()
 	for i := 1; i < nargs; i++ {
-		argi := c.Expr1(node.Args[i], nil)
+		argi := c.expr1(node.Args[i], nil)
 		if argi.Const() {
 			argi.ConstTo(te)
 		} else if ti := argi.Type; ti == nil || (!ti.IdenticalTo(te) && !ti.AssignableTo(te)) {
@@ -656,7 +660,7 @@ func compileNew(c *Comp, sym Symbol, node *ast.CallExpr) *Call {
 
 // --- panic() ---
 
-func callPanic(arg interface{}) {
+func callPanic(arg I) {
 	panic(arg)
 }
 
@@ -671,7 +675,7 @@ func compilePanic(c *Comp, sym Symbol, node *ast.CallExpr) *Call {
 
 // --- Parse() ---
 
-func funSI_I(string, interface{}) interface{} {
+func funSI_I(string, I) I {
 	return nil
 }
 
@@ -694,14 +698,14 @@ func callParse(argv r.Value, interpv r.Value) r.Value {
 
 // --- print(), println() ---
 
-func callPrint(args ...interface{}) {
+func callPrint(args ...I) {
 	w := os.Stderr
 	for _, arg := range args {
 		fmt.Fprint(w, arg)
 	}
 }
 
-func callPrintln(args ...interface{}) {
+func callPrintln(args ...I) {
 	w := os.Stderr
 	n := len(args)
 	if n > 1 {
@@ -793,8 +797,8 @@ func compileRealImagUntyped(c *Comp, sym Symbol, node *ast.CallExpr, arg Untyped
 		val = constant.Imag(val)
 	}
 	// convert constant.Value result to UntypedLit of appropriate kind
-	kind := untyped.ConstantKindToUntypedLitKind(val.Kind())
-	arg = MakeUntypedLit(kind, val, &c.Universe.BasicTypes)
+	kind := untyped.MakeKind(val.Kind())
+	arg = untyped.MakeLit(kind, val, &c.Universe.BasicTypes)
 
 	touts := []xr.Type{c.TypeOfUntypedLit()}
 	tfun := c.Universe.FuncOf(nil, touts, false)
@@ -810,41 +814,41 @@ var nilInterface = r.Zero(base.TypeOfInterface)
 // we can use whatever signature we want, as long as call_builtin supports it
 func callRecover(v r.Value) r.Value {
 	env := v.Interface().(*Env)
-	g := env.Run
-	debug := g.Options&base.OptDebugRecover != 0
-	if !g.ExecFlags.IsDefer() {
+	run := env.Run
+	debug := run.Options&base.OptDebugRecover != 0
+	if !run.ExecFlags.IsDefer() {
 		if debug {
-			base.Debugf("recover() not directly inside a defer")
+			output.Debugf("recover() not directly inside a defer")
 		}
 		return nilInterface
 	}
-	if g.PanicFun == nil {
+	if run.PanicFun == nil {
 		if debug {
-			base.Debugf("recover() no panic")
+			output.Debugf("recover() no panic")
 		}
 		return nilInterface
 	}
-	if g.DeferOfFun != g.PanicFun {
+	if run.DeferOfFun != run.PanicFun {
 		if debug {
-			base.Debugf("recover() inside defer of function %p, not defer of the current panicking function %p", g.DeferOfFun, g.PanicFun)
+			output.Debugf("recover() inside defer of function %p, not defer of the current panicking function %p", run.DeferOfFun, run.PanicFun)
 		}
 		return nilInterface
 	}
-	rec := g.Panic
+	rec := run.Panic
 	if rec == nil {
 		if debug {
-			base.Debugf("recover() consuming current panic: nil")
+			output.Debugf("recover() consuming current panic: nil")
 		}
 		v = nilInterface
 	} else {
 		if debug {
-			base.Debugf("recover() consuming current panic: %v <%v>", rec, r.TypeOf(rec))
+			output.Debugf("recover() consuming current panic: %v <%v>", rec, r.TypeOf(rec))
 		}
-		v = r.ValueOf(rec).Convert(base.TypeOfInterface) // keep the interface{} type
+		v = r.ValueOf(rec).Convert(base.TypeOfInterface) // keep the I type
 	}
 	// consume the current panic
-	g.Panic = nil
-	g.PanicFun = nil
+	run.Panic = nil
+	run.PanicFun = nil
 	return v
 }
 
@@ -868,7 +872,7 @@ func (c *Comp) call_builtin(call *Call) I {
 	// builtin functions are always literals, i.e. funindex == NoIndex thus not stored in Env.Binds[]
 	// we must retrieve them directly from c.Fun.Value
 	if !call.Fun.Const() {
-		base.Errorf("internal error: call_builtin() invoked for non-constant function %#v. use one of the callXretY() instead", call.Fun)
+		output.Errorf("internal error: call_builtin() invoked for non-constant function %#v. use one of the callXretY() instead", call.Fun)
 	}
 	var name string
 	if call.Fun.Sym != nil {
@@ -1024,7 +1028,7 @@ func (c *Comp) call_builtin(call *Call) I {
 				return fun(arg0.Interface().([]byte), arg1)
 			}
 		}
-	case func(interface{}): // panic()
+	case func(I): // panic()
 		argfunsX1 := call.MakeArgfunsX1()
 		argfun := argfunsX1[0]
 		if name == "panic" {
@@ -1038,17 +1042,17 @@ func (c *Comp) call_builtin(call *Call) I {
 				fun(arg)
 			}
 		}
-	case func(...interface{}): // print, println()
+	case func(...I): // print, println()
 		argfunsX1 := call.MakeArgfunsX1()
 		if call.Ellipsis {
 			argfun := argfunsX1[0]
 			ret = func(env *Env) {
-				argslice := argfun(env).Interface().([]interface{})
+				argslice := argfun(env).Interface().([]I)
 				fun(argslice...)
 			}
 		} else {
 			ret = func(env *Env) {
-				args := make([]interface{}, len(argfunsX1))
+				args := make([]I, len(argfunsX1))
 				for i, argfun := range argfunsX1 {
 					args[i] = argfun(env).Interface()
 				}
@@ -1200,7 +1204,7 @@ func (c *Comp) call_builtin(call *Call) I {
 			return fun(arg0, arg1, arg2)
 		}
 	default:
-		base.Errorf("unimplemented call_builtin() for function type %v", r.TypeOf(fun))
+		output.Errorf("unimplemented call_builtin() for function type %v", r.TypeOf(fun))
 	}
 	return ret
 }
@@ -1255,7 +1259,7 @@ func (c *Comp) callFunction(node *ast.CallExpr, fun *Expr) (newfun *Expr, lastar
 	return newfun, lastarg
 }
 
-func (c *Comp) badBuiltinCallArgNum(name interface{}, nmin uint16, nmax uint16, args []ast.Expr) *Call {
+func (c *Comp) badBuiltinCallArgNum(name I, nmin uint16, nmax uint16, args []ast.Expr) *Call {
 	prefix := "not enough"
 	nargs := len(args)
 	if nargs > int(nmax) {
@@ -1274,12 +1278,12 @@ func (c *Comp) badBuiltinCallArgNum(name interface{}, nmin uint16, nmax uint16, 
 	return nil
 }
 
-func (c *Comp) badBuiltinCallArgType(name string, arg ast.Expr, tactual xr.Type, texpected interface{}) *Call {
+func (c *Comp) badBuiltinCallArgType(name string, arg ast.Expr, tactual xr.Type, texpected I) *Call {
 	c.Errorf("cannot use %v <%v> as %v in builtin %s()", arg, tactual, texpected, name)
 	return nil
 }
 
-func anyToAst(any interface{}, caller interface{}) ast2.Ast {
+func anyToAst(any I, caller I) ast2.Ast {
 	if untyped, ok := any.(UntypedLit); ok {
 		any = untyped.Convert(untyped.DefaultType())
 	}

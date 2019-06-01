@@ -16,6 +16,7 @@ import (
 
 	"github.com/cosmos72/gomacro/ast2"
 	"github.com/cosmos72/gomacro/base"
+	basereflect "github.com/cosmos72/gomacro/base/reflect"
 	interp "github.com/cosmos72/gomacro/fast"
 	"github.com/cosmos72/gomacro/xreflect"
 	zmq "github.com/pebbe/zmq4"
@@ -511,7 +512,7 @@ func doEval(ir *interp.Interp, code string) (val []interface{}, typ []xreflect.T
 		nonNilCount := 0
 		values := make([]interface{}, len(results))
 		for i, result := range results {
-			val := base.ValueInterface(result)
+			val := basereflect.Interface(result)
 			if val != nil {
 				nonNilCount++
 			}

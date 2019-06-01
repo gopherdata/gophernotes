@@ -1,7 +1,7 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017-2018 Massimiliano Ghilardi
+ * Copyright (C) 2017-2019 Massimiliano Ghilardi
  *
  *     This Source Code Form is subject to the terms of the Mozilla Public
  *     License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -22,43 +22,52 @@ import (
 	"go/token"
 	r "reflect"
 
+	"github.com/cosmos72/gomacro/base/strings"
+
 	. "github.com/cosmos72/gomacro/base"
+	"github.com/cosmos72/gomacro/base/reflect"
 	"github.com/cosmos72/gomacro/base/untyped"
 	xr "github.com/cosmos72/gomacro/xreflect"
 )
 
 // DeclType compiles a type declaration.
-func (c *Comp) DeclType(node ast.Spec) {
-	if node, ok := node.(*ast.TypeSpec); ok {
-		name := node.Name.Name
-		// support type aliases
-		if node.Assign != token.NoPos {
-			t := c.Type(node.Type)
-			c.DeclTypeAlias(name, t)
+func (c *Comp) DeclType(spec ast.Spec) {
+	node, ok := spec.(*ast.TypeSpec)
+	if !ok {
+		c.Errorf("unexpected type declaration, expecting *ast.TypeSpec, found: %v // %T", spec, spec)
+	}
+	if GENERICS_V1_CXX || GENERICS_V2_CTI {
+		if lit, _ := node.Type.(*ast.CompositeLit); lit != nil {
+			c.DeclGenericType(node)
 			return
 		}
-		// support self-referencing types, as for example: type List struct { First int; Rest *List }
-		oldt := c.Types[name]
-		panicking := true
-		defer func() {
-			// On compile error, restore pre-existing declaration
-			if !panicking || c.Types == nil {
-				// nothing to do
-			} else if oldt != nil {
-				c.Types[name] = oldt
-			} else {
-				delete(c.Types, name)
-			}
-		}()
-		t := c.DeclNamedType(name)
-		u := c.Type(node.Type)
-		if t != nil { // t == nil means name == "_", discard the result of type declaration
-			c.SetUnderlyingType(t, u)
-		}
-		panicking = false
-	} else {
-		c.Errorf("unexpected declaration type, expecting <*ast.TypeSpec>, found: %v <%v>", node, r.TypeOf(node))
 	}
+	name := node.Name.Name
+	// support type aliases
+	if node.Assign != token.NoPos {
+		t := c.Type(node.Type)
+		c.DeclTypeAlias(name, t)
+		return
+	}
+	// support self-referencing types, as for example: type List struct { First int; Rest *List }
+	oldt := c.Types[name]
+	panicking := true
+	defer func() {
+		// On compile error, restore pre-existing declaration
+		if !panicking || c.Types == nil {
+			// nothing to do
+		} else if oldt != nil {
+			c.Types[name] = oldt
+		} else {
+			delete(c.Types, name)
+		}
+	}()
+	t := c.DeclNamedType(name)
+	u := c.Type(node.Type)
+	if t != nil { // t == nil means name == "_", discard the result of type declaration
+		c.SetUnderlyingType(t, u)
+	}
+	panicking = false
 }
 
 // DeclTypeAlias compiles a typealias declaration, i.e. type Foo = /*...*/
@@ -77,6 +86,22 @@ func (c *Comp) DeclTypeAlias(name string, t xr.Type) xr.Type {
 		c.Types = make(map[string]xr.Type)
 	}
 	c.Types[name] = t
+	return t
+}
+
+// DeclTypeAlias0 declares a type alias
+// in Go, types are computed only at compile time - no need for a runtime *Env
+func (c *Comp) declTypeAlias(alias string, t xr.Type) xr.Type {
+	if alias == "" || alias == "_" {
+		// never define bindings for "_"
+		return t
+	}
+	if _, ok := c.Types[alias]; ok {
+		c.Warnf("redefined type: %v", alias)
+	} else if c.Types == nil {
+		c.Types = make(map[string]xr.Type)
+	}
+	c.Types[alias] = t
 	return t
 }
 
@@ -101,7 +126,7 @@ func (c *Comp) DeclNamedType(name string) xr.Type {
 	} else if c.Types == nil {
 		c.Types = make(map[string]xr.Type)
 	}
-	t := c.Universe.NamedOf(name, c.FileComp().Path, r.Invalid /*kind not yet known*/)
+	t := c.Universe.NamedOf(name, c.FileComp().Path)
 	c.Types[name] = t
 	return t
 }
@@ -116,23 +141,7 @@ func (c *Comp) DeclType0(t xr.Type) xr.Type {
 	if t == nil {
 		return nil
 	}
-	return c.DeclTypeAlias0(t.Name(), t)
-}
-
-// DeclTypeAlias0 declares a type alias
-// in Go, types are computed only at compile time - no need for a runtime *Env
-func (c *Comp) DeclTypeAlias0(alias string, t xr.Type) xr.Type {
-	if alias == "" || alias == "_" {
-		// never define bindings for "_"
-		return t
-	}
-	if _, ok := c.Types[alias]; ok {
-		c.Warnf("redefined type: %v", alias)
-	} else if c.Types == nil {
-		c.Types = make(map[string]xr.Type)
-	}
-	c.Types[alias] = t
-	return t
+	return c.declTypeAlias(t.Name(), t)
 }
 
 // Type compiles a type expression.
@@ -208,6 +217,12 @@ func (c *Comp) compileType2(node ast.Expr, allowEllipsis bool) (t xr.Type, ellip
 		t, _, _ = c.TypeFunction(node)
 	case *ast.Ident:
 		t = c.ResolveType(node.Name)
+	case *ast.IndexExpr:
+		if GENERICS_V1_CXX || GENERICS_V2_CTI {
+			t = c.GenericType(node)
+		} else {
+			c.Errorf("unimplemented type: %v <%v>", node, r.TypeOf(node))
+		}
 	case *ast.InterfaceType:
 		t = c.TypeInterface(node)
 	case *ast.MapType:
@@ -288,7 +303,7 @@ func (c *Comp) TypeArray(node *ast.ArrayType) (t xr.Type, ellipsis bool) {
 		// "The length is part of the array's type; it must evaluate to a non-negative constant
 		// representable by a value of type int. "
 		var count int
-		init := c.Expr(n, nil)
+		init := c.expr(n, nil)
 		if !init.Const() {
 			c.Errorf("array length is not a constant: %v", node)
 			return
@@ -411,7 +426,7 @@ func (c *Comp) fieldsTags(fields *ast.FieldList) []string {
 		for _, field := range fields.List {
 			var tag string
 			if lit := field.Tag; lit != nil && lit.Kind == token.STRING {
-				tag = MaybeUnescapeString(lit.Value)
+				tag = strings.MaybeUnescapeString(lit.Value)
 			}
 			if len(field.Names) == 0 {
 				tags = append(tags, tag)
@@ -429,7 +444,7 @@ func rtypeof(v r.Value, t xr.Type) r.Type {
 	if t != nil {
 		return t.ReflectType()
 	}
-	return ValueType(v)
+	return reflect.Type(v)
 }
 
 // TypeAssert2 compiles a multi-valued type assertion
@@ -455,10 +470,10 @@ func (c *Comp) TypeAssert2(node *ast.TypeAssertExpr) *Expr {
 
 	fail := []r.Value{xr.Zero(tout), False} // returned by type assertion in case of failure
 	switch {
-	case IsOptimizedKind(kout):
+	case reflect.IsOptimizedKind(kout):
 		ret = func(env *Env) (r.Value, []r.Value) {
 			v, t := extractor(fun(env))
-			if ValueType(v) != rtout || (t != nil && !t.AssignableTo(tout)) {
+			if reflect.Type(v) != rtout || (t != nil && !t.AssignableTo(tout)) {
 				return fail[0], fail
 			}
 			return v, []r.Value{v, True}
@@ -485,7 +500,7 @@ func (c *Comp) TypeAssert2(node *ast.TypeAssertExpr) *Expr {
 				v, _ := extractor(fun(env))
 				// nil is not a valid tout, check for it.
 				// IsNil() can be invoked only on nillable types...
-				if IsNillableKind(v.Kind()) && (v == Nil || v.IsNil()) {
+				if reflect.IsNillableKind(v.Kind()) && (v == Nil || v.IsNil()) {
 					return fail[0], fail
 				}
 				v = convert(v, rtout)
@@ -499,7 +514,7 @@ func (c *Comp) TypeAssert2(node *ast.TypeAssertExpr) *Expr {
 			v, t := extractor(fun(env))
 			// nil is not a valid tout, check for it.
 			// IsNil() can be invoked only on nillable types...
-			if IsNillableKind(v.Kind()) && (v == Nil || v.IsNil()) {
+			if reflect.IsNillableKind(v.Kind()) && (v == Nil || v.IsNil()) {
 				return fail[0], fail
 			}
 			rt := rtypeof(v, t)
@@ -511,13 +526,13 @@ func (c *Comp) TypeAssert2(node *ast.TypeAssertExpr) *Expr {
 			return v, []r.Value{v, True}
 		}
 
-	case IsNillableKind(kout):
+	case reflect.IsNillableKind(kout):
 		// type assertion to concrete (nillable) type
 		ret = func(env *Env) (r.Value, []r.Value) {
 			v, t := extractor(fun(env))
 			// nil is not a valid tout, check for it.
 			// IsNil() can be invoked only on nillable types...
-			if IsNillableKind(v.Kind()) && (v == Nil || v.IsNil()) {
+			if reflect.IsNillableKind(v.Kind()) && (v == Nil || v.IsNil()) {
 				return fail[0], fail
 			}
 			rt := rtypeof(v, t)
@@ -686,7 +701,7 @@ func (c *Comp) TypeAssert1(node *ast.TypeAssertExpr) *Expr {
 				v, _ := extractor(fun(env))
 				// nil is not a valid tout, check for it.
 				// IsNil() can be invoked only on nillable types...
-				if IsNillableKind(v.Kind()) && (v == Nil || v.IsNil()) {
+				if reflect.IsNillableKind(v.Kind()) && (v == Nil || v.IsNil()) {
 					typeassertpanic(nil, nil, tin, tout)
 				}
 				return convert(v, rtout)
@@ -698,7 +713,7 @@ func (c *Comp) TypeAssert1(node *ast.TypeAssertExpr) *Expr {
 				v, t := extractor(fun(env))
 				// nil is not a valid tout, check for it.
 				// IsNil() can be invoked only on nillable types...
-				if IsNillableKind(v.Kind()) && (v == Nil || v.IsNil()) {
+				if reflect.IsNillableKind(v.Kind()) && (v == Nil || v.IsNil()) {
 					typeassertpanic(nil, nil, tin, tout)
 				}
 				rt := rtypeof(v, t)
@@ -710,13 +725,13 @@ func (c *Comp) TypeAssert1(node *ast.TypeAssertExpr) *Expr {
 			}
 		}
 	default:
-		if IsNillableKind(kout) {
+		if reflect.IsNillableKind(kout) {
 			// type assertion to concrete (nillable) type
 			ret = func(env *Env) r.Value {
 				v, t := extractor(fun(env))
 				// nil is not a valid tout, check for it.
 				// IsNil() can be invoked only on nillable types...
-				if IsNillableKind(v.Kind()) && (v == Nil || v.IsNil()) {
+				if reflect.IsNillableKind(v.Kind()) && (v == Nil || v.IsNil()) {
 					typeassertpanic(nil, nil, tin, tout)
 				}
 				rt := rtypeof(v, t)
@@ -859,12 +874,14 @@ var (
 	rtypeOfInterface = r.TypeOf((*interface{})(nil)).Elem()
 	rtypeOfForward   = r.TypeOf((*xr.Forward)(nil)).Elem()
 
-	rtypeOfBuiltin     = r.TypeOf(Builtin{})
-	rtypeOfFunction    = r.TypeOf(Function{})
-	rtypeOfPtrImport   = r.TypeOf((*Import)(nil))
-	rtypeOfMacro       = r.TypeOf(Macro{})
-	rtypeOfUntypedLit  = r.TypeOf(UntypedLit{})
-	rtypeOfReflectType = r.TypeOf((*r.Type)(nil)).Elem()
+	rtypeOfBuiltin        = r.TypeOf(Builtin{})
+	rtypeOfFunction       = r.TypeOf(Function{})
+	rtypeOfMacro          = r.TypeOf(Macro{})
+	rtypeOfPtrImport      = r.TypeOf((*Import)(nil))
+	rtypeOfPtrGenericFunc = r.TypeOf((*GenericFunc)(nil))
+	rtypeOfPtrGenericType = r.TypeOf((*GenericType)(nil))
+	rtypeOfReflectType    = r.TypeOf((*r.Type)(nil)).Elem()
+	rtypeOfUntypedLit     = r.TypeOf((*UntypedLit)(nil)).Elem()
 
 	zeroOfReflectType = r.Zero(rtypeOfReflectType)
 )
@@ -877,12 +894,20 @@ func (g *CompGlobals) TypeOfFunction() xr.Type {
 	return g.Universe.ReflectTypes[rtypeOfFunction]
 }
 
+func (g *CompGlobals) TypeOfMacro() xr.Type {
+	return g.Universe.ReflectTypes[rtypeOfMacro]
+}
+
 func (g *CompGlobals) TypeOfPtrImport() xr.Type {
 	return g.Universe.ReflectTypes[rtypeOfPtrImport]
 }
 
-func (g *CompGlobals) TypeOfMacro() xr.Type {
-	return g.Universe.ReflectTypes[rtypeOfMacro]
+func (g *CompGlobals) TypeOfPtrGenericFunc() xr.Type {
+	return g.Universe.ReflectTypes[rtypeOfPtrGenericFunc]
+}
+
+func (g *CompGlobals) TypeOfPtrGenericType() xr.Type {
+	return g.Universe.ReflectTypes[rtypeOfPtrGenericType]
 }
 
 func (g *CompGlobals) TypeOfUntypedLit() xr.Type {

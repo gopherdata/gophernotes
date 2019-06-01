@@ -1,7 +1,7 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017-2018 Massimiliano Ghilardi
+ * Copyright (C) 2017-2019 Massimiliano Ghilardi
  *
  *     This Source Code Form is subject to the terms of the Mozilla Public
  *     License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -21,9 +21,15 @@ import (
 	"go/ast"
 	r "reflect"
 
+	"github.com/cosmos72/gomacro/base/reflect"
+
 	"github.com/cosmos72/gomacro/base"
 	xr "github.com/cosmos72/gomacro/xreflect"
 )
+
+type genericInterfaceReceiverType struct{}
+
+var genericInterfaceReceiverKey genericInterfaceReceiverType
 
 // compile an interface definition
 func (c *Comp) TypeInterface(node *ast.InterfaceType) xr.Type {
@@ -40,6 +46,9 @@ func (c *Comp) TypeInterface(node *ast.InterfaceType) xr.Type {
 			methodnames = append(methodnames, names[i])
 			methodtypes = append(methodtypes, typ)
 		} else {
+			if typ.Kind() != r.Interface {
+				c.Errorf("embedded interface is not an interface: %v", typ)
+			}
 			embeddedtypes = append(embeddedtypes, typ)
 		}
 	}
@@ -117,7 +126,7 @@ func setProxyField(place r.Value, mtd r.Value) {
 // extract a value from a proxy struct (one of the imports.* structs) that implements an interface
 // this is the inverse of the function returned by Comp.converterToProxy() above
 func (g *CompGlobals) extractFromProxy(v r.Value) (r.Value, xr.Type) {
-	// base.Debugf("type assertion: value = %v <%v>", v, base.ValueType(v))
+	// base.Debugf("type assertion: value = %v <%v>", v, base.Type(v))
 
 	// v.Kind() is allowed also on invalid r.Value, and it returns r.Invalid
 	if v.Kind() == r.Interface {
@@ -132,7 +141,7 @@ func (g *CompGlobals) extractFromProxy(v r.Value) (r.Value, xr.Type) {
 	// base.Debugf("type assertion: concrete value = %v <%v>", i, t)
 	if rt != nil && rt.Kind() == r.Ptr && g.proxy2interf[rt.Elem()] != nil {
 		v = v.Elem().Field(0)
-		if j, ok := base.ValueInterface(v).(xr.InterfaceHeader); ok {
+		if j, ok := reflect.Interface(v).(xr.InterfaceHeader); ok {
 			// base.Debugf("type assertion: unwrapped value = %v <%T>", j, j)
 			v = j.Value()
 			xt = j.Type()

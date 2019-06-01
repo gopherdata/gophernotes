@@ -6,7 +6,7 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017-2018 Massimiliano Ghilardi
+ * Copyright (C) 2017-2019 Massimiliano Ghilardi
  *
  *     This Source Code Form is subject to the terms of the Mozilla Public
  *     License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -25,22 +25,22 @@ import (
 	r "reflect"
 	"unsafe"
 
-	. "github.com/cosmos72/gomacro/base"
+	"github.com/cosmos72/gomacro/base/reflect"
 	xr "github.com/cosmos72/gomacro/xreflect"
 )
 
-func (c *Comp) varSetZero(va *Var) {
+func (c *Comp) varSetZero(va *Var) Stmt {
 	zero := xr.Zero(va.Type).Interface()
-	c.varSetConst(va, zero)
+	return c.varSetConst(va, zero)
 }
-func (c *Comp) varSetConst(va *Var, val I) {
+func (c *Comp) varSetConst(va *Var, val I) Stmt {
 	t := va.Type
 	upn := va.Upn
 	index := va.Desc.Index()
 
 	v := r.ValueOf(val)
 	rt := t.ReflectType()
-	if ValueType(v) == nil {
+	if reflect.Type(v) == nil {
 		v = r.Zero(rt)
 	} else {
 		v = convert(v, rt)
@@ -2388,9 +2388,9 @@ func (c *Comp) varSetConst(va *Var, val I) {
 			}
 		}
 	}
-	c.append(ret)
+	return ret
 }
-func (c *Comp) varSetExpr(va *Var, e *Expr) {
+func (c *Comp) varSetExpr(va *Var, e *Expr) Stmt {
 	t := va.Type
 	upn := va.Upn
 	index := va.Desc.Index()
@@ -4745,5 +4745,5 @@ func (c *Comp) varSetExpr(va *Var, e *Expr) {
 
 		}
 	}
-	c.append(ret)
+	return ret
 }

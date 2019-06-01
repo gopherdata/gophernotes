@@ -1,7 +1,7 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017-2018 Massimiliano Ghilardi
+ * Copyright (C) 2017-2019 Massimiliano Ghilardi
  *
  *     This Source Code Form is subject to the terms of the Mozilla Public
  *     License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -20,14 +20,14 @@ import (
 	"go/ast"
 	r "reflect"
 
-	. "github.com/cosmos72/gomacro/base"
+	"github.com/cosmos72/gomacro/base/reflect"
+
 	xr "github.com/cosmos72/gomacro/xreflect"
 )
 
 // Convert compiles a type conversion expression
 func (c *Comp) Convert(node ast.Expr, t xr.Type) *Expr {
-	e := c.Expr1(node, nil)
-
+	e := c.expr1(node, nil)
 	return c.convert(e, t, node)
 }
 
@@ -43,9 +43,9 @@ func (c *Comp) convert(e *Expr, t xr.Type, nodeOpt ast.Expr) *Expr {
 		if e.Const() {
 			return c.exprValue(t, e.Value)
 		} else {
-			return exprFun(t, e.Fun)
+			return c.Jit.Identity(exprFun(t, e.Fun), e)
 		}
-	} else if e.Type == nil && IsNillableKind(t.Kind()) {
+	} else if e.Type == nil && reflect.IsNillableKind(t.Kind()) {
 		e.Type = t
 		e.Value = xr.Zero(t).Interface()
 	} else if e.Type != nil && e.Type.ConvertibleTo(t) {
@@ -160,6 +160,8 @@ func (c *Comp) convert(e *Expr, t xr.Type, nodeOpt ast.Expr) *Expr {
 	eret := exprFun(t, ret)
 	if e.Const() {
 		eret.EvalConst(COptKeepUntyped)
+	} else {
+		eret = c.Jit.Cast(eret, t, e)
 	}
 	return eret
 }

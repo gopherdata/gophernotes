@@ -6,7 +6,7 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017-2018 Massimiliano Ghilardi
+ * Copyright (C) 2017-2019 Massimiliano Ghilardi
  *
  *     This Source Code Form is subject to the terms of the Mozilla Public
  *     License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -23,7 +23,7 @@ package fast
 
 import (
 	r "reflect"
-	. "github.com/cosmos72/gomacro/base"
+	"github.com/cosmos72/gomacro/base/reflect"
 )
 
 func (c *Comp) call0ret0(call *Call, maxdepth int) func(env *Env) {
@@ -88,7 +88,7 @@ func (c *Comp) call1ret0(call *Call, maxdepth int) func(env *Env) {
 		funupn = funsym.Upn
 		funindex = funsym.Desc.Index()
 		if funindex == NoIndex {
-			Errorf("internal error: call1ret0() invoked for constant function %#v. use call_builtin() instead", expr)
+			c.Errorf("internal error: call1ret0() invoked for constant function %#v. use call_builtin() instead", expr)
 		}
 
 	}
@@ -100,7 +100,7 @@ func (c *Comp) call1ret0(call *Call, maxdepth int) func(env *Env) {
 
 	t := expr.Type.In(0)
 	k := t.Kind()
-	if KindToType(k) == t.ReflectType() {
+	if reflect.KindToType(k) == t.ReflectType() {
 		switch k {
 		case r.Bool:
 
@@ -1137,7 +1137,7 @@ func (c *Comp) call2ret0(call *Call, maxdepth int) func(env *Env) {
 		funupn = funsym.Upn
 		funindex = funsym.Desc.Index()
 		if funindex == NoIndex {
-			Errorf("internal error: call2ret0() invoked for constant function %#v. use call_builtin() instead", expr)
+			c.Errorf("internal error: call2ret0() invoked for constant function %#v. use call_builtin() instead", expr)
 		}
 
 	}
@@ -1153,7 +1153,7 @@ func (c *Comp) call2ret0(call *Call, maxdepth int) func(env *Env) {
 	t := expr.Type.In(0)
 	rt := t.ReflectType()
 	k := t.Kind()
-	if KindToType(k) == rt && expr.Type.In(1).ReflectType() == rt {
+	if reflect.KindToType(k) == rt && expr.Type.In(1).ReflectType() == rt {
 		switch k {
 		case r.Bool:
 			{

@@ -1,7 +1,7 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017-2018 Massimiliano Ghilardi
+ * Copyright (C) 2018-2019 Massimiliano Ghilardi
  *
  *     This Source Code Form is subject to the terms of the Mozilla Public
  *     License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -23,7 +23,9 @@ import (
 	r "reflect"
 	"unsafe"
 
-	"github.com/cosmos72/gomacro/base"
+	"github.com/cosmos72/gomacro/base/output"
+	"github.com/cosmos72/gomacro/base/reflect"
+	"github.com/cosmos72/gomacro/base/strings"
 	xr "github.com/cosmos72/gomacro/xreflect"
 )
 
@@ -58,7 +60,7 @@ var constantValZero = constant.MakeInt64(0)
 
 // ================================= Convert =================================
 
-// Convert checks that an UntypedLit can be converted exactly to the given type.
+// Convert checks that an untyped.Lit can be converted exactly to the given type.
 // performs actual untyped -> typed conversion and subsequent overflow checks.
 // returns the constant.Value converted to given type
 func (untyp *Lit) Convert(t xr.Type) interface{} {
@@ -74,7 +76,7 @@ again:
 		r.Uint, r.Uint8, r.Uint16, r.Uint32, r.Uint64, r.Uintptr,
 		r.Float32, r.Float64:
 
-		if untyp.Kind == r.Complex128 && constant.Compare(constant.Imag(val), token.EQL, constantValZero) {
+		if untyp.Kind == Complex && constant.Compare(constant.Imag(val), token.EQL, constantValZero) {
 			// allow conversion from untyped complex to untyped integer or float,
 			// provided that untyped complex has zero imaginary part.
 			//
@@ -104,7 +106,7 @@ again:
 		// 5. Converting a value of a string type to a slice of runes type
 		// yields a slice containing the individual Unicode code points of the string.
 		if val.Kind() == constant.String {
-			s := base.UnescapeString(val.ExactString())
+			s := strings.UnescapeString(val.ExactString())
 			switch t.Elem().Kind() {
 			case r.Uint8:
 				ret = []byte(s)
@@ -116,7 +118,7 @@ again:
 		switch val.Kind() {
 		case constant.String:
 			// untyped string -> string
-			ret = base.UnescapeString(val.ExactString())
+			ret = strings.UnescapeString(val.ExactString())
 		case constant.Int:
 			// https://golang.org/ref/spec#String_literals states:
 			//
@@ -135,7 +137,7 @@ again:
 		ret = untyp.toMathBig(t)
 	}
 	if ret == nil {
-		base.Errorf("cannot convert untyped constant %v to <%v>", untyp, t)
+		output.Errorf("cannot convert untyped constant %v to <%v>", untyp, t)
 		return nil
 	}
 	v := r.ValueOf(ret)
@@ -175,22 +177,25 @@ func (untyp *Lit) BigInt() *big.Int {
 		ret = b.SetInt64(i)
 	} else if n, exact := untyp.Uint64(); exact {
 		ret = b.SetUint64(n)
-	} else if i := untyp.rawBigInt(); i != nil {
-		ret = b.Set(i)
-	} else if r := untyp.rawBigRat(); r != nil {
-		if !r.IsInt() {
-			return nil
-		}
-		ret = b.Set(r.Num())
-	} else if f := untyp.rawBigFloat(); f != nil {
-		if !f.IsInt() {
-			return nil
-		}
-		if i, acc := f.Int(&b); acc == big.Exact {
-			if i != &b {
-				b.Set(i)
+	} else {
+		i, r, f := untyp.rawBignum()
+		if i != nil {
+			ret = b.Set(i)
+		} else if r != nil {
+			if !r.IsInt() {
+				return nil
 			}
-			ret = &b
+			ret = b.Set(r.Num())
+		} else if f != nil {
+			if !f.IsInt() {
+				return nil
+			}
+			if i, acc := f.Int(&b); acc == big.Exact {
+				if i != &b {
+					b.Set(i)
+				}
+				ret = &b
+			}
 		}
 	}
 	if ret == nil {
@@ -209,18 +214,20 @@ func (untyp *Lit) BigRat() *big.Rat {
 
 	if i, exact := untyp.Int64(); exact {
 		ret = b.SetInt64(i)
-	} else if i := untyp.rawBigInt(); i != nil {
-		ret = b.SetInt(i)
-	} else if r := untyp.rawBigRat(); r != nil {
-		ret = b.Set(r)
-	} else if f := untyp.rawBigFloat(); f != nil {
-		if f.IsInt() {
-			if i, acc := f.Int(nil); acc == big.Exact {
-				ret = b.SetInt(i)
+	} else {
+		i, r, f := untyp.rawBignum()
+		if i != nil {
+			ret = b.SetInt(i)
+		} else if r != nil {
+			ret = b.Set(r)
+		} else if f != nil {
+			if f.IsInt() {
+				if i, acc := f.Int(nil); acc == big.Exact {
+					ret = b.SetInt(i)
+				}
 			}
 		}
 	}
-
 	if ret == nil {
 		// no luck... try to go through string representation
 		s := untyp.Val.ExactString()
@@ -238,25 +245,28 @@ func (untyp *Lit) BigFloat() *big.Float {
 
 	if i, exact := untyp.Int64(); exact {
 		ret = b.SetInt64(i)
-		// Debugf("UntypedLit.BigFloat(): converted int64 %v to *big.Float %v", i, b)
+		// Debugf("untyped.Lit.BigFloat(): converted int64 %v to *big.Float %v", i, b)
 	} else if f, exact := untyp.Float64(); exact {
 		ret = b.SetFloat64(f)
-		// Debugf("UntypedLit.BigFloat(): converted float64 %v to *big.Float %v", f, b)
-	} else if i := untyp.rawBigInt(); i != nil {
-		ret = b.SetInt(i)
-		// Debugf("UntypedLit.BigFloat(): converted *big.Int %v to *big.Float %v", *i, b)
-	} else if r := untyp.rawBigRat(); r != nil {
-		ret = b.SetRat(r)
-		// Debugf("UntypedLit.BigFloat(): converted *big.Rat %v to *big.Float %v", *r, b)
-	} else if f := untyp.rawBigFloat(); f != nil {
-		ret = b.Set(f)
-		// Debugf("UntypedLit.BigFloat(): converted *big.Float %v to *big.Float %v", *f, b)
+		// Debugf("untyped.Lit.BigFloat(): converted float64 %v to *big.Float %v", f, b)
+	} else {
+		i, r, f := untyp.rawBignum()
+		if i != nil {
+			ret = b.SetInt(i)
+			// Debugf("untyped.Lit.BigFloat(): converted *big.Int %v to *big.Float %v", *i, b)
+		} else if r != nil {
+			ret = b.SetRat(r)
+			// Debugf("untyped.Lit.BigFloat(): converted *big.Rat %v to *big.Float %v", *r, b)
+		} else if f != nil {
+			ret = b.Set(f)
+			// Debugf("untyped.Lit.BigFloat(): converted *big.Float %v to *big.Float %v", *f, b)
+		}
 	}
 
 	if ret == nil {
 		// no luck... try to go through string representation
 		s := untyp.Val.ExactString()
-		snum, sden := base.Split2(s, '/')
+		snum, sden := strings.Split2(s, '/')
 		_, ok := b.SetString(snum)
 		if ok && len(sden) != 0 {
 			var b2 big.Float
@@ -266,7 +276,7 @@ func (untyp *Lit) BigFloat() *big.Float {
 		}
 		if ok {
 			ret = &b
-			// Debugf("UntypedLit.BigFloat(): converted constant.Value %v %v to *big.Float %v", untyp.Val.Kind(), s, b)
+			// Debugf("untyped.Lit.BigFloat(): converted constant.Value %v %v to *big.Float %v", untyp.Val.Kind(), s, b)
 		}
 	}
 	return ret
@@ -293,46 +303,28 @@ func (untyp *Lit) Float64() (float64, bool) {
 	return 0, false
 }
 
-func (untyp *Lit) rawBigInt() *big.Int {
-	if untyp.Val.Kind() != constant.Int {
-		return nil
+// attempt to unwrap an untyped literal. Returns at most one of *big.Int, *big.Rat, *big.Float
+func (untyp *Lit) rawBignum() (*big.Int, *big.Rat, *big.Float) {
+	switch untyp.Val.Kind() {
+	case constant.Int, constant.Float:
+		break
+	default:
+		return nil, nil, nil
 	}
 	v := r.ValueOf(untyp.Val)
 	if v.Kind() == r.Struct {
 		v = v.Field(0)
 	}
-	if v.Type() != r.TypeOf((*big.Int)(nil)) {
-		return nil
+	switch v.Type() {
+	case rtypeOfPtrBigInt:
+		return (*big.Int)(unsafe.Pointer(v.Pointer())), nil, nil
+	case rtypeOfPtrBigRat:
+		return nil, (*big.Rat)(unsafe.Pointer(v.Pointer())), nil
+	case rtypeOfPtrBigFloat:
+		return nil, nil, (*big.Float)(unsafe.Pointer(v.Pointer()))
+	default:
+		return nil, nil, nil
 	}
-	return (*big.Int)(unsafe.Pointer(v.Pointer()))
-}
-
-func (untyp *Lit) rawBigRat() *big.Rat {
-	if untyp.Val.Kind() != constant.Float {
-		return nil
-	}
-	v := r.ValueOf(untyp.Val)
-	if v.Kind() == r.Struct {
-		v = v.Field(0)
-	}
-	if v.Type() != r.TypeOf((*big.Rat)(nil)) {
-		return nil
-	}
-	return (*big.Rat)(unsafe.Pointer(v.Pointer()))
-}
-
-func (untyp *Lit) rawBigFloat() *big.Float {
-	if untyp.Val.Kind() != constant.Float {
-		return nil
-	}
-	v := r.ValueOf(untyp.Val)
-	if v.Kind() == r.Struct {
-		v = v.Field(0)
-	}
-	if v.Type() != r.TypeOf((*big.Float)(nil)) {
-		return nil
-	}
-	return (*big.Float)(unsafe.Pointer(v.Pointer()))
 }
 
 // ================================= DefaultType =================================
@@ -340,16 +332,16 @@ func (untyp *Lit) rawBigFloat() *big.Float {
 // DefaultType returns the default type of an untyped constant.
 func (untyp *Lit) DefaultType() xr.Type {
 	switch untyp.Kind {
-	case r.Bool, r.Int32, r.Int, r.Uint, r.Float64, r.Complex128, r.String:
+	case Bool, Rune, Int, Float, Complex, String:
 		if basicTypes := untyp.basicTypes; basicTypes == nil {
-			base.Errorf("UntypedLit.DefaultType(): malformed untyped constant %v, has nil BasicTypes!", untyp)
+			output.Errorf("untyped.Lit.DefaultType(): malformed untyped constant %v, has nil BasicTypes!", untyp)
 			return nil
 		} else {
 			return (*basicTypes)[untyp.Kind]
 		}
 
 	default:
-		base.Errorf("unexpected untyped constant %v, its default type is not known", untyp)
+		output.Errorf("unexpected untyped constant %v, its default type is not known", untyp)
 		return nil
 	}
 }
@@ -358,10 +350,10 @@ func (untyp *Lit) DefaultType() xr.Type {
 
 // extractNumber converts the untyped constant src to an integer, float or complex.
 // panics if src has different kind from constant.Int, constant.Float and constant.Complex
-// the receiver (untyp UntypedLit) and the second argument (t reflect.Type) are only used to pretty-print the panic error message
+// the receiver (untyp *Lit) and the second argument (t reflect.Type) are only used to pretty-print the panic error message
 func (untyp *Lit) extractNumber(src constant.Value, t xr.Type) interface{} {
 	var n interface{}
-	cat := base.KindToCategory(t.Kind())
+	cat := reflect.Category(t.Kind())
 	var exact bool
 	switch src.Kind() {
 	case constant.Int:
@@ -381,18 +373,18 @@ func (untyp *Lit) extractNumber(src constant.Value, t xr.Type) interface{} {
 	case constant.Complex:
 		re := untyp.extractNumber(constant.Real(src), t)
 		im := untyp.extractNumber(constant.Imag(src), t)
-		rfloat := r.ValueOf(re).Convert(base.TypeOfFloat64).Float()
-		ifloat := r.ValueOf(im).Convert(base.TypeOfFloat64).Float()
+		rfloat := r.ValueOf(re).Convert(reflect.TypeOfFloat64).Float()
+		ifloat := r.ValueOf(im).Convert(reflect.TypeOfFloat64).Float()
 		n = complex(rfloat, ifloat)
 		exact = true
 	default:
-		base.Errorf("cannot convert untyped constant %v to <%v>", untyp, t)
+		output.Errorf("cannot convert untyped constant %v to <%v>", untyp, t)
 		return nil
 	}
 	// allow inexact conversions to float64 and complex128:
 	// floating point is intrinsically inexact, and Go compiler allows them too
 	if !exact && (cat == r.Int || cat == r.Uint) {
-		base.Errorf("untyped constant %v overflows <%v>", untyp, t)
+		output.Errorf("untyped constant %v overflows <%v>", untyp, t)
 		return nil
 	}
 	return n
@@ -403,28 +395,28 @@ func (untyp *Lit) extractNumber(src constant.Value, t xr.Type) interface{} {
 func ConvertLiteralCheckOverflow(src interface{}, to xr.Type) interface{} {
 	v := r.ValueOf(src)
 	rto := to.ReflectType()
-	vto := base.ConvertValue(v, rto)
+	vto := reflect.ConvertValue(v, rto)
 
 	k, kto := v.Kind(), vto.Kind()
 	if k == kto {
 		return vto.Interface() // no numeric conversion happened
 	}
-	c, cto := base.KindToCategory(k), base.KindToCategory(kto)
+	c, cto := reflect.Category(k), reflect.Category(kto)
 	if cto == r.Int || cto == r.Uint {
 		if c == r.Float64 || c == r.Complex128 {
 			// float-to-integer conversion. check for truncation
-			t1 := base.ValueType(v)
-			vback := base.ConvertValue(vto, t1)
+			t1 := reflect.Type(v)
+			vback := reflect.ConvertValue(vto, t1)
 			if src != vback.Interface() {
-				base.Errorf("constant %v truncated to %v", src, to)
+				output.Errorf("constant %v truncated to %v", src, to)
 				return nil
 			}
 		} else {
 			// integer-to-integer conversion. convert back and compare the interfaces for overflows
-			t1 := base.ValueType(v)
+			t1 := reflect.Type(v)
 			vback := vto.Convert(t1)
 			if src != vback.Interface() {
-				base.Errorf("constant %v overflows <%v>", src, to)
+				output.Errorf("constant %v overflows <%v>", src, to)
 				return nil
 			}
 		}

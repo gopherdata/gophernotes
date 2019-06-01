@@ -1,7 +1,7 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017-2018 Massimiliano Ghilardi
+ * Copyright (C) 2017-2019 Massimiliano Ghilardi
  *
  *     This Source Code Form is subject to the terms of the Mozilla Public
  *     License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -21,6 +21,7 @@ import (
 	r "reflect"
 
 	"github.com/cosmos72/gomacro/base"
+	"github.com/cosmos72/gomacro/base/reflect"
 	xr "github.com/cosmos72/gomacro/xreflect"
 )
 
@@ -36,7 +37,10 @@ type funcMaker struct {
 
 // DeclFunc compiles a function, macro or method declaration
 // For closure declarations, use FuncLit()
-func (c *Comp) FuncDecl(funcdecl *ast.FuncDecl) {
+//
+// This method is named DeclFunc instead of FuncDecl
+// for uniformity with DeclType, DeclConst*, DeclVar*, DeclGeneric*
+func (c *Comp) DeclFunc(funcdecl *ast.FuncDecl) {
 	var ismacro bool
 	if funcdecl.Recv != nil {
 		switch n := len(funcdecl.Recv.List); n {
@@ -46,8 +50,11 @@ func (c *Comp) FuncDecl(funcdecl *ast.FuncDecl) {
 			c.methodDecl(funcdecl)
 			return
 		default:
+			if GENERICS_V1_CXX || GENERICS_V2_CTI {
+				c.DeclGenericFunc(funcdecl)
+				return
+			}
 			c.Errorf("invalid function/method declaration: found %d receivers, expecting at most one: %v", n, funcdecl)
-			return
 		}
 	}
 	functype := funcdecl.Type
@@ -338,12 +345,12 @@ func (c *Comp) funcCreate(t xr.Type, info *FuncInfo, resultfuns []I, funcbody fu
 	for i := 0; optimize && i < nin; i++ {
 		rt := rtype.In(i)
 		k := rt.Kind()
-		optimize = base.IsOptimizedKind(k) && rt == c.Universe.BasicTypes[k].ReflectType()
+		optimize = reflect.IsOptimizedKind(k) && rt == c.Universe.BasicTypes[k].ReflectType()
 	}
 	for i := 0; optimize && i < nout; i++ {
 		rt := rtype.Out(i)
 		k := rt.Kind()
-		optimize = base.IsOptimizedKind(k) && rt == c.Universe.BasicTypes[k].ReflectType()
+		optimize = reflect.IsOptimizedKind(k) && rt == c.Universe.BasicTypes[k].ReflectType()
 	}
 
 	var fun func(*Env) r.Value

@@ -1,7 +1,7 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017-2018 Massimiliano Ghilardi
+ * Copyright (C) 2017-2019 Massimiliano Ghilardi
  *
  *     This Source Code Form is subject to the terms of the Mozilla Public
  *     License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -18,46 +18,47 @@ package xreflect
 
 import (
 	"go/token"
-	"go/types"
-	"reflect"
+	r "reflect"
 	"sort"
 	"unsafe"
+
+	"github.com/cosmos72/gomacro/go/etoken"
+
+	"github.com/cosmos72/gomacro/go/types"
 )
 
 // NamedOf returns a new named type for the given type name and package.
 // Initially, the underlying type may be set to interface{} - use SetUnderlying to change it.
 // These two steps are separate to allow creating self-referencing types,
 // as for example type List struct { Elem int; Rest *List }
-func (v *Universe) NamedOf(name, pkgpath string, kind reflect.Kind) Type {
+func (v *Universe) NamedOf(name, pkgpath string) Type {
 	if v.ThreadSafe {
 		defer un(lock(v))
 	}
-	return v.namedOf(name, pkgpath, kind)
+	return v.namedOf(name, pkgpath)
 }
 
-func (v *Universe) namedOf(name, pkgpath string, kind reflect.Kind) Type {
-	underlying := v.BasicTypes[kind]
-	if underlying == nil {
-		underlying = v.TypeOfForward
-	}
-	return v.reflectNamedOf(name, pkgpath, kind, underlying.ReflectType())
+func (v *Universe) namedOf(name, pkgpath string) Type {
+	return v.reflectNamedOf(name, pkgpath, v.TypeOfForward.ReflectType())
 }
 
 // alternate version of namedOf(), to be used when reflect.Type is known
-func (v *Universe) reflectNamedOf(name, pkgpath string, kind reflect.Kind, rtype reflect.Type) Type {
-	underlying := v.BasicTypes[kind]
+func (v *Universe) reflectNamedOf(name, pkgpath string, rtype r.Type) Type {
+	underlying := v.BasicTypes[rtype.Kind()]
 	if underlying == nil {
-		underlying = v.TypeOfInterface
+		underlying = v.TypeOfForward
 	}
 	pkg := v.loadPackage(pkgpath)
 	typename := types.NewTypeName(token.NoPos, (*types.Package)(pkg), name, nil)
 	return v.maketype3(
-		// kind may be inaccurate or reflect.Invalid;
+		// kind is reflect.Invalid;
 		// underlying.GoType() will often be inaccurate and equal to interface{};
-		// rtype will often be inaccurate and equal to Incomplete.
+		// rtype will often be inaccurate and equal to TypeOfForward.
 		// All these issues will be fixed by Type.SetUnderlying()
-		kind,
-		types.NewNamed(typename, underlying.GoType(), nil),
+		r.Invalid,
+		// if etoken.GENERICS_V2_CTI, v.BasicTypes[kind] is a named type
+		// wrapping the actual basic type
+		types.NewNamed(typename, underlying.GoType().Underlying(), nil),
 		rtype,
 	)
 }
@@ -69,22 +70,24 @@ func (t *xtype) SetUnderlying(underlying Type) {
 	switch gtype := t.gtype.(type) {
 	case *types.Named:
 		v := t.universe
-		if t.kind != reflect.Invalid || gtype.Underlying() != v.TypeOfInterface.GoType() || t.rtype != v.TypeOfInterface.ReflectType() {
+		if t.kind != r.Invalid || gtype.Underlying() != v.TypeOfForward.GoType() || t.rtype != v.TypeOfForward.ReflectType() {
 			// redefined type. try really hard to support it.
 			v.InvalidateCache()
 			// xerrorf(t, "SetUnderlying invoked multiple times on named type %v", t)
 		}
-		tunderlying := unwrap(underlying)
-		gunderlying := tunderlying.gtype.Underlying() // in case underlying is named
-		t.kind = gtypeToKind(t, gunderlying)
+		xunderlying := unwrap(underlying)
+		gunderlying := xunderlying.gtype.Underlying() // in case underlying is named
+		t.kind = gtypeToKind(xunderlying, gunderlying)
 		gtype.SetUnderlying(gunderlying)
 		// debugf("SetUnderlying: updated <%v> reflect Type from <%v> to <%v>", gtype, t.rtype, underlying.ReflectType())
 		t.rtype = underlying.ReflectType()
-		if t.kind == reflect.Interface {
+		if t.kind == r.Interface {
 			// propagate methodvalues from underlying interface to named type
-			t.methodvalues = tunderlying.methodvalues
+			t.methodvalues = xunderlying.methodvalues
 			t.methodcache = nil
 			t.fieldcache = nil
+		} else if etoken.GENERICS_V2_CTI {
+			v.addTypeMethodsCTI(t)
 		}
 	default:
 		xerrorf(t, "SetUnderlying of unnamed type %v", t)
@@ -100,10 +103,10 @@ func (t *xtype) AddMethod(name string, signature Type) int {
 		xerrorf(t, "AddMethod on unnamed type %v", t)
 	}
 	kind := gtypeToKind(t, gtype.Underlying())
-	if kind == reflect.Ptr || kind == reflect.Interface {
+	if kind == r.Ptr || kind == r.Interface {
 		xerrorf(t, "AddMethod: cannot add methods to named %s type: <%v>", kind, t)
 	}
-	if signature.Kind() != reflect.Func {
+	if signature.Kind() != r.Func {
 		xerrorf(t, "AddMethod on <%v> of non-function: %v", t, signature)
 	}
 	gsig := signature.gunderlying().(*types.Signature)
@@ -130,11 +133,11 @@ func (t *xtype) AddMethod(name string, signature Type) int {
 	gfun := types.NewFunc(token.NoPos, gpkg, name, gsig)
 
 	n1 := gtype.NumMethods()
-	index := unsafeAddMethod(gtype, gfun)
+	index := gtype.ReplaceMethod(gfun)
 	n2 := gtype.NumMethods()
 
 	// update the caches... be careful if the method was just redefined
-	nilv := reflect.Value{}
+	nilv := r.Value{}
 	for len(t.methodvalues) < n2 {
 		t.methodvalues = append(t.methodvalues, nilv)
 	}
@@ -174,24 +177,6 @@ type unsafeNamed struct {
 	methods    []*types.Func
 }
 
-// patched version of go/types.Named.AddMethod() that *overwrites* matching methods
-// (the original does not)
-func unsafeAddMethod(gtype *types.Named, gfun *types.Func) int {
-	if gfun.Name() == "_" {
-		return -1
-	}
-	gt := (*unsafeNamed)(unsafe.Pointer(gtype))
-	qname := QNameGo(gfun)
-	for i, m := range gt.methods {
-		if qname == QNameGo(m) {
-			gt.methods[i] = gfun
-			return i
-		}
-	}
-	gt.methods = append(gt.methods, gfun)
-	return len(gt.methods) - 1
-}
-
 func unsafeRemoveMethods(gtype *types.Named, names []string, pkgpath string) {
 	names = append([]string{}, names...) // make a copy
 	sort.Strings(names)                  // and sort it
@@ -221,8 +206,8 @@ func unsafeRemoveMethods(gtype *types.Named, names []string, pkgpath string) {
 
 // GetMethods returns the pointer to the method values.
 // It panics if the type is unnamed
-func (t *xtype) GetMethods() *[]reflect.Value {
-	if !t.Named() {
+func (t *xtype) GetMethods() *[]r.Value {
+	if !etoken.GENERICS_V2_CTI && !t.Named() {
 		xerrorf(t, "GetMethods on unnamed type %v", t)
 	}
 	resizemethodvalues(t)

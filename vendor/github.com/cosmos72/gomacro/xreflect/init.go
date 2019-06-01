@@ -1,7 +1,7 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017-2018 Massimiliano Ghilardi
+ * Copyright (C) 2017-2019 Massimiliano Ghilardi
  *
  *     This Source Code Form is subject to the terms of the Mozilla Public
  *     License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -17,40 +17,42 @@
 package xreflect
 
 import (
-	"reflect"
+	r "reflect"
 	"unsafe"
 
-	"go/types"
+	"github.com/cosmos72/gomacro/go/types"
 )
 
-var rbasictypes = []reflect.Type{
-	reflect.Bool:          reflect.TypeOf(bool(false)),
-	reflect.Int:           reflect.TypeOf(int(0)),
-	reflect.Int8:          reflect.TypeOf(int8(0)),
-	reflect.Int16:         reflect.TypeOf(int16(0)),
-	reflect.Int32:         reflect.TypeOf(int32(0)),
-	reflect.Int64:         reflect.TypeOf(int64(0)),
-	reflect.Uint:          reflect.TypeOf(uint(0)),
-	reflect.Uint8:         reflect.TypeOf(uint8(0)),
-	reflect.Uint16:        reflect.TypeOf(uint16(0)),
-	reflect.Uint32:        reflect.TypeOf(uint32(0)),
-	reflect.Uint64:        reflect.TypeOf(uint64(0)),
-	reflect.Uintptr:       reflect.TypeOf(uintptr(0)),
-	reflect.Float32:       reflect.TypeOf(float32(0)),
-	reflect.Float64:       reflect.TypeOf(float64(0)),
-	reflect.Complex64:     reflect.TypeOf(complex64(0)),
-	reflect.Complex128:    reflect.TypeOf(complex128(0)),
-	reflect.String:        reflect.TypeOf(string("")),
-	reflect.UnsafePointer: reflect.TypeOf(unsafe.Pointer(nil)),
+var rbasictypes = []r.Type{
+	r.Bool:          r.TypeOf(bool(false)),
+	r.Int:           r.TypeOf(int(0)),
+	r.Int8:          r.TypeOf(int8(0)),
+	r.Int16:         r.TypeOf(int16(0)),
+	r.Int32:         r.TypeOf(int32(0)),
+	r.Int64:         r.TypeOf(int64(0)),
+	r.Uint:          r.TypeOf(uint(0)),
+	r.Uint8:         r.TypeOf(uint8(0)),
+	r.Uint16:        r.TypeOf(uint16(0)),
+	r.Uint32:        r.TypeOf(uint32(0)),
+	r.Uint64:        r.TypeOf(uint64(0)),
+	r.Uintptr:       r.TypeOf(uintptr(0)),
+	r.Float32:       r.TypeOf(float32(0)),
+	r.Float64:       r.TypeOf(float64(0)),
+	r.Complex64:     r.TypeOf(complex64(0)),
+	r.Complex128:    r.TypeOf(complex128(0)),
+	r.String:        r.TypeOf(string("")),
+	r.UnsafePointer: r.TypeOf(unsafe.Pointer(nil)),
 }
+
+var ReflectBasicTypes = rbasictypes
 
 func (v *Universe) makeBasicTypes() []Type {
 	m := make([]Type, len(rbasictypes))
 	for gkind := types.Bool; gkind <= types.UnsafePointer; gkind++ {
 		kind := ToReflectKind(gkind)
-		gtype := types.Typ[gkind]
 		rtype := rbasictypes[kind]
-		if gtype == nil || rtype == nil {
+		gtype := types.Typ[gkind]
+		if rtype == nil || gtype == nil {
 			continue
 		}
 		t := wrap(&xtype{kind: kind, gtype: gtype, rtype: rtype, universe: v})
@@ -62,9 +64,9 @@ func (v *Universe) makeBasicTypes() []Type {
 
 func (v *Universe) makeError() Type {
 	t := wrap(&xtype{
-		kind:     reflect.Interface,
+		kind:     r.Interface,
 		gtype:    types.Universe.Lookup("error").Type(),
-		rtype:    reflect.TypeOf((*error)(nil)).Elem(),
+		rtype:    r.TypeOf((*error)(nil)).Elem(),
 		universe: v,
 	})
 	v.add(t)
@@ -73,7 +75,7 @@ func (v *Universe) makeError() Type {
 
 func (v *Universe) makeInterface() Type {
 	t := wrap(&xtype{
-		kind:     reflect.Interface,
+		kind:     r.Interface,
 		gtype:    types.NewInterface(nil, nil).Complete(),
 		rtype:    rTypeOfInterface,
 		universe: v,
@@ -84,7 +86,7 @@ func (v *Universe) makeInterface() Type {
 
 func (v *Universe) makeForward() Type {
 	t := wrap(&xtype{
-		kind:     reflect.Invalid,
+		kind:     r.Invalid,
 		gtype:    types.NewInterface(nil, nil).Complete(),
 		rtype:    rTypeOfForward,
 		universe: v,
@@ -96,10 +98,11 @@ func (v *Universe) makeForward() Type {
 func NewUniverse() *Universe {
 	v := &Universe{}
 	v.BasicTypes = v.makeBasicTypes()
+	v.addBasicTypesMethodsCTI()
 	v.TypeOfForward = v.makeForward()
 	v.TypeOfInterface = v.makeInterface()
 	v.TypeOfError = v.makeError()
-	// critical! trying to rebuild "error" type creates a non-indentical copy... lots of conversions would fail
+	// critical! trying to rebuild "error" type creates a non-identical copy... lots of conversions would fail
 	v.cache(v.TypeOfError.ReflectType(), v.TypeOfError)
 	v.cache(v.TypeOfInterface.ReflectType(), v.TypeOfInterface)
 	return v
@@ -108,9 +111,9 @@ func NewUniverse() *Universe {
 const MaxDepth = int(^uint(0) >> 1)
 
 var (
-	rTypeOfInterface       = reflect.TypeOf((*interface{})(nil)).Elem()
-	rTypeOfInterfaceHeader = reflect.TypeOf(InterfaceHeader{})
-	rTypeOfForward         = reflect.TypeOf((*Forward)(nil)).Elem()
+	rTypeOfInterface       = r.TypeOf((*interface{})(nil)).Elem()
+	rTypeOfInterfaceHeader = r.TypeOf(InterfaceHeader{})
+	rTypeOfForward         = r.TypeOf((*Forward)(nil)).Elem()
 )
 
 // Bits returns the size of the type in bits.

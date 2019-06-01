@@ -1,7 +1,7 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017-2018 Massimiliano Ghilardi
+ * Copyright (C) 2018-2019 Massimiliano Ghilardi
  *
  *     This Source Code Form is subject to the terms of the Mozilla Public
  *     License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -48,8 +48,8 @@ func (d *Debugger) showEnv(env *fast.Env) {
 	if c == nil || (c.BindNum == 0 && c.IntBindNum == 0) {
 		return
 	}
-	g := d.globals
-	g.Fprintf(g.Stdout, "// ----------\n")
+	o := d.globals.Output
+	o.Fprintf(o.Stdout, "// ----------\n")
 	binds := make([]*fast.Bind, len(c.Binds))
 	i := 0
 	for _, bind := range c.Binds {
@@ -59,9 +59,10 @@ func (d *Debugger) showEnv(env *fast.Env) {
 	sort.Slice(binds, func(i, j int) bool {
 		return binds[i].Name < binds[j].Name
 	})
+	g := c.CompGlobals
 	for _, bind := range binds {
-		value := bind.RuntimeValue(env)
-		g.Fprintf(g.Stdout, "%s\t= %v\t// %v\n", bind.Name, value, bind.Type)
+		value := bind.RuntimeValue(g, env)
+		o.Fprintf(o.Stdout, "%s\t= %v\t// %v\n", bind.Name, value, bind.Type)
 	}
 }
 
@@ -78,7 +79,7 @@ func (d *Debugger) showBinds(env *fast.Env, binds []*fast.Bind) {
 }
 
 func (d *Debugger) showBind(env *fast.Env, bind *fast.Bind) {
-	value := bind.RuntimeValue(env)
+	value := bind.RuntimeValue(d.interp.Comp.CompGlobals, env)
 	var ivalue interface{} = value
 	if !value.IsValid() {
 		ivalue = "nil"

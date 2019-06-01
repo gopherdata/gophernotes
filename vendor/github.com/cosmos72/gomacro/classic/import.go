@@ -1,7 +1,7 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017-2018 Massimiliano Ghilardi
+ * Copyright (C) 2017-2019 Massimiliano Ghilardi
  *
  *     This Source Code Form is subject to the terms of the Mozilla Public
  *     License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -21,7 +21,7 @@ import (
 	r "reflect"
 	"strings"
 
-	. "github.com/cosmos72/gomacro/base"
+	bstrings "github.com/cosmos72/gomacro/base/strings"
 )
 
 // eval a single import
@@ -36,13 +36,13 @@ func (env *Env) evalImportDecl(decl ast.Spec) (r.Value, []r.Value) {
 
 // eval a single import
 func (env *Env) evalImport(imp *ast.ImportSpec) (r.Value, []r.Value) {
-	path := UnescapeString(imp.Path.Value)
+	path := bstrings.UnescapeString(imp.Path.Value)
 	path = env.sanitizeImportPath(path)
 	var name string
 	if imp.Name != nil {
 		name = imp.Name.Name
 	}
-	pkg := env.ImportPackage(name, path)
+	pkg := env.Globals.Importer.ImportPackage(name, path)
 	if pkg != nil {
 		// if import appears *inside* a block, it is local for that block
 		if name == "." {

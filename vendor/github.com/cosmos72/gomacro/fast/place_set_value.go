@@ -1,7 +1,7 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017-2018 Massimiliano Ghilardi
+ * Copyright (C) 2017-2019 Massimiliano Ghilardi
  *
  *     This Source Code Form is subject to the terms of the Mozilla Public
  *     License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -20,6 +20,7 @@ import (
 	r "reflect"
 
 	. "github.com/cosmos72/gomacro/base"
+	"github.com/cosmos72/gomacro/base/reflect"
 )
 
 // placeSetValue compiles 'place = value' where value is a reflect.Value passed at runtime.
@@ -40,7 +41,7 @@ func (c *Comp) placeSetValue(place *Place) func(lhs, key, val r.Value) {
 		}
 	}
 	var ret func(r.Value, r.Value, r.Value)
-	switch KindToCategory(rtype.Kind()) {
+	switch reflect.Category(rtype.Kind()) {
 	case r.Bool:
 		ret = func(lhs, key, val r.Value) {
 			lhs.SetBool(val.Bool())

@@ -6,7 +6,7 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017-2018 Massimiliano Ghilardi
+ * Copyright (C) 2017-2019 Massimiliano Ghilardi
  *
  *     This Source Code Form is subject to the terms of the Mozilla Public
  *     License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -26,12 +26,12 @@ import (
 	r "reflect"
 
 	. "github.com/cosmos72/gomacro/base"
+	"github.com/cosmos72/gomacro/base/reflect"
 )
 
-func (c *Comp) placeAddConst(place *Place, val I) {
+func (c *Comp) placeAddConst(place *Place, val I) Stmt {
 	if isLiteralNumber(val, 0) || val == "" {
-		c.placeForSideEffects(place)
-		return
+		return c.placeForSideEffects(place)
 	}
 
 	{
@@ -41,7 +41,7 @@ func (c *Comp) placeAddConst(place *Place, val I) {
 		v := r.ValueOf(val)
 
 		if keyfun == nil {
-			switch KindToCategory(place.Type.Kind()) {
+			switch reflect.Category(place.Type.Kind()) {
 			case r.Int:
 				val := v.Int()
 
@@ -385,11 +385,10 @@ func (c *Comp) placeAddConst(place *Place, val I) {
 
 			}
 		}
-
-		c.append(ret)
+		return ret
 	}
 }
-func (c *Comp) placeAddExpr(place *Place, fun I) {
+func (c *Comp) placeAddExpr(place *Place, fun I) Stmt {
 	var ret Stmt
 	lhsfun := place.Fun
 	keyfun := place.MapKey
@@ -838,13 +837,11 @@ func (c *Comp) placeAddExpr(place *Place, fun I) {
 
 		}
 	}
-
-	c.append(ret)
+	return ret
 }
-func (c *Comp) placeSubConst(place *Place, val I) {
+func (c *Comp) placeSubConst(place *Place, val I) Stmt {
 	if isLiteralNumber(val, 0) {
-		c.placeForSideEffects(place)
-		return
+		return c.placeForSideEffects(place)
 	}
 
 	{
@@ -854,7 +851,7 @@ func (c *Comp) placeSubConst(place *Place, val I) {
 		v := r.ValueOf(val)
 
 		if keyfun == nil {
-			switch KindToCategory(place.Type.Kind()) {
+			switch reflect.Category(place.Type.Kind()) {
 			case r.Int:
 				val := v.Int()
 
@@ -1169,11 +1166,10 @@ func (c *Comp) placeSubConst(place *Place, val I) {
 
 			}
 		}
-
-		c.append(ret)
+		return ret
 	}
 }
-func (c *Comp) placeSubExpr(place *Place, fun I) {
+func (c *Comp) placeSubExpr(place *Place, fun I) Stmt {
 	var ret Stmt
 	lhsfun := place.Fun
 	keyfun := place.MapKey
@@ -1595,17 +1591,13 @@ func (c *Comp) placeSubExpr(place *Place, fun I) {
 
 		}
 	}
-
-	c.append(ret)
+	return ret
 }
-func (c *Comp) placeMulConst(place *Place, val I) {
+func (c *Comp) placeMulConst(place *Place, val I) Stmt {
 	if isLiteralNumber(val, 0) {
-
-		c.placeSetZero(place)
-		return
+		return c.placeSetZero(place)
 	} else if isLiteralNumber(val, 1) {
-		c.placeForSideEffects(place)
-		return
+		return c.placeForSideEffects(place)
 	}
 
 	{
@@ -1615,7 +1607,7 @@ func (c *Comp) placeMulConst(place *Place, val I) {
 		v := r.ValueOf(val)
 
 		if keyfun == nil {
-			switch KindToCategory(place.Type.Kind()) {
+			switch reflect.Category(place.Type.Kind()) {
 			case r.Int:
 				val := v.Int()
 
@@ -1930,11 +1922,10 @@ func (c *Comp) placeMulConst(place *Place, val I) {
 
 			}
 		}
-
-		c.append(ret)
+		return ret
 	}
 }
-func (c *Comp) placeMulExpr(place *Place, fun I) {
+func (c *Comp) placeMulExpr(place *Place, fun I) Stmt {
 	var ret Stmt
 	lhsfun := place.Fun
 	keyfun := place.MapKey
@@ -2356,12 +2347,18 @@ func (c *Comp) placeMulExpr(place *Place, fun I) {
 
 		}
 	}
-
-	c.append(ret)
+	return ret
 }
-func (c *Comp) placeQuoConst(place *Place, val I) {
-	if c.placeQuoPow2(place, val) {
-		return
+func (c *Comp) placeQuoConst(place *Place, val I) Stmt {
+	if isLiteralNumber(val, 0) {
+		c.Errorf("division by %v <%v>", val, r.TypeOf(val))
+		return nil
+	} else if isLiteralNumber(val, 1) {
+		return c.placeForSideEffects(place)
+	}
+
+	if stmt := c.placeQuoPow2(place, val); stmt != nil {
+		return stmt
 	}
 
 	{
@@ -2371,7 +2368,7 @@ func (c *Comp) placeQuoConst(place *Place, val I) {
 		v := r.ValueOf(val)
 
 		if keyfun == nil {
-			switch KindToCategory(place.Type.Kind()) {
+			switch reflect.Category(place.Type.Kind()) {
 			case r.Int:
 				val := v.Int()
 
@@ -2686,11 +2683,10 @@ func (c *Comp) placeQuoConst(place *Place, val I) {
 
 			}
 		}
-
-		c.append(ret)
+		return ret
 	}
 }
-func (c *Comp) placeQuoExpr(place *Place, fun I) {
+func (c *Comp) placeQuoExpr(place *Place, fun I) Stmt {
 	var ret Stmt
 	lhsfun := place.Fun
 	keyfun := place.MapKey
@@ -3112,18 +3108,15 @@ func (c *Comp) placeQuoExpr(place *Place, fun I) {
 
 		}
 	}
-
-	c.append(ret)
+	return ret
 }
-func (c *Comp) placeRemConst(place *Place, val I) {
-	if IsCategory(place.Type.Kind(), r.Int, r.Uint) {
+func (c *Comp) placeRemConst(place *Place, val I) Stmt {
+	if reflect.IsCategory(place.Type.Kind(), r.Int, r.Uint) {
 		if isLiteralNumber(val, 0) {
 			c.Errorf("division by %v <%v>", val, place.Type)
-			return
+			return nil
 		} else if isLiteralNumber(val, 1) {
-
-			c.placeSetZero(place)
-			return
+			return c.placeSetZero(place)
 		}
 	}
 
@@ -3134,7 +3127,7 @@ func (c *Comp) placeRemConst(place *Place, val I) {
 		v := r.ValueOf(val)
 
 		if keyfun == nil {
-			switch KindToCategory(place.Type.Kind()) {
+			switch reflect.Category(place.Type.Kind()) {
 			case r.Int:
 				val := v.Int()
 
@@ -3357,11 +3350,10 @@ func (c *Comp) placeRemConst(place *Place, val I) {
 
 			}
 		}
-
-		c.append(ret)
+		return ret
 	}
 }
-func (c *Comp) placeRemExpr(place *Place, fun I) {
+func (c *Comp) placeRemExpr(place *Place, fun I) Stmt {
 	var ret Stmt
 	lhsfun := place.Fun
 	keyfun := place.MapKey
@@ -3675,18 +3667,14 @@ func (c *Comp) placeRemExpr(place *Place, fun I) {
 
 		}
 	}
-
-	c.append(ret)
+	return ret
 }
-func (c *Comp) placeAndConst(place *Place, val I) {
-	if IsCategory(place.Type.Kind(), r.Int, r.Uint) {
+func (c *Comp) placeAndConst(place *Place, val I) Stmt {
+	if reflect.IsCategory(place.Type.Kind(), r.Int, r.Uint) {
 		if isLiteralNumber(val, -1) {
-			c.placeForSideEffects(place)
-			return
+			return c.placeForSideEffects(place)
 		} else if isLiteralNumber(val, 0) {
-
-			c.placeSetZero(place)
-			return
+			return c.placeSetZero(place)
 		}
 	}
 
@@ -3697,7 +3685,7 @@ func (c *Comp) placeAndConst(place *Place, val I) {
 		v := r.ValueOf(val)
 
 		if keyfun == nil {
-			switch KindToCategory(place.Type.Kind()) {
+			switch reflect.Category(place.Type.Kind()) {
 			case r.Int:
 				val := v.Int()
 
@@ -3920,11 +3908,10 @@ func (c *Comp) placeAndConst(place *Place, val I) {
 
 			}
 		}
-
-		c.append(ret)
+		return ret
 	}
 }
-func (c *Comp) placeAndExpr(place *Place, fun I) {
+func (c *Comp) placeAndExpr(place *Place, fun I) Stmt {
 	var ret Stmt
 	lhsfun := place.Fun
 	keyfun := place.MapKey
@@ -4238,13 +4225,11 @@ func (c *Comp) placeAndExpr(place *Place, fun I) {
 
 		}
 	}
-
-	c.append(ret)
+	return ret
 }
-func (c *Comp) placeOrConst(place *Place, val I) {
-	if IsCategory(place.Type.Kind(), r.Int, r.Uint) && isLiteralNumber(val, 0) {
-		c.placeForSideEffects(place)
-		return
+func (c *Comp) placeOrConst(place *Place, val I) Stmt {
+	if reflect.IsCategory(place.Type.Kind(), r.Int, r.Uint) && isLiteralNumber(val, 0) {
+		return c.placeForSideEffects(place)
 	}
 
 	{
@@ -4254,7 +4239,7 @@ func (c *Comp) placeOrConst(place *Place, val I) {
 		v := r.ValueOf(val)
 
 		if keyfun == nil {
-			switch KindToCategory(place.Type.Kind()) {
+			switch reflect.Category(place.Type.Kind()) {
 			case r.Int:
 				val := v.Int()
 
@@ -4477,11 +4462,10 @@ func (c *Comp) placeOrConst(place *Place, val I) {
 
 			}
 		}
-
-		c.append(ret)
+		return ret
 	}
 }
-func (c *Comp) placeOrExpr(place *Place, fun I) {
+func (c *Comp) placeOrExpr(place *Place, fun I) Stmt {
 	var ret Stmt
 	lhsfun := place.Fun
 	keyfun := place.MapKey
@@ -4795,13 +4779,11 @@ func (c *Comp) placeOrExpr(place *Place, fun I) {
 
 		}
 	}
-
-	c.append(ret)
+	return ret
 }
-func (c *Comp) placeXorConst(place *Place, val I) {
-	if IsCategory(place.Type.Kind(), r.Int, r.Uint) && isLiteralNumber(val, 0) {
-		c.placeForSideEffects(place)
-		return
+func (c *Comp) placeXorConst(place *Place, val I) Stmt {
+	if reflect.IsCategory(place.Type.Kind(), r.Int, r.Uint) && isLiteralNumber(val, 0) {
+		return c.placeForSideEffects(place)
 	}
 
 	{
@@ -4811,7 +4793,7 @@ func (c *Comp) placeXorConst(place *Place, val I) {
 		v := r.ValueOf(val)
 
 		if keyfun == nil {
-			switch KindToCategory(place.Type.Kind()) {
+			switch reflect.Category(place.Type.Kind()) {
 			case r.Int:
 				val := v.Int()
 
@@ -5034,11 +5016,10 @@ func (c *Comp) placeXorConst(place *Place, val I) {
 
 			}
 		}
-
-		c.append(ret)
+		return ret
 	}
 }
-func (c *Comp) placeXorExpr(place *Place, fun I) {
+func (c *Comp) placeXorExpr(place *Place, fun I) Stmt {
 	var ret Stmt
 	lhsfun := place.Fun
 	keyfun := place.MapKey
@@ -5352,18 +5333,14 @@ func (c *Comp) placeXorExpr(place *Place, fun I) {
 
 		}
 	}
-
-	c.append(ret)
+	return ret
 }
-func (c *Comp) placeAndnotConst(place *Place, val I) {
-	if IsCategory(place.Type.Kind(), r.Int, r.Uint) {
+func (c *Comp) placeAndnotConst(place *Place, val I) Stmt {
+	if reflect.IsCategory(place.Type.Kind(), r.Int, r.Uint) {
 		if isLiteralNumber(val, -1) {
-
-			c.placeSetZero(place)
-			return
+			return c.placeSetZero(place)
 		} else if isLiteralNumber(val, 0) {
-			c.placeForSideEffects(place)
-			return
+			return c.placeForSideEffects(place)
 		}
 	}
 
@@ -5374,7 +5351,7 @@ func (c *Comp) placeAndnotConst(place *Place, val I) {
 		v := r.ValueOf(val)
 
 		if keyfun == nil {
-			switch KindToCategory(place.Type.Kind()) {
+			switch reflect.Category(place.Type.Kind()) {
 			case r.Int:
 				val := v.Int()
 
@@ -5597,11 +5574,10 @@ func (c *Comp) placeAndnotConst(place *Place, val I) {
 
 			}
 		}
-
-		c.append(ret)
+		return ret
 	}
 }
-func (c *Comp) placeAndnotExpr(place *Place, fun I) {
+func (c *Comp) placeAndnotExpr(place *Place, fun I) Stmt {
 	var ret Stmt
 	lhsfun := place.Fun
 	keyfun := place.MapKey
@@ -5915,20 +5891,19 @@ func (c *Comp) placeAndnotExpr(place *Place, fun I) {
 
 		}
 	}
-
-	c.append(ret)
+	return ret
 }
-func (c *Comp) SetPlace(place *Place, op token.Token, init *Expr) {
+func (c *Comp) setPlace(place *Place, op token.Token, init *Expr) Stmt {
 	if place.IsVar() {
-		c.SetVar(&place.Var, op, init)
-		return
+		return c.setVar(&place.Var, op, init)
 	}
+
 	t := place.Type
 	if init.Const() {
 		init.ConstTo(t)
 	} else if init.Type == nil || !init.Type.AssignableTo(t) {
 		c.Errorf("incompatible types in assignment: <%v> %s <%v>", t, op, init.Type)
-		return
+		return nil
 	}
 	rt := t.ReflectType()
 	if init.Const() {
@@ -5943,53 +5918,51 @@ func (c *Comp) SetPlace(place *Place, op token.Token, init *Expr) {
 		}
 		switch op {
 		case token.ASSIGN:
-			c.placeSetConst(place, val)
+			return c.placeSetConst(place, val)
 		case token.ADD, token.ADD_ASSIGN:
-			c.placeAddConst(place, val)
+			return c.placeAddConst(place, val)
 		case token.SUB, token.SUB_ASSIGN:
-			c.placeSubConst(place, val)
+			return c.placeSubConst(place, val)
 		case token.MUL, token.MUL_ASSIGN:
-			c.placeMulConst(place, val)
+			return c.placeMulConst(place, val)
 		case token.QUO, token.QUO_ASSIGN:
-			c.placeQuoConst(place, val)
+			return c.placeQuoConst(place, val)
 		case token.REM, token.REM_ASSIGN:
-			c.placeRemConst(place, val)
+			return c.placeRemConst(place, val)
 		case token.AND, token.AND_ASSIGN:
-			c.placeAndConst(place, val)
+			return c.placeAndConst(place, val)
 		case token.OR, token.OR_ASSIGN:
-			c.placeOrConst(place, val)
+			return c.placeOrConst(place, val)
 		case token.XOR, token.XOR_ASSIGN:
-			c.placeAndConst(place, val)
+			return c.placeAndConst(place, val)
 		case token.AND_NOT, token.AND_NOT_ASSIGN:
-			c.placeAndnotConst(place, val)
-		default:
-			c.Errorf("operator %s is not implemented", op)
+			return c.placeAndnotConst(place, val)
 		}
 	} else {
 		fun := init.Fun
 		switch op {
 		case token.ASSIGN:
-			c.placeSetExpr(place, fun)
+			return c.placeSetExpr(place, fun)
 		case token.ADD, token.ADD_ASSIGN:
-			c.placeAddExpr(place, fun)
+			return c.placeAddExpr(place, fun)
 		case token.SUB, token.SUB_ASSIGN:
-			c.placeSubExpr(place, fun)
+			return c.placeSubExpr(place, fun)
 		case token.MUL, token.MUL_ASSIGN:
-			c.placeMulExpr(place, fun)
+			return c.placeMulExpr(place, fun)
 		case token.QUO, token.QUO_ASSIGN:
-			c.placeQuoExpr(place, fun)
+			return c.placeQuoExpr(place, fun)
 		case token.REM, token.REM_ASSIGN:
-			c.placeRemExpr(place, fun)
+			return c.placeRemExpr(place, fun)
 		case token.AND, token.AND_ASSIGN:
-			c.placeAndExpr(place, fun)
+			return c.placeAndExpr(place, fun)
 		case token.OR, token.OR_ASSIGN:
-			c.placeOrExpr(place, fun)
+			return c.placeOrExpr(place, fun)
 		case token.XOR, token.XOR_ASSIGN:
-			c.placeAndExpr(place, fun)
+			return c.placeAndExpr(place, fun)
 		case token.AND_NOT, token.AND_NOT_ASSIGN:
-			c.placeAndnotExpr(place, fun)
-		default:
-			c.Errorf("operator %s is not implemented", op)
+			return c.placeAndnotExpr(place, fun)
 		}
 	}
+	c.Errorf("operator %s is not implemented", op)
+	return nil
 }

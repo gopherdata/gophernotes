@@ -1,7 +1,7 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017-2018 Massimiliano Ghilardi
+ * Copyright (C) 2017-2019 Massimiliano Ghilardi
  *
  *     This Source Code Form is subject to the terms of the Mozilla Public
  *     License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -23,25 +23,28 @@ import (
 	"math/big"
 	r "reflect"
 
-	. "github.com/cosmos72/gomacro/base"
+	"github.com/cosmos72/gomacro/base/output"
+
+	"github.com/cosmos72/gomacro/base/reflect"
+	"github.com/cosmos72/gomacro/base/untyped"
 	xr "github.com/cosmos72/gomacro/xreflect"
 )
 
 func (c *Comp) BasicLit(node *ast.BasicLit) *Expr {
 	str := node.Value
-	var kind r.Kind
+	var kind untyped.Kind
 	var label string
 	switch node.Kind {
 	case token.INT:
-		kind, label = r.Int, "integer"
+		kind, label = untyped.Int, "integer"
 	case token.FLOAT:
-		kind, label = r.Float64, "float"
+		kind, label = untyped.Float, "float"
 	case token.IMAG:
-		kind, label = r.Complex128, "complex"
+		kind, label = untyped.Complex, "complex"
 	case token.CHAR:
-		kind, label = r.Int32, "rune"
+		kind, label = untyped.Rune, "rune"
 	case token.STRING:
-		kind, label = r.String, "string"
+		kind, label = untyped.String, "string"
 	default:
 		c.Errorf("unsupported basic literal: %v", node)
 		return nil
@@ -59,7 +62,7 @@ func isLiteral(x interface{}) bool {
 		return true
 	}
 	rtype := r.TypeOf(x)
-	switch KindToCategory(rtype.Kind()) {
+	switch reflect.Category(rtype.Kind()) {
 	case r.Bool, r.Int, r.Uint, r.Float64, r.Complex128, r.String:
 		return true
 	}
@@ -72,21 +75,16 @@ func isLiteralNumber(x I, n int64) bool {
 		return false
 	}
 	v := r.ValueOf(x)
-	switch KindToCategory(v.Kind()) {
+	switch reflect.Category(v.Kind()) {
 	case r.Bool:
 		return false
 	case r.Int:
 		return v.Int() == n
 	case r.Uint:
-		u := v.Uint()
-		if n >= 0 {
-			return u == uint64(n)
-		}
 		// n == -1 means "unsigned integer equals its maximum value"
 		// similarly, n == -2 means "unsigned integer equals its maximum value minus 1"
 		// and so on...
-		un := r.ValueOf(n).Convert(v.Type()).Uint()
-		return u == un
+		return v.Uint() == uint64(n)
 	case r.Float64:
 		return v.Float() == float64(n)
 	case r.Complex128:
@@ -101,7 +99,7 @@ func isLiteralNumber(x I, n int64) bool {
 	case UntypedLit:
 		return x.EqualInt64(n)
 	}
-	Errorf("isLiteralNumber: unexpected literal type %v <%v>", x, r.TypeOf(x))
+	output.Errorf("isLiteralNumber: unexpected literal type %v <%v>", x, r.TypeOf(x))
 	return false
 }
 
@@ -112,7 +110,7 @@ func isLiteralNumber(x I, n int64) bool {
 // actually performs type conversion (and subsequent overflow checks) ONLY on untyped constants.
 func (e *Expr) ConstTo(t xr.Type) I {
 	if !e.Const() {
-		Errorf("internal error: expression is not constant, use Expr.To() instead of Expr.ConstTo() to convert from <%v> to <%v>", e.Type, t)
+		output.Errorf("internal error: expression is not constant, use Expr.To() instead of Expr.ConstTo() to convert from <%v> to <%v>", e.Type, t)
 	}
 	val := e.Lit.ConstTo(t)
 	fun := makeMathBigFun(val)
@@ -120,9 +118,11 @@ func (e *Expr) ConstTo(t xr.Type) I {
 		// no longer a constant
 		e.Lit.Value = nil
 		e.Fun = fun
-	} else if e.Fun != nil {
-		// e.Fun is no longer valid, recompute it
-		e.WithFun()
+	} else {
+		if e.Fun != nil {
+			// e.Fun is no longer valid, recompute it
+			e.WithFun()
+		}
 	}
 	return val
 }
@@ -132,11 +132,11 @@ func (e *Expr) ConstTo(t xr.Type) I {
 // actually performs type conversion (and subsequent overflow checks) ONLY on untyped constants.
 func (lit *Lit) ConstTo(t xr.Type) I {
 	value := lit.Value
-	// Debugf("Lit.ConstTo(): converting constant %v <%v> (stored as <%v>) to <%v>", value, TypeOf(value), lit.Type, t)
+	// output.Debugf("Lit.ConstTo(): converting constant %v <%v> (stored as <%v>) to <%v>", value, TypeOf(value), lit.Type, t)
 	if t == nil {
 		// only literal nil has type nil
 		if value != nil {
-			Errorf("cannot convert constant %v <%v> to <nil>", value, lit.Type)
+			output.Errorf("cannot convert constant %v <%v> to <nil>", value, lit.Type)
 		}
 		return nil
 	}
@@ -150,11 +150,11 @@ func (lit *Lit) ConstTo(t xr.Type) I {
 		val := x.Convert(t)
 		lit.Type = t
 		lit.Value = val
-		// Debugf("UntypedLit.Convert(): converted untyped constant %v to %v <%v> (stored as <%v>)", x, val, TypeOf(val), t)
+		// output.Debugf("UntypedLit.Convert(): converted untyped constant %v to %v <%v> (stored as <%v>)", x, val, TypeOf(val), t)
 		return val
 	case nil:
 		// literal nil can only be converted to nillable types
-		if IsNillableKind(t.Kind()) {
+		if reflect.IsNillableKind(t.Kind()) {
 			lit.Type = t
 			return nil
 			// lit.Value = r.Zero(t).Interface()
@@ -167,7 +167,7 @@ func (lit *Lit) ConstTo(t xr.Type) I {
 		lit.Value = convert(r.ValueOf(value), t.ReflectType()).Interface()
 		return lit.Value
 	}
-	Errorf("cannot convert typed constant %v <%v> to <%v>%s", value, lit.Type, t, interfaceMissingMethod(lit.Type, t))
+	output.Errorf("cannot convert typed constant %v <%v> to <%v>%s", value, lit.Type, t, interfaceMissingMethod(lit.Type, t))
 	return nil
 }
 
@@ -268,7 +268,7 @@ func (e *Expr) To(c *Comp, t xr.Type) {
 		c.Errorf("cannot use <%v> as <%v>", e.Type, t)
 	}
 	k := e.Type.Kind()
-	if IsOptimizedKind(k) {
+	if reflect.IsOptimizedKind(k) {
 		if k == t.Kind() {
 			// same optimized representation
 			e.Type = t
@@ -326,8 +326,8 @@ again:
 		return eNil
 	}
 	if value == nil {
-		if !IsNillableKind(t.Kind()) {
-			Errorf("internal error: constant of type <%v> cannot be nil", t)
+		if !reflect.IsNillableKind(t.Kind()) {
+			output.Errorf("internal error: constant of type <%v> cannot be nil", t)
 		}
 		zero := r.Zero(t.ReflectType())
 		fun = func(*Env) r.Value {
@@ -342,7 +342,7 @@ again:
 		if rtexpected.Kind() == r.Interface && rtactual.Implements(rtexpected) {
 			v = convert(v, rtexpected)
 		} else {
-			Errorf("internal error: constant %v <%v> was assumed to have type <%v>", value, rtactual, rtexpected)
+			output.Errorf("internal error: constant %v <%v> was assumed to have type <%v>", value, rtactual, rtexpected)
 		}
 	}
 	switch v.Kind() {

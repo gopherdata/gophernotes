@@ -1,7 +1,7 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017-2018 Massimiliano Ghilardi
+ * Copyright (C) 2018-2019 Massimiliano Ghilardi
  *
  *     This Source Code Form is subject to the terms of the Mozilla Public
  *     License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -22,8 +22,8 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/cosmos72/gomacro/parser"
-	"github.com/cosmos72/gomacro/token"
+	"github.com/cosmos72/gomacro/go/etoken"
+	"github.com/cosmos72/gomacro/go/parser"
 )
 
 func TestRemoveItem(t *testing.T) {
@@ -80,7 +80,7 @@ func _testSorter(t *testing.T, filename string) {
 	}
 
 	var p parser.Parser
-	fset := token.NewFileSet()
+	fset := etoken.NewFileSet()
 	p.Init(fset, filename, 0, bytes)
 
 	nodes, err := p.Parse()

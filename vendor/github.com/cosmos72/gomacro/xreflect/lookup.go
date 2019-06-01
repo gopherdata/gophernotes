@@ -1,7 +1,7 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017-2018 Massimiliano Ghilardi
+ * Copyright (C) 2017-2019 Massimiliano Ghilardi
  *
  *     This Source Code Form is subject to the terms of the Mozilla Public
  *     License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -17,10 +17,11 @@
 package xreflect
 
 import (
-	"go/types"
-	"reflect"
+	r "reflect"
 
-	"github.com/cosmos72/gomacro/typeutil"
+	"github.com/cosmos72/gomacro/go/etoken"
+	"github.com/cosmos72/gomacro/go/types"
+	"github.com/cosmos72/gomacro/go/typeutil"
 )
 
 type depthMap struct {
@@ -42,7 +43,7 @@ func (m *depthMap) visited(gtype types.Type, depth int) bool {
 // and the number of fields found at the same (shallowest) depth: 0 if not found.
 // Private fields are returned only if they were declared in pkgpath.
 func (t *xtype) FieldByName(name, pkgpath string) (field StructField, count int) {
-	if name == "_" || t.kind != reflect.Struct {
+	if name == "_" || t.kind != r.Struct {
 		return
 	}
 	// debugf("field cache for %v <%v> = %v", unsafe.Pointer(t), t, t.fieldcache)
@@ -120,14 +121,16 @@ func fieldByName(t *xtype, qname QName, offset uintptr, index []int, m *depthMap
 }
 
 func derefStruct(t *xtype) (*xtype, *types.Struct) {
-	switch gtype := t.gtype.Underlying().(type) {
-	case *types.Struct:
-		return t, gtype
-	case *types.Pointer:
-		gelem, ok := gtype.Elem().Underlying().(*types.Struct)
-		if ok {
-			// not t.Elem(), it would acquire Universe lock
-			return unwrap(t.elem()), gelem
+	if t != nil {
+		switch gtype := t.gtype.Underlying().(type) {
+		case *types.Struct:
+			return t, gtype
+		case *types.Pointer:
+			gelem, ok := gtype.Elem().Underlying().(*types.Struct)
+			if ok {
+				// not t.Elem(), it would acquire Universe lock
+				return unwrap(t.elem()), gelem
+			}
 		}
 	}
 	return nil, nil
@@ -201,15 +204,25 @@ func anonymousFields(t *xtype, offset uintptr, index []int, m *depthMap) []Struc
 func (t *xtype) MethodByName(name, pkgpath string) (method Method, count int) {
 	// debugf("method cache for %v <%v> = %v", unsafe.Pointer(t), t, t.methodcache)
 
-	// only named types and interfaces can have methods
-	if name == "_" || (!t.Named() && t.kind != reflect.Interface) {
+	// only named types and interfaces can have methods,
+	// unless generics v2 are enabled: they add a few methods to most types
+	if name == "_" || (!etoken.GENERICS_V2_CTI && !t.Named() && t.kind != r.Interface) {
 		return
 	}
-	qname := QName2(name, pkgpath)
 	v := t.universe
 	if v.ThreadSafe {
 		defer un(lock(v))
 	}
+	return t.methodByName(name, pkgpath)
+}
+
+func (t *xtype) methodByName(name, pkgpath string) (method Method, count int) {
+	// only named types and interfaces can have methods,
+	// unless generics v2 are enabled: they add a few methods to most types
+	if name == "_" || (!etoken.GENERICS_V2_CTI && !t.Named() && t.kind != r.Interface) {
+		return
+	}
+	qname := QName2(name, pkgpath)
 	method, found := t.methodcache[qname]
 	if found {
 		index := method.Index
@@ -256,23 +269,27 @@ func methodByName(t *xtype, qname QName, index []int) (method Method, count int)
 	// debugf("methodByName: visiting %v <%v> <%v> at depth %d", t.kind, t.gtype, t.rtype, len(index))
 
 	// also support embedded fields: they can be interfaces, named types, pointers to named types
-	if t.kind == reflect.Ptr {
+	if t.kind == r.Ptr {
 		te := unwrap(t.elem())
-		if te.kind == reflect.Interface || te.kind == reflect.Ptr {
+		if te.kind == r.Interface || te.kind == r.Ptr {
 			return
 		}
 		t = te
 	}
 	n := t.NumMethod()
+	// fmt.Printf("looking up method %v in type %v\n", qname, t)
 	for i := 0; i < n; i++ {
 		gmethod := t.gmethod(i)
 		if matchMethodByName(qname, gmethod) {
+			// fmt.Printf("  match   : method %v\n", QNameGo(gmethod))
 			if count == 0 {
 				method = t.method(i)                                 // lock already held
 				method.FieldIndex = concat(index, method.FieldIndex) // make a copy of index
 				// debugf("methodByName: %d-th explicit method of <%v> matches: %#v", i, t.rtype, method)
 			}
 			count++
+		} else {
+			// fmt.Printf("  mismatch: method %v\n", QNameGo(gmethod))
 		}
 	}
 	return
@@ -308,12 +325,9 @@ func (v *Universe) VisitFields(t Type, visitor func(StructField)) {
 
 	for len(curr) != 0 {
 		for _, xt := range curr {
-			if xt == nil {
-				continue
-			}
 			// embedded fields can be named types or pointers to named types
 			xt, _ = derefStruct(xt)
-			if xt.kind != reflect.Struct || seen.At(xt.gtype) != nil {
+			if xt == nil || xt.kind != r.Struct || seen.At(xt.gtype) != nil {
 				continue
 			}
 			seen.Set(xt.gtype, xt.gtype)

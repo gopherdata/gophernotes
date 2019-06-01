@@ -1,7 +1,7 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017-2018 Massimiliano Ghilardi
+ * Copyright (C) 2017-2019 Massimiliano Ghilardi
  *
  *     This Source Code Form is subject to the terms of the Mozilla Public
  *     License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -25,6 +25,7 @@ import (
 	"time"
 
 	. "github.com/cosmos72/gomacro/base"
+	"github.com/cosmos72/gomacro/base/untyped"
 )
 
 type caseEntry struct {
@@ -72,7 +73,7 @@ func (c *Comp) Switch(node *ast.SwitchStmt, labels []string) {
 	tagnode := node.Tag
 	if tagnode == nil {
 		// "switch { }" without an expression means "switch true { }"
-		tag = c.exprUntypedLit(r.Bool, constant.MakeBool(true))
+		tag = c.exprUntypedLit(untyped.Bool, constant.MakeBool(true))
 		tagnode = &ast.Ident{NamePos: node.Pos() + 6, Name: "true"} // only for error messages
 	} else {
 		tag = c.Expr1(tagnode, nil)
@@ -85,9 +86,9 @@ func (c *Comp) Switch(node *ast.SwitchStmt, labels []string) {
 
 		if c.Options&OptDebugSleepOnSwitch != 0 {
 			c.append(func(env *Env) (Stmt, *Env) {
-				Debugf("start sleeping on switch, env = %p", env)
+				c.Debugf("start sleeping on switch, env = %p", env)
 				time.Sleep(time.Second / 30)
-				Debugf("done  sleeping on switch, env = %p", env)
+				c.Debugf("done  sleeping on switch, env = %p", env)
 				env.IP++
 				return env.Code[env.IP], env
 			})

@@ -1,7 +1,7 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017-2018 Massimiliano Ghilardi
+ * Copyright (C) 2017-2019 Massimiliano Ghilardi
  *
  *     This Source Code Form is subject to the terms of the Mozilla Public
  *     License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -24,6 +24,7 @@ import (
 
 	. "github.com/cosmos72/gomacro/ast2"
 	. "github.com/cosmos72/gomacro/base"
+	"github.com/cosmos72/gomacro/base/reflect"
 )
 
 func funcAppend(env *Env, args []r.Value) (r.Value, []r.Value) {
@@ -343,7 +344,7 @@ func funcValues(env *Env, args []r.Value) (r.Value, []r.Value) {
 			args[i] = arg
 		}
 	}
-	return UnpackValues(args)
+	return reflect.UnpackValues(args)
 }
 
 func (top *Env) addIota() {

@@ -1,7 +1,7 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017-2018 Massimiliano Ghilardi
+ * Copyright (C) 2017-2019 Massimiliano Ghilardi
  *
  *     This Source Code Form is subject to the terms of the Mozilla Public
  *     License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -23,7 +23,7 @@ import (
 
 	. "github.com/cosmos72/gomacro/ast2"
 	. "github.com/cosmos72/gomacro/base"
-	mt "github.com/cosmos72/gomacro/token"
+	etoken "github.com/cosmos72/gomacro/go/etoken"
 )
 
 func (env *Env) evalQuote(node *ast.BlockStmt) ast.Node {
@@ -60,13 +60,13 @@ func (env *Env) evalQuasiquoteAst(in Ast, depth int) (out Ast) {
 	if !canSplice {
 		if in, ok := in.(UnaryExpr); ok {
 			switch in.Op() {
-			case mt.QUASIQUOTE:
+			case etoken.QUASIQUOTE:
 				// equivalent to ToAst(form.p.X.(*ast.FuncLit).Body)
 				toexpand := in.Get(0).Get(1)
 				env.debugQuasiQuote("recursing inside QUASIQUOTE", depth+1, canSplice, toexpand.Interface())
 				expansion := env.evalQuasiquoteAst(toexpand, depth+1)
 				return MakeQuote2(in, expansion.(AstWithNode))
-			case mt.UNQUOTE:
+			case etoken.UNQUOTE:
 				if depth <= 1 {
 					y := env.evalUnquote(in)
 					return AnyToAst(y, "unquote")
@@ -77,7 +77,7 @@ func (env *Env) evalQuasiquoteAst(in Ast, depth int) (out Ast) {
 					expansion := env.evalQuasiquoteAst(toexpand, depth-1)
 					return MakeQuote2(in, expansion.(AstWithNode))
 				}
-			case mt.UNQUOTE_SPLICE:
+			case etoken.UNQUOTE_SPLICE:
 				y := in.Interface()
 				env.Errorf("quasiquote: cannot splice in single-statement context: %v <%v>", y, r.TypeOf(y))
 				return nil
@@ -107,7 +107,7 @@ func (env *Env) evalQuasiquoteAst(in Ast, depth int) (out Ast) {
 		switch child := child.(type) {
 		case UnaryExpr:
 			switch child.Op() {
-			case mt.QUASIQUOTE:
+			case etoken.QUASIQUOTE:
 				// equivalent to ToAst(form.p.X.(*ast.FuncLit).Body)
 				toexpand := child.Get(0).Get(1)
 				env.debugQuasiQuote("recursing inside QUASIQUOTE", depth+1, canSplice, toexpand.Interface())
@@ -115,7 +115,7 @@ func (env *Env) evalQuasiquoteAst(in Ast, depth int) (out Ast) {
 				child = MakeQuote2(child, expansion.(AstWithNode))
 				outSlice = outSlice.Append(child)
 				goto Next
-			case mt.UNQUOTE, mt.UNQUOTE_SPLICE:
+			case etoken.UNQUOTE, etoken.UNQUOTE_SPLICE:
 				// complication: in Common Lisp, the right-most unquote pairs with the left-most comma!
 				// we implement the same mechanics, so we must drill down to the last unquote/unquote_splice
 				// and, for unquote_splice, create a copy of the unquote/unquote_splice stack for each result.
@@ -129,27 +129,27 @@ func (env *Env) evalQuasiquoteAst(in Ast, depth int) (out Ast) {
 				op := lastUnquote.Op()
 
 				env.debugQuasiQuote(fmt.Sprintf("inside %s, lastUnquote is %s (unquoteDepth = %d)",
-					mt.String(child.Op()), mt.String(op), unquoteDepth), depth, canSplice, child)
+					etoken.String(child.Op()), etoken.String(op), unquoteDepth), depth, canSplice, child)
 
 				if unquoteDepth > depth {
-					env.Errorf("%s not inside quasiquote: %v <%v>", mt.String(op), lastUnquote, r.TypeOf(lastUnquote))
+					env.Errorf("%s not inside quasiquote: %v <%v>", etoken.String(op), lastUnquote, r.TypeOf(lastUnquote))
 					return nil
 				} else if unquoteDepth < depth {
 					toexpand := child.Get(0).Get(1)
-					env.debugQuasiQuote(fmt.Sprintf("recursing inside %s, lastUnquote is %s", mt.String(child.Op()), mt.String(op)),
+					env.debugQuasiQuote(fmt.Sprintf("recursing inside %s, lastUnquote is %s", etoken.String(child.Op()), etoken.String(op)),
 						depth-1, canSplice, toexpand.Interface())
 					expansion := env.evalQuasiquoteAst(toexpand, depth-1)
 					child = MakeQuote2(child, expansion.(AstWithNode))
 					outSlice = outSlice.Append(child)
 				} else {
 					env.debugQuasiQuote("calling unquote on", depth-unquoteDepth, canSplice, lastUnquote.Interface())
-					toInsert := AnyToAst(env.evalUnquote(lastUnquote), mt.String(op))
+					toInsert := AnyToAst(env.evalUnquote(lastUnquote), etoken.String(op))
 					if toInsert == nil {
 						env.debugQuasiQuote("unquote returned", depth-unquoteDepth, canSplice, toInsert)
 					} else {
 						env.debugQuasiQuote("unquote returned", depth-unquoteDepth, canSplice, toInsert.Interface())
 					}
-					if op == mt.UNQUOTE {
+					if op == etoken.UNQUOTE {
 						stack := DuplicateNestedUnquotes(child, unquoteDepth-1, toInsert)
 						outSlice = outSlice.Append(stack)
 					} else if toInsert != nil {

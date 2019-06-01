@@ -1,7 +1,7 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017-2018 Massimiliano Ghilardi
+ * Copyright (C) 2017-2019 Massimiliano Ghilardi
  *
  *     This Source Code Form is subject to the terms of the Mozilla Public
  *     License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -17,14 +17,17 @@
 package xreflect
 
 import (
-	"go/types"
+	"go/token"
 	"io"
 	"os"
 	r "reflect"
 	"testing"
 	"time"
 
-	"github.com/cosmos72/gomacro/typeutil"
+	"github.com/cosmos72/gomacro/go/etoken"
+
+	"github.com/cosmos72/gomacro/go/types"
+	"github.com/cosmos72/gomacro/go/typeutil"
 )
 
 var u = NewUniverse()
@@ -126,7 +129,7 @@ func TestBasic(t *testing.T) {
 		is(t, typ.ReflectType(), rtype)
 		istypeof(t, typ.GoType(), (*types.Basic)(nil))
 
-		basic := typ.GoType().(*types.Basic)
+		basic := typ.GoType().Underlying().(*types.Basic)
 		k := ToReflectKind(basic.Kind())
 		is(t, k, rtype.Kind())
 	}
@@ -199,37 +202,90 @@ func TestMap(t *testing.T) {
 	is(t, typ.Kind(), r.Map)
 	is(t, typ.Name(), "")
 	is(t, typ.ReflectType(), rtype)
-	is(t, typ.NumAllMethod(), 0)
+	is(t, rtype.NumMethod(), 0)
+	if etoken.GENERICS_V2_CTI {
+		is(t, typ.NumMethod(), 5)
+		is(t, typ.NumAllMethod(), 5)
+	} else {
+		is(t, typ.NumMethod(), 0)
+		is(t, typ.NumAllMethod(), 0)
+	}
 	istypeof(t, typ.GoType(), (*types.Map)(nil))
 }
 
-func TestMethod(t *testing.T) {
-	typ := u.NamedOf("MyInt", "main", r.Int)
+func TestIntMethod(t *testing.T) {
+	typ := u.NamedOf("MyInt", "main")
 	typ.SetUnderlying(u.BasicTypes[r.Int])
 	rtype := r.TypeOf(int(0))
 	is(t, typ.Kind(), r.Int)
 	is(t, typ.Name(), "MyInt")
 	is(t, typ.ReflectType(), rtype)
-	is(t, typ.NumAllMethod(), 0)
+	if etoken.GENERICS_V2_CTI {
+		is(t, typ.NumMethod(), 16)
+		is(t, typ.NumAllMethod(), 32)
+	} else {
+		is(t, typ.NumMethod(), 0)
+		is(t, typ.NumAllMethod(), 0)
+	}
 	istypeof(t, typ.GoType(), (*types.Named)(nil))
 }
 
 func TestNamed(t *testing.T) {
-	typ := u.NamedOf("MyMap", "main", r.Map)
-	underlying := u.MapOf(u.TypeOfInterface, u.BasicTypes[r.Bool])
+	tkey := u.TypeOfInterface
+	tval := u.BasicTypes[r.Bool]
+	underlying := u.MapOf(tkey, tval)
+
+	typ := u.NamedOf("MyMap", "main")
 	typ.SetUnderlying(underlying)
 	rtype := r.TypeOf(map[interface{}]bool{})
 	is(t, typ.Kind(), r.Map)
 	is(t, typ.Name(), "MyMap")
 	is(t, typ.ReflectType(), rtype)
-	is(t, typ.NumAllMethod(), rtype.NumMethod())
+	is(t, rtype.NumMethod(), 0)
+	if etoken.GENERICS_V2_CTI {
+		is(t, typ.NumMethod(), 5)
+		is(t, typ.NumAllMethod(), 10)
+
+		m, count := typ.MethodByName("Index", "")
+		is(t, count, 1)
+		is(t, m.Name, "Index")
+		is(t, m.Pkg, (*Package)(nil))
+		is(t, m.Type.ReflectType(), r.TypeOf(func(map[interface{}]bool, interface{}) bool {
+			return false
+		}))
+
+		newvar := func(t Type) *types.Var {
+			return types.NewVar(token.NoPos, nil, "", t.GoType())
+		}
+		isidenticalgotype(t,
+			m.Type.GoType(),
+			types.NewSignature(
+				newvar(typ),
+				types.NewTuple(newvar(tkey)),
+				types.NewTuple(newvar(tval)),
+				false,
+			),
+		)
+
+		m, count = typ.MethodByName("TryIndex", "")
+		is(t, count, 1)
+		is(t, m.Name, "TryIndex")
+		is(t, m.Pkg, (*Package)(nil))
+		is(t, m.Type.ReflectType(), r.TypeOf(func(map[interface{}]bool, interface{}) (bool, bool) {
+			return false, false
+		}))
+
+	} else {
+		is(t, typ.NumMethod(), 0)
+		is(t, typ.NumAllMethod(), 0)
+	}
 	istypeof(t, typ.GoType(), (*types.Named)(nil))
 }
 
 func TestSelfReference(t *testing.T) {
-	typ := u.NamedOf("List", "main", r.Struct)
+	typ := u.NamedOf("List", "main")
 
-	is(t, typ.Kind(), r.Struct)
+	is(t, typ.Kind(), r.Invalid)
 	isidenticalgotype(t, typ.gunderlying(), u.TypeOfForward.GoType())
 
 	underlying := u.StructOf([]StructField{
@@ -237,6 +293,7 @@ func TestSelfReference(t *testing.T) {
 		StructField{Name: "Rest", Type: typ},
 	})
 	typ.SetUnderlying(underlying)
+	is(t, typ.Kind(), r.Struct)
 	typ1 := typ.Field(1).Type
 	rtype := r.TypeOf(struct {
 		First int
@@ -280,7 +337,7 @@ func TestStruct(t *testing.T) {
 }
 
 func TestEmbedded(t *testing.T) {
-	etyp := u.NamedOf("Box", "", r.Struct)
+	etyp := u.NamedOf("Box", "")
 	etyp.SetUnderlying(u.StructOf([]StructField{
 		StructField{Name: "Value", Type: u.BasicTypes[r.Int]},
 	}))
@@ -400,7 +457,7 @@ func TestFromReflect4(t *testing.T) {
 			approxInterfaceHeader(),
 			r.StructField{Name: "String", Type: r.TypeOf((*ToString)(nil)).Elem()},
 		}))
-	typ := u.NamedOf("Stringer", "io", r.Interface)
+	typ := u.NamedOf("Stringer", "io")
 	v := NewUniverse()
 	v.RebuildDepth = MaxDepth
 	underlying := v.FromReflectType(rtype)
@@ -485,8 +542,10 @@ func TestFromReflectMutualRecursion(t *testing.T) {
 	is(t, typ2.Name(), "Response4Test")
 	isidenticalgotype(t, typ1.GoType(), typ1_loop.GoType())
 
-	is(t, typ1.gunderlying().String(), "struct{Header map[string]string; Response *github.com/cosmos72/gomacro/xreflect.Response4Test}")
-	is(t, typ2.gunderlying().String(), "struct{HttpStatus int; Request *github.com/cosmos72/gomacro/xreflect.Request4Test}")
+        mypkg := "github.com/gopherdata/gophernotes/vendor/github.com/cosmos72/gomacro/xreflect"
+	
+	is(t, typ1.gunderlying().String(), "struct{Header map[string]string; Response *" + mypkg + ".Response4Test}")
+	is(t, typ2.gunderlying().String(), "struct{HttpStatus int; Request *" + mypkg + ".Request4Test}")
 }
 
 // test implementing 'io.Reader' interface
@@ -581,13 +640,13 @@ func makeIoReaderWriterType() Type {
 	out := []Type{u.BasicTypes[r.Int], u.TypeOfError}
 	method := u.FuncOf(in, out, false)
 	read_interf := u.InterfaceOf(nil, []string{"Read"}, []Type{method}, nil).Complete()
-	reader := u.NamedOf("Reader", "io", r.Interface)
+	reader := u.NamedOf("Reader", "io")
 	reader.SetUnderlying(read_interf)
 	write_interf := u.InterfaceOf(nil, []string{"Write"}, []Type{method}, nil).Complete()
-	writer := u.NamedOf("Writer", "io", r.Interface)
+	writer := u.NamedOf("Writer", "io")
 	writer.SetUnderlying(write_interf)
 	rw_interf := u.InterfaceOf(nil, nil, nil, []Type{reader, writer}).Complete()
-	readwriter := u.NamedOf("ReadWriter", "io", r.Interface)
+	readwriter := u.NamedOf("ReadWriter", "io")
 	readwriter.SetUnderlying(rw_interf)
 	return readwriter
 }
@@ -604,16 +663,26 @@ func TestInterfaceIoReadWriter(t *testing.T) {
 	is(t, m.Name, "Read")
 	is(t, m.Type.NumIn(), 2) // receiver and []uint8
 	is(t, m.Type.NumOut(), 2)
-	is(t, m.Type.String(), "func([]uint8) (int, error)")
-	isidenticalgotype(t, m.Type.In(0).GoType(), rw.gunderlying())
+
+	// go/types.Type.String() does not show the receiver
+	is(t, m.Type.GoType().String(), "func([]uint8) (int, error)")
+	// instead xreflect.Type.String() also shows it
+	is(t, m.Type.String(), "func (interface{Read([]uint8) (int, error)}).([]uint8) (int, error)")
+
+	// isidenticalgotype(t, m.Type.In(0).GoType(), rw.gunderlying()) // changed in Go 1.12.beta1
 
 	m, count = rw.MethodByName("Write", "")
 	is(t, count, 1)
 	is(t, m.Name, "Write")
 	is(t, m.Type.NumIn(), 2) // receiver and []uint8
 	is(t, m.Type.NumOut(), 2)
-	is(t, m.Type.String(), "func([]uint8) (int, error)")
-	isidenticalgotype(t, m.Type.In(0).GoType(), rw.gunderlying())
+
+	// go/types.Type.String() does not show the receiver
+	is(t, m.Type.GoType().String(), "func([]uint8) (int, error)")
+	// instead xreflect.Type.String() also shows it
+	is(t, m.Type.String(), "func (interface{Write([]uint8) (int, error)}).([]uint8) (int, error)")
+
+	// isidenticalgotype(t, m.Type.In(0).GoType(), rw.gunderlying()) // changed in Go 1.12.beta1
 
 	trw := u.TypeOf((*io.ReadWriter)(nil)).Elem()
 

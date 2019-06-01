@@ -6,7 +6,7 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017-2018 Massimiliano Ghilardi
+ * Copyright (C) 2017-2019 Massimiliano Ghilardi
  *
  *     This Source Code Form is subject to the terms of the Mozilla Public
  *     License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -23,7 +23,7 @@ package fast
 
 import (
 	r "reflect"
-	. "github.com/cosmos72/gomacro/base"
+	"github.com/cosmos72/gomacro/base/reflect"
 )
 
 func (c *Comp) call1ret1(call *Call, maxdepth int) I {
@@ -35,7 +35,7 @@ func (c *Comp) call1ret1(call *Call, maxdepth int) I {
 		funupn = funsym.Upn
 		funindex = funsym.Desc.Index()
 		if funindex == NoIndex {
-			Errorf("internal error: call1ret1() invoked for constant function %v. use call_builtin() instead", expr)
+			c.Errorf("internal error: call1ret1() invoked for constant function %v. use call_builtin() instead", expr)
 		}
 
 	}
@@ -43,7 +43,7 @@ func (c *Comp) call1ret1(call *Call, maxdepth int) I {
 	targ, tret := t.In(0), t.Out(0)
 	karg, kret := targ.Kind(), tret.Kind()
 	var ret I
-	if KindToType(karg) != targ.ReflectType() || KindToType(kret) != tret.ReflectType() {
+	if reflect.KindToType(karg) != targ.ReflectType() || reflect.KindToType(kret) != tret.ReflectType() {
 		return c.call1ret1namedtype(call, maxdepth)
 	}
 

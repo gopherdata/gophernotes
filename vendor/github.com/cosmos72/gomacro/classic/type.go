@@ -1,7 +1,7 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017-2018 Massimiliano Ghilardi
+ * Copyright (C) 2017-2019 Massimiliano Ghilardi
  *
  *     This Source Code Form is subject to the terms of the Mozilla Public
  *     License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -22,6 +22,9 @@ import (
 	r "reflect"
 
 	. "github.com/cosmos72/gomacro/base"
+	"github.com/cosmos72/gomacro/base/genimport"
+	"github.com/cosmos72/gomacro/base/output"
+	"github.com/cosmos72/gomacro/base/reflect"
 )
 
 func typeOf(value r.Value) r.Type {
@@ -35,7 +38,7 @@ func (env *Env) evalExpr1OrType(node ast.Expr) (val r.Value, t r.Type) {
 	defer func() {
 		if r := recover(); r != nil {
 			switch r.(type) {
-			case RuntimeError:
+			case output.RuntimeError:
 				t = env.evalType(node)
 			default:
 				panic(r)
@@ -145,7 +148,7 @@ func (env *Env) evalType2(node ast.Expr, allowEllipsis bool) (t r.Type, ellipsis
 	case *ast.SelectorExpr:
 		if pkgIdent, ok := node.X.(*ast.Ident); ok {
 			pkgv := env.evalIdentifier(pkgIdent)
-			if pkg, ok := pkgv.Interface().(*PackageRef); ok {
+			if pkg, ok := pkgv.Interface().(*genimport.PackageRef); ok {
 				name := node.Sel.Name
 				if t, ok = pkg.Types[name]; !ok {
 					env.Errorf("not a type: %v <%v>", node, r.TypeOf(node))
@@ -300,7 +303,7 @@ func (env *Env) valueToType(value r.Value, t r.Type) r.Value {
 			return r.Zero(t)
 		}
 	}
-	newValue := ConvertValue(value, t)
+	newValue := reflect.ConvertValue(value, t)
 	if differentIntegerValues(value, newValue) {
 		env.Warnf("value %d overflows <%v>, truncated to %d", value, t, newValue)
 	}

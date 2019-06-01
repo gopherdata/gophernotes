@@ -2,7 +2,6 @@ package main
 
 import (
 	interp "github.com/cosmos72/gomacro/fast"
-	"github.com/cosmos72/gomacro/base"
 )
 
 type Completion struct {
@@ -37,7 +36,7 @@ func handleCompleteRequest(ir *interp.Interp, receipt msgReceipt) error {
 		content["traceback"] = nil
 		content["status"] = "error"
 	} else {
-		partialWord := base.TailIdentifier(prefix)
+		partialWord := interp.TailIdentifier(prefix)
 		content["cursor_start"] = float64(len(prefix) - len(partialWord))
 		content["cursor_end"] = float64(cursorPos)
 		content["matches"] = matches

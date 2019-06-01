@@ -1,7 +1,7 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017-2018 Massimiliano Ghilardi
+ * Copyright (C) 2018-2019 Massimiliano Ghilardi
  *
  *     This Source Code Form is subject to the terms of the Mozilla Public
  *     License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -21,6 +21,8 @@ import (
 	r "reflect"
 	"strconv"
 	"strings"
+
+	"github.com/cosmos72/gomacro/base/reflect"
 
 	"github.com/cosmos72/gomacro/base"
 	xr "github.com/cosmos72/gomacro/xreflect"
@@ -104,7 +106,7 @@ func (ip *Inspector) Eval(cmd string) error {
 		ip.ShowHelp()
 	case strings.HasPrefix("methods", cmd):
 		t := ip.types[len(ip.types)-1]
-		xt := ip.xtypes[len(ip.xtypes)-1]
+		xt := ip.xtypes[len(ip.types)-1]
 		ip.showMethods(t, xt)
 	case strings.HasPrefix("quit", cmd):
 		return errors.New("user quit")
@@ -154,7 +156,7 @@ func (ip *Inspector) showFields(v r.Value) {
 	n := v.NumField()
 	for i := 0; i < n; i++ {
 		f := v.Field(i)
-		t := base.ValueType(f)
+		t := reflect.Type(f)
 		f = dereferenceValue(f)
 		g.Fprintf(g.Stdout, "    %d. ", i)
 		ip.showVar(v.Type().Field(i).Name, f, t)
@@ -166,7 +168,7 @@ func (ip *Inspector) showIndexes(v r.Value) {
 	n := v.Len()
 	for i := 0; i < n; i++ {
 		f := v.Index(i)
-		t := base.ValueType(f)
+		t := reflect.Type(f)
 		f = dereferenceValue(f)
 		g.Fprintf(g.Stdout, "    %d. ", i)
 		ip.showVar("", f, t)
@@ -232,7 +234,7 @@ func (ip *Inspector) Enter(cmd string) {
 		fname = v.Type().Field(i).Name
 		f = v.Field(i)
 	default:
-		g.Fprintf(g.Stdout, "cannot enter <%v>: expecting array, slice, string or struct\n", base.ValueType(v))
+		g.Fprintf(g.Stdout, "cannot enter <%v>: expecting array, slice, string or struct\n", reflect.Type(v))
 		return
 	}
 	var t r.Type

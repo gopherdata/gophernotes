@@ -1,7 +1,7 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017-2018 Massimiliano Ghilardi
+ * Copyright (C) 2017-2019 Massimiliano Ghilardi
  *
  *     This Source Code Form is subject to the terms of the Mozilla Public
  *     License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -22,6 +22,9 @@ import (
 	r "reflect"
 
 	. "github.com/cosmos72/gomacro/base"
+	"github.com/cosmos72/gomacro/base/output"
+	"github.com/cosmos72/gomacro/base/reflect"
+	"github.com/cosmos72/gomacro/base/untyped"
 	xr "github.com/cosmos72/gomacro/xreflect"
 )
 
@@ -65,7 +68,7 @@ func (g *CompGlobals) opaqueNamedType(rtype r.Type, name string, pkgpath string)
 	default:
 		g.Errorf("internal error: unimplemented opaqueNamedType for kind=%v, expecting kind=Struct", k)
 	}
-	t := v.NamedOf(name, pkgpath, r.Struct)
+	t := v.NamedOf(name, pkgpath)
 	t.SetUnderlying(v.TypeOf(struct{}{}))
 	t.UnsafeForceReflectType(rtype)
 	v.ReflectTypes[rtype] = t // also cache Type in g.Universe.ReflectTypes
@@ -81,7 +84,7 @@ func asIdent(node ast.Expr) *ast.Ident {
 func (e *Expr) TryAsPred() (value bool, fun func(*Env) bool, err bool) {
 	if e.Untyped() {
 		untyp := e.Value.(UntypedLit)
-		if untyp.Kind != r.Bool {
+		if untyp.Kind != untyped.Bool {
 			return false, nil, true
 		}
 		return constant.BoolVal(untyp.Val), nil, false
@@ -213,7 +216,7 @@ func funAsX(any I) func(*Env) {
 			fun(env)
 		}
 	default:
-		Errorf("unsupported function type, cannot convert to func(*Env): %v <%v>", any, r.TypeOf(any))
+		output.Errorf("unsupported function type, cannot convert to func(*Env): %v <%v>", any, r.TypeOf(any))
 	}
 	return nil
 }
@@ -226,10 +229,10 @@ func (e *Expr) CheckX1() {
 		return
 	}
 	if e == nil || e.NumOut() == 0 {
-		Errorf("expression returns no values, cannot convert to func(env *Env) r.Value")
+		output.Errorf("expression returns no values, cannot convert to func(env *Env) r.Value")
 		return
 	} else if e.NumOut() > 1 {
-		Warnf("expression returns %d values, using only the first one: %v", e.NumOut(), e.Types)
+		output.Warnf("expression returns %d values, using only the first one: %v", e.NumOut(), e.Types)
 	}
 }
 
@@ -295,7 +298,7 @@ func valueAsXV(any I, t xr.Type, opts CompileOptions) func(*Env) (r.Value, []r.V
 	v := r.ValueOf(any)
 	if t != nil {
 		rtype := t.ReflectType()
-		if ValueType(v) == nil {
+		if reflect.Type(v) == nil {
 			v = r.Zero(rtype)
 		} else if convertuntyped || !untyped {
 			v = convert(v, rtype)
@@ -307,7 +310,7 @@ func valueAsXV(any I, t xr.Type, opts CompileOptions) func(*Env) (r.Value, []r.V
 }
 
 func funAsX1(fun I, t xr.Type) func(*Env) r.Value {
-	// Debugf("funAsX1() %v -> %v", TypeOf(fun), t)
+	// output.Debugf("funAsX1() %v -> %v", TypeOf(fun), t)
 	var rt r.Type
 	if t != nil {
 		rt = t.ReflectType()
@@ -650,13 +653,13 @@ func funAsX1(fun I, t xr.Type) func(*Env) r.Value {
 			}
 		}
 	default:
-		Errorf("unsupported expression type, cannot convert to func(*Env) r.Value: %v <%v>", fun, r.TypeOf(fun))
+		output.Errorf("unsupported expression type, cannot convert to func(*Env) r.Value: %v <%v>", fun, r.TypeOf(fun))
 	}
 	return nil
 }
 
 func funAsXV(fun I, t xr.Type) func(*Env) (r.Value, []r.Value) {
-	// Debugf("funAsXV() %v -> %v", TypeOf(fun), t)
+	// output.Debugf("funAsXV() %v -> %v", TypeOf(fun), t)
 	var rt r.Type
 	if t != nil {
 		rt = t.ReflectType()
@@ -998,7 +1001,7 @@ func funAsXV(fun I, t xr.Type) func(*Env) (r.Value, []r.Value) {
 			}
 		}
 	default:
-		Errorf("unsupported expression, cannot convert to func(*Env) (r.Value, []r.Value) : %v <%v>",
+		output.Errorf("unsupported expression, cannot convert to func(*Env) (r.Value, []r.Value) : %v <%v>",
 			fun, r.TypeOf(fun))
 	}
 	return nil
@@ -1108,9 +1111,12 @@ func (e *Expr) exprXVAsI() *Expr {
 	return exprFun(t, ret)
 }
 
-func (e *Expr) AsStmt() Stmt {
+func (e *Expr) AsStmt(c *Comp) Stmt {
 	if e == nil || e.Const() {
 		return nil
+	}
+	if stmt := c.Jit.AsStmt(e); stmt != nil {
+		return stmt
 	}
 	return funAsStmt(e.Fun)
 }
@@ -1242,7 +1248,7 @@ func funAsStmt(fun I) Stmt {
 		}
 	default:
 
-		Errorf("unsupported expression type, cannot convert to Stmt : %v <%v>",
+		output.Errorf("unsupported expression type, cannot convert to Stmt : %v <%v>",
 			fun, r.TypeOf(fun))
 	}
 	return ret

@@ -1,0 +1,18 @@
+
+_jmp.o:     file format elf64-x86-64
+
+
+Disassembly of section .text:
+
+0000000000000000 <Jmp>:
+   0:	e9 00 00 00 00       	jmpq   5 <Jmp+0x5>
+   5:	e9 00 00 00 00       	jmpq   a <Jmp+0xa>
+   a:	e9 00 00 00 00       	jmpq   f <Jmp+0xf>
+   f:	e9 00 00 00 00       	jmpq   14 <Jmp+0x14>
+  14:	e9 00 00 00 00       	jmpq   19 <Jmp+0x19>
+  19:	e9 00 00 00 00       	jmpq   1e <Jmp+0x1e>
+  1e:	e9 00 00 00 00       	jmpq   23 <Jmp+0x23>
+  23:	e9 00 00 00 00       	jmpq   28 <Jmp+0x28>
+  28:	e9 00 00 00 00       	jmpq   2d <Jmp+0x2d>
+  2d:	90                   	nop
+  2e:	c3                   	retq   

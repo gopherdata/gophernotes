@@ -1,7 +1,7 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017-2018 Massimiliano Ghilardi
+ * Copyright (C) 2017-2019 Massimiliano Ghilardi
  *
  *     This Source Code Form is subject to the terms of the Mozilla Public
  *     License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -21,11 +21,12 @@ import (
 	r "reflect"
 
 	. "github.com/cosmos72/gomacro/base"
-	mt "github.com/cosmos72/gomacro/token"
+	"github.com/cosmos72/gomacro/base/reflect"
+	etoken "github.com/cosmos72/gomacro/go/etoken"
 )
 
 func (env *Env) unsupportedBinaryExpr(xv r.Value, op token.Token, yv r.Value) r.Value {
-	opstr := mt.String(op)
+	opstr := etoken.String(op)
 	ret, _ := env.Errorf("unsupported binary operation %s between <%v> and <%v>: %v %s %v", opstr, typeOf(xv), typeOf(yv), xv, opstr, yv)
 	return ret
 }
@@ -241,9 +242,9 @@ func binaryResultType(xt, yt r.Type) r.Type {
 	}
 	// prefer named types
 	xk, yk := xt.Kind(), yt.Kind()
-	if KindToType(xk) == xt {
+	if reflect.KindToType(xk) == xt {
 		return yt
-	} else if KindToType(yk) == yt {
+	} else if reflect.KindToType(yk) == yt {
 		return xt
 	}
 	// prefer types appearing later in reflect.Kind list
@@ -383,8 +384,8 @@ func (env *Env) evalBinaryExprMisc(xv r.Value, op token.Token, yv r.Value) bool 
 	if xv == yv {
 		return eql
 	}
-	xnil := xv == Nil || IsNillableKind(xv.Kind()) && xv.IsNil()
-	ynil := yv == Nil || IsNillableKind(yv.Kind()) && yv.IsNil()
+	xnil := xv == Nil || reflect.IsNillableKind(xv.Kind()) && xv.IsNil()
+	ynil := yv == Nil || reflect.IsNillableKind(yv.Kind()) && yv.IsNil()
 	if xnil || ynil {
 		return eql == (xnil == ynil)
 	}

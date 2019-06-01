@@ -1,7 +1,7 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017-2018 Massimiliano Ghilardi
+ * Copyright (C) 2018-2019 Massimiliano Ghilardi
  *
  *     This Source Code Form is subject to the terms of the Mozilla Public
  *     License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -29,6 +29,9 @@ import (
 
 	"github.com/cosmos72/gomacro/ast2"
 	. "github.com/cosmos72/gomacro/base"
+	"github.com/cosmos72/gomacro/base/paths"
+	"github.com/cosmos72/gomacro/base/reflect"
+	bstrings "github.com/cosmos72/gomacro/base/strings"
 	xr "github.com/cosmos72/gomacro/xreflect"
 )
 
@@ -128,7 +131,7 @@ func (ir *Interp) RunExpr(e *Expr) ([]r.Value, []xr.Type) {
 
 	fun := e.AsXV(COptKeepUntyped)
 	v, vs := fun(env)
-	return PackValues(v, vs), PackTypes(e.Type, e.Types)
+	return reflect.PackValues(v, vs), reflect.PackTypes(e.Type, e.Types)
 }
 
 // execute with single-step debugging. to run without debugging, use Interp.RunExpr() instead
@@ -158,7 +161,7 @@ func (ir *Interp) DebugExpr(e *Expr) ([]r.Value, []xr.Type) {
 
 	fun := e.AsXV(COptKeepUntyped)
 	v, vs := fun(env)
-	return PackValues(v, vs), PackTypes(e.Type, e.Types)
+	return reflect.PackValues(v, vs), reflect.PackTypes(e.Type, e.Types)
 }
 
 // combined Parse + Compile + DebugExpr
@@ -251,14 +254,14 @@ func (ir *Interp) prepareEnv(minValDelta int, minIntDelta int) *Env {
 
 // ====================== Repl() and friends =====================
 
-var historyfile = Subdir(UserHomeDir(), ".gomacro_history")
+var historyfile = paths.Subdir(paths.UserHomeDir(), ".gomacro_history")
 
 func (ir *Interp) ReplStdin() {
 	g := ir.Comp.CompGlobals
 
 	if g.Options&OptShowPrompt != 0 {
 		g.Fprintf(g.Stdout, `// GOMACRO, an interactive Go interpreter with generics and macros
-// Copyright (C) 2017-2018 Massimiliano Ghilardi <https://github.com/cosmos72/gomacro>
+// Copyright (C) 2018-2019 Massimiliano Ghilardi <https://github.com/cosmos72/gomacro>
 // License MPL v2.0+: Mozilla Public License version 2.0 or later <http://mozilla.org/MPL/2.0/>
 // This is free software with ABSOLUTELY NO WARRANTY.
 //
@@ -509,28 +512,26 @@ func (c *Comp) completeWords(node interface{}, words []string) []string {
 var keywords []string
 
 func init() {
-	lo, hi := token.BREAK, token.VAR+1
-	keywords = make([]string, hi-lo+1)
-	for tok := lo; tok < hi; tok++ {
+	lo, hi := token.BREAK, token.VAR
+	keywords = make([]string, hi-lo+3)
+	for tok := lo; tok <= hi; tok++ {
 		keywords[tok-lo] = tok.String()
 	}
-	keywords[hi-lo] = "macro"
+	keywords[hi-lo+1] = "macro"
+	keywords[hi-lo+2] = "template"
 }
 
 // complete a single, partial word
 func (c *Comp) completeWord(word string) []string {
 	var completions []string
 	if size := len(word); size != 0 {
-		// complete binds
+		// complete binds and types
 		for co := c; co != nil; co = co.Outer {
 			for name := range co.Binds {
 				if len(name) >= size && name[:size] == word {
 					completions = append(completions, name)
 				}
 			}
-		}
-		// complete types
-		for co := c; co != nil; co = co.Outer {
 			for name := range co.Types {
 				if len(name) >= size && name[:size] == word {
 					completions = append(completions, name)
@@ -581,6 +582,11 @@ func (c *Comp) completeLastWord(node interface{}, word string) []string {
 		break
 	}
 	return sortUnique(completions)
+}
+
+// return the trailing substring of s that is a valid identifier
+func TailIdentifier(s string) string {
+	return bstrings.TailIdentifier(s)
 }
 
 func sortUnique(vec []string) []string {

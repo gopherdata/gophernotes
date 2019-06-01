@@ -6,7 +6,7 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017-2018 Massimiliano Ghilardi
+ * Copyright (C) 2017-2019 Massimiliano Ghilardi
  *
  *     This Source Code Form is subject to the terms of the Mozilla Public
  *     License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -25,17 +25,18 @@ import (
 	r "reflect"
 
 	. "github.com/cosmos72/gomacro/base"
+	"github.com/cosmos72/gomacro/base/reflect"
 )
 
-func (c *Comp) placeSetZero(place *Place) {
+func (c *Comp) placeSetZero(place *Place) Stmt {
 	rt := place.Type.ReflectType()
 	zero := r.Zero(rt).Interface()
-	c.placeSetConst(place, zero)
+	return c.placeSetConst(place, zero)
 }
-func (c *Comp) placeSetConst(place *Place, val I) {
+func (c *Comp) placeSetConst(place *Place, val I) Stmt {
 	rt := place.Type.ReflectType()
 	v := r.ValueOf(val)
-	if ValueType(v) == nil {
+	if reflect.Type(v) == nil {
 		v = r.Zero(rt)
 	} else {
 		v = convert(v, rt)
@@ -52,10 +53,9 @@ func (c *Comp) placeSetConst(place *Place, val I) {
 			env.IP++
 			return env.Code[env.IP], env
 		}
-		c.append(ret)
-		return
+		return ret
 	}
-	switch KindToCategory(rt.Kind()) {
+	switch reflect.Category(rt.Kind()) {
 	case r.Bool:
 
 		{
@@ -141,10 +141,9 @@ func (c *Comp) placeSetConst(place *Place, val I) {
 			}
 		}
 	}
-
-	c.append(ret)
+	return ret
 }
-func (c *Comp) placeSetExpr(place *Place, fun I) {
+func (c *Comp) placeSetExpr(place *Place, fun I) Stmt {
 	rt := place.Type.ReflectType()
 	lhs := place.Fun
 	var ret Stmt
@@ -163,8 +162,7 @@ func (c *Comp) placeSetExpr(place *Place, fun I) {
 			env.IP++
 			return env.Code[env.IP], env
 		}
-		c.append(ret)
-		return
+		return ret
 	}
 	switch rt.Kind() {
 	case r.Bool:
@@ -426,5 +424,5 @@ func (c *Comp) placeSetExpr(place *Place, fun I) {
 			}
 		}
 	}
-	c.append(ret)
+	return ret
 }

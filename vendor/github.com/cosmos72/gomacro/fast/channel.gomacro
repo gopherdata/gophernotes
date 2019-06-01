@@ -1,7 +1,7 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017-2018 Massimiliano Ghilardi
+ * Copyright (C) 2017-2019 Massimiliano Ghilardi
  *
  *     This Source Code Form is subject to the terms of the Mozilla Public
  *     License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -26,6 +26,7 @@ import (
 	r "reflect"
 
 	. "github.com/cosmos72/gomacro/base"
+	"github.com/cosmos72/gomacro/base/reflect"
 	xr "github.com/cosmos72/gomacro/xreflect"
 )
 
@@ -173,7 +174,7 @@ func (c *Comp) Recv(node *ast.UnaryExpr, xe *Expr) *Expr {
 	typ2, ret := convertvalue(typ, ~'retv)
 	return ~"{
 		case ~,kind:
-		if telem.ReflectType() != KindToType(~,kind) {
+		if telem.ReflectType() != reflect.KindToType(~,kind) {
 			fun = func(env *Env) ~,typ {
 				retv, _ := channelfun(env).Recv()
 				return ~,ret
@@ -331,7 +332,7 @@ func (c *Comp) Send(node *ast.SendStmt) {
 	var stmt Stmt
 	if expr.Const() {
 		v := r.ValueOf(expr.Value)
-		if KindToType(kelem) == rtelem {
+		if reflect.KindToType(kelem) == rtelem {
 			switch kelem {
 			{send_c; bool}
 			{send_c; int}
@@ -361,7 +362,7 @@ func (c *Comp) Send(node *ast.SendStmt) {
 			}
 		}
 	} else {
-		if KindToType(kelem) == rtelem {
+		if reflect.KindToType(kelem) == rtelem {
 			switch kelem {
 			{send_e; bool}
 			{send_e; int}

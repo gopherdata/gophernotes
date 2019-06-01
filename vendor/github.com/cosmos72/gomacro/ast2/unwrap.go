@@ -1,7 +1,7 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017-2018 Massimiliano Ghilardi
+ * Copyright (C) 2018-2019 Massimiliano Ghilardi
  *
  *     This Source Code Form is subject to the terms of the Mozilla Public
  *     License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -21,7 +21,7 @@ import (
 	"go/token"
 	r "reflect"
 
-	mt "github.com/cosmos72/gomacro/token"
+	"github.com/cosmos72/gomacro/go/etoken"
 )
 
 // ToNode converts Ast back ast.Node, or panics on failure
@@ -297,5 +297,5 @@ func BlockStmtToExpr(node *ast.BlockStmt) ast.Expr {
 	// so we return a unary expression: MACRO (func() { /*block*/ })
 	typ := &ast.FuncType{Func: token.NoPos, Params: &ast.FieldList{}}
 	fun := &ast.FuncLit{Type: typ, Body: node}
-	return &ast.UnaryExpr{Op: mt.MACRO, X: fun}
+	return &ast.UnaryExpr{Op: etoken.MACRO, X: fun}
 }

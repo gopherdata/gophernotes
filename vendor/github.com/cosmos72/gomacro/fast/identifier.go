@@ -1,7 +1,7 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017-2018 Massimiliano Ghilardi
+ * Copyright (C) 2017-2019 Massimiliano Ghilardi
  *
  *     This Source Code Form is subject to the terms of the Mozilla Public
  *     License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -19,12 +19,10 @@ package fast
 import (
 	r "reflect"
 	"unsafe"
-
-	"github.com/cosmos72/gomacro/base"
 )
 
 func (c *Comp) Resolve(name string) *Symbol {
-	sym := c.TryResolve(name)
+	sym, _ := c.tryResolve(name)
 	if sym == nil {
 		c.Errorf("undefined identifier: %v", name)
 	}
@@ -32,15 +30,20 @@ func (c *Comp) Resolve(name string) *Symbol {
 }
 
 func (c *Comp) TryResolve(name string) *Symbol {
+	sym, _ := c.tryResolve(name)
+	return sym
+}
+
+func (c *Comp) tryResolve(name string) (*Symbol, *Comp) {
 	upn := 0
 	for ; c != nil; c = c.Outer {
 		if bind, ok := c.Binds[name]; ok {
 			// c.Debugf("TryResolve: %s is upn=%d %v", name, upn, bind)
-			return bind.AsSymbol(upn)
+			return bind.AsSymbol(upn), c
 		}
 		upn += c.UpCost // c.UpCost is zero if *Comp has no local variables/functions so it will NOT have a corresponding *Env at runtime
 	}
-	return nil
+	return nil, nil
 }
 
 // Ident compiles a read operation on a constant, variable or function
@@ -66,40 +69,47 @@ func (c *Comp) IdentPlace(name string, opt PlaceOption) *Place {
 
 // Bind compiles a read operation on a constant, variable or function declared in 'c'
 func (c *Comp) Bind(bind *Bind) *Expr {
-	return bind.Expr(&c.Globals.Stringer)
+	return bind.Expr(c.CompGlobals)
 }
 
 // Symbol compiles a read operation on a constant, variable or function
 func (c *Comp) Symbol(sym *Symbol) *Expr {
-	return sym.Expr(c.Depth, &c.Globals.Stringer)
+	return sym.Expr(c.Depth, c.CompGlobals)
 }
 
 // Expr returns an expression that will read the given Bind at runtime
-func (bind *Bind) Expr(st *base.Stringer) *Expr {
+func (bind *Bind) Expr(g *CompGlobals) *Expr {
 	switch bind.Desc.Class() {
 	case ConstBind:
 		return exprLit(bind.Lit, bind.AsSymbol(0))
 	case VarBind, FuncBind:
-		return bind.expr(st)
+		return bind.expr(g)
 	case IntBind:
-		return bind.intExpr(st)
+		return bind.intExpr(g)
 	default:
-		st.Errorf("unknown symbol class %s", bind.Desc.Class())
+		g.Errorf("unknown symbol class %s", bind.Desc.Class())
 	}
 	return nil
 }
 
 // Expr returns an expression that will read the given Symbol at runtime
-func (sym *Symbol) Expr(depth int, st *base.Stringer) *Expr {
-	switch sym.Desc.Class() {
+func (sym *Symbol) Expr(depth int, g *CompGlobals) *Expr {
+	switch class := sym.Desc.Class(); class {
 	case ConstBind:
 		return exprLit(sym.Lit, sym)
 	case VarBind, FuncBind:
-		return sym.expr(depth, st)
+		return sym.expr(depth, g)
 	case IntBind:
-		return sym.intExpr(depth, st)
+		return sym.intExpr(depth, g)
+	case GenericFuncBind, GenericTypeBind:
+		if GENERICS_V1_CXX || GENERICS_V2_CTI {
+			// dirty... allows var x = generic_func_name
+			return &Expr{Lit: Lit{Type: sym.Type, Value: sym.Value}, Sym: sym}
+			// g.Errorf("%s name must be followed by #[...] generic arguments: %v", class, sym.Name)
+		}
+		fallthrough
 	default:
-		st.Errorf("unknown symbol class %s", sym.Desc.Class())
+		g.Errorf("unknown symbol class %s", class)
 	}
 	return nil
 }
@@ -120,7 +130,7 @@ func outerEnv3(env *Env, upn int) *Env {
 }
 
 // return an expression that will read Bind value at runtime
-func (bind *Bind) expr(st *base.Stringer) *Expr {
+func (bind *Bind) expr(g *CompGlobals) *Expr {
 	idx := bind.Desc.Index()
 	var fun I
 
@@ -199,18 +209,19 @@ func (bind *Bind) expr(st *base.Stringer) *Expr {
 			return env.Vals[idx]
 		}
 	}
-	return &Expr{Lit: Lit{Type: bind.Type}, Fun: fun, Sym: bind.AsSymbol(0)}
+	e := &Expr{Lit: Lit{Type: bind.Type}, Fun: fun, Sym: bind.AsSymbol(0)}
+	return g.Jit.Symbol(e)
 }
 
 // return an expression that will read Symbol value at runtime
-func (sym *Symbol) expr(depth int, st *base.Stringer) *Expr {
+func (sym *Symbol) expr(depth int, g *CompGlobals) *Expr {
 	idx := sym.Desc.Index()
 	upn := sym.Upn
 	kind := sym.Type.Kind()
 	var fun I
 	switch upn {
 	case 0:
-		return sym.Bind.expr(st)
+		return sym.Bind.expr(g)
 	case 1:
 		switch kind {
 		case r.Bool:
@@ -605,11 +616,12 @@ func (sym *Symbol) expr(depth int, st *base.Stringer) *Expr {
 			}
 		}
 	}
-	return &Expr{Lit: Lit{Type: sym.Type}, Fun: fun, Sym: sym}
+	e := &Expr{Lit: Lit{Type: sym.Type}, Fun: fun, Sym: sym}
+	return g.Jit.Symbol(e)
 }
 
 // return an expression that will read Bind optimized value at runtime
-func (bind *Bind) intExpr(st *base.Stringer) *Expr {
+func (bind *Bind) intExpr(g *CompGlobals) *Expr {
 	idx := bind.Desc.Index()
 	var fun I
 	switch bind.Type.Kind() {
@@ -678,21 +690,23 @@ func (bind *Bind) intExpr(st *base.Stringer) *Expr {
 			return *(*complex128)(unsafe.Pointer(&env.Ints[idx]))
 		}
 	default:
-		st.Errorf("unsupported symbol type, cannot use for optimized read: %s %s <%v>", bind.Desc.Class(), bind.Name, bind.Type)
+		g.Errorf("unsupported symbol type, cannot use for optimized read: %s %s <%v>", bind.Desc.Class(), bind.Name, bind.Type)
 		return nil
+
 	}
-	return &Expr{Lit: Lit{Type: bind.Type}, Fun: fun, Sym: bind.AsSymbol(0)}
+	e := &Expr{Lit: Lit{Type: bind.Type}, Fun: fun, Sym: bind.AsSymbol(0)}
+	return g.Jit.Symbol(e)
 }
 
 // return an expression that will read Symbol optimized value at runtime
-func (sym *Symbol) intExpr(depth int, st *base.Stringer) *Expr {
+func (sym *Symbol) intExpr(depth int, g *CompGlobals) *Expr {
 	upn := sym.Upn
 	k := sym.Type.Kind()
 	idx := sym.Desc.Index()
 	var fun I
 	switch upn {
 	case 0:
-		return sym.Bind.intExpr(st)
+		return sym.Bind.intExpr(g)
 	case 1:
 		switch k {
 		case r.Bool:
@@ -979,7 +993,8 @@ func (sym *Symbol) intExpr(depth int, st *base.Stringer) *Expr {
 		}
 	}
 	if fun == nil {
-		st.Errorf("unsupported variable type, cannot use for optimized read: %s <%v>", sym.Name, sym.Type)
+		g.Errorf("unsupported variable type, cannot use for optimized read: %s <%v>", sym.Name, sym.Type)
 	}
-	return &Expr{Lit: Lit{Type: sym.Type}, Fun: fun, Sym: sym}
+	e := &Expr{Lit: Lit{Type: sym.Type}, Fun: fun, Sym: sym}
+	return g.Jit.Symbol(e)
 }

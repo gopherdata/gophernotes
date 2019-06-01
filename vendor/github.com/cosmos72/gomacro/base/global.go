@@ -1,7 +1,7 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017-2018 Massimiliano Ghilardi
+ * Copyright (C) 2017-2019 Massimiliano Ghilardi
  *
  *     This Source Code Form is subject to the terms of the Mozilla Public
  *     License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -25,13 +25,19 @@ import (
 	r "reflect"
 	"strings"
 
-	"github.com/cosmos72/gomacro/imports"
-	mp "github.com/cosmos72/gomacro/parser"
-	mt "github.com/cosmos72/gomacro/token"
-	xr "github.com/cosmos72/gomacro/xreflect"
+	"github.com/cosmos72/gomacro/base/reflect"
 
 	. "github.com/cosmos72/gomacro/ast2"
+	"github.com/cosmos72/gomacro/base/genimport"
+	"github.com/cosmos72/gomacro/base/output"
+	bstrings "github.com/cosmos72/gomacro/base/strings"
+	etoken "github.com/cosmos72/gomacro/go/etoken"
+	mp "github.com/cosmos72/gomacro/go/parser"
+	"github.com/cosmos72/gomacro/imports"
+	xr "github.com/cosmos72/gomacro/xreflect"
 )
+
+type Output = output.Output
 
 type CmdOpt uint32
 
@@ -49,7 +55,7 @@ type Globals struct {
 	Options      Options
 	PackagePath  string
 	Filepath     string
-	Importer     *Importer
+	Importer     *genimport.Importer
 	Imports      []*ast.GenDecl
 	Declarations []ast.Decl
 	Statements   []ast.Stmt
@@ -63,10 +69,10 @@ type Globals struct {
 }
 
 func NewGlobals() *Globals {
-	return &Globals{
+	g := &Globals{
 		Output: Output{
-			Stringer: Stringer{
-				Fileset:    mt.NewFileSet(),
+			Stringer: output.Stringer{
+				Fileset:    etoken.NewFileSet(),
 				NamedTypes: make(map[r.Type]string),
 			},
 			// using both os.Stdout and os.Stderr can interleave impredictably
@@ -77,7 +83,6 @@ func NewGlobals() *Globals {
 		Options:      OptTrapPanic, // set by default
 		PackagePath:  "main",
 		Filepath:     "repl.go",
-		Importer:     DefaultImporter(),
 		Imports:      nil,
 		Declarations: nil,
 		Statements:   nil,
@@ -87,6 +92,9 @@ func NewGlobals() *Globals {
 		MacroChar:    '~',
 		ReplCmdChar:  ':', // Jupyter and gophernotes would probably set this to '%'
 	}
+	g.Importer = genimport.DefaultImporter(&g.Output)
+	return g
+
 }
 
 func (g *Globals) Gensym() string {
@@ -161,7 +169,7 @@ func (g *Globals) ParseBytes(src []byte) []ast.Node {
 
 	nodes, err := parser.Parse()
 	if err != nil {
-		Error(err)
+		output.Error(err)
 	}
 	return nodes
 }
@@ -176,7 +184,7 @@ func (g *Globals) Print(values []r.Value, types []xr.Type) {
 				if types != nil && i < len(types) {
 					ti = types[i]
 				} else {
-					ti = ValueType(vi)
+					ti = reflect.Type(vi)
 				}
 				g.Fprintf(g.Stdout, "%v\t// %v\n", vi, ti)
 			}
@@ -262,7 +270,7 @@ func (g *Globals) CollectNode(node ast.Node) {
 						if len(decl.Values) == 1 {
 							if lit, ok := decl.Values[0].(*ast.BasicLit); ok {
 								if lit.Kind == token.STRING {
-									path := MaybeUnescapeString(lit.Value)
+									path := bstrings.MaybeUnescapeString(lit.Value)
 									g.PackagePath = path
 								}
 							}
@@ -343,26 +351,5 @@ func (g *Globals) WriteDeclsToFile(filename string, prologue ...string) {
 }
 
 func (g *Globals) WriteDeclsToStream(out io.Writer) {
-	fmt.Fprintf(out, "package %s\n\n", g.PackagePath)
-
-	for _, imp := range g.Imports {
-		fmt.Fprintln(out, g.toPrintable("%v", imp))
-	}
-	if len(g.Imports) != 0 {
-		fmt.Fprintln(out)
-	}
-	for _, decl := range g.Declarations {
-		fmt.Fprintln(out, g.toPrintable("%v", decl))
-	}
-	if len(g.Statements) != 0 {
-		fmt.Fprint(out, "\nfunc init() {\n")
-		config.Indent = 1
-		defer func() {
-			config.Indent = 0
-		}()
-		for _, stmt := range g.Statements {
-			fmt.Fprintln(out, g.toPrintable("%v", stmt))
-		}
-		fmt.Fprint(out, "}\n")
-	}
+	g.Output.WriteDeclsToStream(out, g.PackagePath, g.Imports, g.Declarations, g.Statements)
 }

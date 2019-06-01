@@ -11,8 +11,7 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/cosmos72/gomacro/base"
-
+	basereflect "github.com/cosmos72/gomacro/base/reflect"
 	"github.com/cosmos72/gomacro/xreflect"
 )
 
@@ -277,7 +276,7 @@ func (kernel *Kernel) autoRender(mimeType string, arg interface{}, typ xreflect.
 			conv := kernel.ir.Comp.Converter(typ, xtyp)
 			x := arg
 			if conv != nil {
-				x = base.ValueInterface(conv(reflect.ValueOf(x)))
+				x = basereflect.Interface(conv(reflect.ValueOf(x)))
 				if x == nil {
 					continue
 				}

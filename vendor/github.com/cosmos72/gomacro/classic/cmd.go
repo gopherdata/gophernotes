@@ -1,7 +1,7 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017-2018 Massimiliano Ghilardi
+ * Copyright (C) 2018-2019 Massimiliano Ghilardi
  *
  *     This Source Code Form is subject to the terms of the Mozilla Public
  *     License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -21,6 +21,7 @@ import (
 	"strings"
 
 	. "github.com/cosmos72/gomacro/base"
+	bstrings "github.com/cosmos72/gomacro/base/strings"
 )
 
 type Cmd struct {
@@ -89,7 +90,7 @@ func (ir *Interp) Cmd(src string) (string, CmdOpt) {
 	src = strings.TrimSpace(src)
 	n := len(src)
 	if n > 0 && src[0] == g.ReplCmdChar {
-		prefix, arg := Split2(src[1:], ' ') // skip g.ReplCmdChar
+		prefix, arg := bstrings.Split2(src[1:], ' ') // skip g.ReplCmdChar
 		cmd, found := cmds.Lookup(prefix)
 		if found {
 			src, opt = cmd.Func(ir, arg, opt)
@@ -103,7 +104,7 @@ func (ir *Interp) Cmd(src string) (string, CmdOpt) {
 	}
 	// :package and package are the same command
 	if g.Options&OptMacroExpandOnly == 0 && (src == "package" || strings.HasPrefix(src, "package ")) {
-		_, arg := Split2(src, ' ')
+		_, arg := bstrings.Split2(src, ' ')
 		src, opt = ir.cmdPackage(arg, opt)
 	}
 	return src, opt

@@ -1,7 +1,7 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017-2018 Massimiliano Ghilardi
+ * Copyright (C) 2017-2019 Massimiliano Ghilardi
  *
  *     This Source Code Form is subject to the terms of the Mozilla Public
  *     License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -22,6 +22,7 @@ import (
 
 	"github.com/cosmos72/gomacro/ast2"
 	. "github.com/cosmos72/gomacro/base"
+	"github.com/cosmos72/gomacro/base/paths"
 	"github.com/cosmos72/gomacro/imports"
 )
 
@@ -53,7 +54,7 @@ func NewEnv(outer *Env, path string) *Env {
 	env := &Env{
 		iotaOffset: 1,
 		Outer:      outer,
-		Name:       FileName(path),
+		Name:       paths.FileName(path),
 		Path:       path,
 	}
 	if outer == nil {

@@ -1,14 +1,14 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017-2018 Massimiliano Ghilardi
+ * Copyright (C) 2017-2019 Massimiliano Ghilardi
  *
  *     This Source Code Form is subject to the terms of the Mozilla Public
  *     License, v. 2.0. If a copy of the MPL was not distributed with this
  *     file, You can obtain one at http://mozilla.org/MPL/2.0/.
  *
  *
- * expr_test.go
+ * bench_test.go
  *
  *  Created on: Mar 06 2017
  *      Author: Massimiliano Ghilardi
@@ -228,79 +228,6 @@ func BenchmarkFibonacciClosureMaps(b *testing.B) {
 	}
 }
 
-// ---------------------- arrays: shellsort ------------------------
-
-// array indexing is faster that slice indexing,
-// provided the array is *not* copied. so use a pointer to array
-var shellshort_gaps = &[...]int{701, 301, 132, 57, 23, 10, 4, 1}
-
-func shellsort(v []int) {
-	var i, j, n, gap, temp int
-	n = len(v)
-	for _, gap = range shellshort_gaps {
-		for i = gap; i < n; i++ {
-			temp = v[i]
-			for j = i; j >= gap && v[j-gap] > temp; j -= gap {
-				v[j] = v[j-gap]
-			}
-			v[j] = temp
-		}
-	}
-}
-
-var sort_data = []int{97, 89, 3, 4, 7, 0, 36, 79, 1, 12, 2, 15, 70, 18, 35, 70, 15, 73}
-
-func BenchmarkShellSortCompiler(b *testing.B) {
-	benchmark_sort(b, shellsort)
-}
-
-func BenchmarkShellSortFast(b *testing.B) {
-	ir := fast.New()
-	ir.Eval(shellsort_source_string)
-
-	// extract the function shellsort()
-	sort := ir.ValueOf("shellsort").Interface().(func([]int))
-
-	benchmark_sort(b, sort)
-}
-
-func BenchmarkShellSortFastCompileLoop(b *testing.B) {
-	ir := fast.New()
-
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		ir.Comp.Binds = make(map[string]*fast.Bind)
-		ir.Comp.BindNum = fast.NoIndex
-		ir.Compile(shellsort_source_string)
-	}
-}
-
-func BenchmarkShellSortClassic(b *testing.B) {
-	ir := classic.New()
-	ir.Eval(shellsort_source_string)
-
-	// extract the function shellsort()
-	sort := ir.ValueOf("shellsort").Interface().(func([]int))
-
-	benchmark_sort(b, sort)
-}
-
-func benchmark_sort(b *testing.B, sort func([]int)) {
-	// call sort once for warm-up
-	v := make([]int, len(sort_data))
-	copy(v, sort_data)
-	sort(v)
-
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		copy(v, sort_data)
-		sort(v)
-	}
-	if verbose {
-		fmt.Println(v)
-	}
-}
-
 // ---------------------- switch ------------------------
 
 func bigswitch(n int) int {
@@ -385,16 +312,16 @@ func BenchmarkSwitchClassic(b *testing.B) {
 
 //go:noinline
 func arith(n int) int {
-	return ((((n*2 + 3) | 4) &^ 5) ^ 6) / ((n & 2) | 1)
+	return ((((n*2 + 3) | 4) &^ 5) ^ 6) - ((n & 2) | 1)
 }
 
-const arith_source = "((((n*2+3)|4) &^ 5) ^ 6) / ((n & 2) | 1)"
+const arith_source = "((((n*2+3)|4) &^ 5) ^ 6) - ((n & 2) | 1)"
 
 func BenchmarkArithCompiler1(b *testing.B) {
 	total := 0
 	for i := 0; i < b.N; i++ {
 		n := b.N
-		total += ((((n*2 + 3) | 4) &^ 5) ^ 6) / ((n & 2) | 1)
+		total += ((((n*2 + 3) | 4) &^ 5) ^ 6) - ((n & 2) | 1)
 	}
 	if verbose {
 		println(total)

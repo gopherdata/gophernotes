@@ -1,7 +1,7 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017-2018 Massimiliano Ghilardi
+ * Copyright (C) 2017-2019 Massimiliano Ghilardi
  *
  *     This Source Code Form is subject to the terms of the Mozilla Public
  *     License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -280,25 +280,31 @@ func (x ValueSpec) New() Ast      { return ValueSpec{&ast.ValueSpec{Doc: x.X.Doc
 //
 // .................. functions Size() int
 //
-func (x ArrayType) Size() int      { return 2 }
-func (x AssignStmt) Size() int     { return 2 }
-func (x BadDecl) Size() int        { return 0 }
-func (x BadExpr) Size() int        { return 0 }
-func (x BadStmt) Size() int        { return 0 }
-func (x BasicLit) Size() int       { return 0 }
-func (x BinaryExpr) Size() int     { return 2 }
-func (x BranchStmt) Size() int     { return 1 }
-func (x CallExpr) Size() int       { return 2 }
-func (x CaseClause) Size() int     { return 2 }
-func (x ChanType) Size() int       { return 1 }
-func (x CommClause) Size() int     { return 2 }
-func (x CompositeLit) Size() int   { return 2 }
-func (x DeclStmt) Size() int       { return 1 }
-func (x DeferStmt) Size() int      { return 1 }
-func (x Ellipsis) Size() int       { return 1 }
-func (x EmptyStmt) Size() int      { return 0 }
-func (x ExprStmt) Size() int       { return 1 }
-func (x Field) Size() int          { return 3 }
+func (x ArrayType) Size() int    { return 2 }
+func (x AssignStmt) Size() int   { return 2 }
+func (x BadDecl) Size() int      { return 0 }
+func (x BadExpr) Size() int      { return 0 }
+func (x BadStmt) Size() int      { return 0 }
+func (x BasicLit) Size() int     { return 0 }
+func (x BinaryExpr) Size() int   { return 2 }
+func (x BranchStmt) Size() int   { return 1 }
+func (x CallExpr) Size() int     { return 2 }
+func (x CaseClause) Size() int   { return 2 }
+func (x ChanType) Size() int     { return 1 }
+func (x CommClause) Size() int   { return 2 }
+func (x CompositeLit) Size() int { return 2 }
+func (x DeclStmt) Size() int     { return 1 }
+func (x DeferStmt) Size() int    { return 1 }
+func (x Ellipsis) Size() int     { return 1 }
+func (x EmptyStmt) Size() int    { return 0 }
+func (x ExprStmt) Size() int     { return 1 }
+func (x Field) Size() int {
+	// do not crash on nil *ast.Field as first receiver of generic functions
+	if x.X == nil {
+		return 0
+	}
+	return 3
+}
 func (x ForStmt) Size() int        { return 4 }
 func (x FuncDecl) Size() int       { return 4 }
 func (x FuncLit) Size() int        { return 2 }

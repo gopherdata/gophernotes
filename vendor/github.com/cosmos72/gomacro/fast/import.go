@@ -1,7 +1,7 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017-2018 Massimiliano Ghilardi
+ * Copyright (C) 2017-2019 Massimiliano Ghilardi
  *
  *     This Source Code Form is subject to the terms of the Mozilla Public
  *     License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -24,6 +24,11 @@ import (
 	"unsafe"
 
 	. "github.com/cosmos72/gomacro/base"
+	"github.com/cosmos72/gomacro/base/genimport"
+	"github.com/cosmos72/gomacro/base/output"
+	"github.com/cosmos72/gomacro/base/paths"
+	"github.com/cosmos72/gomacro/base/reflect"
+	"github.com/cosmos72/gomacro/base/untyped"
 	xr "github.com/cosmos72/gomacro/xreflect"
 )
 
@@ -42,7 +47,7 @@ func (ir *Interp) ChangePackage(name, path string) {
 	if len(path) == 0 {
 		path = name
 	} else {
-		name = FileName(path)
+		name = paths.FileName(path)
 	}
 	c := ir.Comp
 	if path == c.Path {
@@ -107,6 +112,60 @@ func (imp *Import) asInterpreter(outer *Interp) Interp {
 
 // =========================== import package =================================
 
+// ImportPackage imports a package. Panics if the import fails.
+// If name is the empty string, it defaults to the identifier
+// specified in the package clause of the imported package
+func (ir *Interp) ImportPackage(name, path string) *Import {
+	return ir.Comp.ImportPackage(name, path)
+}
+
+// ImportPackageOrError imports a package.
+// If name is the empty string, it defaults to the identifier
+// specified in the package clause of the imported package
+func (ir *Interp) ImportPackageOrError(name, path string) (*Import, error) {
+	return ir.Comp.ImportPackageOrError(name, path)
+}
+
+// ImportPackage imports a package. Panics if the import fails.
+// Usually invoked as Comp.FileComp().ImportPackage(name, path)
+// because imports are usually top-level statements in a source file.
+// But we also support local imports, i.e. import statements inside a function or block.
+func (c *Comp) ImportPackage(name, path string) *Import {
+	imp, err := c.ImportPackageOrError(name, path)
+	if err != nil {
+		panic(err)
+	}
+	return imp
+}
+
+// ImportPackageOrError imports a package.
+// If name is the empty string, it defaults to the identifier
+// specified in the package clause of the imported package
+func (c *Comp) ImportPackageOrError(name, path string) (*Import, error) {
+	g := c.CompGlobals
+	imp := g.KnownImports[path]
+	if imp == nil {
+		pkgref, err := g.Importer.ImportPackageOrError(name, path)
+		if err != nil {
+			return nil, err
+		}
+		imp = g.NewImport(pkgref)
+	}
+	if name == "." {
+		c.declDotImport0(imp)
+	} else if name != "_" {
+		// https://golang.org/ref/spec#Package_clause states:
+		// If the PackageName is omitted, it defaults to the identifier
+		// specified in the package clause of the imported package
+		if len(name) == 0 {
+			name = imp.Name
+		}
+		c.declImport0(name, imp)
+	}
+	g.KnownImports[path] = imp
+	return imp, nil
+}
+
 // Import compiles an import statement
 func (c *Comp) Import(node ast.Spec) {
 	switch node := node.(type) {
@@ -139,41 +198,6 @@ func (g *CompGlobals) sanitizeImportPath(path string) string {
 		g.Errorf("invalid import %q: contains \".\"", path)
 	}
 	return path
-}
-
-// ImportPackage imports a package. Usually invoked as Comp.FileComp().ImportPackage(name, path)
-// because imports are usually top-level statements in a source file.
-// But we also support local imports, i.e. import statements inside a function or block.
-func (c *Comp) ImportPackage(name, path string) {
-	_, err := c.ImportPackageOrError(name, path)
-	if err != nil {
-		panic(err)
-	}
-}
-
-func (c *Comp) ImportPackageOrError(name, path string) (*Import, error) {
-	g := c.CompGlobals
-	imp := g.KnownImports[path]
-	if imp == nil {
-		pkgref, err := g.ImportPackageOrError(name, path)
-		if err != nil {
-			return nil, err
-		}
-		imp = g.NewImport(pkgref)
-	}
-	if name == "." {
-		c.declDotImport0(imp)
-	} else if name != "_" {
-		// https://golang.org/ref/spec#Package_clause states:
-		// If the PackageName is omitted, it defaults to the identifier
-		// specified in the package clause of the imported package
-		if len(name) == 0 {
-			name = imp.Name
-		}
-		c.declImport0(name, imp)
-	}
-	g.KnownImports[path] = imp
-	return imp, nil
 }
 
 // declDotImport0 compiles an import declaration.
@@ -250,7 +274,7 @@ func (c *Comp) declDotImport0(imp *Import) {
 	}
 }
 
-func (g *CompGlobals) NewImport(pkgref *PackageRef) *Import {
+func (g *CompGlobals) NewImport(pkgref *genimport.PackageRef) *Import {
 	env := &Env{
 		UsedByClosure: true, // do not try to recycle this Env
 	}
@@ -261,14 +285,14 @@ func (g *CompGlobals) NewImport(pkgref *PackageRef) *Import {
 	if pkgref != nil {
 		imp.Name = pkgref.Name
 		imp.Path = pkgref.Path
-		imp.loadBinds(g, pkgref)
 		imp.loadTypes(g, pkgref)
+		imp.loadBinds(g, pkgref)
 		g.loadProxies(pkgref.Proxies, imp.Types)
 	}
 	return imp
 }
 
-func (imp *Import) loadBinds(g *CompGlobals, pkgref *PackageRef) {
+func (imp *Import) loadBinds(g *CompGlobals, pkgref *genimport.PackageRef) {
 	vals := make([]r.Value, len(pkgref.Binds))
 	untypeds := pkgref.Untypeds
 	o := &g.Output
@@ -286,7 +310,7 @@ func (imp *Import) loadBinds(g *CompGlobals, pkgref *PackageRef) {
 		// distinguish typed constants, variables and functions
 		if val.IsValid() && val.CanAddr() && val.CanSet() {
 			class = VarBind
-		} else if k == r.Invalid || (IsOptimizedKind(k) && val.CanInterface()) {
+		} else if k == r.Invalid || (reflect.IsOptimizedKind(k) && val.CanInterface()) {
 			class = ConstBind
 		}
 		typ := g.Universe.FromReflectType(val.Type())
@@ -308,16 +332,16 @@ func (imp *Import) loadBinds(g *CompGlobals, pkgref *PackageRef) {
 	imp.Vals = vals
 }
 
-func (g *CompGlobals) parseUntyped(untyped string) (UntypedLit, xr.Type) {
-	kind, value := UnmarshalUntyped(untyped)
-	if kind == r.Invalid {
+func (g *CompGlobals) parseUntyped(untypedstr string) (UntypedLit, xr.Type) {
+	kind, value := untyped.Unmarshal(untypedstr)
+	if kind == untyped.None {
 		return UntypedLit{}, nil
 	}
-	lit := MakeUntypedLit(kind, value, &g.Universe.BasicTypes)
+	lit := untyped.MakeLit(kind, value, &g.Universe.BasicTypes)
 	return lit, g.TypeOfUntypedLit()
 }
 
-func (imp *Import) loadTypes(g *CompGlobals, pkgref *PackageRef) {
+func (imp *Import) loadTypes(g *CompGlobals, pkgref *genimport.PackageRef) {
 	v := g.Universe
 	types := make(map[string]xr.Type)
 	wrappers := pkgref.Wrappers
@@ -333,9 +357,9 @@ func (imp *Import) loadTypes(g *CompGlobals, pkgref *PackageRef) {
 }
 
 // loadProxies adds to thread-global maps the proxies found in import
-func (g *CompGlobals) loadProxies(proxies map[string]r.Type, xtypes map[string]xr.Type) {
+func (g *CompGlobals) loadProxies(proxies map[string]r.Type, types map[string]xr.Type) {
 	for name, proxy := range proxies {
-		xtype := xtypes[name]
+		xtype := types[name]
 		if xtype == nil {
 			g.Warnf("import %q: type not found for proxy <%v>", proxy.PkgPath(), proxy)
 			continue
@@ -388,7 +412,7 @@ func (imp *Import) selectorPlace(c *Comp, name string, opt PlaceOption) *Place {
 }
 
 // selector compiles foo.bar where 'foo' is an imported package
-func (imp *Import) selector(name string, st *Stringer) *Expr {
+func (imp *Import) selector(name string, st *output.Stringer) *Expr {
 	bind, ok := imp.Binds[name]
 	if !ok {
 		st.Errorf("package %v %q has no symbol %s", imp.Name, imp.Path, name)
@@ -409,7 +433,7 @@ func (imp *Import) selector(name string, st *Stringer) *Expr {
 // create an expression that will return the value of imported variable described by bind.
 //
 // mandatory optimization: for basic kinds, unwrap reflect.Value
-func (imp *Import) symbol(bind *Bind, st *Stringer) *Expr {
+func (imp *Import) symbol(bind *Bind, st *output.Stringer) *Expr {
 	idx := bind.Desc.Index()
 	if idx == NoIndex {
 		st.Errorf("undefined identifier %s._", imp.Name)
@@ -505,7 +529,7 @@ func (imp *Import) symbol(bind *Bind, st *Stringer) *Expr {
 // create an expression that will return the value of imported variable described by bind.
 //
 // mandatory optimization: for basic kinds, do not wrap in reflect.Value
-func (imp *Import) intSymbol(bind *Bind, st *Stringer) *Expr {
+func (imp *Import) intSymbol(bind *Bind, st *output.Stringer) *Expr {
 	idx := bind.Desc.Index()
 	if idx == NoIndex {
 		st.Errorf("undefined identifier %s._", imp.Name)

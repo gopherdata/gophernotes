@@ -1,7 +1,7 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017-2018 Massimiliano Ghilardi
+ * Copyright (C) 2018-2019 Massimiliano Ghilardi
  *
  *     This Source Code Form is subject to the terms of the Mozilla Public
  *     License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -25,7 +25,7 @@ import (
 	"os"
 	"sort"
 
-	"github.com/cosmos72/gomacro/base"
+	"github.com/cosmos72/gomacro/base/output"
 )
 
 // ===================== Decl =====================
@@ -139,7 +139,7 @@ func (list DeclList) Print() {
 func NewDeclImport(spec ast.Spec, counter *int) *Decl {
 	node, ok := spec.(*ast.ImportSpec)
 	if !ok {
-		base.Errorf("NewDeclImport(): unsupported import: expecting *ast.ImportSpec, found: %v // %T", spec, spec)
+		output.Errorf("NewDeclImport(): unsupported import: expecting *ast.ImportSpec, found: %v // %T", spec, spec)
 	}
 
 	var name string
@@ -160,7 +160,7 @@ func NewDeclImport(spec ast.Spec, counter *int) *Decl {
 func NewDeclPackage(spec ast.Spec, counter *int) *Decl {
 	node, ok := spec.(*ast.ValueSpec)
 	if !ok {
-		base.Errorf("NewDeclPackage(): unsupported package: expecting *ast.ValueSpec, found: %v // %T", spec, spec)
+		output.Errorf("NewDeclPackage(): unsupported package: expecting *ast.ValueSpec, found: %v // %T", spec, spec)
 	}
 
 	var pos token.Pos

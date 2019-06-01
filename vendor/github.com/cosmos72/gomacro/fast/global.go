@@ -1,7 +1,7 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017-2018 Massimiliano Ghilardi
+ * Copyright (C) 2017-2019 Massimiliano Ghilardi
  *
  *     This Source Code Form is subject to the terms of the Mozilla Public
  *     License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -26,6 +26,7 @@ import (
 
 	"github.com/cosmos72/gomacro/atomic"
 	. "github.com/cosmos72/gomacro/base"
+	"github.com/cosmos72/gomacro/base/output"
 	"github.com/cosmos72/gomacro/base/untyped"
 	xr "github.com/cosmos72/gomacro/xreflect"
 )
@@ -36,19 +37,15 @@ type I = interface{}
 
 type UntypedLit = untyped.Lit
 
-var untypedOne = UntypedLit{Kind: r.Int, Val: constant.MakeInt64(1)}
-
-func MakeUntypedLit(kind r.Kind, val constant.Value, basicTypes *[]xr.Type) UntypedLit {
-	return untyped.MakeLit(kind, val, basicTypes)
-}
+var untypedOne = UntypedLit{Kind: untyped.Int, Val: constant.MakeInt64(1)}
 
 // ================================= Lit =================================
 
 // Lit represents a literal value, i.e. a typed or untyped constant
 type Lit struct {
 
-	// Type is nil only for literal nils.
-	// for all other literals, it is reflect.TypeOf(Lit.Value)
+	// Type is nil for literal nils.
+	// For all other literals, Type is xr.TypeOf(Lit.Value)
 	//
 	// when Lit is embedded in other structs that represent non-constant expressions,
 	// Type is the first type returned by the expression (nil if returns no values)
@@ -62,6 +59,10 @@ type Lit struct {
 	//
 	// when Lit is embedded in other structs that represent non-constant expressions,
 	// Value is usually nil
+	//
+	// when Lit is embedded in a Bind with class == GenericFuncBind,
+	// Value is the *GenericFunc containing the function source code
+	// to be specialized and compiled upon instantiation.
 	Value I
 }
 
@@ -73,11 +74,11 @@ func (lit *Lit) Untyped() bool {
 
 // UntypedKind returns the reflect.Kind of untyped constants,
 // i.e. their "default type"
-func (lit *Lit) UntypedKind() r.Kind {
+func (lit *Lit) UntypedKind() untyped.Kind {
 	if untyp, ok := lit.Value.(UntypedLit); ok {
 		return untyp.Kind
 	} else {
-		return r.Invalid
+		return untyped.None
 	}
 }
 
@@ -139,6 +140,7 @@ type Expr struct {
 	Types []xr.Type // in case the expression produces multiple values. if nil, use Lit.Type.
 	Fun   I         // function that evaluates the expression at runtime.
 	Sym   *Symbol   // in case the expression is a symbol
+	Jit   jitExpr   // expression to jit-compile, or nil if not supported
 	EFlags
 }
 
@@ -221,6 +223,8 @@ const (
 	FuncBind
 	VarBind
 	IntBind
+	GenericFuncBind
+	GenericTypeBind
 )
 
 func (class BindClass) String() string {
@@ -233,6 +237,10 @@ func (class BindClass) String() string {
 		return "var"
 	case IntBind:
 		return "intvar"
+	case GenericFuncBind:
+		return "generic func"
+	case GenericTypeBind:
+		return "generic type"
 	default:
 		return fmt.Sprintf("unknown%d", uint(class))
 	}
@@ -245,10 +253,10 @@ func (class BindClass) String() string {
 type BindDescriptor BindClass
 
 const (
-	bindClassMask  = BindClass(0x3)
-	bindIndexShift = 2
+	bindClassMask  = BindClass(0x7)
+	bindIndexShift = 3
 
-	NoIndex             = int(-1)                   // index of constants, functions and variables named "_"
+	NoIndex             = int(-1)                   // index of functions, variables named "_" and of constants
 	ConstBindDescriptor = BindDescriptor(ConstBind) // bind descriptor for all constants
 )
 
@@ -307,18 +315,26 @@ func (bind *Bind) ConstValue() r.Value {
 
 // return bind value.
 // if bind is untyped constant, returns UntypedLit wrapped in reflect.Value
-func (bind *Bind) RuntimeValue(env *Env) r.Value {
+func (bind *Bind) RuntimeValue(g *CompGlobals, env *Env) r.Value {
 	var v r.Value
 	switch bind.Desc.Class() {
 	case ConstBind:
 		v = bind.Lit.ConstValue()
 	case IntBind:
-		expr := bind.intExpr(&env.Run.Stringer)
+		expr := bind.intExpr(g)
 		// no need for Interp.RunExpr(): expr is a local variable,
 		// not a statement or a function call that may be stopped by the debugger
 		v = expr.AsX1()(env)
-	default:
+	case VarBind, FuncBind:
 		v = env.Vals[bind.Desc.Index()]
+	case GenericFuncBind, GenericTypeBind:
+		if GENERICS_V1_CXX || GENERICS_V2_CTI {
+			v = bind.Lit.ConstValue()
+			break
+		}
+		fallthrough
+	default:
+		output.Errorf("Symbol %q: unsupported class: %v", bind.Name, bind.Desc.Class())
 	}
 	return v
 }
@@ -329,7 +345,7 @@ func (bind *Bind) AsVar(upn int, opt PlaceOption) *Var {
 	case VarBind, IntBind:
 		return &Var{Upn: upn, Desc: bind.Desc, Type: bind.Type, Name: bind.Name}
 	default:
-		Errorf("%s a %s: %s <%v>", opt, class, bind.Name, bind.Type)
+		output.Errorf("%s a %s: %s <%v>", opt, class, bind.Name, bind.Type)
 		return nil
 	}
 }
@@ -338,8 +354,8 @@ func (bind *Bind) AsSymbol(upn int) *Symbol {
 	return &Symbol{Bind: *bind, Upn: upn}
 }
 
-func (c *Comp) BindUntyped(kind r.Kind, value constant.Value) *Bind {
-	untypedlit := MakeUntypedLit(kind, value, &c.Universe.BasicTypes)
+func (c *Comp) BindUntyped(kind untyped.Kind, value constant.Value) *Bind {
+	untypedlit := untyped.MakeLit(kind, value, &c.Universe.BasicTypes)
 	return &Bind{Lit: Lit{Type: c.TypeOfUntypedLit(), Value: untypedlit}, Desc: ConstBindDescriptor}
 }
 
@@ -353,6 +369,10 @@ type Symbol struct {
 
 func (sym *Symbol) AsVar(opt PlaceOption) *Var {
 	return sym.Bind.AsVar(sym.Upn, opt)
+}
+
+func (sym *Symbol) String() string {
+	return fmt.Sprintf("Symbol{%v %q %v idx=%v upn=%v}", sym.Desc.Class(), sym.Name, sym.Type, sym.Desc.Index(), sym.Upn)
 }
 
 // Var represents a settable variable
@@ -378,6 +398,10 @@ func (va *Var) AsSymbol() *Symbol {
 
 func (va *Var) AsPlace() *Place {
 	return &Place{Var: *va}
+}
+
+func (va *Var) String() string {
+	return fmt.Sprintf("Var{%v %q %v idx=%v upn=%v}", va.Desc.Class(), va.Name, va.Type, va.Desc.Index(), va.Upn)
 }
 
 // Place represents a settable place or, equivalently, its address
@@ -552,6 +576,7 @@ type CompGlobals struct {
 	interf2proxy map[r.Type]r.Type  // interface -> proxy
 	proxy2interf map[r.Type]xr.Type // proxy -> interface
 	Prompt       string
+	Jit          *Jit
 }
 
 func (cg *CompGlobals) CompileOptions() CompileOptions {

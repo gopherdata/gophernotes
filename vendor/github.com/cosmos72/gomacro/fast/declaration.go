@@ -1,7 +1,7 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017-2018 Massimiliano Ghilardi
+ * Copyright (C) 2017-2019 Massimiliano Ghilardi
  *
  *     This Source Code Form is subject to the terms of the Mozilla Public
  *     License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -21,6 +21,10 @@ import (
 	"go/token"
 	r "reflect"
 
+	"github.com/cosmos72/gomacro/base/reflect"
+
+	"github.com/cosmos72/gomacro/base/strings"
+
 	"github.com/cosmos72/gomacro/base"
 	xr "github.com/cosmos72/gomacro/xreflect"
 )
@@ -34,7 +38,7 @@ func (c *Comp) Decl(node ast.Decl) {
 	case *ast.GenDecl:
 		c.GenDecl(node)
 	case *ast.FuncDecl:
-		c.FuncDecl(node)
+		c.DeclFunc(node)
 	default:
 		c.Errorf("unsupported declaration, expecting <*ast.GenDecl> or <*ast.FuncDecl>, found: %v <%v>", node, r.TypeOf(node))
 	}
@@ -97,7 +101,7 @@ func (c *Comp) GenDecl(node *ast.GenDecl) {
 			if decl, ok := node.Specs[0].(*ast.ValueSpec); ok {
 				if len(decl.Values) == 1 {
 					if lit, ok := decl.Values[0].(*ast.BasicLit); ok {
-						if lit.Kind == token.STRING && (lit.Value == c.Name || base.MaybeUnescapeString(lit.Value) == c.Path) {
+						if lit.Kind == token.STRING && (lit.Value == c.Name || strings.MaybeUnescapeString(lit.Value) == c.Path) {
 							break
 						}
 					}
@@ -263,7 +267,7 @@ func (c *Comp) NewBind(name string, class BindClass, t xr.Type) *Bind {
 		// thus we cannot reallocate it => we must stop at its capacity, stored in c.IntBindMax
 		// by Interp.PrepareEnv()
 		if (c.IntBindMax == 0 || c.IntBindNum < c.IntBindMax) &&
-			base.IsCategory(t.Kind(), r.Bool, r.Int, r.Uint, r.Float64, r.Complex128) {
+			reflect.IsCategory(t.Kind(), r.Bool, r.Int, r.Uint, r.Float64, r.Complex128) {
 			// optimize booleans, integers, floats and complexes by storing them in Env.Ints []uint64
 			// note: complex128 occupies two uint64 slots!
 			class = IntBind
@@ -306,7 +310,7 @@ func (c *CompBinds) NewBind(o *base.Output, name string, class BindClass, t xr.T
 	}
 	// allocate a slot either in Binds or in IntBinds
 	switch class {
-	case ConstBind:
+	case ConstBind, GenericFuncBind:
 		index = NoIndex
 	default: // case FuncBind, VarBind:
 		if index == NoIndex {
@@ -432,7 +436,7 @@ func (c *Comp) DeclVar0(name string, t xr.Type, init *Expr) *Bind {
 		if index == NoIndex && init != nil {
 			// assigning a constant or expression to _
 			// only keep the expression side effects
-			c.append(init.AsStmt())
+			c.append(init.AsStmt(c))
 			return bind
 		}
 		// declaring a variable in Env.Binds[], we must create a settable and addressable reflect.Value

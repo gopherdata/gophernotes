@@ -1,7 +1,7 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017-2018 Massimiliano Ghilardi
+ * Copyright (C) 2017-2019 Massimiliano Ghilardi
  *
  *     This Source Code Form is subject to the terms of the Mozilla Public
  *     License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -82,11 +82,11 @@ func (c *Comp) Assign(node *ast.AssignStmt) {
 		canreorder = canreorder && places[i].IsVar() // ach, needed. see for example i := 0; i, x[i] = 1, 2  // set i = 1, x[0] = 2
 	}
 	if rn == 1 && ln > 1 {
-		exprs[0] = c.Expr(rhs[0], nil)
+		exprs[0] = c.expr(rhs[0], nil)
 		canreorder = false
 	} else {
 		for i, ri := range rhs {
-			exprs[i] = c.Expr1(ri, nil)
+			exprs[i] = c.expr1(ri, nil)
 			canreorder = canreorder && exprs[i].Const()
 		}
 	}
@@ -274,9 +274,11 @@ func (c *Comp) assignMulti(assign []Assign, exprfuns []func(*Env) r.Value, exprx
 		// execute assignments
 		for i := range assign {
 			a := &assign[i]
+			// both a.setvar and a.setplace may be nil
+			// if assigning _
 			if a.setvar != nil {
 				a.setvar(env, vals[i])
-			} else {
+			} else if a.setplace != nil {
 				a.setplace(objs[i], keys[i], vals[i])
 			}
 		}
@@ -300,12 +302,40 @@ func (c *Comp) assign1(lhs ast.Expr, op token.Token, rhs ast.Expr, place *Place,
 	c.Pos = lhs.Pos()
 	// c.Debugf("compiling assign1 at [% 3d] %s: %v // %T", c.Pos, c.Fileset.Position(c.Pos), lhs, lhs)
 
+	c.SetPlace(place, op, init)
+	panicking = false
+}
+
+// SetVar compiles an assignment to a variable:
+// 'variable op constant' and 'variable op expression'
+func (c *Comp) SetVar(va *Var, op token.Token, init *Expr) {
+	// c.setVar() has the side effect of converting
+	// RHS untyped constants to the correct type,
+	// also needed by c.Jit.SetVar() below
+	stmt := c.setVar(va, op, init)
+	// c.Debugf("Comp.SetVar: %v %v %v", va, op, init)
+	if stmt == nil {
+		// optimized away.
+		return
+	}
+	if jstmt := c.Jit.SetVar(va, op, init); jstmt != nil {
+		// prefer jit-compiled statement
+		stmt = jstmt
+	}
+	c.append(stmt)
+}
+
+// SetPlace compiles an assignment to a place:
+// 'place op constant' and 'place op expression'
+func (c *Comp) SetPlace(place *Place, op token.Token, init *Expr) {
 	if place.IsVar() {
 		c.SetVar(&place.Var, op, init)
-	} else {
-		c.SetPlace(place, op, init)
+		return
 	}
-	panicking = false
+	// c.setPlace() has the side effect of converting
+	// RHS untyped constants to the correct type
+	stmt := c.setPlace(place, op, init)
+	c.append(stmt)
 }
 
 // LookupVar compiles the left-hand-side of an assignment, in case it's an identifier (i.e. a variable name)
@@ -373,7 +403,7 @@ func (c *Comp) placeOrAddress(in ast.Expr, opt PlaceOption, t xr.Type) *Place {
 			in = node.X
 			continue
 		case *ast.StarExpr:
-			e := c.Expr1(node.X, nil)
+			e := c.expr1(node.X, nil)
 			if e.Const() {
 				c.Errorf("%s a constant: %v <%v>", opt, node, e.Type)
 				return nil
@@ -398,9 +428,9 @@ func (c *Comp) placeOrAddress(in ast.Expr, opt PlaceOption, t xr.Type) *Place {
 
 // placeForSideEffects compiles the left-hand-side of a do-nothing assignment,
 // as for example *addressOfInt() += 0, in order to apply its side effects
-func (c *Comp) placeForSideEffects(place *Place) {
+func (c *Comp) placeForSideEffects(place *Place) Stmt {
 	if place.IsVar() {
-		return
+		return nil
 	}
 	var ret Stmt
 	fun := place.Fun
@@ -422,5 +452,5 @@ func (c *Comp) placeForSideEffects(place *Place) {
 			return env.Code[env.IP], env
 		}
 	}
-	c.append(ret)
+	return ret
 }

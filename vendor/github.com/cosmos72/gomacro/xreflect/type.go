@@ -1,7 +1,7 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017-2018 Massimiliano Ghilardi
+ * Copyright (C) 2017-2019 Massimiliano Ghilardi
  *
  *     This Source Code Form is subject to the terms of the Mozilla Public
  *     License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -17,10 +17,12 @@
 package xreflect
 
 import (
-	"go/types"
-	"reflect"
+	r "reflect"
 
-	"github.com/cosmos72/gomacro/typeutil"
+	"github.com/cosmos72/gomacro/go/types"
+
+	"github.com/cosmos72/gomacro/go/etoken"
+	"github.com/cosmos72/gomacro/go/typeutil"
 )
 
 func identicalType(t, u Type) bool {
@@ -34,9 +36,9 @@ func identicalType(t, u Type) bool {
 	return xt == yt || xt.identicalTo(yt)
 }
 
-func debugOnMismatchCache(gtype types.Type, rtype reflect.Type, cached Type) {
-	debugf("overwriting mismatched reflect.Type found in cache for type %v:\n\tnew reflect.Type: %v\n\told reflect.Type: %v",
-		gtype, rtype, cached.ReflectType()) //, debug.Stack())
+func debugOnMismatchCache(m *typeutil.Map, gtype types.Type, rtype r.Type, cached Type) {
+	debugf("overwriting mismatched reflect.Type found in cache for type %v (hash 0x%x):\n\tnew reflect.Type: %v\n\told reflect.Type: %v",
+		typeutil.String(gtype), m.Hasher().Hash(gtype), rtype, cached.ReflectType()) //, debug.Stack())
 }
 
 func (t *xtype) warnOnSuspiciousCache() {
@@ -44,7 +46,7 @@ func (t *xtype) warnOnSuspiciousCache() {
 	// also, it cannot create unnamed structs containing unexported fields. again, accept whatever we have.
 	// instead complain on mismatch for non-interface, non-named types
 	rt := t.rtype
-	if !t.Named() && len(rt.Name()) != 0 && rt.Kind() != reflect.Interface && rt.Kind() != reflect.Struct {
+	if !t.Named() && len(rt.Name()) != 0 && rt.Kind() != r.Interface && rt.Kind() != r.Struct {
 		xerrorf(t, "caching suspicious type %v => %v", t.gtype, rt)
 	}
 }
@@ -65,15 +67,15 @@ func (m *Types) add(t Type) {
 		xt.warnOnSuspiciousCache()
 	}
 	switch xt.kind {
-	case reflect.Func:
+	case r.Func:
 		// even function types can be named => they need SetUnderlying() before being complete
 		if !xt.needSetUnderlying() {
 			xt.NumIn() // check consistency
 		}
-	case reflect.Interface:
+	case r.Interface:
 		rtype := t.ReflectType()
 		rkind := rtype.Kind()
-		if rkind != reflect.Interface && (rkind != reflect.Ptr || rtype.Elem().Kind() != reflect.Struct) {
+		if rkind != r.Interface && (rkind != r.Ptr || rtype.Elem().Kind() != r.Struct) {
 			errorf(t, "bug! inconsistent type <%v>: has kind = %s but its Type.Reflect() is %s\n\tinstead of interface or pointer-to-struct: <%v>",
 				t, t.Kind(), rtype.Kind(), t.ReflectType())
 		}
@@ -83,7 +85,7 @@ func (m *Types) add(t Type) {
 }
 
 // all unexported methods assume lock is already held
-func (v *Universe) maketype3(kind reflect.Kind, gtype types.Type, rtype reflect.Type) Type {
+func (v *Universe) maketype3(kind r.Kind, gtype types.Type, rtype r.Type) Type {
 	if gtype == nil {
 		errorf(nil, "MakeType of nil types.Type")
 	} else if rtype == nil {
@@ -101,19 +103,21 @@ func (v *Universe) maketype3(kind reflect.Kind, gtype types.Type, rtype reflect.
 			return t
 		}
 		if v.debug() {
-			debugOnMismatchCache(gtype, rtype, t)
+			debugOnMismatchCache(&v.Types.gmap, gtype, rtype, t)
 		}
 	}
-	t := wrap(&xtype{kind: kind, gtype: gtype, rtype: rtype, universe: v})
+	xt := &xtype{kind: kind, gtype: gtype, rtype: rtype, universe: v}
+	t := wrap(xt)
 	v.add(t)
+	v.addTypeMethodsCTI(xt)
 	return t
 }
 
-func (v *Universe) maketype(gtype types.Type, rtype reflect.Type) Type {
+func (v *Universe) maketype(gtype types.Type, rtype r.Type) Type {
 	return v.maketype3(gtypeToKind(nil, gtype), gtype, rtype)
 }
 
-func (v *Universe) MakeType(gtype types.Type, rtype reflect.Type) Type {
+func (v *Universe) MakeType(gtype types.Type, rtype r.Type) Type {
 	kind := gtypeToKind(nil, gtype)
 	if v.ThreadSafe {
 		defer un(lock(v))
@@ -144,11 +148,11 @@ func (t *xtype) GoType() types.Type {
 //        struct { Elem int; Rest interface{} }
 //    i.e. the type name will be missing due to limitation 1 above,
 //    and the field 'Rest' will have type interface{} instead of *List due to limitation 5.
-func (t *xtype) ReflectType() reflect.Type {
+func (t *xtype) ReflectType() r.Type {
 	return t.rtype
 }
 
-func (t *xtype) UnsafeForceReflectType(rtype reflect.Type) {
+func (t *xtype) UnsafeForceReflectType(rtype r.Type) {
 	t.rtype = rtype
 }
 
@@ -235,7 +239,14 @@ func (t *xtype) String() string {
 	if t == nil {
 		return "<nil>"
 	}
-	return t.gtype.String()
+	return typeutil.String(t.gtype)
+}
+
+func (t *xtype) string2(name string) string {
+	if t == nil {
+		return "<nil>"
+	}
+	return typeutil.String2(name, t.gtype)
 }
 
 /*
@@ -250,14 +261,14 @@ func (t *xtype) gunderlying() types.Type {
 }
 
 // best-effort implementation of missing reflect.Type.Underlying()
-func (t *xtype) runderlying() reflect.Type {
+func (t *xtype) runderlying() r.Type {
 	return ReflectUnderlying(t.rtype)
 }
 
 // Kind returns the specific kind of the type.
-func (t *xtype) Kind() reflect.Kind {
+func (t *xtype) Kind() r.Kind {
 	if t == nil {
-		return reflect.Invalid
+		return r.Invalid
 	}
 	return t.kind
 }
@@ -265,10 +276,33 @@ func (t *xtype) Kind() reflect.Kind {
 // Implements reports whether the type implements the interface type u.
 // It panics if u's Kind is not Interface
 func (t *xtype) Implements(u Type) bool {
-	if u.Kind() != reflect.Interface {
+	if u.Kind() != r.Interface {
 		xerrorf(t, "Type.Implements of non-interface type: %v", u)
 	}
-	return t.gtype == u.GoType() || types.Implements(t.gtype, u.GoType().Underlying().(*types.Interface))
+	xu := unwrap(u)
+	return t.gtype == xu.gtype ||
+		(types.Implements(t.gtype, xu.gtype.Underlying().(*types.Interface)) &&
+			matchReceiverType(t, xu))
+}
+
+func matchReceiverType(t, u *xtype) bool {
+	t = getConstrainedReceiverType(t, true)
+	u = getConstrainedReceiverType(u, false)
+	return t == nil || u == nil || t.identicalTo(u)
+}
+
+func getConstrainedReceiverType(t *xtype, lhs bool) *xtype {
+	if etoken.GENERICS_V2_CTI {
+		if lhs && t.kind != r.Interface {
+			return t
+		}
+		if recv, ok := t.GetUserData(ConstrainedInterfaceReceiverType); ok {
+			if trecv, ok := recv.(Type); ok {
+				return unwrap(trecv)
+			}
+		}
+	}
+	return nil
 }
 
 // IdenticalTo reports whether the type is identical to type u.
@@ -284,12 +318,16 @@ func (t *xtype) identicalTo(u *xtype) bool {
 // AssignableTo reports whether a value of the type is assignable to type u.
 func (t *xtype) AssignableTo(u Type) bool {
 	// debugf("AssignableTo: <%v> <%v>", t, u)
-	return t.gtype == u.GoType() || types.AssignableTo(t.gtype, u.GoType())
+	return t.gtype == u.GoType() ||
+		(types.AssignableTo(t.gtype, u.GoType()) &&
+			matchReceiverType(t, unwrap(u)))
 }
 
 // ConvertibleTo reports whether a value of the type is convertible to type u.
 func (t *xtype) ConvertibleTo(u Type) bool {
-	return t.gtype == u.GoType() || types.ConvertibleTo(t.gtype, u.GoType())
+	return t.gtype == u.GoType() ||
+		(types.ConvertibleTo(t.gtype, u.GoType()) &&
+			matchReceiverType(t, unwrap(u)))
 }
 
 // Comparable reports whether values of this type are comparable.
@@ -297,7 +335,27 @@ func (t *xtype) Comparable() bool {
 	return types.Comparable(t.gtype)
 }
 
+// GetUserData returns the user-supplied data of the type.
+func (t *xtype) GetUserData(key interface{}) (interface{}, bool) {
+	if t == nil {
+		return nil, false
+	}
+	val, ok := t.userdata[key]
+	return val, ok
+}
+
+// SetUserData sets the user-supplied data of the type.
+func (t *xtype) SetUserData(key, value interface{}) {
+	if t.userdata == nil {
+		t.userdata = map[interface{}]interface{}{
+			key: value,
+		}
+	} else {
+		t.userdata[key] = value
+	}
+}
+
 // Zero returns a Value representing the zero value for the specified type.
-func Zero(t Type) reflect.Value {
-	return reflect.Zero(t.ReflectType())
+func Zero(t Type) r.Value {
+	return r.Zero(t.ReflectType())
 }

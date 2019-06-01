@@ -1,7 +1,7 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017-2018 Massimiliano Ghilardi
+ * Copyright (C) 2017-2019 Massimiliano Ghilardi
  *
  *     This Source Code Form is subject to the terms of the Mozilla Public
  *     License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -22,6 +22,7 @@ import (
 	r "reflect"
 
 	. "github.com/cosmos72/gomacro/base"
+	"github.com/cosmos72/gomacro/base/reflect"
 )
 
 // eval an interpreted function
@@ -87,7 +88,7 @@ func (env *Env) evalFuncCall(envName string, body *ast.BlockStmt, t r.Type, argN
 		env.DefineVar(argName, t.In(i), args[i])
 	}
 	// use evalStatements(), not evalBlock(): in Go, the function arguments and body are in the same scope
-	rets := PackValues(env.evalStatements(body.List))
+	rets := reflect.PackValues(env.evalStatements(body.List))
 	results = env.convertFuncCallResults(t, rets, false)
 	panicking = false
 	return results
@@ -194,11 +195,11 @@ func (env *Env) evalCall(node *ast.CallExpr) (r.Value, []r.Value) {
 		} else {
 			rets = fun.CallSlice(args)
 		}
-		return UnpackValues(rets)
+		return reflect.UnpackValues(rets)
 	default:
 		break
 	}
-	return env.Errorf("call of non-function %v <%v>: %v", ValueInterface(fun), ValueType(fun), node)
+	return env.Errorf("call of non-function %v <%v>: %v", reflect.Interface(fun), reflect.Type(fun), node)
 }
 
 func (env *Env) evalConstructorArgs(fun Constructor, node *ast.CallExpr) (r.Type, []r.Value) {

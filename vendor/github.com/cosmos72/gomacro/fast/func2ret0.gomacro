@@ -1,7 +1,7 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017-2018 Massimiliano Ghilardi
+ * Copyright (C) 2017-2019 Massimiliano Ghilardi
  *
  *     This Source Code Form is subject to the terms of the Mozilla Public
  *     License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -21,6 +21,7 @@ import (
 	"unsafe"
 
 	. "github.com/cosmos72/gomacro/base"
+	"github.com/cosmos72/gomacro/base/reflect"
 	xr "github.com/cosmos72/gomacro/xreflect"
 )
 
@@ -94,7 +95,7 @@ func (c *Comp) func2ret0(t xr.Type, m *funcMaker) func(*Env) r.Value {
 	karg0 := t.In(0).Kind()
 	karg1 := t.In(1).Kind()
 
-	if !IsOptimizedKind(karg0) || !IsOptimizedKind(karg1) {
+	if !reflect.IsOptimizedKind(karg0) || !reflect.IsOptimizedKind(karg1) {
 		return nil
 	}
 	// do not keep a reference to funcMaker

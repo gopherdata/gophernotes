@@ -1,7 +1,7 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017-2018 Massimiliano Ghilardi
+ * Copyright (C) 2017-2019 Massimiliano Ghilardi
  *
  *     This Source Code Form is subject to the terms of the Mozilla Public
  *     License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -20,7 +20,9 @@ import (
 	"go/constant"
 	r "reflect"
 
-	"github.com/cosmos72/gomacro/base"
+	"github.com/cosmos72/gomacro/base/output"
+	"github.com/cosmos72/gomacro/base/reflect"
+	"github.com/cosmos72/gomacro/base/untyped"
 	xr "github.com/cosmos72/gomacro/xreflect"
 )
 
@@ -28,8 +30,8 @@ func (c *Comp) litValue(value I) Lit {
 	return Lit{Type: c.TypeOf(value), Value: value}
 }
 
-func (c *Comp) exprUntypedLit(kind r.Kind, obj constant.Value) *Expr {
-	return &Expr{Lit: Lit{Type: c.TypeOfUntypedLit(), Value: MakeUntypedLit(kind, obj, &c.Universe.BasicTypes)}}
+func (c *Comp) exprUntypedLit(kind untyped.Kind, obj constant.Value) *Expr {
+	return &Expr{Lit: Lit{Type: c.TypeOfUntypedLit(), Value: untyped.MakeLit(kind, obj, &c.Universe.BasicTypes)}}
 }
 
 func (c *Comp) exprValue(t xr.Type, value I) *Expr {
@@ -41,9 +43,12 @@ func (c *Comp) exprValue(t xr.Type, value I) *Expr {
 
 func exprValue(t xr.Type, value I) *Expr {
 	if t == nil {
-		base.Errorf("internal error! exprValue() value = %v invoked with type = nil", value)
+		output.Errorf("internal error! exprValue() value = %v invoked with type = nil", value)
 	}
-	return &Expr{Lit: Lit{Type: t, Value: value}, EFlags: EFlag4Value(value)}
+	return &Expr{
+		Lit:    Lit{Type: t, Value: value},
+		EFlags: EFlag4Value(value),
+	}
 }
 
 func exprLit(lit Lit, sym *Symbol) *Expr {
@@ -93,12 +98,12 @@ func (expr *Expr) EvalConst(opts CompileOptions) I {
 		return expr.Value
 	}
 	ret := expr.AsX1()(nil)
-	if ret == base.None {
-		base.Errorf("constant should evaluate to a single value, found no values at all")
+	if ret == reflect.None {
+		output.Errorf("constant should evaluate to a single value, found no values at all")
 		return nil
 	}
 	var value I
-	if ret != base.Nil {
+	if ret != reflect.Nil {
 		value = ret.Interface()
 	}
 	expr.Value = value

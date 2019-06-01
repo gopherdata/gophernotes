@@ -1,7 +1,7 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017-2018 Massimiliano Ghilardi
+ * Copyright (C) 2018-2019 Massimiliano Ghilardi
  *
  *     This Source Code Form is subject to the terms of the Mozilla Public
  *     License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -22,7 +22,10 @@ import (
 	"sort"
 	"strings"
 
-	. "github.com/cosmos72/gomacro/base"
+	"github.com/cosmos72/gomacro/base/paths"
+
+	"github.com/cosmos72/gomacro/base"
+	bstrings "github.com/cosmos72/gomacro/base/strings"
 )
 
 // ====================== Cmd ==============================
@@ -69,7 +72,7 @@ import (
 // To list existing special commands, use Commands.List()
 type Cmd struct {
 	Name string
-	Func func(interp *Interp, arg string, opt CmdOpt) (string, CmdOpt)
+	Func func(interp *Interp, arg string, opt base.CmdOpt) (string, base.CmdOpt)
 	Help string
 }
 
@@ -87,7 +90,7 @@ func (cmd *Cmd) Match(prefix string) int {
 	}
 }
 
-func (cmd *Cmd) ShowHelp(g *Globals) {
+func (cmd *Cmd) ShowHelp(g *base.Globals) {
 	c := string(g.ReplCmdChar)
 
 	help := strings.Replace(cmd.Help, "%c", c, -1)
@@ -252,7 +255,7 @@ func removeCmd(vec []Cmd, pos int) []Cmd {
 	return vec
 }
 
-func (cmds Cmds) ShowHelp(g *Globals) {
+func (cmds Cmds) ShowHelp(g *base.Globals) {
 	out := g.Stdout
 	g.Fprintf(out, "%s",
 		"// type Go code to execute it. example: func add(x, y int) int { return x + y }\n\n// interpreter commands:\n")
@@ -286,14 +289,14 @@ func init() {
 
 // execute one of the REPL commands starting with ':'
 // return any remainder string to be evaluated, and the options to evaluate it
-func (ir *Interp) Cmd(src string) (string, CmdOpt) {
+func (ir *Interp) Cmd(src string) (string, base.CmdOpt) {
 	g := &ir.Comp.Globals
-	var opt CmdOpt
+	var opt base.CmdOpt
 
 	trim := strings.TrimSpace(src)
 	n := len(trim)
 	if n > 0 && trim[0] == g.ReplCmdChar {
-		prefix, arg := Split2(trim[1:], ' ') // skip g.ReplCmdChar
+		prefix, arg := bstrings.Split2(trim[1:], ' ') // skip g.ReplCmdChar
 		cmd, err := Commands.Lookup(prefix)
 		if err == nil {
 			src, opt = cmd.Func(ir, arg, opt)
@@ -301,20 +304,20 @@ func (ir *Interp) Cmd(src string) (string, CmdOpt) {
 			// ":<something>"
 			// temporarily disable collection of declarations and statements,
 			// and temporarily disable macroexpandonly (i.e. re-enable eval)
-			opt |= CmdOptForceEval
+			opt |= base.CmdOptForceEval
 			src = " " + src[1:] // slower than src = src[1:], but gives accurate column positions in error messages
 		} else {
 			g.Warnf("ambiguous command %q matches: %s", prefix, err)
 			return "", opt
 		}
-	} else if g.Options&OptMacroExpandOnly == 0 && (trim == "package" || strings.HasPrefix(trim, "package ")) {
-		_, arg := Split2(trim, ' ')
+	} else if g.Options&base.OptMacroExpandOnly == 0 && (trim == "package" || strings.HasPrefix(trim, "package ")) {
+		_, arg := bstrings.Split2(trim, ' ')
 		src, opt = ir.cmdPackage(arg, opt)
 	}
 	return src, opt
 }
 
-func (ir *Interp) cmdDebug(arg string, opt CmdOpt) (string, CmdOpt) {
+func (ir *Interp) cmdDebug(arg string, opt base.CmdOpt) (string, base.CmdOpt) {
 	g := &ir.Comp.Globals
 	if len(arg) == 0 {
 		g.Fprintf(g.Stdout, "// debug: missing argument\n")
@@ -324,17 +327,17 @@ func (ir *Interp) cmdDebug(arg string, opt CmdOpt) (string, CmdOpt) {
 	return "", opt
 }
 
-func (ir *Interp) cmdEnv(arg string, opt CmdOpt) (string, CmdOpt) {
+func (ir *Interp) cmdEnv(arg string, opt base.CmdOpt) (string, base.CmdOpt) {
 	ir.ShowPackage(arg)
 	return "", opt
 }
 
-func (ir *Interp) cmdHelp(arg string, opt CmdOpt) (string, CmdOpt) {
+func (ir *Interp) cmdHelp(arg string, opt base.CmdOpt) (string, base.CmdOpt) {
 	Commands.ShowHelp(&ir.Comp.Globals)
 	return "", opt
 }
 
-func (ir *Interp) cmdInspect(arg string, opt CmdOpt) (string, CmdOpt) {
+func (ir *Interp) cmdInspect(arg string, opt base.CmdOpt) (string, base.CmdOpt) {
 	g := &ir.Comp.Globals
 	if len(arg) == 0 {
 		g.Fprintf(g.Stdout, "// inspect: missing argument\n")
@@ -344,15 +347,15 @@ func (ir *Interp) cmdInspect(arg string, opt CmdOpt) (string, CmdOpt) {
 	return "", opt
 }
 
-func (ir *Interp) cmdOptions(arg string, opt CmdOpt) (string, CmdOpt) {
+func (ir *Interp) cmdOptions(arg string, opt base.CmdOpt) (string, base.CmdOpt) {
 	c := ir.Comp
 	g := &c.Globals
 
 	if len(arg) != 0 {
-		g.Options ^= ParseOptions(arg)
+		g.Options ^= base.ParseOptions(arg)
 
 		debugdepth := 0
-		if g.Options&OptDebugFromReflect != 0 {
+		if g.Options&base.OptDebugFromReflect != 0 {
 			debugdepth = 1
 		}
 		c.CompGlobals.Universe.DebugDepth = debugdepth
@@ -364,9 +367,9 @@ func (ir *Interp) cmdOptions(arg string, opt CmdOpt) (string, CmdOpt) {
 	return "", opt
 }
 
-// change package. path can be empty or a package path WITH quotes
+// change package. pkgpath can be empty or a package path WITH quotes
 // 'package NAME' where NAME is without quotes has no effect.
-func (ir *Interp) cmdPackage(path string, cmdopt CmdOpt) (string, CmdOpt) {
+func (ir *Interp) cmdPackage(path string, cmdopt base.CmdOpt) (string, base.CmdOpt) {
 	c := ir.Comp
 	g := &c.Globals
 	path = strings.TrimSpace(path)
@@ -375,26 +378,26 @@ func (ir *Interp) cmdPackage(path string, cmdopt CmdOpt) (string, CmdOpt) {
 		g.Fprintf(g.Stdout, "// current package: %s %q\n", c.Name, c.Path)
 	} else if n > 2 && path[0] == '"' && path[n-1] == '"' {
 		path = path[1 : n-1]
-		ir.ChangePackage(FileName(path), path)
-	} else if g.Options&OptShowPrompt != 0 {
+		ir.ChangePackage(paths.FileName(path), path)
+	} else if g.Options&base.OptShowPrompt != 0 {
 		g.Debugf(`package %s has no effect. To switch to a different package, use package "PACKAGE/FULL/PATH" - note the quotes`, path)
 	}
 	return "", cmdopt
 }
 
-func (ir *Interp) cmdQuit(_ string, opt CmdOpt) (string, CmdOpt) {
-	return "", opt | CmdOptQuit
+func (ir *Interp) cmdQuit(_ string, opt base.CmdOpt) (string, base.CmdOpt) {
+	return "", opt | base.CmdOptQuit
 }
 
 // remove package 'path' from the list of known packages
-func (ir *Interp) cmdUnload(path string, opt CmdOpt) (string, CmdOpt) {
+func (ir *Interp) cmdUnload(path string, opt base.CmdOpt) (string, base.CmdOpt) {
 	if len(path) != 0 {
 		ir.Comp.UnloadPackage(path)
 	}
 	return "", opt
 }
 
-func (ir *Interp) cmdWrite(filepath string, opt CmdOpt) (string, CmdOpt) {
+func (ir *Interp) cmdWrite(filepath string, opt base.CmdOpt) (string, base.CmdOpt) {
 	g := &ir.Comp.Globals
 	if len(filepath) == 0 {
 		g.WriteDeclsToStream(g.Stdout)

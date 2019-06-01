@@ -1,7 +1,7 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017-2018 Massimiliano Ghilardi
+ * Copyright (C) 2018-2019 Massimiliano Ghilardi
  *
  *     This Source Code Form is subject to the terms of the Mozilla Public
  *     License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -23,8 +23,9 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/cosmos72/gomacro/base/output"
+
 	"github.com/cosmos72/gomacro/ast2"
-	"github.com/cosmos72/gomacro/base"
 )
 
 func (s *Scope) Ast(form ast2.Ast) []string {
@@ -39,7 +40,7 @@ func (s *Scope) Ast(form ast2.Ast) []string {
 			deps = append(deps, s.Ast(form.Get(i))...)
 		}
 	default:
-		base.Errorf("Scope.Ast(): unsupported ast2.Ast node, expecting ast2.AstWithNode or ast2.AstWithSlice, found %v // %T", form, form)
+		output.Errorf("Scope.Ast(): unsupported ast2.Ast node, expecting ast2.AstWithNode or ast2.AstWithSlice, found %v // %T", form, form)
 	}
 	return deps
 }
@@ -61,7 +62,7 @@ func (s *Scope) Node(node ast.Node) []string {
 	case *ast.File:
 		deps = s.File(node)
 	default:
-		base.Errorf("Scope.Ast(): unsupported node type, expecting ast.Decl, ast.Expr, ast.Stmt or *ast.File, found %v // %T", node, node)
+		output.Errorf("Scope.Ast(): unsupported node type, expecting ast.Decl, ast.Expr, ast.Stmt or *ast.File, found %v // %T", node, node)
 	}
 	return sort_unique_inplace(deps)
 }
@@ -75,7 +76,7 @@ func (s *Scope) Decl(node ast.Node) []string {
 	case *ast.FuncDecl:
 		deps = s.Func(node)
 	default:
-		base.Errorf("Scope.Decl(): unsupported declaration, expecting *ast.GenDecl or *ast.FuncDecl, found: %v // %T", node, node)
+		output.Errorf("Scope.Decl(): unsupported declaration, expecting *ast.GenDecl or *ast.FuncDecl, found: %v // %T", node, node)
 	}
 	return deps
 }
@@ -125,7 +126,7 @@ func (s *Scope) GenDecl(node *ast.GenDecl) []string {
 			deps = append(deps, s.Vars(spec)...)
 		}
 	default:
-		base.Errorf("Scope.GenDecl(): unsupported declaration kind, expecting token.IMPORT, token.PACKAGE, token.CONST, token.TYPE or token.VAR, found %v: %v // %T",
+		output.Errorf("Scope.GenDecl(): unsupported declaration kind, expecting token.IMPORT, token.PACKAGE, token.CONST, token.TYPE or token.VAR, found %v: %v // %T",
 			node.Tok, node, node)
 	}
 	return deps
@@ -137,7 +138,7 @@ func (s *Scope) Consts(node ast.Spec, iota int, defaults *ConstDeps) []string {
 
 	if node, ok := node.(*ast.ValueSpec); ok {
 		if node.Type != nil && node.Values == nil {
-			base.Errorf("const declaration cannot have type without expression: %v // %T", node, node)
+			output.Errorf("const declaration cannot have type without expression: %v // %T", node, node)
 		}
 		// if expressions are omitted, they default to the last ones found (with their type, if any)
 		if node.Type != nil || node.Values != nil {
@@ -152,7 +153,7 @@ func (s *Scope) Consts(node ast.Spec, iota int, defaults *ConstDeps) []string {
 			}
 		}
 		if len(defaults.Values) != len(node.Names) {
-			base.Errorf("%d consts initialized with %d expressions: %v %v = %v",
+			output.Errorf("%d consts initialized with %d expressions: %v %v = %v",
 				len(node.Names), len(defaults.Values), node.Names, defaults.Type, defaults.Values)
 		}
 		var declNode ast.Spec
@@ -169,7 +170,7 @@ func (s *Scope) Consts(node ast.Spec, iota int, defaults *ConstDeps) []string {
 			s.Const(ident, declNode, iota, defaults.Type, value, deps)
 		}
 	} else {
-		base.Errorf("unsupported constant declaration: expecting *ast.ValueSpec, found: %v // %T", node, node)
+		output.Errorf("unsupported constant declaration: expecting *ast.ValueSpec, found: %v // %T", node, node)
 	}
 	return deps
 }
@@ -220,7 +221,7 @@ func (s *Scope) Vars(node ast.Spec) []string {
 			return s.varsMultiValueExpr(node)
 		}
 		if len(node.Values) != 0 && len(node.Names) != len(node.Values) {
-			base.Errorf("%d vars initialized with %d expressions: %v", len(node.Names), len(node.Values), node)
+			output.Errorf("%d vars initialized with %d expressions: %v", len(node.Names), len(node.Values), node)
 		}
 		typDeps := s.Expr(node.Type)
 		alldeps = append(alldeps, typDeps...)
@@ -242,7 +243,7 @@ func (s *Scope) Vars(node ast.Spec) []string {
 			s.Var(ident, declNode, node.Type, value, deps)
 		}
 	} else {
-		base.Errorf("Scope.Vars(): unsupported variable declaration: expecting *ast.ValueSpec, found: %v // %T", node, node)
+		output.Errorf("Scope.Vars(): unsupported variable declaration: expecting *ast.ValueSpec, found: %v // %T", node, node)
 	}
 	return alldeps
 }
@@ -306,7 +307,7 @@ func (s *Scope) Type(node ast.Spec) []string {
 
 		s.add(NewDeclType(node, deps))
 	} else {
-		base.Errorf("Scope.Type(): unexpected declaration type, expecting *ast.TypeSpec, found: %v // %T", node, node)
+		output.Errorf("Scope.Type(): unexpected declaration type, expecting *ast.TypeSpec, found: %v // %T", node, node)
 	}
 	return deps
 }

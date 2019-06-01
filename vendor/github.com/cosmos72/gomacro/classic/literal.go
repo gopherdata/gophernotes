@@ -1,7 +1,7 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017-2018 Massimiliano Ghilardi
+ * Copyright (C) 2017-2019 Massimiliano Ghilardi
  *
  *     This Source Code Form is subject to the terms of the Mozilla Public
  *     License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -24,6 +24,7 @@ import (
 	"strings"
 
 	. "github.com/cosmos72/gomacro/base"
+	bstrings "github.com/cosmos72/gomacro/base/strings"
 )
 
 func (env *Env) evalLiteral0(node *ast.BasicLit) interface{} {
@@ -87,7 +88,7 @@ func (env *Env) evalLiteral0(node *ast.BasicLit) interface{} {
 		// env.Debugf("evalLiteral(): parsed IMAG %s -> %T %#v -> %T %#v", str, im, im, ret, ret)
 
 	case token.CHAR:
-		ch, err := UnescapeChar(str)
+		ch, err := bstrings.UnescapeChar(str)
 		if err != nil {
 			env.Errorf("%v: invalid char literal: %s", err, str)
 			return nil
@@ -95,7 +96,7 @@ func (env *Env) evalLiteral0(node *ast.BasicLit) interface{} {
 		return ch
 
 	case token.STRING:
-		return UnescapeString(str)
+		return bstrings.UnescapeString(str)
 
 	default:
 		env.Errorf("unimplemented basic literal: %v", node)

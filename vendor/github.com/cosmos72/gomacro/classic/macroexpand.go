@@ -1,7 +1,7 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017-2018 Massimiliano Ghilardi
+ * Copyright (C) 2017-2019 Massimiliano Ghilardi
  *
  *     This Source Code Form is subject to the terms of the Mozilla Public
  *     License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -22,7 +22,7 @@ import (
 
 	. "github.com/cosmos72/gomacro/ast2"
 	. "github.com/cosmos72/gomacro/base"
-	mt "github.com/cosmos72/gomacro/token"
+	etoken "github.com/cosmos72/gomacro/go/etoken"
 )
 
 type macroExpandCtx struct {
@@ -70,17 +70,17 @@ func (env *Env) macroExpandAstCodewalk(in Ast, quasiquoteDepth int) (out Ast, an
 	if expr, ok := in.(UnaryExpr); ok {
 		isBlockWithinExpr := false
 		switch expr.X.Op {
-		case mt.MACRO:
+		case etoken.MACRO:
 			isBlockWithinExpr = true
-		case mt.QUOTE:
+		case etoken.QUOTE:
 			// QUOTE prevents macroexpansion only if found outside any QUASIQUOTE
 			if quasiquoteDepth == 0 {
 				return saved, anythingExpanded
 			}
-		case mt.QUASIQUOTE:
+		case etoken.QUASIQUOTE:
 			// extract the body of QUASIQUOTE
 			quasiquoteDepth++
-		case mt.UNQUOTE, mt.UNQUOTE_SPLICE:
+		case etoken.UNQUOTE, etoken.UNQUOTE_SPLICE:
 			// extract the body of UNQUOTE or UNQUOTE_SPLICE
 			quasiquoteDepth--
 		default:

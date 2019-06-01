@@ -1,7 +1,7 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017-2018 Massimiliano Ghilardi
+ * Copyright (C) 2017-2019 Massimiliano Ghilardi
  *
  *     This Source Code Form is subject to the terms of the Mozilla Public
  *     License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -19,12 +19,12 @@ package fast
 import (
 	"go/ast"
 	"go/token"
-	"go/types"
 	r "reflect"
 	"sort"
 	"unsafe"
 
-	"github.com/cosmos72/gomacro/typeutil"
+	"github.com/cosmos72/gomacro/go/types"
+	"github.com/cosmos72/gomacro/go/typeutil"
 	xr "github.com/cosmos72/gomacro/xreflect"
 )
 
@@ -203,7 +203,7 @@ func (c *Comp) typeswitchTag(e *Expr) *Bind {
 		init := e.AsX1()
 		c.append(func(env *Env) (Stmt, *Env) {
 			v, xt := extractor(init(env)) // extract value with concrete type
-			// Debugf("typeswitchTag = %v <%v>", v, ValueType(v))
+			// Debugf("typeswitchTag = %v <%v>", v, Type(v))
 			// no need to create a settable reflect.Value
 			env.Vals[index] = v
 			env.Vals[index+1] = r.ValueOf(xt)
@@ -293,7 +293,7 @@ func (c *Comp) typeswitchCase(node *ast.CaseClause, varname string, bind *Bind, 
 			// case nil:
 			stmt = func(env *Env) (Stmt, *Env) {
 				v := env.Vals[idx]
-				// Debugf("typeswitchCase: comparing %v <%v> against nil type", v, ValueType(v))
+				// Debugf("typeswitchCase: comparing %v <%v> against nil type", v, Type(v))
 				var ip int
 				if v.IsValid() {
 					ip = iend
@@ -307,7 +307,7 @@ func (c *Comp) typeswitchCase(node *ast.CaseClause, varname string, bind *Bind, 
 			// case emulated_interface:
 			stmt = func(env *Env) (Stmt, *Env) {
 				v := env.Vals[idx]
-				// Debugf("typeswitchCase: comparing %v <%v> against interface type %v", v, ValueType(v), rtype)
+				// Debugf("typeswitchCase: comparing %v <%v> against interface type %v", v, Type(v), rtype)
 				ip := iend
 				if v.IsValid() {
 					// rtype may be an interpreted type:
@@ -330,7 +330,7 @@ func (c *Comp) typeswitchCase(node *ast.CaseClause, varname string, bind *Bind, 
 			// case interface:
 			stmt = func(env *Env) (Stmt, *Env) {
 				v := env.Vals[idx]
-				// Debugf("typeswitchCase: comparing %v <%v> against interface type %v", v, ValueType(v), rtype)
+				// Debugf("typeswitchCase: comparing %v <%v> against interface type %v", v, Type(v), rtype)
 				ip := iend
 				if v.IsValid() {
 					if v.Type().Implements(rtype) {

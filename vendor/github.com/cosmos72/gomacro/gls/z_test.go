@@ -55,4 +55,3 @@ func TestAsyncGoID2(t *testing.T) {
 		t.Errorf("TestAsyncGoID2: 0x%x == 0x%x", id1, id2)
 	}
 }
-

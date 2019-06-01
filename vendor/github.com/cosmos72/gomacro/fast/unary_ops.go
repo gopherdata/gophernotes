@@ -1,7 +1,7 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017-2018 Massimiliano Ghilardi
+ * Copyright (C) 2017-2019 Massimiliano Ghilardi
  *
  *     This Source Code Form is subject to the terms of the Mozilla Public
  *     License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -21,12 +21,12 @@ import (
 	"go/token"
 	r "reflect"
 
-	. "github.com/cosmos72/gomacro/base"
+	"github.com/cosmos72/gomacro/base/reflect"
 	xr "github.com/cosmos72/gomacro/xreflect"
 )
 
 func (c *Comp) UnaryPlus(node *ast.UnaryExpr, xe *Expr) *Expr {
-	if !IsCategory(xe.Type.Kind(), r.Int, r.Uint, r.Float64, r.Complex128) {
+	if !reflect.IsCategory(xe.Type.Kind(), r.Int, r.Uint, r.Float64, r.Complex128) {
 		return c.invalidUnaryExpr(node, xe)
 	}
 	return xe
@@ -193,7 +193,7 @@ func (c *Comp) StarExpr(node *ast.StarExpr) *Expr {
 		}
 		break
 	}
-	addr := c.Expr1(expr, nil) // panics if addr returns zero values, warns if returns multiple values
+	addr := c.expr1(expr, nil) // panics if addr returns zero values, warns if returns multiple values
 	taddr := addr.Type
 	if taddr.Kind() != r.Ptr {
 		c.Errorf("unary operation * on non-pointer <%v>: %v", taddr, node)
@@ -277,7 +277,8 @@ func (c *Comp) Deref(addr *Expr) *Expr {
 	default:
 		fun = c.derefUnwrap(t, x1)
 	}
-	return exprFun(t, fun)
+	e := exprFun(t, fun)
+	return c.Jit.Deref(e, addr)
 }
 
 // deref0Unwrap compiles unary operator * on reflect.Value - unwraps reflect.Value.Elem() if possible

@@ -1,7 +1,7 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017-2018 Massimiliano Ghilardi
+ * Copyright (C) 2017-2019 Massimiliano Ghilardi
  *
  *     This Source Code Form is subject to the terms of the Mozilla Public
  *     License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -23,11 +23,11 @@ import (
 	r "reflect"
 
 	. "github.com/cosmos72/gomacro/base"
-	mt "github.com/cosmos72/gomacro/token"
+	etoken "github.com/cosmos72/gomacro/go/etoken"
 )
 
 func (env *Env) unsupportedUnaryExpr(xv r.Value, op token.Token) (r.Value, []r.Value) {
-	opstr := mt.String(op)
+	opstr := etoken.String(op)
 	return env.Errorf("unsupported unary expression %s on <%v>: %s %v", opstr, typeOf(xv), opstr, xv)
 }
 
@@ -57,22 +57,22 @@ func (env *Env) evalUnaryExpr(node *ast.UnaryExpr) (r.Value, []r.Value) {
 	// and our extension "block statement inside expression" are:
 	// a block statements, wrapped in a closure, wrapped in a unary expression "MACRO", i.e.:
 	// MACRO func() { /*block*/ }
-	case mt.MACRO:
+	case etoken.MACRO:
 		block := node.X.(*ast.FuncLit).Body
 		return env.evalBlock(block)
 
-	case mt.QUOTE:
+	case etoken.QUOTE:
 		block := node.X.(*ast.FuncLit).Body
 		ret := env.evalQuote(block)
 		return r.ValueOf(ret), nil
 
-	case mt.QUASIQUOTE:
+	case etoken.QUASIQUOTE:
 		block := node.X.(*ast.FuncLit).Body
 		ret := env.evalQuasiquote(block)
 		return r.ValueOf(ret), nil
 
-	case mt.UNQUOTE, mt.UNQUOTE_SPLICE:
-		return env.Errorf("%s not inside quasiquote: %v <%v>", mt.String(op), node, r.TypeOf(node))
+	case etoken.UNQUOTE, etoken.UNQUOTE_SPLICE:
+		return env.Errorf("%s not inside quasiquote: %v <%v>", etoken.String(op), node, r.TypeOf(node))
 	}
 
 	xv, _ := env.EvalNode(node.X)

@@ -1,7 +1,7 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017-2018 Massimiliano Ghilardi
+ * Copyright (C) 2017-2019 Massimiliano Ghilardi
  *
  *     This Source Code Form is subject to the terms of the Mozilla Public
  *     License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -22,7 +22,9 @@ import (
 	r "reflect"
 
 	. "github.com/cosmos72/gomacro/base"
-	mt "github.com/cosmos72/gomacro/token"
+	"github.com/cosmos72/gomacro/base/genimport"
+	"github.com/cosmos72/gomacro/base/reflect"
+	etoken "github.com/cosmos72/gomacro/go/etoken"
 )
 
 func (env *Env) evalExprsMultipleValues(nodes []ast.Expr, expectedValuesN int) []r.Value {
@@ -36,7 +38,7 @@ func (env *Env) evalExprsMultipleValues(nodes []ast.Expr, expectedValuesN int) [
 		}
 		node := nodes[0]
 		// collect multiple values
-		values = PackValues(env.EvalNode(node))
+		values = reflect.PackValues(env.EvalNode(node))
 		n = len(values)
 		if n < expectedValuesN {
 			env.Errorf("value count mismatch: expression returned %d values, cannot assign them to %d places: %v returned %v",
@@ -167,7 +169,7 @@ func (env *Env) evalExpr(in ast.Expr) (r.Value, []r.Value) {
 }
 
 func (env *Env) unsupportedLogicalOperand(op token.Token, xv r.Value) (r.Value, []r.Value) {
-	return env.Errorf("unsupported type in logical operation %s: expecting bool, found %v <%v>", mt.String(op), xv, typeOf(xv))
+	return env.Errorf("unsupported type in logical operation %s: expecting bool, found %v <%v>", etoken.String(op), xv, typeOf(xv))
 }
 
 func (env *Env) evalSliceExpr(node *ast.SliceExpr) (r.Value, []r.Value) {
@@ -252,7 +254,7 @@ func (env *Env) evalSelectorExpr(node *ast.SelectorExpr) (r.Value, []r.Value) {
 
 	switch obj.Kind() {
 	case r.Ptr:
-		if pkg, ok := obj.Interface().(*PackageRef); ok {
+		if pkg, ok := obj.Interface().(*genimport.PackageRef); ok {
 			// access symbol from imported package, for example fmt.Printf
 			if bind, ok := pkg.Binds[name]; ok {
 				return bind, nil

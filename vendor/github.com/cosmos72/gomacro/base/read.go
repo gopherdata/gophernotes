@@ -1,7 +1,7 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017-2018 Massimiliano Ghilardi
+ * Copyright (C) 2017-2019 Massimiliano Ghilardi
  *
  *     This Source Code Form is subject to the terms of the Mozilla Public
  *     License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -22,9 +22,9 @@ import (
 	"fmt"
 	"go/token"
 	"io"
-	r "reflect"
 
-	mt "github.com/cosmos72/gomacro/token"
+	"github.com/cosmos72/gomacro/base/output"
+	etoken "github.com/cosmos72/gomacro/go/etoken"
 )
 
 func ReadBytes(src interface{}) []byte {
@@ -39,11 +39,11 @@ func ReadBytes(src interface{}) []byte {
 	case io.Reader:
 		var buf bytes.Buffer
 		if _, err := io.Copy(&buf, s); err != nil {
-			Error(err)
+			output.Error(err)
 		}
 		return buf.Bytes()
 	}
-	Errorf("unsupported source, cannot read from: %v <%v>", src, r.TypeOf(src))
+	output.Errorf("unsupported source, cannot read from: %v // %T", src, src)
 	return nil
 }
 
@@ -59,11 +59,11 @@ func ReadString(src interface{}) string {
 	case io.Reader:
 		var buf bytes.Buffer
 		if _, err := io.Copy(&buf, s); err != nil {
-			Error(err)
+			output.Error(err)
 		}
 		return buf.String()
 	}
-	Errorf("unsupported source, cannot read from: %v <%v>", src, r.TypeOf(src))
+	output.Errorf("unsupported source, cannot read from: %v // %T", src, src)
 	return ""
 }
 
@@ -157,7 +157,7 @@ func ReadMultiline(in Readline, opts ReadOptions, prompt string) (src string, fi
 		if firstToken < 0 {
 			firstToken = lastToken
 			if debug {
-				Debugf("ReadMultiline: setting firstToken to %d, line up to it = %q", firstToken, line[:pos])
+				output.Debugf("ReadMultiline: setting firstToken to %d, line up to it = %q", firstToken, line[:pos])
 			}
 		}
 	}
@@ -170,7 +170,7 @@ func ReadMultiline(in Readline, opts ReadOptions, prompt string) (src string, fi
 		line, err = in.Read(currPrompt)
 		for i, ch := range line {
 			if debug {
-				Debugf("ReadMultiline: found %q\tmode=%v\tparen=%d ignorenl=%t", ch, m, paren, ignorenl)
+				output.Debugf("ReadMultiline: found %q\tmode=%v\tparen=%d ignorenl=%t", ch, m, paren, ignorenl)
 			}
 			switch m {
 			case mPlus, mMinus:
@@ -317,12 +317,12 @@ func ReadMultiline(in Readline, opts ReadOptions, prompt string) (src string, fi
 				m = mNormal
 			}
 			if debug {
-				Debugf("ReadMultiline:          \tmode=%v\tparen=%d ignorenl=%t resetnl=%t", m, paren, ignorenl, resetnl(paren, m))
+				output.Debugf("ReadMultiline:          \tmode=%v\tparen=%d ignorenl=%t resetnl=%t", m, paren, ignorenl, resetnl(paren, m))
 			}
 			if resetnl(paren, m) {
 				ignorenl = false
 				if debug {
-					Debugf("ReadMultiline: cleared ignorenl")
+					output.Debugf("ReadMultiline: cleared ignorenl")
 				}
 			}
 			if ch > ' ' {
@@ -344,7 +344,7 @@ func ReadMultiline(in Readline, opts ReadOptions, prompt string) (src string, fi
 			}
 		}
 		if debug {
-			Debugf("ReadMultiline: continuing\tmode=%v\tparen=%d ignorenl=%t", m, paren, ignorenl)
+			output.Debugf("ReadMultiline: continuing\tmode=%v\tparen=%d ignorenl=%t", m, paren, ignorenl)
 		}
 		if m == mPlus || m == mMinus {
 			m = mNormal
@@ -360,12 +360,12 @@ func ReadMultiline(in Readline, opts ReadOptions, prompt string) (src string, fi
 		return string(buf), firstToken, err
 	}
 	if debug {
-		Debugf("ReadMultiline: read %d bytes, firstToken at %d", len(buf), firstToken)
+		output.Debugf("ReadMultiline: read %d bytes, firstToken at %d", len(buf), firstToken)
 		if firstToken >= 0 {
-			Debugf("ReadMultiline: comments: %q", buf[:firstToken])
-			Debugf("ReadMultiline: tokens: %q", buf[firstToken:])
+			output.Debugf("ReadMultiline: comments: %q", buf[:firstToken])
+			output.Debugf("ReadMultiline: tokens: %q", buf[firstToken:])
 		} else {
-			Debugf("ReadMultiline: comments: %q", buf)
+			output.Debugf("ReadMultiline: comments: %q", buf)
 		}
 	}
 	return string(buf), firstToken, nil
@@ -398,7 +398,7 @@ func lastIsKeywordIgnoresNl(line []byte, first, last int) bool {
 		}
 	}
 	str := string(line[start:end])
-	tok := mt.Lookup(str)
+	tok := etoken.Lookup(str)
 	ignorenl := false
 	switch tok {
 	case token.IDENT, token.BREAK, token.CONTINUE, token.FALLTHROUGH, token.RETURN:
@@ -406,7 +406,7 @@ func lastIsKeywordIgnoresNl(line []byte, first, last int) bool {
 		ignorenl = true
 	}
 	if debug {
-		Debugf("lastIsKeywordIgnoresNl: found %q ignorenl=%t", str, ignorenl)
+		output.Debugf("lastIsKeywordIgnoresNl: found %q ignorenl=%t", str, ignorenl)
 	}
 	return ignorenl
 }

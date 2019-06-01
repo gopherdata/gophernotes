@@ -1,7 +1,7 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017-2018 Massimiliano Ghilardi
+ * Copyright (C) 2017-2019 Massimiliano Ghilardi
  *
  *     This Source Code Form is subject to the terms of the Mozilla Public
  *     License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -22,6 +22,7 @@ import (
 	r "reflect"
 
 	. "github.com/cosmos72/gomacro/base"
+	"github.com/cosmos72/gomacro/base/reflect"
 )
 
 type placeType struct {
@@ -161,7 +162,7 @@ func (env *Env) assignPlaces(places []placeType, op token.Token, values []r.Valu
 	for i := 0; i < n; i++ {
 		values[i] = env.assignPlace(places[i], op, values[i])
 	}
-	return UnpackValues(values)
+	return reflect.UnpackValues(values)
 }
 
 func (env *Env) assignPlace(place placeType, op token.Token, value r.Value) r.Value {

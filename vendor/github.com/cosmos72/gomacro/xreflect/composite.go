@@ -1,7 +1,7 @@
 /*
  * gomacro - A Go interpreter with Lisp-like macros
  *
- * Copyright (C) 2017-2018 Massimiliano Ghilardi
+ * Copyright (C) 2017-2019 Massimiliano Ghilardi
  *
  *     This Source Code Form is subject to the terms of the Mozilla Public
  *     License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -17,14 +17,15 @@
 package xreflect
 
 import (
-	"go/types"
-	"reflect"
+	r "reflect"
+
+	"github.com/cosmos72/gomacro/go/types"
 )
 
 // ChanDir returns a channel type's direction.
 // It panics if the type's Kind is not Chan.
-func (t *xtype) ChanDir() reflect.ChanDir {
-	if t.Kind() != reflect.Chan {
+func (t *xtype) ChanDir() r.ChanDir {
+	if t.Kind() != r.Chan {
 		xerrorf(t, "ChanDir of non-chan type %v", t)
 	}
 	return t.rtype.ChanDir()
@@ -68,7 +69,7 @@ func (t *xtype) elem() Type {
 // Key returns a map type's key type.
 // It panics if the type's Kind is not Map.
 func (t *xtype) Key() Type {
-	if t.Kind() != reflect.Map {
+	if t.Kind() != r.Map {
 		xerrorf(t, "Key of non-map type %v", t)
 	}
 	gtype := t.gunderlying().(*types.Map)
@@ -78,7 +79,7 @@ func (t *xtype) Key() Type {
 // Len returns an array type's length.
 // It panics if the type's Kind is not Array.
 func (t *xtype) Len() int {
-	if t.Kind() != reflect.Array {
+	if t.Kind() != r.Array {
 		xerrorf(t, "Len of non-array type %v", t)
 	}
 	return t.rtype.Len()
@@ -87,20 +88,20 @@ func (t *xtype) Len() int {
 func (v *Universe) ArrayOf(count int, elem Type) Type {
 	return v.MakeType(
 		types.NewArray(elem.GoType(), int64(count)),
-		reflect.ArrayOf(count, elem.ReflectType()))
+		r.ArrayOf(count, elem.ReflectType()))
 }
 
-func (v *Universe) ChanOf(dir reflect.ChanDir, elem Type) Type {
+func (v *Universe) ChanOf(dir r.ChanDir, elem Type) Type {
 	gdir := dirToGdir(dir)
 	return v.MakeType(
 		types.NewChan(gdir, elem.GoType()),
-		reflect.ChanOf(dir, elem.ReflectType()))
+		r.ChanOf(dir, elem.ReflectType()))
 }
 
 func (v *Universe) MapOf(key, elem Type) Type {
 	return v.MakeType(
 		types.NewMap(key.GoType(), elem.GoType()),
-		reflect.MapOf(key.ReflectType(), elem.ReflectType()))
+		r.MapOf(key.ReflectType(), elem.ReflectType()))
 }
 
 func (v *Universe) PtrTo(elem Type) Type {
@@ -110,7 +111,7 @@ func (v *Universe) PtrTo(elem Type) Type {
 	// because it hurts the implementation of recursive types.
 	// Instead, consider xreflect.Forward as slightly contagious.
 	if rtyp != rTypeOfForward {
-		rtyp = reflect.PtrTo(rtyp)
+		rtyp = r.PtrTo(rtyp)
 	}
 
 	return v.MakeType(
@@ -121,5 +122,5 @@ func (v *Universe) PtrTo(elem Type) Type {
 func (v *Universe) SliceOf(elem Type) Type {
 	return v.MakeType(
 		types.NewSlice(elem.GoType()),
-		reflect.SliceOf(elem.ReflectType()))
+		r.SliceOf(elem.ReflectType()))
 }
