@@ -483,6 +483,9 @@ func (c *Comp) compileObjGetMethod(t xr.Type, mtd xr.Method) (ret func(r.Value) 
 	}
 	index := mtd.Index
 	tfunc := mtd.Type
+	if tfunc == nil {
+		c.Errorf("compileObjGetMethod for %v.%v: internal error, method type is nil! %#v", t, mtd.Name, mtd)
+	}
 	rtclosure := c.removeFirstParam(tfunc).ReflectType()
 
 	tfield, fieldindex, addressof, deref := c.computeMethodFieldIndex(t, mtd)
@@ -801,6 +804,9 @@ func (c *Comp) compileMethodAsFunc(t xr.Type, mtd xr.Method) *Expr {
 
 	index := mtd.Index
 	tfunc := mtd.Type
+	if tfunc == nil {
+		c.Errorf("compileMethodAsFunc for %v.%v: internal error, method type is nil! %#v", t, mtd.Name, mtd)
+	}
 	trecv := tfunc.In(0)
 
 	objPointer := t.Kind() == r.Ptr      // field is pointer?

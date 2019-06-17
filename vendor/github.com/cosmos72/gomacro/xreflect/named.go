@@ -136,12 +136,15 @@ func (t *xtype) AddMethod(name string, signature Type) int {
 	index := gtype.ReplaceMethod(gfun)
 	n2 := gtype.NumMethods()
 
-	// update the caches... be careful if the method was just redefined
-	nilv := r.Value{}
+	// store in t.methodvalues[index] a nil function with the correct reflect.Type:
+	// needed by Type.GetMethod(int) to retrieve the method's reflect.Type
+	//
+	// fixes gophernotes issue 174
+	zero := r.Zero(signature.ReflectType())
 	for len(t.methodvalues) < n2 {
-		t.methodvalues = append(t.methodvalues, nilv)
+		t.methodvalues = append(t.methodvalues, zero)
 	}
-	t.methodvalues[index] = nilv
+	t.methodvalues[index] = zero
 	if n1 == n2 {
 		// an existing method was overwritten.
 		// it may be cached in some other type's method cache.

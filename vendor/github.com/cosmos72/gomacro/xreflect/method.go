@@ -118,7 +118,7 @@ func (t *xtype) Method(i int) Method {
 
 func checkMethod(t *xtype, i int) {
 	if t.kind == r.Ptr {
-		xerrorf(t, "Method of %s type %v. Invoke Method() on type's Elem() instead", i, t.kind, t)
+		xerrorf(t, "Method of %s type %v. Invoke Method() on type's Elem() instead", t.kind, t)
 	}
 	if !etoken.GENERICS_V2_CTI && !t.Named() && t.kind != r.Interface {
 		xerrorf(t, "Method of type %v that cannot have methods", t.kind, t)
@@ -175,6 +175,9 @@ func (t *xtype) method(i int) Method {
 			t.methodvalues[i] = rfunc
 		}
 		// fmt.Printf("DEBUG xtype.method(%d): t = %v,\trmethod(%q) = %v\n", i, t, gfunc.Name(), rmethod)
+
+		// rfunc and rfunctype will be invalid when bootstrapping Universe
+		// and when adding CTI methods to a type
 	}
 	return t.makemethod(i, gfunc, &t.methodvalues, rfunctype) // lock already held
 }

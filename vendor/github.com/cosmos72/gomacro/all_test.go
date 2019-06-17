@@ -853,6 +853,8 @@ var testcases = []TestCase{
 	TestCase{A, "method_on_ptr", `pair.SetA(33); pair.A`, rune(33), nil},
 	TestCase{A, "method_on_val_1", `pair.SetAV(11); pair.A`, rune(33), nil}, // method on value gets a copy of the receiver - changes to not propagate
 	TestCase{A, "method_on_val_2", `pair.String()`, "! y", nil},
+	// gophernotes issue 174
+	TestCase{F, "method_decl_and_use", `type person struct{}; func (p person) speak() {}; person.speak`, func(struct{}) {}, nil},
 	TestCase{F, "method_embedded=val_recv=ptr", `triple.SetA('1'); triple.A`, '1', nil},
 	TestCase{F, "method_embedded=val_recv=val", `triple.SetAV('2'); triple.A`, '1', nil},
 	TestCase{F, "method_embedded=ptr_recv=val", `tp.SetAV('3'); tp.A`, '1', nil}, // set by triple.SetA('1') above
