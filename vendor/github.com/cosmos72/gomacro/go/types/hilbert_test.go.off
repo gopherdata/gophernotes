@@ -15,7 +15,7 @@ import (
 	"io/ioutil"
 	"testing"
 
-	. "go/types"
+	. "github.com/cosmos72/gomacro/go/types"
 )
 
 var (

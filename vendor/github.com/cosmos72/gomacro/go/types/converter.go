@@ -9,6 +9,7 @@ package types
 import (
 	"fmt"
 	"go/types"
+	"reflect"
 )
 
 type Converter struct {
@@ -156,6 +157,21 @@ func (c *Converter) typ(g types.Type) Type {
 	return t
 }
 
+var getEmbeddedType func(*types.Interface, int) types.Type
+
+func init() {
+	t := reflect.TypeOf((*types.Interface)(nil))
+	m, ok := t.MethodByName("EmbeddedType")
+	if ok {
+		getEmbeddedType = m.Func.Interface().(func(*types.Interface, int) types.Type)
+	} else {
+		// types.Interface.EmbeddedType() does not exist in go 1.9
+		getEmbeddedType = func(g *types.Interface, i int) types.Type {
+			return g.Embedded(i)
+		}
+	}
+}
+
 func (c *Converter) mkinterface(g *types.Interface) *Interface {
 	n := g.NumExplicitMethods()
 	fs := make([]*Func, n)
@@ -165,7 +181,7 @@ func (c *Converter) mkinterface(g *types.Interface) *Interface {
 	n = g.NumEmbeddeds()
 	es := make([]Type, n)
 	for i := 0; i < n; i++ {
-		es[i] = c.typ(g.EmbeddedType(i))
+		es[i] = c.typ(getEmbeddedType(g, i))
 	}
 	t := NewInterfaceType(fs, es)
 	c.tocomplete = append(c.tocomplete, t)
@@ -253,7 +269,9 @@ func (c *Converter) mktypename(g *types.TypeName) (*TypeName, bool) {
 }
 
 func (c *Converter) mkfield(g *types.Var) *Var {
-	return NewField(g.Pos(), c.mkpackage(g.Pkg()), g.Name(), c.typ(g.Type()), g.Embedded())
+	// g.Embedded() is a newer alias for g.Anonymous(),
+	// but go 1.9 does not have it
+	return NewField(g.Pos(), c.mkpackage(g.Pkg()), g.Name(), c.typ(g.Type()), g.Anonymous())
 }
 
 func (c *Converter) mkparam(g *types.Var) *Var {
