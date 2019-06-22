@@ -179,6 +179,16 @@ func (c *Comp) assignPrepareRhs(node *ast.AssignStmt, places []*Place, exprs []*
 	return nil, nil
 }
 
+// make a shallow copy of reflect.Value
+// needed in multi-assignment statement
+// to read all rhs before setting the lhs
+func dup(v r.Value) r.Value {
+	if v.CanSet() {
+		v = v.Convert(v.Type())
+	}
+	return v
+}
+
 // assign2 compiles multiple assignment to two places
 func (c *Comp) assign2(assign []Assign, exprfuns []func(*Env) r.Value) {
 	efuns := [2]func(*Env) r.Value{exprfuns[0], exprfuns[1]}
@@ -187,8 +197,8 @@ func (c *Comp) assign2(assign []Assign, exprfuns []func(*Env) r.Value) {
 		if assign[1].placefun == nil {
 			setvars := [2]func(*Env, r.Value){assign[0].setvar, assign[1].setvar}
 			stmt = func(env *Env) (Stmt, *Env) {
-				val0 := efuns[0](env)
-				val1 := efuns[1](env)
+				val0 := dup(efuns[0](env))
+				val1 := dup(efuns[1](env))
 				setvars[0](env, val0)
 				setvars[1](env, val1)
 				env.IP++
@@ -197,8 +207,8 @@ func (c *Comp) assign2(assign []Assign, exprfuns []func(*Env) r.Value) {
 		} else {
 			stmt = func(env *Env) (Stmt, *Env) {
 				obj1 := assign[1].placefun(env)
-				val0 := efuns[0](env)
-				val1 := efuns[1](env)
+				val0 := dup(efuns[0](env))
+				val1 := dup(efuns[1](env))
 				assign[0].setvar(env, val0)
 				assign[1].setplace(obj1, obj1, val1)
 				env.IP++
@@ -209,8 +219,8 @@ func (c *Comp) assign2(assign []Assign, exprfuns []func(*Env) r.Value) {
 		if assign[1].placefun == nil {
 			stmt = func(env *Env) (Stmt, *Env) {
 				obj0 := assign[0].placefun(env)
-				val0 := efuns[0](env)
-				val1 := efuns[1](env)
+				val0 := dup(efuns[0](env))
+				val1 := dup(efuns[1](env))
 				assign[0].setplace(obj0, obj0, val0)
 				assign[1].setvar(env, val1)
 				env.IP++
@@ -220,8 +230,8 @@ func (c *Comp) assign2(assign []Assign, exprfuns []func(*Env) r.Value) {
 			stmt = func(env *Env) (Stmt, *Env) {
 				obj0 := assign[0].placefun(env)
 				obj1 := assign[1].placefun(env)
-				val0 := efuns[0](env)
-				val1 := efuns[1](env)
+				val0 := dup(efuns[0](env))
+				val1 := dup(efuns[1](env))
 				assign[0].setplace(obj0, obj0, val0)
 				assign[1].setplace(obj1, obj1, val1)
 				env.IP++
@@ -268,7 +278,7 @@ func (c *Comp) assignMulti(assign []Assign, exprfuns []func(*Env) r.Value, exprx
 		} else {
 			vals = make([]r.Value, n)
 			for i, exprfun := range exprfuns {
-				vals[i] = exprfun(env)
+				vals[i] = dup(exprfun(env))
 			}
 		}
 		// execute assignments

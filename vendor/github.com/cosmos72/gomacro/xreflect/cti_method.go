@@ -42,7 +42,15 @@ func (v *Universe) addTypeMethodsCTI(xt *xtype) {
 	if !etoken.GENERICS_V2_CTI {
 		return
 	}
+	rt := xt.rtype
+	if rt == nil {
+		return
+	}
 	k := xt.kind
+	if k == r.Invalid {
+		// forward-declared type?
+		k = rt.Kind()
+	}
 	switch k {
 	case r.Bool, r.Int, r.Int8, r.Int16, r.Int32, r.Int64,
 		r.Uint, r.Uint8, r.Uint16, r.Uint32, r.Uint64, r.Uintptr,
@@ -54,14 +62,15 @@ func (v *Universe) addTypeMethodsCTI(xt *xtype) {
 			v.addBasicTypeReflectMethodsCTI(xt)
 		}
 		return
-	case r.Func, r.Interface, r.Ptr, r.Struct, r.UnsafePointer:
+	case r.Array, r.Chan, r.Map, r.Slice:
+		break
+	default:
 		return
 	}
 	n := xt.NumExplicitMethod()
 	if n == 0 {
 		return
 	}
-	rt := xt.rtype
 	rbool := rbasictypes[r.Bool]
 	rint := rbasictypes[r.Int]
 
@@ -90,6 +99,10 @@ func (v *Universe) addTypeMethodsCTI(xt *xtype) {
 		xt.methodvalues = make([]r.Value, n)
 		copy(xt.methodvalues, m)
 		m = xt.methodvalues
+	}
+	if v.debug() {
+		v.debugf("addTypeMethodsCTI: %s %v", k, xt.rtype)
+		defer de(bug(v))
 	}
 	for i := 0; i < n; i++ {
 		switch xt.method(i).Name {

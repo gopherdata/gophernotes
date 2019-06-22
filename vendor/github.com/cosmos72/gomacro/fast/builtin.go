@@ -64,44 +64,53 @@ func (top *Comp) setIota(iota int) {
 
 // ============================== initialization ===============================
 
-func (ce *Interp) addBuiltins() {
-	basicTypes := &ce.Comp.Universe.BasicTypes
+func (ir *Interp) addBuiltins() {
+	basicTypes := &ir.Comp.Universe.BasicTypes
+
+	// --------- types ---------
+	c := ir.Comp
+	for _, t := range c.Universe.BasicTypes {
+		ir.DeclType(t)
+	}
+	ir.DeclTypeAlias("byte", c.TypeOfUint8())
+	ir.DeclTypeAlias("rune", c.TypeOfInt32())
+	ir.DeclType(c.TypeOfError())
 
 	// https://golang.org/ref/spec#Constants
 	// "Literal constants, true, false, iota, and certain constant expressions containing only untyped constant operands are untyped."
-	ce.DeclConst("false", nil, untyped.MakeLit(untyped.Bool, constant.MakeBool(false), basicTypes))
-	ce.DeclConst("true", nil, untyped.MakeLit(untyped.Bool, constant.MakeBool(true), basicTypes))
+	ir.DeclConst("false", nil, untyped.MakeLit(untyped.Bool, constant.MakeBool(false), basicTypes))
+	ir.DeclConst("true", nil, untyped.MakeLit(untyped.Bool, constant.MakeBool(true), basicTypes))
 
 	// https://golang.org/ref/spec#Variables : "[...] the predeclared identifier nil, which has no type"
-	ce.DeclConst("nil", nil, nil)
+	ir.DeclConst("nil", nil, nil)
 
-	ce.DeclBuiltin("append", Builtin{compileAppend, 1, base.MaxUint16})
-	ce.DeclBuiltin("cap", Builtin{compileCap, 1, 1})
-	ce.DeclBuiltin("close", Builtin{compileClose, 1, 1})
-	ce.DeclBuiltin("copy", Builtin{compileCopy, 2, 2})
-	ce.DeclBuiltin("complex", Builtin{compileComplex, 2, 2})
-	ce.DeclBuiltin("delete", Builtin{compileDelete, 2, 2})
-	ce.DeclBuiltin("imag", Builtin{compileRealImag, 1, 1})
-	ce.DeclBuiltin("len", Builtin{compileLen, 1, 1})
-	ce.DeclBuiltin("make", Builtin{compileMake, 1, 3})
-	ce.DeclBuiltin("new", Builtin{compileNew, 1, 1})
-	ce.DeclBuiltin("panic", Builtin{compilePanic, 1, 1})
-	ce.DeclBuiltin("print", Builtin{compilePrint, 0, base.MaxUint16})
-	ce.DeclBuiltin("println", Builtin{compilePrint, 0, base.MaxUint16})
-	ce.DeclBuiltin("real", Builtin{compileRealImag, 1, 1})
-	ce.DeclBuiltin("recover", Builtin{compileRecover, 0, 0})
-	// ce.DeclBuiltin("recover", Function{callRecover, ce.Comp.TypeOf((*func() I)(nil)).Elem()})
+	ir.DeclBuiltin("append", Builtin{compileAppend, 1, base.MaxUint16})
+	ir.DeclBuiltin("cap", Builtin{compileCap, 1, 1})
+	ir.DeclBuiltin("close", Builtin{compileClose, 1, 1})
+	ir.DeclBuiltin("copy", Builtin{compileCopy, 2, 2})
+	ir.DeclBuiltin("complex", Builtin{compileComplex, 2, 2})
+	ir.DeclBuiltin("delete", Builtin{compileDelete, 2, 2})
+	ir.DeclBuiltin("imag", Builtin{compileRealImag, 1, 1})
+	ir.DeclBuiltin("len", Builtin{compileLen, 1, 1})
+	ir.DeclBuiltin("make", Builtin{compileMake, 1, 3})
+	ir.DeclBuiltin("new", Builtin{compileNew, 1, 1})
+	ir.DeclBuiltin("panic", Builtin{compilePanic, 1, 1})
+	ir.DeclBuiltin("print", Builtin{compilePrint, 0, base.MaxUint16})
+	ir.DeclBuiltin("println", Builtin{compilePrint, 0, base.MaxUint16})
+	ir.DeclBuiltin("real", Builtin{compileRealImag, 1, 1})
+	ir.DeclBuiltin("recover", Builtin{compileRecover, 0, 0})
+	// ir.DeclBuiltin("recover", Function{callRecover, ir.Comp.TypeOf((*func() I)(nil)).Elem()})
 
-	tfunI2_Nb := ce.Comp.TypeOf(funI2_Nb)
+	tfunI2_Nb := ir.Comp.TypeOf(funI2_Nb)
 
-	ce.DeclEnvFunc("Interp", Function{callIdentity, ce.Comp.TypeOf(funI_I)})
-	ce.DeclEnvFunc("Eval", Function{callEval, ce.Comp.TypeOf(funI2_I)})
-	ce.DeclEnvFunc("EvalKeepUntyped", Function{callEvalKeepUntyped, ce.Comp.TypeOf(funI2_I)})
-	ce.DeclEnvFunc("EvalType", Function{callEvalType, ce.Comp.TypeOf(funI2_T)})
-	ce.DeclEnvFunc("MacroExpand", Function{callMacroExpand, tfunI2_Nb})
-	ce.DeclEnvFunc("MacroExpand1", Function{callMacroExpand1, tfunI2_Nb})
-	ce.DeclEnvFunc("MacroExpandCodeWalk", Function{callMacroExpandCodeWalk, tfunI2_Nb})
-	ce.DeclEnvFunc("Parse", Function{callParse, ce.Comp.TypeOf(funSI_I)})
+	ir.DeclEnvFunc("Interp", Function{callIdentity, ir.Comp.TypeOf(funI_I)})
+	ir.DeclEnvFunc("Eval", Function{callEval, ir.Comp.TypeOf(funI2_I)})
+	ir.DeclEnvFunc("EvalKeepUntyped", Function{callEvalKeepUntyped, ir.Comp.TypeOf(funI2_I)})
+	ir.DeclEnvFunc("EvalType", Function{callEvalType, ir.Comp.TypeOf(funI2_T)})
+	ir.DeclEnvFunc("MacroExpand", Function{callMacroExpand, tfunI2_Nb})
+	ir.DeclEnvFunc("MacroExpand1", Function{callMacroExpand1, tfunI2_Nb})
+	ir.DeclEnvFunc("MacroExpandCodeWalk", Function{callMacroExpandCodeWalk, tfunI2_Nb})
+	ir.DeclEnvFunc("Parse", Function{callParse, ir.Comp.TypeOf(funSI_I)})
 	/*
 		binds["Read"] = r.ValueOf(ReadString)
 		binds["ReadDir"] = r.ValueOf(callReadDir)
@@ -114,15 +123,6 @@ func (ce *Interp) addBuiltins() {
 		// return multiple values, extracting the concrete type of each interface
 		binds["Values"] = r.ValueOf(Function{funcValues, -1})
 	*/
-
-	// --------- types ---------
-	c := ce.Comp
-	for _, t := range c.Universe.BasicTypes {
-		ce.DeclType(t)
-	}
-	ce.DeclTypeAlias("byte", c.TypeOfUint8())
-	ce.DeclTypeAlias("rune", c.TypeOfInt32())
-	ce.DeclType(c.TypeOfError())
 
 	/*
 		// --------- proxies ---------

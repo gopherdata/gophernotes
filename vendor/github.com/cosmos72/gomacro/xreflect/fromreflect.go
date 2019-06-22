@@ -431,7 +431,7 @@ func (v *Universe) fromReflectInterface(rtype r.Type) Type {
 		method := v.fromReflectFunc(rmethod.Type) // do NOT add a receiver: types.NewInterface() will add it
 		pkg := v.loadPackage(rmethod.PkgPath)
 		if v.debug() {
-			debugf("fromReflectInterface: add interface method rtype: %v, gotype: %v (receiver: %v)", rmethod.Type, method.GoType(), method.GoType().(*types.Signature).Recv())
+			v.debugf("fromReflectInterface: add interface method rtype: %v, gotype: %v (receiver: %v)", rmethod.Type, method.GoType(), method.GoType().(*types.Signature).Recv())
 		}
 		// types.NewInterface() below will modify method.GoType() by adding a receiver:
 		// clone it NOW in order to detach from xreflect.Type and its associated reflect.Type

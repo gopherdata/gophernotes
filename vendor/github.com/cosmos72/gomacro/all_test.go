@@ -748,6 +748,11 @@ var testcases = []TestCase{
 		[]interface{}{1, nil_map_int_string, map[int]string{0: "foo"}}, nil},
 	TestCase{F, "multi_assignment_1", "v7, v8 = func () (complex64, complex128) { return 1.0, 2.0 }(); v7", complex64(1.0), nil},
 	TestCase{F, "multi_assignment_2", "v8 ", complex128(2.0), nil},
+	// gophernotes issue 175
+	TestCase{F, "multi_assignment_3", `
+		arr := [2]struct{X int}{{3},{4}}
+		arr[0], arr[1] = arr[1], arr[0]
+		arr`, [2]struct{ X int }{{4}, {3}}, nil},
 
 	TestCase{A, "field_set_1", `pair.A = 'k'; pair.B = "m"; pair`, Pair{'k', "m"}, nil},
 	TestCase{A, "field_set_2", `pair.A, pair.B = 'x', "y"; pair`, Pair{'x', "y"}, nil},
@@ -763,7 +768,7 @@ var testcases = []TestCase{
 	TestCase{F, "infer_type_compositelit_5", `map[int]map[int]int{1:{2:3}}`, map[int]map[int]int{1: {2: 3}}, nil},
 	TestCase{F, "infer_type_compositelit_6", `map[int]*map[int]int{1:{2:3}}`, map[int]*map[int]int{1: {2: 3}}, nil},
 
-	TestCase{A, "import", `import ( "errors"; "fmt"; "io"; "math/big"; "math/rand"; "reflect"; "time" )`, nil, none},
+	TestCase{A, "import", `import ( "errors"; "fmt"; "io"; "math/big"; "math/rand"; "net/http"; "reflect"; "time" )`, nil, none},
 	TestCase{A, "import_constant", `const micro = time.Microsecond; micro`, time.Microsecond, nil},
 	TestCase{A, "dot_import_1", `import . "errors"`, nil, none},
 	TestCase{A, "dot_import_2", `reflect.ValueOf(New) == reflect.ValueOf(errors.New)`, true, nil}, // a small but very strict check... good

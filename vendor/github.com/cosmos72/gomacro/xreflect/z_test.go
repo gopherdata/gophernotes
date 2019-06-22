@@ -485,7 +485,35 @@ func TestFromReflect4(t *testing.T) {
 	*/
 }
 
+type myType interface {
+	Elem() myType
+	Field(int) myStructField
+}
+type myStructField struct {
+	Name  string
+	Type  myType
+	Index []int
+}
+
 func TestFromReflect5(t *testing.T) {
+	if testing.Verbose() {
+		defer de(bug(u))
+	}
+	rtype := r.TypeOf((*myType)(nil)).Elem()
+	typ := u.FromReflectType(rtype)
+
+	mypkg := "github.com/gopherdata/gophernotes/vendor/github.com/cosmos72/gomacro/xreflect"
+
+	is(t, typ.String(), mypkg+".myType")
+
+	is(t, typ.NumExplicitMethod(), rtype.NumMethod())
+	is(t, typ.NumAllMethod(), rtype.NumMethod())
+}
+
+func TestFromReflect6(t *testing.T) {
+	if testing.Verbose() {
+		defer de(bug(u))
+	}
 	rtype := r.TypeOf((*r.Type)(nil)).Elem()
 	typ := u.FromReflectType(rtype)
 
@@ -503,7 +531,7 @@ func TestFromReflect5(t *testing.T) {
 	is(t, typ.NumAllMethod(), rtype.NumMethod())
 }
 
-func TestFromReflect6(t *testing.T) {
+func TestFromReflect7(t *testing.T) {
 	tfunc := u.FuncOf(nil, []Type{u.BasicTypes[r.Int]}, false)
 	rtfunc := r.TypeOf((*func() int)(nil)).Elem()
 	is(t, tfunc.String(), "func() int")
@@ -526,8 +554,9 @@ type Response4Test struct {
 }
 
 func TestFromReflectMutualRecursion(t *testing.T) {
-	defer de(bug(u))
-
+	if testing.Verbose() {
+		defer de(bug(u))
+	}
 	rtype1 := r.TypeOf(Request4Test{})
 	rtype2 := r.TypeOf(Response4Test{})
 
@@ -542,20 +571,18 @@ func TestFromReflectMutualRecursion(t *testing.T) {
 	is(t, typ2.Name(), "Response4Test")
 	isidenticalgotype(t, typ1.GoType(), typ1_loop.GoType())
 
-        mypkg := "github.com/gopherdata/gophernotes/vendor/github.com/cosmos72/gomacro/xreflect"
-	
-	is(t, typ1.gunderlying().String(), "struct{Header map[string]string; Response *" + mypkg + ".Response4Test}")
-	is(t, typ2.gunderlying().String(), "struct{HttpStatus int; Request *" + mypkg + ".Request4Test}")
+	mypkg := "github.com/gopherdata/gophernotes/vendor/github.com/cosmos72/gomacro/xreflect"
+
+	is(t, typ1.gunderlying().String(), "struct{Header map[string]string; Response *"+mypkg+".Response4Test}")
+	is(t, typ2.gunderlying().String(), "struct{HttpStatus int; Request *"+mypkg+".Request4Test}")
 }
 
 // test implementing 'io.Reader' interface
 func TestInterfaceIoReader(t *testing.T) {
-	u.RebuildDepth = 0
-
-	in := []Type{u.SliceOf(u.BasicTypes[r.Uint8])}
-	out := []Type{u.BasicTypes[r.Int], u.TypeOfError}
-	methodtyp := u.FuncOf(in, out, false)
-	typ := u.InterfaceOf(nil, []string{"Read"}, []Type{methodtyp}, nil).Complete()
+	if testing.Verbose() {
+		defer de(bug(u))
+	}
+	typ := makeIoReaderType()
 	gtyp := typ.GoType()
 
 	is(t, typ.Kind(), r.Interface)
@@ -575,10 +602,25 @@ func TestInterfaceIoReader(t *testing.T) {
 	istrue(t, typ.AssignableTo(treader))
 	istrue(t, treader.AssignableTo(typ))
 	istrue(t, types.Identical(gtyp, treader.GoType().Underlying()))
+}
 
+// return the Type equivalent to "type io.Reader interface { Read([]uint8) (int, error) }"
+func makeIoReaderType() Type {
+	u.RebuildDepth = 0
+
+	in := []Type{u.SliceOf(u.BasicTypes[r.Uint8])}
+	out := []Type{u.BasicTypes[r.Int], u.TypeOfError}
+	methodtyp := u.FuncOf(in, out, false)
+	return u.InterfaceOf(nil, []string{"Read"}, []Type{methodtyp}, nil).Complete()
+}
+
+func TestImporter(t *testing.T) {
 	// ---------------------------
 	io, err := u.Importer.Import("io")
-	istrue(t, err == nil)
+	if err != nil {
+		t.Skipf("Go toolchain not detected or not available, skipping Importer test: %v", err)
+		return
+	}
 	istrue(t, io != nil)
 
 	reader := io.Scope().Lookup("Reader").Type().(*types.Named)
@@ -587,6 +629,8 @@ func TestInterfaceIoReader(t *testing.T) {
 	is(t, reader.Obj().Name(), "Reader")
 	is(t, reader.NumMethods(), 0) // method Read() is declared in the interface, not in the named type
 	is(t, ireader.NumMethods(), 1)
+
+	gtyp := makeIoReaderType().GoType()
 
 	istrue(t, types.Implements(gtyp, ireader))
 	istrue(t, types.Identical(gtyp, ireader))
@@ -598,7 +642,10 @@ func TestInterfaceIoReader(t *testing.T) {
 	tfile := t_file.Elem()
 
 	os, err := u.Importer.Import("os")
-	istrue(t, err == nil)
+	if err != nil {
+		t.Skipf("Go toolchain not detected or not available, skipping Importer test: %v", err)
+		return
+	}
 	istrue(t, os != nil)
 
 	file := os.Scope().Lookup("File").Type().(*types.Named)
@@ -634,7 +681,7 @@ func TestInterfaceIoReader(t *testing.T) {
 
 }
 
-// return the Type equivalent to "type io.Reader interface { io.Reader, io.Writer }"
+// return the Type equivalent to "type io.ReadWriter interface { io.Reader, io.Writer }"
 func makeIoReaderWriterType() Type {
 	in := []Type{u.SliceOf(u.BasicTypes[r.Uint8])}
 	out := []Type{u.BasicTypes[r.Int], u.TypeOfError}

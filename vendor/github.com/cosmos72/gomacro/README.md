@@ -25,7 +25,7 @@ Gomacro can be used as:
   Line editing follows mostly Emacs: Ctrl+A or Home jumps to start of line,
   Ctrl+E or End jumps to end of line, Ald+D deletes word starting at cursor...
   For the full list of key bindings, see https://github.com/peterh/liner
-  
+
 * a tool to experiment with Go **generics**: see [Generics](#generics)
 
 * a Go source code debugger: see [Debugger](#debugger)
@@ -53,9 +53,9 @@ Gomacro can be used as:
 	)
 	func RunGomacro(toeval string) reflect.Value {
 		interp := fast.New()
-		// for simplicity, only collect the first returned value
-		val, _ := interp.Eval(toeval)
-		return val
+		vals, _ := interp.Eval(toeval)
+		// for simplicity, only use the first returned value
+		return vals[0]
 	}
 	func main() {
 		fmt.Println(RunGomacro("1+1"))
@@ -129,9 +129,9 @@ The main limitations and missing features are:
 * some corner cases using interpreted interfaces, as interface -> interface type assertions and type switches, are not implemented yet.
 * goto can only jump backward, not forward
 * out-of-order code is under testing - some corner cases, as for example out-of-order declarations
-  used in keys of composite literals, are not supported.  
+  used in keys of composite literals, are not supported.
   Clearly, at REPL code is still executed as soon as possible, so it makes a difference mostly
-  if you separate multiple declarations with ; on a single line. Example: `var a = b; var b = 42`  
+  if you separate multiple declarations with ; on a single line. Example: `var a = b; var b = 42`\
   Support for "batch mode" is in progress - it reads as much source code as possible before executing it,
   and it's useful mostly to execute whole files or directories.
 
@@ -291,24 +291,96 @@ then quit and recompile gomacro only once.
 
 ## Generics
 
-gomacro contains an experimental version of Go generics.
+gomacro contains two alternative, experimental versions of Go generics:
 
-For the experience report written while implementing them, see [doc/generics.md](doc/generics.md)
+* the first version is modeled after C++ templates, and is appropriately named "C++ style"\
+  See [doc/generics-c++.md](doc/generics-c++.md) for how to enable and use them.
+
+* the second version is named "contracts are interfaces" - or more briefly "CTI".
+  It is modeled after several published proposals for Go generics,
+  most notably Ian Lance Taylor's [Type Parameters in Go](https://github.com/golang/proposal/blob/master/design/15292/2013-12-type-params.md)
+  It has some additions inspired from [Haskell generics](https://wiki.haskell.org/Generics)
+  and original contributions from the author - in particular to create a simpler alternative to
+  [Go 2 contracts](https://go.googlesource.com/proposal/+/master/design/go2draft-contracts.md)
+
+  For their design document and reasoning behind some of the design choices, see [doc/generics-cti.md](doc/generics-cti.md)
+
+The second version of generics "CTI" is enabled by default in gomacro.
 
 They are in beta status, and at the moment only generic types and functions are supported.
 Syntax and examples:
 ```go
-template[T,U] type Pair struct { First T; Second U }
+// declare a generic type with two type arguments T and U
+type Pair#[T,U] struct {
+	First T
+	Second U
+}
 
+// instantiate the generic type using explicit types for T and U,
+// and create a variable of such type.
 var pair Pair#[complex64, struct{}]
 
 // equivalent:
 pair := Pair#[complex64, struct{}] {}
 
+// a more complex example, showing higher-order functions
+func Transform#[T,U](slice []T, trans func(T) U) []U {
+	ret := make([]U, len(slice))
+	for i := range slice {
+		ret[i] = trans(slice[i])
+	}
+	return ret
+}
+Transform#[string,int] // returns func([]string, func(string) int) []int
 
-template[T] func Sum(args ...T) T {
-	var sum T // exploit zero value of T
+// returns []int{3, 2, 1} i.e. the len() of each string in input slice:
+Transform#[string,int]([]string{"abc","xy","z"}, func(s string) int { return len(s) })
+```
+Contracts specify the available methods of a generic type.
+For simplicity, they do not introduce a new syntax or new language concepts:
+contracts are just (generic) interfaces.
+With a tiny addition, actually: the ability to optionally indicate the receiver type.
+
+For example, the contract specifying that values of type `T` can be compared with each other
+to determine if the first is less, equal or greater than the second is:
+```Go
+type Comparable#[T] interface {
+	// returns -1 if a is less than b
+	// returns  0 if a is equal to b
+	// returns  1 if a is greater than b
+	func (a T) Cmp(b T) int
+}
+```
+A type `T` implements `Comparable#[T]` if it has a method `func (T) Cmp(T) int`.
+This interface is carefully chosen to match the existing methods of
+`*math/big.Float`, `*math/big.Int` and `*math/big.Rat`.
+In other words, `*math/big.Float`, `*math/big.Int` and `*math/big.Rat` already implement it.
+
+What about basic types as `int8`, `int16`, `int32`, `uint`... `float*`, `complex*` ... ?
+Gomacro extends them, adding many methods equivalent to the ones declared on `*math/big.Int`
+to perform arithmetic and comparison, including `Cmp`:
+```Go
+func (a int) Cmp(b int) int {
+	if a < b {
+		return -1
+	} else if a > b {
+		return 1
+	} else {
+		return 0
+	}
+}
+```
+If you do not specify the contract(s) satisfied by a type, generic functions
+cannot access the fields and methods of a such type, which is then treated
+as a "black box", similarly to `interface{}`
+```Go
+// declare a generic function with a single type argument T
+func Sum#[T] (args ...T) T {
+	var sum T // exploit zero value of T. this will be replaced by: sum := T().New()
 	for _, elem := range args {
+        // use operator += on T. this is currently accepted
+		// as a temporary workaround until contracts are fully implemented.
+		// the correct code would be: sum = sum.Add(sum, elem)
 		sum += elem
 	}
 	return sum
@@ -322,60 +394,17 @@ Sum#[complex64] (1.1+2.2i, 3.3) // returns complex64(4.4+2.2i)
 Sum#[string]                         // returns func(...string) string
 Sum#[string]("abc.","def.","xy","z") // returns "abc.def.xyz"
 
-template[T,U] func Transform(slice []T, trans func(T) U) []U {
-	ret := make([]U, len(slice))
-	for i := range slice {
-		ret[i] = trans(slice[i])
-	}
-	return ret
-}
-Transform#[string,int] // returns func([]string, func(string) int) []int
-
-// returns []int{3, 2, 1} i.e. the len() of each string in input slice:
-
-Transform#[string,int]([]string{"abc","xy","z"}, func(s string) int { return len(s) })
-
-// Partial and full specialization of templates are supported.
-// Together with recursive templates, they also (incidentally)
-// provide Turing completeness at compile-time:
-
-// The following example uses recursion and full specialization
-// to compute fibonacci sequence at compile time.
-
-// general case: encode Fib#[N] in the length of array type.
-template[N] type Fib [
-	len((*Fib#[N-1])(nil)) +
-	len((*Fib#[N-2])(nil))   ]int
-
-template[] for[2] type Fib [1]int // specialization for Fib#[2]
-template[] for[1] type Fib [1]int // specialization for Fib#[1]
-
-const Fib30 = len((*Fib#[30])(nil)) // compile-time constant
-
 ```
+Partial and full specialization of generics is **not** supported in CTI generics,
+both for simplicity and to avoid accidentally providing Turing completeness at compile-time.
+
+Instantiation of generic types and functions is on-demand.
+
 Current limitations:
-* instantiation is on-demand, but template arguments #[...] must be explicit.
-* template methods not supported yet.
-
-Observation: the compile-time Turing completeness provided by these C++-style templates
-is really poorly readable, for three reasons:
-* iteration must be written as recursion
-* `if` must be written as template specialization, outside the main template
-* integers must be encoded inside types, for example in the length of array types
-
-In the author's opinion, compile-time Turing completeness is a very enticing
-feature for several use cases and for a non-trivial percentage of developers.
-
-If the only way to get such feature is with poorly readable (ab)use of templates,
-the result is a lot of poorly readable template code.
-
-If Turing-complete templates are ever added to Go (or any other language)
-it is thus very important to also provide an alternative, more natural syntax
-to perform Turing-complete computation at compile-time. An example
-could be: `const foo(args)` where the function `foo` must respect certain
-constraints (to be defined) in order to be callable at compile time.
-
-For a more detailed discussion, see [doc/generics.md](doc/generics.md).
+* type inference on generic arguments #[...] is not yet implemented,
+  thus generic arguments #[...] must be explicit.
+* generic methods are not yet implemented.
+* Contracts can be declared, but are not used.
 
 ## Debugger
 
@@ -385,7 +414,7 @@ There are three ways to enter it:
 * type `:debug STATEMENT-OR-FUNCTION-CALL` at the prompt.
 * add a statement (an expression is not enough) `"break"` or `_ = "break"` to your code, then execute it normally.
 
-In all cases, execution will be suspended and you will get a `debug>` prompt, which accepts the following commands:  
+In all cases, execution will be suspended and you will get a `debug>` prompt, which accepts the following commands:\
 `step`, `next`, `finish`, `continue`, `env [NAME]`, `inspect EXPR`, `list`, `print EXPR-OR-STATEMENT`
 
 Also,
