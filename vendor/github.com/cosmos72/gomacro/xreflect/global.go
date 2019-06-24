@@ -73,6 +73,14 @@ type StructField struct {
 	Anonymous bool        // is an embedded field. If true, Name should be empty or equal to the type's name
 }
 
+type addmethods uint8
+
+const (
+	addmethodsNeeded addmethods = iota
+	addmethodsInprogress
+	addmethodsDone
+)
+
 type xtype struct {
 	kind         r.Kind
 	gtype        types.Type
@@ -82,6 +90,7 @@ type xtype struct {
 	fieldcache   map[QName]StructField
 	methodcache  map[QName]Method
 	userdata     map[interface{}]interface{}
+	addmethods   addmethods
 }
 
 // QName is a replacement for go/types.Id and implements accurate comparison

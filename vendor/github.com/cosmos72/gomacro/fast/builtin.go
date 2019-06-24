@@ -64,6 +64,15 @@ func (top *Comp) setIota(iota int) {
 
 // ============================== initialization ===============================
 
+type proxy_error struct {
+	Object interface{}
+	Error_ func(interface{}) string
+}
+
+func (p *proxy_error) Error() string {
+	return p.Error_(p.Object)
+}
+
 func (ir *Interp) addBuiltins() {
 	basicTypes := &ir.Comp.Universe.BasicTypes
 
@@ -75,6 +84,7 @@ func (ir *Interp) addBuiltins() {
 	ir.DeclTypeAlias("byte", c.TypeOfUint8())
 	ir.DeclTypeAlias("rune", c.TypeOfInt32())
 	ir.DeclType(c.TypeOfError())
+	c.loadProxy("error", r.TypeOf((*proxy_error)(nil)).Elem(), c.TypeOfError())
 
 	// https://golang.org/ref/spec#Constants
 	// "Literal constants, true, false, iota, and certain constant expressions containing only untyped constant operands are untyped."
@@ -122,16 +132,6 @@ func (ir *Interp) addBuiltins() {
 		})
 		// return multiple values, extracting the concrete type of each interface
 		binds["Values"] = r.ValueOf(Function{funcValues, -1})
-	*/
-
-	/*
-		// --------- proxies ---------
-		if env.Proxies == nil {
-			env.Proxies = make(map[string]Type)
-		}
-		proxies := env.Proxies
-
-		proxies["error", TypeOf(*Error_builtin)(nil)).Elem()
 	*/
 }
 

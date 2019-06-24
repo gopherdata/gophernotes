@@ -225,16 +225,22 @@ func (v *Universe) addmethods(t Type, rtype r.Type) Type {
 		}
 		return t
 	}
-	if xt.methodvalues != nil {
+	if xt.addmethods != addmethodsNeeded {
 		// prevent another infinite recursion: Type.AddMethod() may reference the type itself in its methods
 		// debugf("NOT adding again %d methods to %v", n, tm)
 		return t
 	}
+	xt.addmethods = addmethodsInprogress
+	defer func() {
+		xt.addmethods = addmethodsDone
+	}()
 	if debug {
 		v.debugf("adding methods to: %v", xt)
 		defer de(bug(v))
 	}
-	xt.methodvalues = make([]r.Value, 0, ntotal)
+	if xt.methodvalues == nil {
+		xt.methodvalues = make([]r.Value, 0, ntotal)
+	}
 	nilv := r.Value{}
 	if v.rebuild() {
 		v.RebuildDepth--

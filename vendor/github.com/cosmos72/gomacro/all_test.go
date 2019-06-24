@@ -565,8 +565,8 @@ var testcases = []TestCase{
 
 	TestCase{A, "type_int8", "type t8 int8; var u8 t8; u8", int8(0), nil},
 	TestCase{A, "type_complicated", "type tfff func(int,int) func(error, func(bool)) string; var vfff tfff; vfff", (func(int, int) func(error, func(bool)) string)(nil), nil},
-	TestCase{C, "type_interface", "type Stringer interface { String() string }; var s Stringer; s", classicObjStringer, nil},
-	TestCase{F, "type_interface", "type Stringer interface { String() string }; var s Stringer; s", fastObjStringer, nil},
+	TestCase{C, "type_interface_1", "type Stringer interface { String() string }; var s Stringer; s", classicObjStringer, nil},
+	TestCase{F, "type_interface_1", "type Stringer interface { String() string }; var s Stringer; s", fastObjStringer, nil},
 	TestCase{F, "type_struct_0", "type PairPrivate struct { a, b rune }; var pp PairPrivate; pp.a+pp.b", rune(0), nil},
 	TestCase{A, "type_struct_1", "type Pair struct { A rune; B string}; var pair Pair; pair", Pair{}, nil},
 	TestCase{A, "type_struct_2", "type Triple struct { Pair; C float32 }; var triple Triple; triple.C", float32(0), nil},
@@ -898,6 +898,14 @@ var testcases = []TestCase{
 
 	TestCase{F, "interface_interpreted_1", interface_interpreted_1_source_string, true, nil},
 	TestCase{F, "interface_interpreted_2", interface_interpreted_2_source_string, true, nil},
+	// gophernotes issue 176
+	TestCase{F, "interface_interpreted_3", `
+		type xerror struct { }
+		func (x xerror) Error() string {
+		  return "some error"
+		}
+		var xe error = xerror{}
+		xe.Error()`, "some error", nil},
 
 	TestCase{A, "multiple_values_1", "func twins(x float32) (float32,float32) { return x, x+1 }; twins(17.0)", nil, []interface{}{float32(17.0), float32(18.0)}},
 	TestCase{A, "multiple_values_2", "func twins2(x float32) (float32,float32) { return twins(x) }; twins2(19.0)", nil, []interface{}{float32(19.0), float32(20.0)}},

@@ -21,6 +21,7 @@ import (
 	"go/build"
 	"os"
 	"path/filepath"
+	"reflect"
 	"strings"
 )
 
@@ -71,18 +72,24 @@ func Subdir(dirs ...string) string {
 }
 
 var (
-	GoPkg = filepath.Join("github.com", "gopherdata", "gophernotes", "vendor", "github.com", "cosmos72", "gomacro") // vendored copies of gomacro may need to change this
-
-	GoSrcDir = Subdir(filepath.SplitList(build.Default.GOPATH)[0], "src")
+	GoSrcDir = filepath.Join(filepath.SplitList(build.Default.GOPATH)[0], "src")
 
 	// where to find the Go compiler used to compile gomacro.
 	// needed to build compatible plugins
 	GoRootDir = build.Default.GOROOT
 
-	GomacroDir = findGomacroDir(GoPkg)
+	// also works for vendored or cloned copies of gomacro
+	GomacroDir = findGomacroDir(getGomacroPkg())
 )
 
+func getGomacroPkg() string {
+	type dummy struct{}
+	path := strings.Split(reflect.TypeOf(dummy{}).PkgPath(), "/")
+	return strings.Join(path[0:len(path)-2], "/") // skip .../base/paths
+}
+
 func findGomacroDir(pkg string) string {
+	pkg = filepath.Join(strings.Split(pkg, "/")...)
 	gopath := build.Default.GOPATH
 	for _, dir := range filepath.SplitList(gopath) {
 		path := filepath.Join(dir, "src", pkg)
@@ -90,7 +97,7 @@ func findGomacroDir(pkg string) string {
 			return path
 		}
 	}
-	defaultDir := Subdir(GoSrcDir, pkg)
+	defaultDir := filepath.Join(GoSrcDir, pkg)
 	fmt.Printf("// warning: could not find package %q in $GOPATH = %q, assuming package is located in %q\n", pkg, gopath, defaultDir)
 	return defaultDir
 }

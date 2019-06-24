@@ -359,19 +359,32 @@ func (imp *Import) loadTypes(g *CompGlobals, pkgref *genimport.PackageRef) {
 // loadProxies adds to thread-global maps the proxies found in import
 func (g *CompGlobals) loadProxies(proxies map[string]r.Type, types map[string]xr.Type) {
 	for name, proxy := range proxies {
-		xtype := types[name]
-		if xtype == nil {
-			g.Warnf("import %q: type not found for proxy <%v>", proxy.PkgPath(), proxy)
-			continue
-		}
-		if xtype.Kind() != r.Interface {
-			g.Warnf("import %q: type for proxy <%v> is not an interface: %v", proxy.PkgPath(), proxy, xtype)
-			continue
-		}
-		rtype := xtype.ReflectType()
-		g.interf2proxy[rtype] = proxy
-		g.proxy2interf[proxy] = xtype
+		g.loadProxy(name, proxy, types[name])
 	}
+}
+
+// loadProxy adds to thread-global maps the specified proxy that allows interpreted types
+// to implement an interface
+func (g *CompGlobals) loadProxy(name string, proxy r.Type, xtype xr.Type) {
+	if proxy == nil && xtype == nil {
+		g.Errorf("cannot load nil proxy")
+		return
+	}
+	if xtype == nil {
+		g.Warnf("import %q: type not found for proxy <%v>", proxy.PkgPath(), proxy)
+		return
+	}
+	if xtype.Kind() != r.Interface {
+		g.Warnf("import %q: type for proxy <%v> is not an interface: %v", proxy.PkgPath(), proxy, xtype)
+		return
+	}
+	if proxy == nil {
+		g.Errorf("import %q: nil proxy for type <%v>", xtype.PkgPath(), xtype)
+		return
+	}
+	rtype := xtype.ReflectType()
+	g.interf2proxy[rtype] = proxy
+	g.proxy2interf[proxy] = xtype
 }
 
 // ======================== use package symbols ===============================

@@ -495,6 +495,8 @@ type myStructField struct {
 	Index []int
 }
 
+var myPkg = r.TypeOf(myStructField{}).PkgPath()
+
 func TestFromReflect5(t *testing.T) {
 	if testing.Verbose() {
 		defer de(bug(u))
@@ -502,9 +504,7 @@ func TestFromReflect5(t *testing.T) {
 	rtype := r.TypeOf((*myType)(nil)).Elem()
 	typ := u.FromReflectType(rtype)
 
-	mypkg := "github.com/gopherdata/gophernotes/vendor/github.com/cosmos72/gomacro/xreflect"
-
-	is(t, typ.String(), mypkg+".myType")
+	is(t, typ.String(), myPkg+".myType")
 
 	is(t, typ.NumExplicitMethod(), rtype.NumMethod())
 	is(t, typ.NumAllMethod(), rtype.NumMethod())
@@ -571,10 +571,8 @@ func TestFromReflectMutualRecursion(t *testing.T) {
 	is(t, typ2.Name(), "Response4Test")
 	isidenticalgotype(t, typ1.GoType(), typ1_loop.GoType())
 
-	mypkg := "github.com/gopherdata/gophernotes/vendor/github.com/cosmos72/gomacro/xreflect"
-
-	is(t, typ1.gunderlying().String(), "struct{Header map[string]string; Response *"+mypkg+".Response4Test}")
-	is(t, typ2.gunderlying().String(), "struct{HttpStatus int; Request *"+mypkg+".Request4Test}")
+	is(t, typ1.gunderlying().String(), "struct{Header map[string]string; Response *"+myPkg+".Response4Test}")
+	is(t, typ2.gunderlying().String(), "struct{HttpStatus int; Request *"+myPkg+".Request4Test}")
 }
 
 // test implementing 'io.Reader' interface
