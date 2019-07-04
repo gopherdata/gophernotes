@@ -77,7 +77,6 @@ type addmethods uint8
 
 const (
 	addmethodsNeeded addmethods = iota
-	addmethodsInprogress
 	addmethodsDone
 )
 

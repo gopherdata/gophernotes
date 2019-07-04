@@ -134,9 +134,10 @@ func (t *xtype) method(i int) Method {
 	rtype := t.rtype
 	var rfunctype r.Type
 	rfunc := t.methodvalues[i]
-	// fmt.Printf("DEBUG xtype.method(%d): t = %v,\tt.methodvalues[%d] = %v\n", i, t, i, rfunc)
+	// fmt.Printf("DEBUG xtype.method(%d): t = %v,\tt.methodvalues[%d] = %v // %v\n", i, t, i, rfunc, rValueType(rfunc))
 	if rfunc.Kind() == r.Func {
 		// easy, method is cached already
+		// fmt.Printf("DEBUG xtype.method(%d): t = %v,\tt.methodvalues[%d] = %v // %v\n", i, t, i, rfunc, rValueType(rfunc))
 		rfunctype = rfunc.Type()
 	} else if _, ok := t.gtype.Underlying().(*types.Interface); ok {
 		if rtype.Kind() == r.Ptr && isReflectInterfaceStruct(rtype.Elem()) {
@@ -180,6 +181,13 @@ func (t *xtype) method(i int) Method {
 		// and when adding CTI methods to a type
 	}
 	return t.makemethod(i, gfunc, &t.methodvalues, rfunctype) // lock already held
+}
+
+func rValueType(v r.Value) r.Type {
+	if v.IsValid() {
+		return v.Type()
+	}
+	return nil
 }
 
 // insert recv as the the first parameter of rtype function type

@@ -7,6 +7,7 @@
 package typeutil
 
 import (
+	"bytes"
 	"go/token"
 	"strings"
 	"testing"
@@ -239,6 +240,7 @@ func newSignature(t *testing.T, recv *types.Var, params *types.Tuple, results *t
 			resultstr = " " + results.String()
 		}
 	}
+
 	// types.Type.String() does NOT show method receiver
 	is(t, sig.String(), "func"+paramstr+resultstr)
 	// instead typeutil.String(types.Type) also shows it
@@ -248,4 +250,10 @@ func newSignature(t *testing.T, recv *types.Var, params *types.Tuple, results *t
 		is(t, String(sig), "func ("+varString(recv)+")."+paramstr+resultstr)
 	}
 	return sig
+}
+
+func varString(v *types.Var) string {
+	var buf bytes.Buffer
+	writeVar(&buf, v, false)
+	return buf.String()
 }

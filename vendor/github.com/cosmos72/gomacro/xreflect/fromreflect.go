@@ -230,16 +230,13 @@ func (v *Universe) addmethods(t Type, rtype r.Type) Type {
 		// debugf("NOT adding again %d methods to %v", n, tm)
 		return t
 	}
-	xt.addmethods = addmethodsInprogress
-	defer func() {
-		xt.addmethods = addmethodsDone
-	}()
+	xt.addmethods = addmethodsDone
 	if debug {
 		v.debugf("adding methods to: %v", xt)
 		defer de(bug(v))
 	}
 	if xt.methodvalues == nil {
-		xt.methodvalues = make([]r.Value, 0, ntotal)
+		xt.methodvalues = make([]r.Value, ntotal)
 	}
 	nilv := r.Value{}
 	if v.rebuild() {
@@ -252,44 +249,46 @@ func (v *Universe) addmethods(t Type, rtype r.Type) Type {
 		for i, ni := 0, rtype.NumMethod(); i < ni; i++ {
 			rmethod := rtype.Method(i)
 			qname := QName2(rmethod.Name, rmethod.PkgPath)
-			if cache[qname] {
+			xi, ok := cache[qname]
+			if ok {
 				if debug {
 					m, _ := xt.methodByName(rmethod.Name, rmethod.PkgPath)
-					v.debugf("method already present: %v", m)
+					v.debugf("method[%d->%d] already present: %v", xi, i, m)
 				}
 				continue
-			}
-
-			signature := v.fromReflectMethod(rmethod.Type)
-			n1 := xt.NumExplicitMethod()
-			xt.AddMethod(rmethod.Name, signature)
-			n2 := xt.NumExplicitMethod()
-			if n1 == n2 {
-				if debug {
-					m, _ := xt.methodByName(rmethod.Name, rmethod.PkgPath)
-					v.debugf("method already present (case 2, should not happen): %v", m)
+			} else {
+				signature := v.fromReflectMethod(rmethod.Type)
+				n1 := xt.NumExplicitMethod()
+				xt.AddMethod(rmethod.Name, signature)
+				n2 := xt.NumExplicitMethod()
+				if n1 == n2 {
+					if debug {
+						m, _ := xt.methodByName(rmethod.Name, rmethod.PkgPath)
+						v.debugf("method[%d->%d] already present (case 2, should not happen): %v", m.Index, i, m)
+					}
+					continue
 				}
-				continue
+				xi = n2 - 1
 			}
-			for len(xt.methodvalues) < n2 {
+			for len(xt.methodvalues) <= xi {
 				xt.methodvalues = append(xt.methodvalues, nilv)
 			}
-			xt.methodvalues[n1] = rmethod.Func
-			cache[qname] = true
+			xt.methodvalues[xi] = rmethod.Func
+			cache[qname] = xi
 			if debug {
-				m := xt.method(n1)
-				v.debugf("added method %v", m)
+				m := xt.method(xi)
+				v.debugf("added method[%d->%d] %v", xi, i, m)
 			}
 		}
 	}
 	return t
 }
 
-func makeGmethodMap(gtype *types.Named) map[QName]bool {
+func makeGmethodMap(gtype *types.Named) map[QName]int {
 	n := gtype.NumMethods()
-	m := make(map[QName]bool)
+	m := make(map[QName]int)
 	for i := 0; i < n; i++ {
-		m[QNameGo(gtype.Method(i))] = true
+		m[QNameGo(gtype.Method(i))] = i
 	}
 	return m
 }
