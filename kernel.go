@@ -19,6 +19,10 @@ import (
 	basereflect "github.com/cosmos72/gomacro/base/reflect"
 	interp "github.com/cosmos72/gomacro/fast"
 	"github.com/cosmos72/gomacro/xreflect"
+
+	// compile and link files generated in imports/
+	_ "github.com/gopherdata/gophernotes/imports"
+
 	zmq "github.com/pebbe/zmq4"
 )
 
