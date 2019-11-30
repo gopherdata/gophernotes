@@ -47,16 +47,32 @@
 
 ### Linux
 
+Quick installation as module, requires Go 1.12+
 ```sh
-$ go get -u github.com/gopherdata/gophernotes
+$ env GO111MODULE=on go get github.com/gopherdata/gophernotes
 $ mkdir -p ~/.local/share/jupyter/kernels/gophernotes
-$ cp $GOPATH/src/github.com/gopherdata/gophernotes/kernel/* ~/.local/share/jupyter/kernels/gophernotes
+$ cd ~/.local/share/jupyter/kernels/gophernotes
+$ cp "$(go env GOPATH)"/pkg/mod/github.com/gopherdata/gophernotes@v0.6.0/kernel/*  "."
+$ sed "s|gophernotes|$(go env GOPATH)/bin/gophernotes|" < kernel.json.in > kernel.json
 ```
 
-To confirm that the `gophernotes` binary is installed and in your PATH, you should see the following when running `gophernotes` directly:
-
+Manual installation from GOPATH, also works with Go 1.11
 ```sh
-$ gophernotes
+$ env GO111MODULE=off go get -d github.com/gopherdata/gophernotes
+$ cd "$(go env GOPATH)"/src/github.com/gopherdata/gophernotes
+$ env GO111MODULE=on go install
+$ mkdir -p ~/.local/share/jupyter/kernels/gophernotes
+$ cp kernel/* ~/.local/share/jupyter/kernels/gophernotes
+$ cd ~/.local/share/jupyter/kernels/gophernotes
+$ sed "s,gophernotes,$(go env GOPATH)/bin/gophernotes," < kernel.json.in > kernel.json
+```
+
+To confirm that the `gophernotes` binary is installed in GOPATH, execute it directly:
+```sh
+$ "$(go env GOPATH)"/bin/gophernotes
+```
+and you shoud see the following:
+```sh
 2017/09/20 10:33:12 Need a command line argument specifying the connection file.
 ```
 
@@ -68,19 +84,34 @@ $ jupyter --data-dir
 
 ### Mac
 
-**Important Note** - gomacro relies on the `plugin` package when importing third party libraries. This package works reliably on Mac OS X only with Go 1.10.2+ as long as you **never** execute the command `strip gophernotes`.
-If you can only compile gophernotes with Go <= 1.10.1 on Mac, consider using the [Docker](#docker) install and run gophernotes/Jupyter in Docker.
+**Important Note** - gomacro relies on the `plugin` package when importing third party libraries. This package works reliably on Mac OS X with Go 1.10.2+ as long as you **never** execute the command `strip gophernotes`.
 
+Quick installation as module, requires Go 1.12+
 ```sh
-$ go get -u github.com/gopherdata/gophernotes
+$ env GO111MODULE=on go get github.com/gopherdata/gophernotes
 $ mkdir -p ~/Library/Jupyter/kernels/gophernotes
-$ cp $GOPATH/src/github.com/gopherdata/gophernotes/kernel/* ~/Library/Jupyter/kernels/gophernotes
+$ cd ~/Library/Jupyter/kernels/gophernotes
+$ cp "$(go env GOPATH)"/pkg/mod/github.com/gopherdata/gophernotes@v0.6.0/kernel/*  "."
+$ sed "s|gophernotes|$(go env GOPATH)/bin/gophernotes|" < kernel.json.in > kernel.json
 ```
 
-To confirm that the `gophernotes` binary is installed and in your PATH, you should see the following when running `gophernotes` directly:
-
+Manual installation from GOPATH, also works with Go 1.11
 ```sh
-$ gophernotes
+$ env GO111MODULE=off go get -d github.com/gopherdata/gophernotes
+$ cd "$(go env GOPATH)"/src/github.com/gopherdata/gophernotes
+$ env GO111MODULE=on go install
+$ mkdir -p ~/Library/Jupyter/kernels/gophernotes
+$ cp kernel/* ~/Library/Jupyter/kernels/gophernotes
+$ cd ~/Library/Jupyter/kernels/gophernotes
+$ sed "s,gophernotes,$(go env GOPATH)/bin/gophernotes," < kernel.json.in > kernel.json
+```
+
+To confirm that the `gophernotes` binary is installed in GOPATH, execute it directly:
+```sh
+$ "$(go env GOPATH)"/bin/gophernotes
+```
+and you shoud see the following:
+```sh
 2017/09/20 10:33:12 Need a command line argument specifying the connection file.
 ```
 
