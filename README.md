@@ -44,6 +44,8 @@
 - [Jupyter Notebook](http://jupyter.readthedocs.io/en/latest/install.html) or [nteract](https://nteract.io/desktop)
 - [ZeroMQ 4.X.X](http://zeromq.org/intro:get-the-software) - for convenience, pre-built Windows binaries (v4.2.1) are included in the zmq-win directory.
 - [pkg-config](https://en.wikipedia.org/wiki/Pkg-config)
+- [git](https://git-scm.com/download) - usually already present on Linux and Mac OS X. If not present, follow the instructions at [https://git-scm.com/download](https://git-scm.com/download)
+  On Windows, it can also be installed as part of MinGW as described below.
 
 ### Linux
 
@@ -58,7 +60,7 @@ $ sed "s|gophernotes|$(go env GOPATH)/bin/gophernotes|" < kernel.json.in > kerne
 
 Manual installation from GOPATH, also works with Go 1.11
 ```sh
-$ env GO111MODULE=off go get -d github.com/gopherdata/gophernotes
+$ env GO111MODULE=off go get -d -u github.com/gopherdata/gophernotes
 $ cd "$(go env GOPATH)"/src/github.com/gopherdata/gophernotes
 $ env GO111MODULE=on go install
 $ mkdir -p ~/.local/share/jupyter/kernels/gophernotes
@@ -97,7 +99,7 @@ $ sed "s|gophernotes|$(go env GOPATH)/bin/gophernotes|" < kernel.json.in > kerne
 
 Manual installation from GOPATH, also works with Go 1.11
 ```sh
-$ env GO111MODULE=off go get -d github.com/gopherdata/gophernotes
+$ env GO111MODULE=off go get -d -u github.com/gopherdata/gophernotes
 $ cd "$(go env GOPATH)"/src/github.com/gopherdata/gophernotes
 $ env GO111MODULE=on go install
 $ mkdir -p ~/Library/Jupyter/kernels/gophernotes
@@ -136,6 +138,7 @@ Then:
 
     ```
     REM Download w/o building.
+    set GO111MODULE=off
     go get -d -u github.com/gopherdata/gophernotes
     cd %GOPATH%\src\github.com\gopherdata\gophernotes\zmq-win
 
