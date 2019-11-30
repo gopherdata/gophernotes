@@ -2,18 +2,18 @@ package imports
 
 import (
 	"github.com/cosmos72/gomacro/base/paths"
-	i "github.com/cosmos72/gomacro/imports"
+	"github.com/cosmos72/gomacro/imports"
 )
 
-type PackageUnderlying = i.PackageUnderlying
+type PackageUnderlying = imports.PackageUnderlying
 
-type Package = i.Package
+type Package = imports.Package
 
-type PackageMap = i.PackageMap
+type PackageMap = imports.PackageMap
 
-// i.Packages is a map, copying it only makes a reference
-// => Packages and i.Packages are kept in sync automatically
-var Packages = i.Packages
+// imports.Packages is a map, copying it only makes a reference
+// => Packages and imports.Packages are kept in sync automatically
+var Packages = imports.Packages
 
 // used to locate this package path via reflection
 type findMe struct{}
