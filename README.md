@@ -66,7 +66,7 @@ $ env GO111MODULE=on go install
 $ mkdir -p ~/.local/share/jupyter/kernels/gophernotes
 $ cp kernel/* ~/.local/share/jupyter/kernels/gophernotes
 $ cd ~/.local/share/jupyter/kernels/gophernotes
-$ sed "s,gophernotes,$(go env GOPATH)/bin/gophernotes," < kernel.json.in > kernel.json
+$ sed "s|gophernotes|$(go env GOPATH)/bin/gophernotes|" < kernel.json.in > kernel.json
 ```
 
 To confirm that the `gophernotes` binary is installed in GOPATH, execute it directly:
@@ -105,7 +105,7 @@ $ env GO111MODULE=on go install
 $ mkdir -p ~/Library/Jupyter/kernels/gophernotes
 $ cp kernel/* ~/Library/Jupyter/kernels/gophernotes
 $ cd ~/Library/Jupyter/kernels/gophernotes
-$ sed "s,gophernotes,$(go env GOPATH)/bin/gophernotes," < kernel.json.in > kernel.json
+$ sed "s|gophernotes|$(go env GOPATH)/bin/gophernotes|" < kernel.json.in > kernel.json
 ```
 
 To confirm that the `gophernotes` binary is installed in GOPATH, execute it directly:
