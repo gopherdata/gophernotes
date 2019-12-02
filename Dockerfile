@@ -34,10 +34,12 @@ RUN set -x \
     ### pin down the tornado and ipykernel to compatible versions
     && pip3 install jupyter notebook pyzmq==16.0.2 tornado==4.5.3 ipykernel==4.8.1 \
     ## install gophernotes
-    && GOPATH=/go go install github.com/gopherdata/gophernotes \
+    && cd /go/src/github.com/gopherdata/gophernotes \
+    && GOPATH=/go GO111MODULE=on go install . \
     && cp /go/bin/gophernotes /usr/local/bin/ \
     && mkdir -p ~/.local/share/jupyter/kernels/gophernotes \
-    && cp -r /go/src/github.com/gopherdata/gophernotes/kernel/* ~/.local/share/jupyter/kernels/gophernotes \
+    && cp -r ./kernel/* ~/.local/share/jupyter/kernels/gophernotes \
+    && cd - \
     ## clean
     && find /usr/lib/python3.6 -name __pycache__ | xargs rm -r \
     && rm -rf \

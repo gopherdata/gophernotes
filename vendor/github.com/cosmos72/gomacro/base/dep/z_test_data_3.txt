@@ -1,3 +1,0 @@
-var i, j, k int; for i=1; i<=2; i=i+1 { if i<2 {j=i} else {k=i} }; i
-
-var a, b = b, 5
