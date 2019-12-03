@@ -30,7 +30,7 @@
 
 ![](files/nteract.gif)
 
-### Example Notebooks (dowload and run them locally, follow the links to view in Github, or use the [Jupyter Notebook Viewer](http://nbviewer.jupyter.org/)):
+### Example Notebooks (download and run them locally, follow the links to view in Github, or use the [Jupyter Notebook Viewer](http://nbviewer.jupyter.org/)):
 - [Worker Pools](examples/Worker_Pools.ipynb)
 - [Matrix Operations](examples/Matrix_Operations.ipynb)
 - [Facial Recognition](examples/Facial_Recognition_MachineBox.ipynb)
