@@ -7,8 +7,8 @@ import (
 	"encoding/json"
 	"time"
 
+	"github.com/gofrs/uuid"
 	zmq "github.com/pebbe/zmq4"
-	"github.com/satori/go.uuid"
 )
 
 // MsgHeader encodes header info for ZMQ messages.
