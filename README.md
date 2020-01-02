@@ -261,3 +261,10 @@ sudo ln -s $HOME/go/bin/gophernotes /go/bin/gophernotes
 ```
 
 Restart jupyter, and you should now be up and running.
+
+### Look at Jupyter notebook's logs for debugging
+
+In order to see the logs for your Jupyter notebook, use the --log-level option
+```
+jupyter notebook --log-level DEBUG
+```
