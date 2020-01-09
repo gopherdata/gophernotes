@@ -263,6 +263,13 @@ sudo ln -s $HOME/go/bin/gophernotes /go/bin/gophernotes
 
 Restart jupyter, and you should now be up and running.
 
+### error "could not import C (no metadata for C)" when importing a package
+
+At a first analysis, it seems to be a limitation of the new import mechanism that supports Go 1.11 modules.
+You can switch the old (non module-aware) mechanism with the command `%go111module off`
+
+To re-enable modules support, execute `%go111module on`
+
 ### Look at Jupyter notebook's logs for debugging
 
 In order to see the logs for your Jupyter notebook, use the --log-level option
