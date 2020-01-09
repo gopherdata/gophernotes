@@ -11,6 +11,7 @@ import (
 	"os"
 	"reflect"
 	"runtime"
+	"strings"
 	"sync"
 	"time"
 
@@ -467,6 +468,8 @@ func doEval(ir *interp.Interp, code string) (val []interface{}, typ []xreflect.T
 		}
 	}()
 
+	code = evalSpecialCommands(ir, code)
+
 	// Prepare and perform the multiline evaluation.
 	compiler := ir.Comp
 
@@ -479,7 +482,7 @@ func doEval(ir *interp.Interp, code string) (val []interface{}, typ []xreflect.T
 	// Reset the error line so that error messages correspond to the lines from the cell.
 	compiler.Line = 0
 
-	// Parse the input code (and don't preform gomacro's macroexpansion).
+	// Parse the input code (and don't perform gomacro's macroexpansion).
 	// These may panic but this will be recovered by the deferred recover() above so that the error
 	// may be returned instead.
 	nodes := compiler.ParseBytes([]byte(code))
@@ -598,4 +601,44 @@ func startHeartbeat(hbSocket Socket, wg *sync.WaitGroup) (shutdown chan struct{}
 	}()
 
 	return quit
+}
+
+// find and execute special commands in code, remove them from returned string
+func evalSpecialCommands(ir *interp.Interp, code string) string {
+	lines := strings.Split(code, "\n")
+	for i, line := range lines {
+		line = strings.TrimSpace(line)
+		if len(line) != 0 && line[0] == '%' {
+			evalSpecialCommand(ir, line)
+			lines[i] = ""
+		}
+	}
+	return strings.Join(lines, "\n")
+}
+
+// execute special command
+func evalSpecialCommand(ir *interp.Interp, line string) {
+	const help string = "available special commands:\n  %go111module {on|off}\n  %help"
+
+	args := strings.SplitN(line, " ", 2)
+	cmd := args[0]
+	arg := ""
+	if len(args) > 1 {
+		arg = args[1]
+	}
+	switch cmd {
+
+	case "%go111module":
+		if arg == "on" {
+			ir.Comp.CompGlobals.Options |= base.OptModuleImport
+		} else if arg == "off" {
+			ir.Comp.CompGlobals.Options &^= base.OptModuleImport
+		} else {
+			panic(fmt.Errorf("special command %s: expecting a single argument 'on' or 'off', found: %q", cmd, arg))
+		}
+	case "%help":
+		panic(help)
+	default:
+		panic(fmt.Errorf("unknown special command: %q\n%s", line, help))
+	}
 }
