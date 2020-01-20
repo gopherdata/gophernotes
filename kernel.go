@@ -16,7 +16,7 @@ import (
 	"sync"
 	"time"
 
-	zmq "github.com/go-zeromq/zmq4"
+	"github.com/go-zeromq/zmq4"
 	"golang.org/x/xerrors"
 
 	"github.com/cosmos72/gomacro/ast2"
@@ -48,7 +48,7 @@ type ConnectionInfo struct {
 
 // Socket wraps a zmq socket with a lock which should be used to control write access.
 type Socket struct {
-	Socket zmq.Socket
+	Socket zmq4.Socket
 	Lock   *sync.Mutex
 }
 
@@ -102,7 +102,7 @@ const (
 )
 
 // RunWithSocket invokes the `run` function after acquiring the `Socket.Lock` and releases the lock when done.
-func (s *Socket) RunWithSocket(run func(socket zmq.Socket) error) error {
+func (s *Socket) RunWithSocket(run func(socket zmq4.Socket) error) error {
 	s.Lock.Lock()
 	defer s.Lock.Unlock()
 	return run(s.Socket)
@@ -164,7 +164,7 @@ func runKernel(connectionFile string) {
 	// TODO gracefully shutdown the heartbeat handler on kernel shutdown by closing the chan returned by startHeartbeat.
 
 	type msgType struct {
-		Msg zmq.Msg
+		Msg zmq4.Msg
 		Err error
 	}
 
@@ -176,7 +176,7 @@ func runKernel(connectionFile string) {
 	)
 
 	defer close(quit)
-	poll := func(msgs chan msgType, sck zmq.Socket) {
+	poll := func(msgs chan msgType, sck zmq4.Socket) {
 		defer close(msgs)
 		for {
 			msg, err := sck.Recv()
@@ -250,27 +250,27 @@ func prepareSockets(connInfo ConnectionInfo) (SocketGroup, error) {
 
 	// Create the shell socket, a request-reply socket that may receive messages from multiple frontend for
 	// code execution, introspection, auto-completion, etc.
-	sg.ShellSocket.Socket = zmq.NewRouter(ctx)
+	sg.ShellSocket.Socket = zmq4.NewRouter(ctx)
 	sg.ShellSocket.Lock = &sync.Mutex{}
 
 	// Create the control socket. This socket is a duplicate of the shell socket where messages on this channel
 	// should jump ahead of queued messages on the shell socket.
-	sg.ControlSocket.Socket = zmq.NewRouter(ctx)
+	sg.ControlSocket.Socket = zmq4.NewRouter(ctx)
 	sg.ControlSocket.Lock = &sync.Mutex{}
 
 	// Create the stdin socket, a request-reply socket used to request user input from a front-end. This is analogous
 	// to a standard input stream.
-	sg.StdinSocket.Socket = zmq.NewRouter(ctx)
+	sg.StdinSocket.Socket = zmq4.NewRouter(ctx)
 	sg.StdinSocket.Lock = &sync.Mutex{}
 
 	// Create the iopub socket, a publisher for broadcasting data like stdout/stderr output, displaying execution
 	// results or errors, kernel status, etc. to connected subscribers.
-	sg.IOPubSocket.Socket = zmq.NewPub(ctx)
+	sg.IOPubSocket.Socket = zmq4.NewPub(ctx)
 	sg.IOPubSocket.Lock = &sync.Mutex{}
 
 	// Create the heartbeat socket, a request-reply socket that only allows alternating recv-send (request-reply)
 	// calls. It should echo the byte strings it receives to let the requester know the kernel is still alive.
-	sg.HBSocket.Socket = zmq.NewRep(ctx)
+	sg.HBSocket.Socket = zmq4.NewRep(ctx)
 	sg.HBSocket.Lock = &sync.Mutex{}
 
 	// Bind the sockets.
@@ -575,7 +575,7 @@ func startHeartbeat(hbSocket Socket, wg *sync.WaitGroup) (shutdown chan struct{}
 		defer wg.Done()
 
 		type msgType struct {
-			Msg zmq.Msg
+			Msg zmq4.Msg
 			Err error
 		}
 
@@ -604,7 +604,7 @@ func startHeartbeat(hbSocket Socket, wg *sync.WaitGroup) (shutdown chan struct{}
 			case <-timeout.C:
 				continue
 			case v := <-msgs:
-				hbSocket.RunWithSocket(func(echo zmq.Socket) error {
+				hbSocket.RunWithSocket(func(echo zmq4.Socket) error {
 					if v.Err != nil {
 						log.Fatalf("Error reading heartbeat ping bytes: %v\n", v.Err)
 						return v.Err

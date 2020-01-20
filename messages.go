@@ -7,7 +7,7 @@ import (
 	"encoding/json"
 	"time"
 
-	zmq "github.com/go-zeromq/zmq4"
+	"github.com/go-zeromq/zmq4"
 	"github.com/gofrs/uuid"
 )
 
@@ -139,7 +139,7 @@ func (msg ComposedMsg) ToWireMsg(signkey []byte) ([][]byte, error) {
 }
 
 // SendResponse sends a message back to return identities of the received message.
-func (receipt *msgReceipt) SendResponse(socket zmq.Socket, msg ComposedMsg) error {
+func (receipt *msgReceipt) SendResponse(socket zmq4.Socket, msg ComposedMsg) error {
 
 	msgParts, err := msg.ToWireMsg(receipt.Sockets.Key)
 	if err != nil {
@@ -151,7 +151,7 @@ func (receipt *msgReceipt) SendResponse(socket zmq.Socket, msg ComposedMsg) erro
 	frames = append(frames, []byte("<IDS|MSG>"))
 	frames = append(frames, msgParts...)
 
-	err = socket.SendMulti(zmq.NewMsgFrom(frames...))
+	err = socket.SendMulti(zmq4.NewMsgFrom(frames...))
 	if err != nil {
 		return err
 	}
@@ -190,7 +190,7 @@ func (receipt *msgReceipt) Publish(msgType string, content interface{}) error {
 	}
 
 	msg.Content = content
-	return receipt.Sockets.IOPubSocket.RunWithSocket(func(iopub zmq.Socket) error {
+	return receipt.Sockets.IOPubSocket.RunWithSocket(func(iopub zmq4.Socket) error {
 		return receipt.SendResponse(iopub, msg)
 	})
 }
@@ -205,7 +205,7 @@ func (receipt *msgReceipt) Reply(msgType string, content interface{}) error {
 	}
 
 	msg.Content = content
-	return receipt.Sockets.ShellSocket.RunWithSocket(func(shell zmq.Socket) error {
+	return receipt.Sockets.ShellSocket.RunWithSocket(func(shell zmq4.Socket) error {
 		return receipt.SendResponse(shell, msg)
 	})
 }

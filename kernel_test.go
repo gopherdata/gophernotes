@@ -11,7 +11,7 @@ import (
 	"testing"
 	"time"
 
-	zmq "github.com/go-zeromq/zmq4"
+	"github.com/go-zeromq/zmq4"
 )
 
 const (
@@ -327,8 +327,8 @@ cases:
 
 // testJupyterClient holds references to the 2 sockets it uses to communicate with the kernel.
 type testJupyterClient struct {
-	shellSocket zmq.Socket
-	ioSocket    zmq.Socket
+	shellSocket zmq4.Socket
+	ioSocket    zmq4.Socket
 }
 
 // newTestJupyterClient creates and connects a fresh client to the kernel. Upon error, newTestJupyterClient
@@ -344,18 +344,18 @@ func newTestJupyterClient(t *testing.T) (testJupyterClient, func()) {
 	)
 
 	// Prepare the shell socket.
-	shell := zmq.NewReq(ctx)
+	shell := zmq4.NewReq(ctx)
 	if err = shell.Dial(addrShell); err != nil {
 		t.Fatalf("\t%s shell.Connect: %s", failure, err)
 	}
 
 	// Prepare the IOPub socket.
-	iopub := zmq.NewSub(ctx)
+	iopub := zmq4.NewSub(ctx)
 	if err = iopub.Dial(addrIO); err != nil {
 		t.Fatalf("\t%s iopub.Connect: %s", failure, err)
 	}
 
-	if err = iopub.SetOption(zmq.OptionSubscribe, ""); err != nil {
+	if err = iopub.SetOption(zmq4.OptionSubscribe, ""); err != nil {
 		t.Fatalf("\t%s iopub.SetSubscribe: %s", failure, err)
 	}
 
@@ -390,7 +390,7 @@ func (client *testJupyterClient) sendShellRequest(t *testing.T, request Composed
 	}
 	frames = append(frames, reqMsgParts...)
 
-	if err = client.shellSocket.SendMulti(zmq.NewMsgFrom(frames...)); err != nil {
+	if err = client.shellSocket.SendMulti(zmq4.NewMsgFrom(frames...)); err != nil {
 		t.Fatalf("\t%s shellSocket.SendMessage: %s", failure, err)
 	}
 }
