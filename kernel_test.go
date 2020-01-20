@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -10,7 +11,7 @@ import (
 	"testing"
 	"time"
 
-	zmq "github.com/pebbe/zmq4"
+	zmq "github.com/go-zeromq/zmq4"
 )
 
 const (
@@ -326,8 +327,8 @@ cases:
 
 // testJupyterClient holds references to the 2 sockets it uses to communicate with the kernel.
 type testJupyterClient struct {
-	shellSocket *zmq.Socket
-	ioSocket    *zmq.Socket
+	shellSocket zmq.Socket
+	ioSocket    zmq.Socket
 }
 
 // newTestJupyterClient creates and connects a fresh client to the kernel. Upon error, newTestJupyterClient
@@ -335,30 +336,26 @@ type testJupyterClient struct {
 func newTestJupyterClient(t *testing.T) (testJupyterClient, func()) {
 	t.Helper()
 
-	addrShell := fmt.Sprintf("%s://%s:%d", transport, ip, shellPort)
-	addrIO := fmt.Sprintf("%s://%s:%d", transport, ip, iopubPort)
+	var (
+		err       error
+		ctx       = context.Background()
+		addrShell = fmt.Sprintf("%s://%s:%d", transport, ip, shellPort)
+		addrIO    = fmt.Sprintf("%s://%s:%d", transport, ip, iopubPort)
+	)
 
 	// Prepare the shell socket.
-	shell, err := zmq.NewSocket(zmq.REQ)
-	if err != nil {
-		t.Fatalf("\t%s NewSocket: %s", failure, err)
-	}
-
-	if err = shell.Connect(addrShell); err != nil {
+	shell := zmq.NewReq(ctx)
+	if err = shell.Dial(addrShell); err != nil {
 		t.Fatalf("\t%s shell.Connect: %s", failure, err)
 	}
 
 	// Prepare the IOPub socket.
-	iopub, err := zmq.NewSocket(zmq.SUB)
-	if err != nil {
-		t.Fatalf("\t%s NewSocket: %s", failure, err)
-	}
-
-	if err = iopub.Connect(addrIO); err != nil {
+	iopub := zmq.NewSub(ctx)
+	if err = iopub.Dial(addrIO); err != nil {
 		t.Fatalf("\t%s iopub.Connect: %s", failure, err)
 	}
 
-	if err = iopub.SetSubscribe(""); err != nil {
+	if err = iopub.SetOption(zmq.OptionSubscribe, ""); err != nil {
 		t.Fatalf("\t%s iopub.SetSubscribe: %s", failure, err)
 	}
 
@@ -380,16 +377,20 @@ func newTestJupyterClient(t *testing.T) (testJupyterClient, func()) {
 func (client *testJupyterClient) sendShellRequest(t *testing.T, request ComposedMsg) {
 	t.Helper()
 
-	if _, err := client.shellSocket.Send("<IDS|MSG>", zmq.SNDMORE); err != nil {
-		t.Fatalf("\t%s shellSocket.Send: %s", failure, err)
-	}
+	var (
+		frames [][]byte
+		err    error
+	)
+
+	frames = append(frames, []byte("<IDS|MSG>"))
 
 	reqMsgParts, err := request.ToWireMsg([]byte(connectionKey))
 	if err != nil {
 		t.Fatalf("\t%s request.ToWireMsg: %s", failure, err)
 	}
+	frames = append(frames, reqMsgParts...)
 
-	if _, err = client.shellSocket.SendMessage(reqMsgParts); err != nil {
+	if err = client.shellSocket.SendMulti(zmq.NewMsgFrom(frames...)); err != nil {
 		t.Fatalf("\t%s shellSocket.SendMessage: %s", failure, err)
 	}
 }
@@ -402,12 +403,12 @@ func (client *testJupyterClient) recvShellReply(t *testing.T, timeout time.Durat
 	ch := make(chan ComposedMsg)
 
 	go func() {
-		repMsgParts, err := client.shellSocket.RecvMessageBytes(0)
+		repMsgParts, err := client.shellSocket.Recv()
 		if err != nil {
 			t.Fatalf("\t%s Shell socket RecvMessageBytes: %s", failure, err)
 		}
 
-		msgParsed, _, err := WireMsgToComposedMsg(repMsgParts, []byte(connectionKey))
+		msgParsed, _, err := WireMsgToComposedMsg(repMsgParts.Frames, []byte(connectionKey))
 		if err != nil {
 			t.Fatalf("\t%s Could not parse wire message: %s", failure, err)
 		}
@@ -435,12 +436,12 @@ func (client *testJupyterClient) recvIOSub(t *testing.T, timeout time.Duration) 
 	ch := make(chan ComposedMsg)
 
 	go func() {
-		repMsgParts, err := client.ioSocket.RecvMessageBytes(0)
+		repMsgParts, err := client.ioSocket.Recv()
 		if err != nil {
 			t.Fatalf("\t%s IOPub socket RecvMessageBytes: %s", failure, err)
 		}
 
-		msgParsed, _, err := WireMsgToComposedMsg(repMsgParts, []byte(connectionKey))
+		msgParsed, _, err := WireMsgToComposedMsg(repMsgParts.Frames, []byte(connectionKey))
 		if err != nil {
 			t.Fatalf("\t%s Could not parse wire message: %s", failure, err)
 		}

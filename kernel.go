@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -13,8 +14,10 @@ import (
 	"runtime"
 	"strings"
 	"sync"
-	"syscall"
 	"time"
+
+	zmq "github.com/go-zeromq/zmq4"
+	"golang.org/x/xerrors"
 
 	"github.com/cosmos72/gomacro/ast2"
 	"github.com/cosmos72/gomacro/base"
@@ -24,8 +27,6 @@ import (
 
 	// compile and link files generated in imports/
 	_ "github.com/gopherdata/gophernotes/imports"
-
-	zmq "github.com/pebbe/zmq4"
 )
 
 // ExecCounter is incremented each time we run user code in the notebook.
@@ -47,7 +48,7 @@ type ConnectionInfo struct {
 
 // Socket wraps a zmq socket with a lock which should be used to control write access.
 type Socket struct {
-	Socket *zmq.Socket
+	Socket zmq.Socket
 	Lock   *sync.Mutex
 }
 
@@ -101,7 +102,7 @@ const (
 )
 
 // RunWithSocket invokes the `run` function after acquiring the `Socket.Lock` and releases the lock when done.
-func (s *Socket) RunWithSocket(run func(socket *zmq.Socket) error) error {
+func (s *Socket) RunWithSocket(run func(socket zmq.Socket) error) error {
 	s.Lock.Lock()
 	defer s.Lock.Unlock()
 	return run(s.Socket)
@@ -162,13 +163,34 @@ func runKernel(connectionFile string) {
 
 	// TODO gracefully shutdown the heartbeat handler on kernel shutdown by closing the chan returned by startHeartbeat.
 
-	poller := zmq.NewPoller()
-	poller.Add(sockets.ShellSocket.Socket, zmq.POLLIN)
-	poller.Add(sockets.StdinSocket.Socket, zmq.POLLIN)
-	poller.Add(sockets.ControlSocket.Socket, zmq.POLLIN)
+	type msgType struct {
+		Msg zmq.Msg
+		Err error
+	}
 
-	// msgParts will store a received multipart message.
-	var msgParts [][]byte
+	var (
+		shell = make(chan msgType)
+		stdin = make(chan msgType)
+		ctl   = make(chan msgType)
+		quit  = make(chan int)
+	)
+
+	defer close(quit)
+	poll := func(msgs chan msgType, sck zmq.Socket) {
+		defer close(msgs)
+		for {
+			msg, err := sck.Recv()
+			select {
+			case msgs <- msgType{Msg: msg, Err: err}:
+			case <-quit:
+				return
+			}
+		}
+	}
+
+	go poll(shell, sockets.ShellSocket.Socket)
+	go poll(stdin, sockets.StdinSocket.Socket)
+	go poll(ctl, sockets.ControlSocket.Socket)
 
 	kernel := Kernel{
 		ir,
@@ -179,51 +201,39 @@ func runKernel(connectionFile string) {
 
 	// Start a message receiving loop.
 	for {
-		polled, err := poller.Poll(-1)
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		for _, item := range polled {
-
-			// Handle various types of messages.
-			switch socket := item.Socket; socket {
-
+		select {
+		case v := <-shell:
 			// Handle shell messages.
-			case sockets.ShellSocket.Socket:
-				msgParts, err = sockets.ShellSocket.Socket.RecvMessageBytes(0)
-				if err != nil {
-					log.Println(err)
-				}
-
-				msg, ids, err := WireMsgToComposedMsg(msgParts, sockets.Key)
-				if err != nil {
-					log.Println(err)
-					return
-				}
-
-				kernel.handleShellMsg(msgReceipt{msg, ids, sockets})
-
-				// TODO Handle stdin socket.
-			case sockets.StdinSocket.Socket:
-				sockets.StdinSocket.Socket.RecvMessageBytes(0)
-
-				// Handle control messages.
-			case sockets.ControlSocket.Socket:
-				msgParts, err = sockets.ControlSocket.Socket.RecvMessageBytes(0)
-				if err != nil {
-					log.Println(err)
-					return
-				}
-
-				msg, ids, err := WireMsgToComposedMsg(msgParts, sockets.Key)
-				if err != nil {
-					log.Println(err)
-					return
-				}
-
-				kernel.handleShellMsg(msgReceipt{msg, ids, sockets})
+			if v.Err != nil {
+				log.Println(v.Err)
+				continue
 			}
+
+			msg, ids, err := WireMsgToComposedMsg(v.Msg.Frames, sockets.Key)
+			if err != nil {
+				log.Println(err)
+				return
+			}
+
+			kernel.handleShellMsg(msgReceipt{msg, ids, sockets})
+
+		case <-stdin:
+			// TODO Handle stdin socket.
+			continue
+
+		case v := <-ctl:
+			if v.Err != nil {
+				log.Println(v.Err)
+				return
+			}
+
+			msg, ids, err := WireMsgToComposedMsg(v.Msg.Frames, sockets.Key)
+			if err != nil {
+				log.Println(err)
+				return
+			}
+
+			kernel.handleShellMsg(msgReceipt{msg, ids, sockets})
 		}
 	}
 }
@@ -231,63 +241,64 @@ func runKernel(connectionFile string) {
 // prepareSockets sets up the ZMQ sockets through which the kernel
 // will communicate.
 func prepareSockets(connInfo ConnectionInfo) (SocketGroup, error) {
-
-	// Initialize the context.
-	context, err := zmq.NewContext()
-	if err != nil {
-		return SocketGroup{}, err
-	}
-
 	// Initialize the socket group.
-	var sg SocketGroup
+	var (
+		sg  SocketGroup
+		err error
+		ctx = context.Background()
+	)
 
 	// Create the shell socket, a request-reply socket that may receive messages from multiple frontend for
 	// code execution, introspection, auto-completion, etc.
-	sg.ShellSocket.Socket, err = context.NewSocket(zmq.ROUTER)
+	sg.ShellSocket.Socket = zmq.NewRouter(ctx)
 	sg.ShellSocket.Lock = &sync.Mutex{}
-	if err != nil {
-		return sg, err
-	}
 
 	// Create the control socket. This socket is a duplicate of the shell socket where messages on this channel
 	// should jump ahead of queued messages on the shell socket.
-	sg.ControlSocket.Socket, err = context.NewSocket(zmq.ROUTER)
+	sg.ControlSocket.Socket = zmq.NewRouter(ctx)
 	sg.ControlSocket.Lock = &sync.Mutex{}
-	if err != nil {
-		return sg, err
-	}
 
 	// Create the stdin socket, a request-reply socket used to request user input from a front-end. This is analogous
 	// to a standard input stream.
-	sg.StdinSocket.Socket, err = context.NewSocket(zmq.ROUTER)
+	sg.StdinSocket.Socket = zmq.NewRouter(ctx)
 	sg.StdinSocket.Lock = &sync.Mutex{}
-	if err != nil {
-		return sg, err
-	}
 
 	// Create the iopub socket, a publisher for broadcasting data like stdout/stderr output, displaying execution
 	// results or errors, kernel status, etc. to connected subscribers.
-	sg.IOPubSocket.Socket, err = context.NewSocket(zmq.PUB)
+	sg.IOPubSocket.Socket = zmq.NewPub(ctx)
 	sg.IOPubSocket.Lock = &sync.Mutex{}
-	if err != nil {
-		return sg, err
-	}
 
 	// Create the heartbeat socket, a request-reply socket that only allows alternating recv-send (request-reply)
 	// calls. It should echo the byte strings it receives to let the requester know the kernel is still alive.
-	sg.HBSocket.Socket, err = context.NewSocket(zmq.REP)
+	sg.HBSocket.Socket = zmq.NewRep(ctx)
 	sg.HBSocket.Lock = &sync.Mutex{}
-	if err != nil {
-		return sg, err
-	}
 
 	// Bind the sockets.
 	address := fmt.Sprintf("%v://%v:%%v", connInfo.Transport, connInfo.IP)
-	sg.ShellSocket.Socket.Bind(fmt.Sprintf(address, connInfo.ShellPort))
-	sg.ControlSocket.Socket.Bind(fmt.Sprintf(address, connInfo.ControlPort))
-	sg.StdinSocket.Socket.Bind(fmt.Sprintf(address, connInfo.StdinPort))
-	sg.IOPubSocket.Socket.Bind(fmt.Sprintf(address, connInfo.IOPubPort))
-	sg.HBSocket.Socket.Bind(fmt.Sprintf(address, connInfo.HBPort))
+	err = sg.ShellSocket.Socket.Listen(fmt.Sprintf(address, connInfo.ShellPort))
+	if err != nil {
+		return sg, xerrors.Errorf("could not listen on shell-socket: %w", err)
+	}
+
+	err = sg.ControlSocket.Socket.Listen(fmt.Sprintf(address, connInfo.ControlPort))
+	if err != nil {
+		return sg, xerrors.Errorf("could not listen on control-socket: %w", err)
+	}
+
+	err = sg.StdinSocket.Socket.Listen(fmt.Sprintf(address, connInfo.StdinPort))
+	if err != nil {
+		return sg, xerrors.Errorf("could not listen on stdin-socket: %w", err)
+	}
+
+	err = sg.IOPubSocket.Socket.Listen(fmt.Sprintf(address, connInfo.IOPubPort))
+	if err != nil {
+		return sg, xerrors.Errorf("could not listen on iopub-socket: %w", err)
+	}
+
+	err = sg.HBSocket.Socket.Listen(fmt.Sprintf(address, connInfo.HBPort))
+	if err != nil {
+		return sg, xerrors.Errorf("could not listen on hbeat-socket: %w", err)
+	}
 
 	// Set the message signing key.
 	sg.Key = []byte(connInfo.Key)
@@ -563,40 +574,50 @@ func startHeartbeat(hbSocket Socket, wg *sync.WaitGroup) (shutdown chan struct{}
 	go func() {
 		defer wg.Done()
 
-		// Create a `Poller` to check for incoming messages.
-		poller := zmq.NewPoller()
-		poller.Add(hbSocket.Socket, zmq.POLLIN)
+		type msgType struct {
+			Msg zmq.Msg
+			Err error
+		}
+
+		msgs := make(chan msgType)
+
+		go func() {
+			defer close(msgs)
+			for {
+				msg, err := hbSocket.Socket.Recv()
+				select {
+				case msgs <- msgType{msg, err}:
+				case <-quit:
+					return
+				}
+			}
+		}()
+
+		timeout := time.NewTimer(500 * time.Second)
+		defer timeout.Stop()
 
 		for {
+			timeout.Reset(500 * time.Second)
 			select {
 			case <-quit:
 				return
-			default:
-				// Check for received messages waiting at most 500ms for once to arrive.
-				pingEvents, err := poller.Poll(500 * time.Millisecond)
-				if err != nil && zmq.AsErrno(err) != zmq.Errno(syscall.EINTR) {
-					log.Fatalf("Error polling heartbeat channel: %T %#v %v\n", err, err, err)
-				}
+			case <-timeout.C:
+				continue
+			case v := <-msgs:
+				hbSocket.RunWithSocket(func(echo zmq.Socket) error {
+					if v.Err != nil {
+						log.Fatalf("Error reading heartbeat ping bytes: %v\n", v.Err)
+						return v.Err
+					}
 
-				// If there is at least 1 message waiting then echo it.
-				if len(pingEvents) > 0 {
-					hbSocket.RunWithSocket(func(echo *zmq.Socket) error {
-						// Read a message from the heartbeat channel as a simple byte string.
-						pingMsg, err := echo.RecvBytes(0)
-						if err != nil {
-							log.Fatalf("Error reading heartbeat ping bytes: %v\n", err)
-							return err
-						}
+					// Send the received byte string back to let the front-end know that the kernel is alive.
+					if err := echo.Send(v.Msg); err != nil {
+						log.Printf("Error sending heartbeat pong bytes: %b\n", err)
+						return err
+					}
 
-						// Send the received byte string back to let the front-end know that the kernel is alive.
-						if _, err = echo.SendBytes(pingMsg, 0); err != nil {
-							log.Printf("Error sending heartbeat pong bytes: %b\n", err)
-							return err
-						}
-
-						return nil
-					})
-				}
+					return nil
+				})
 			}
 		}
 	}()

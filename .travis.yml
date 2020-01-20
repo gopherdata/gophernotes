@@ -14,7 +14,7 @@ matrix:
 sudo: true
 
 before_install:
-  - sudo apt-get install pkg-config libzmq3-dev build-essential python3-pip
+  - sudo apt-get install build-essential python3-pip
 
 script:
   - go test -v ./...

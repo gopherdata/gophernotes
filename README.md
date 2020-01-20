@@ -42,8 +42,6 @@
 
 - [Go 1.11+](https://golang.org/doc/install) - including GOPATH/bin added to your PATH (i.e., you can run Go binaries that you `go install`).
 - [Jupyter Notebook](http://jupyter.readthedocs.io/en/latest/install.html) or [nteract](https://nteract.io/desktop)
-- [ZeroMQ 4.X.X](http://zeromq.org/intro:get-the-software) - for convenience, pre-built Windows binaries (v4.2.1) are included in the zmq-win directory.
-- [pkg-config](https://en.wikipedia.org/wiki/Pkg-config)
 - [git](https://git-scm.com/download) - usually already present on Linux and Mac OS X. If not present, follow the instructions at [https://git-scm.com/download](https://git-scm.com/download)
   On Windows, it can also be installed as part of MinGW as described below.
 
@@ -135,26 +133,7 @@ Make sure you have the MinGW toolchain:
 
 Then:
 
-1. build and install gophernotes (using the pre-built binaries and `zmq-win\build.bat`):
-
-    ```
-    REM Download w/o building.
-    set GO111MODULE=off
-    go get -d -u github.com/gopherdata/gophernotes
-    cd %GOPATH%\src\github.com\gopherdata\gophernotes\zmq-win
-
-    REM Build x64 version.
-    build.bat amd64
-    move gophernotes.exe %GOPATH%\bin
-    copy lib-amd64\libzmq.dll %GOPATH%\bin
-
-    REM Build x86 version.
-    build.bat 386
-    move gophernotes.exe %GOPATH%\bin
-    copy lib-386\libzmq.dll %GOPATH%\bin
-    ```
-
-3. Copy the kernel config:
+1. Copy the kernel config:
 
     ```
     mkdir %APPDATA%\jupyter\kernels\gophernotes
@@ -167,7 +146,7 @@ Then:
     jupyter --data-dir
     ```
 
-4. Update `%APPDATA%\jupyter\kernels\gophernotes\kernel.json` with the FULL PATH to your gophernotes.exe (in %GOPATH%\bin), unless it's already on the PATH.  For example:
+2. Update `%APPDATA%\jupyter\kernels\gophernotes\kernel.json` with the FULL PATH to your gophernotes.exe (in %GOPATH%\bin), unless it's already on the PATH.  For example:
 
     ```
     {
