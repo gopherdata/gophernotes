@@ -13,6 +13,7 @@ import (
 	"runtime"
 	"strings"
 	"sync"
+	"syscall"
 	"time"
 
 	"github.com/cosmos72/gomacro/ast2"
@@ -573,8 +574,8 @@ func startHeartbeat(hbSocket Socket, wg *sync.WaitGroup) (shutdown chan struct{}
 			default:
 				// Check for received messages waiting at most 500ms for once to arrive.
 				pingEvents, err := poller.Poll(500 * time.Millisecond)
-				if err != nil {
-					log.Fatalf("Error polling heartbeat channel: %v\n", err)
+				if err != nil && zmq.AsErrno(err) != zmq.Errno(syscall.EINTR) {
+					log.Fatalf("Error polling heartbeat channel: %T %#v %v\n", err, err, err)
 				}
 
 				// If there is at least 1 message waiting then echo it.
