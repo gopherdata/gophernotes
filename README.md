@@ -43,7 +43,6 @@
 - [Go 1.11+](https://golang.org/doc/install) - including GOPATH/bin added to your PATH (i.e., you can run Go binaries that you `go install`).
 - [Jupyter Notebook](http://jupyter.readthedocs.io/en/latest/install.html) or [nteract](https://nteract.io/desktop)
 - [git](https://git-scm.com/download) - usually already present on Linux and Mac OS X. If not present, follow the instructions at [https://git-scm.com/download](https://git-scm.com/download)
-  On Windows, it can also be installed as part of MinGW as described below.
 
 ### Linux
 
@@ -52,8 +51,8 @@ Quick installation as module, requires Go 1.12+
 $ env GO111MODULE=on go get github.com/gopherdata/gophernotes
 $ mkdir -p ~/.local/share/jupyter/kernels/gophernotes
 $ cd ~/.local/share/jupyter/kernels/gophernotes
-$ cp "$(go env GOPATH)"/pkg/mod/github.com/gopherdata/gophernotes@v0.6.1/kernel/*  "."
-$ chmod +w ./kernel.json # when copied kernel.json has no write permission
+$ cp "$(go env GOPATH)"/pkg/mod/github.com/gopherdata/gophernotes@v0.7.0/kernel/*  "."
+$ chmod +w ./kernel.json # in case copied kernel.json has no write permission
 $ sed "s|gophernotes|$(go env GOPATH)/bin/gophernotes|" < kernel.json.in > kernel.json
 ```
 
@@ -65,6 +64,7 @@ $ env GO111MODULE=on go install
 $ mkdir -p ~/.local/share/jupyter/kernels/gophernotes
 $ cp kernel/* ~/.local/share/jupyter/kernels/gophernotes
 $ cd ~/.local/share/jupyter/kernels/gophernotes
+$ chmod +w ./kernel.json # in case copied kernel.json has no write permission
 $ sed "s|gophernotes|$(go env GOPATH)/bin/gophernotes|" < kernel.json.in > kernel.json
 ```
 
@@ -92,7 +92,8 @@ Quick installation as module, requires Go 1.12+
 $ env GO111MODULE=on go get github.com/gopherdata/gophernotes
 $ mkdir -p ~/Library/Jupyter/kernels/gophernotes
 $ cd ~/Library/Jupyter/kernels/gophernotes
-$ cp "$(go env GOPATH)"/pkg/mod/github.com/gopherdata/gophernotes@v0.6.1/kernel/*  "."
+$ cp "$(go env GOPATH)"/pkg/mod/github.com/gopherdata/gophernotes@v0.7.0/kernel/*  "."
+$ chmod +w ./kernel.json # in case copied kernel.json has no write permission
 $ sed "s|gophernotes|$(go env GOPATH)/bin/gophernotes|" < kernel.json.in > kernel.json
 ```
 
@@ -104,6 +105,7 @@ $ env GO111MODULE=on go install
 $ mkdir -p ~/Library/Jupyter/kernels/gophernotes
 $ cp kernel/* ~/Library/Jupyter/kernels/gophernotes
 $ cd ~/Library/Jupyter/kernels/gophernotes
+$ chmod +w ./kernel.json # in case copied kernel.json has no write permission
 $ sed "s|gophernotes|$(go env GOPATH)/bin/gophernotes|" < kernel.json.in > kernel.json
 ```
 
