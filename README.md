@@ -126,13 +126,6 @@ $ jupyter --data-dir
 
 **Important Note** - gomacro relies on the `plugin` package when importing third party libraries.  This package is only supported on Linux and Mac OS X currently.  Thus, if you need to utilize third party packages in your Go notebooks and you are running on Windows, you should use the [Docker](#docker) install and run gophernotes/Jupyter in Docker.
 
-Make sure you have the MinGW toolchain:
-
-- [MinGW-w64](https://sourceforge.net/projects/mingw-w64/), for 32 and 64 bit Windows
-- [MinGW Distro](https://nuwen.net/mingw.html), for 64 bit Windows only
-
-Then:
-
 1. Copy the kernel config:
 
     ```
