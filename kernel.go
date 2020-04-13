@@ -10,6 +10,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"os/exec"
 	"reflect"
 	"runtime"
 	"strings"
@@ -630,9 +631,15 @@ func evalSpecialCommands(ir *interp.Interp, code string) string {
 	lines := strings.Split(code, "\n")
 	for i, line := range lines {
 		line = strings.TrimSpace(line)
-		if len(line) != 0 && line[0] == '%' {
-			evalSpecialCommand(ir, line)
-			lines[i] = ""
+		if len(line) != 0 {
+			switch line[0] {
+			case '%':
+				evalSpecialCommand(ir, line)
+				lines[i] = ""
+			case '$':
+				evalShellCommand(ir, line)
+				lines[i] = ""
+			}
 		}
 	}
 	return strings.Join(lines, "\n")
@@ -640,7 +647,14 @@ func evalSpecialCommands(ir *interp.Interp, code string) string {
 
 // execute special command
 func evalSpecialCommand(ir *interp.Interp, line string) {
-	const help string = "available special commands:\n  %go111module {on|off}\n  %help"
+	const help string = `
+available special commands (%):
+%help
+%go111module {on|off}
+
+execute shell commands ($):
+$ls -l
+	`
 
 	args := strings.SplitN(line, " ", 2)
 	cmd := args[0]
@@ -663,4 +677,22 @@ func evalSpecialCommand(ir *interp.Interp, line string) {
 	default:
 		panic(fmt.Errorf("unknown special command: %q\n%s", line, help))
 	}
+}
+
+// execute shell command
+func evalShellCommand(ir *interp.Interp, line string) {
+	args := strings.Split(line, " ")
+	if len(args) <= 0 {
+		return
+	}
+
+	command := strings.Replace(args[0], "$", "", 1)
+	cmd := exec.Command(command, args[1:]...)
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		panic(err)
+	}
+
+	// TODO: Properly stream stdout/stderr to Jupyter.
+	panic(string(out))
 }
