@@ -406,6 +406,7 @@ func (kernel *Kernel) handleExecuteRequest(receipt msgReceipt) error {
 
 	jupyterStdOut := JupyterStreamWriter{StreamStdout, &receipt}
 	jupyterStdErr := JupyterStreamWriter{StreamStderr, &receipt}
+	outerr := OutErr{&jupyterStdOut, &jupyterStdErr}
 
 	// Forward all data written to stdout/stderr to the front-end.
 	go func() {
@@ -428,7 +429,7 @@ func (kernel *Kernel) handleExecuteRequest(receipt msgReceipt) error {
 	}()
 
 	// eval
-	vals, types, executionErr := doEval(ir, jupyterStdOut, jupyterStdErr, code)
+	vals, types, executionErr := doEval(ir, outerr, code)
 
 	// Close and restore the streams.
 	wOut.Close()
@@ -470,7 +471,7 @@ func (kernel *Kernel) handleExecuteRequest(receipt msgReceipt) error {
 
 // doEval evaluates the code in the interpreter. This function captures an uncaught panic
 // as well as the values of the last statement/expression.
-func doEval(ir *interp.Interp, jupyterStdOut, jupyterStdErr JupyterStreamWriter, code string) (val []interface{}, typ []xreflect.Type, err error) {
+func doEval(ir *interp.Interp, outerr OutErr, code string) (val []interface{}, typ []xreflect.Type, err error) {
 
 	// Capture a panic from the evaluation if one occurs and store it in the `err` return parameter.
 	defer func() {
@@ -482,7 +483,7 @@ func doEval(ir *interp.Interp, jupyterStdOut, jupyterStdErr JupyterStreamWriter,
 		}
 	}()
 
-	code = evalSpecialCommands(ir, jupyterStdOut, jupyterStdErr, code)
+	code = evalSpecialCommands(ir, outerr, code)
 
 	// Prepare and perform the multiline evaluation.
 	compiler := ir.Comp
@@ -628,34 +629,43 @@ func startHeartbeat(hbSocket Socket, wg *sync.WaitGroup) (shutdown chan struct{}
 }
 
 // find and execute special commands in code, remove them from returned string
-func evalSpecialCommands(ir *interp.Interp, jupyterStdOut, jupyterStdErr JupyterStreamWriter, code string) string {
+func evalSpecialCommands(ir *interp.Interp, outerr OutErr, code string) string {
 	lines := strings.Split(code, "\n")
+	stop := false
 	for i, line := range lines {
 		line = strings.TrimSpace(line)
 		if len(line) != 0 {
 			switch line[0] {
 			case '%':
-				evalSpecialCommand(ir, line)
+				evalSpecialCommand(ir, outerr, line)
 				lines[i] = ""
 			case '$':
-				evalShellCommand(ir, jupyterStdOut, jupyterStdErr, line)
+				evalShellCommand(ir, outerr, line)
 				lines[i] = ""
+			default:
+				// if a line is NOT a special command,
+				// stop processing special commands
+				stop = true
 			}
+		}
+		if stop {
+			break
 		}
 	}
 	return strings.Join(lines, "\n")
 }
 
-// execute special command
-func evalSpecialCommand(ir *interp.Interp, line string) {
+// execute special command. line must start with '%'
+func evalSpecialCommand(ir *interp.Interp, outerr OutErr, line string) {
 	const help string = `
 available special commands (%):
 %help
 %go111module {on|off}
 
-execute shell commands ($):
+execute shell commands ($): $command [args...]
+example:
 $ls -l
-	`
+`
 
 	args := strings.SplitN(line, " ", 2)
 	cmd := args[0]
@@ -674,15 +684,15 @@ $ls -l
 			panic(fmt.Errorf("special command %s: expecting a single argument 'on' or 'off', found: %q", cmd, arg))
 		}
 	case "%help":
-		panic(help)
+		fmt.Fprint(outerr.out, help)
 	default:
 		panic(fmt.Errorf("unknown special command: %q\n%s", line, help))
 	}
 }
 
-// execute shell command
-func evalShellCommand(ir *interp.Interp, jupyterStdOut, jupyterStdErr JupyterStreamWriter, line string) {
-	args := strings.Split(line, " ")
+// execute shell command. line must start with '$'
+func evalShellCommand(ir *interp.Interp, outerr OutErr, line string) {
+	args := strings.Fields(line[1:])
 	if len(args) <= 0 {
 		return
 	}
@@ -690,37 +700,36 @@ func evalShellCommand(ir *interp.Interp, jupyterStdOut, jupyterStdErr JupyterStr
 	var writersWG sync.WaitGroup
 	writersWG.Add(2)
 
-	command := strings.Replace(args[0], "$", "", 1)
-	cmd := exec.Command(command, args[1:]...)
+	cmd := exec.Command(args[0], args[1:]...)
 
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
-		panic(err)
+		panic(fmt.Errorf("Command.StdoutPipe() failed: %v", err))
 	}
 
 	stderr, err := cmd.StderrPipe()
 	if err != nil {
-		panic(err)
+		panic(fmt.Errorf("Command.StderrPipe() failed: %v", err))
 	}
 
 	go func() {
 		defer writersWG.Done()
-		io.Copy(&jupyterStdOut, stdout)
+		io.Copy(outerr.out, stdout)
 	}()
 
 	go func() {
 		defer writersWG.Done()
-		io.Copy(&jupyterStdErr, stderr)
+		io.Copy(outerr.err, stderr)
 	}()
 
 	err = cmd.Start()
 	if err != nil {
-		panic(err)
+		panic(fmt.Errorf("error starting command '%s': %v", line[1:], err))
 	}
 
 	err = cmd.Wait()
 	if err != nil {
-		panic(err)
+		panic(fmt.Errorf("error waiting for command '%s': %v", line[1:], err))
 	}
 
 	writersWG.Wait()

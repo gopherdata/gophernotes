@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
+	"io"
 	"time"
 
 	"github.com/go-zeromq/zmq4"
@@ -339,4 +340,9 @@ func (writer *JupyterStreamWriter) Write(p []byte) (int, error) {
 	}
 
 	return n, nil
+}
+
+type OutErr struct {
+	out io.Writer
+	err io.Writer
 }
