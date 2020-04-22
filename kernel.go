@@ -404,16 +404,17 @@ func (kernel *Kernel) handleExecuteRequest(receipt msgReceipt) error {
 	var writersWG sync.WaitGroup
 	writersWG.Add(2)
 
+	jupyterStdOut := JupyterStreamWriter{StreamStdout, &receipt}
+	jupyterStdErr := JupyterStreamWriter{StreamStderr, &receipt}
+
 	// Forward all data written to stdout/stderr to the front-end.
 	go func() {
 		defer writersWG.Done()
-		jupyterStdOut := JupyterStreamWriter{StreamStdout, &receipt}
 		io.Copy(&jupyterStdOut, rOut)
 	}()
 
 	go func() {
 		defer writersWG.Done()
-		jupyterStdErr := JupyterStreamWriter{StreamStderr, &receipt}
 		io.Copy(&jupyterStdErr, rErr)
 	}()
 
@@ -427,7 +428,7 @@ func (kernel *Kernel) handleExecuteRequest(receipt msgReceipt) error {
 	}()
 
 	// eval
-	vals, types, executionErr := doEval(ir, code)
+	vals, types, executionErr := doEval(ir, jupyterStdOut, jupyterStdErr, code)
 
 	// Close and restore the streams.
 	wOut.Close()
@@ -469,7 +470,7 @@ func (kernel *Kernel) handleExecuteRequest(receipt msgReceipt) error {
 
 // doEval evaluates the code in the interpreter. This function captures an uncaught panic
 // as well as the values of the last statement/expression.
-func doEval(ir *interp.Interp, code string) (val []interface{}, typ []xreflect.Type, err error) {
+func doEval(ir *interp.Interp, jupyterStdOut, jupyterStdErr JupyterStreamWriter, code string) (val []interface{}, typ []xreflect.Type, err error) {
 
 	// Capture a panic from the evaluation if one occurs and store it in the `err` return parameter.
 	defer func() {
@@ -481,7 +482,7 @@ func doEval(ir *interp.Interp, code string) (val []interface{}, typ []xreflect.T
 		}
 	}()
 
-	code = evalSpecialCommands(ir, code)
+	code = evalSpecialCommands(ir, jupyterStdOut, jupyterStdErr, code)
 
 	// Prepare and perform the multiline evaluation.
 	compiler := ir.Comp
@@ -627,7 +628,7 @@ func startHeartbeat(hbSocket Socket, wg *sync.WaitGroup) (shutdown chan struct{}
 }
 
 // find and execute special commands in code, remove them from returned string
-func evalSpecialCommands(ir *interp.Interp, code string) string {
+func evalSpecialCommands(ir *interp.Interp, jupyterStdOut, jupyterStdErr JupyterStreamWriter, code string) string {
 	lines := strings.Split(code, "\n")
 	for i, line := range lines {
 		line = strings.TrimSpace(line)
@@ -637,7 +638,7 @@ func evalSpecialCommands(ir *interp.Interp, code string) string {
 				evalSpecialCommand(ir, line)
 				lines[i] = ""
 			case '$':
-				evalShellCommand(ir, line)
+				evalShellCommand(ir, jupyterStdOut, jupyterStdErr, line)
 				lines[i] = ""
 			}
 		}
@@ -680,19 +681,47 @@ $ls -l
 }
 
 // execute shell command
-func evalShellCommand(ir *interp.Interp, line string) {
+func evalShellCommand(ir *interp.Interp, jupyterStdOut, jupyterStdErr JupyterStreamWriter, line string) {
 	args := strings.Split(line, " ")
 	if len(args) <= 0 {
 		return
 	}
 
+	var writersWG sync.WaitGroup
+	writersWG.Add(2)
+
 	command := strings.Replace(args[0], "$", "", 1)
 	cmd := exec.Command(command, args[1:]...)
-	out, err := cmd.CombinedOutput()
+
+	stdout, err := cmd.StdoutPipe()
 	if err != nil {
 		panic(err)
 	}
 
-	// TODO: Properly stream stdout/stderr to Jupyter.
-	panic(string(out))
+	stderr, err := cmd.StderrPipe()
+	if err != nil {
+		panic(err)
+	}
+
+	go func() {
+		defer writersWG.Done()
+		io.Copy(&jupyterStdOut, stdout)
+	}()
+
+	go func() {
+		defer writersWG.Done()
+		io.Copy(&jupyterStdErr, stderr)
+	}()
+
+	err = cmd.Start()
+	if err != nil {
+		panic(err)
+	}
+
+	err = cmd.Wait()
+	if err != nil {
+		panic(err)
+	}
+
+	writersWG.Wait()
 }
