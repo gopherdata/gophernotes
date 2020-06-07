@@ -203,7 +203,9 @@ gophernotes uses [gomacro](https://github.com/cosmos72/gomacro) under the hood t
 
 - third party packages when running natively on Windows - This is a current limitation of the Go `plugin` package.
 - some corner cases on interpreted interfaces, as interface -&gt; interface type switch and type assertion, are not implemented yet.
+- some corner cases on recursive types may not work correctly.
 - conversion from typed constant to interpreted interface is not implemented. Workaround: assign the constant to a variable, then convert the variable to the interpreted interface type.
+- conversions from/to unsafe.Pointer are not supported.
 - goto is only partially implemented.
 - out-of-order code in the same cell is supported, but not heavily tested. It has some known limitations for composite literals.
 
