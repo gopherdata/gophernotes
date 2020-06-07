@@ -276,7 +276,7 @@ func (kernel *Kernel) autoRender(mimeType string, arg interface{}, typ xreflect.
 			conv := kernel.ir.Comp.Converter(typ, xtyp)
 			x := arg
 			if conv != nil {
-				x = basereflect.Interface(conv(reflect.ValueOf(x)))
+				x = basereflect.ValueInterface(conv(xreflect.ValueOf(x)))
 				if x == nil {
 					continue
 				}

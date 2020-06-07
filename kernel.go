@@ -11,7 +11,6 @@ import (
 	"log"
 	"os"
 	"os/exec"
-	"reflect"
 	"runtime"
 	"strings"
 	"sync"
@@ -422,10 +421,10 @@ func (kernel *Kernel) handleExecuteRequest(receipt msgReceipt) error {
 	// inject the actual "Display" closure that displays multimedia data in Jupyter
 	ir := kernel.ir
 	displayPlace := ir.ValueOf("Display")
-	displayPlace.Set(reflect.ValueOf(receipt.PublishDisplayData))
+	displayPlace.Set(xreflect.ValueOf(receipt.PublishDisplayData))
 	defer func() {
 		// remove the closure before returning
-		displayPlace.Set(reflect.ValueOf(stubDisplay))
+		displayPlace.Set(xreflect.ValueOf(stubDisplay))
 	}()
 
 	// eval
@@ -534,7 +533,7 @@ func doEval(ir *interp.Interp, outerr OutErr, code string) (val []interface{}, t
 		nonNilCount := 0
 		values := make([]interface{}, len(results))
 		for i, result := range results {
-			val := basereflect.Interface(result)
+			val := basereflect.ValueInterface(result)
 			if val != nil {
 				nonNilCount++
 			}
