@@ -12,7 +12,8 @@
 - [Examples](#examples)
 - Install gophernotes:
   - [Prerequisites](#prerequisites)
-  - [Linux](#linux)
+  - [FreeBSD](#linux-or-freebsd)
+  - [Linux](#linux-or-freebsd)
   - [Mac](#mac)
   - [Windows](#windows)
   - [Docker](#docker)
@@ -44,7 +45,9 @@
 - [Jupyter Notebook](http://jupyter.readthedocs.io/en/latest/install.html) or [nteract](https://nteract.io/desktop)
 - [git](https://git-scm.com/download) - usually already present on Linux and Mac OS X. If not present, follow the instructions at [https://git-scm.com/download](https://git-scm.com/download)
 
-### Linux
+### Linux or FreeBSD
+
+The instructions below should work both on Linux and on FreeBSD.
 
 Quick installation as module, requires Go 1.12+
 ```sh
