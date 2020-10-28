@@ -41,7 +41,7 @@
 
 ### Prerequisites
 
-- [Go 1.11+](https://golang.org/doc/install) - including GOPATH/bin added to your PATH (i.e., you can run Go binaries that you `go install`).
+- [Go 1.13+](https://golang.org/doc/install) - including GOPATH/bin added to your PATH (i.e., you can run Go binaries that you `go install`).
 - [Jupyter Notebook](http://jupyter.readthedocs.io/en/latest/install.html) or [nteract](https://nteract.io/desktop)
 - [git](https://git-scm.com/download) - usually already present on Linux and Mac OS X. If not present, follow the instructions at [https://git-scm.com/download](https://git-scm.com/download)
 
@@ -49,7 +49,7 @@
 
 The instructions below should work both on Linux and on FreeBSD.
 
-Quick installation as module, requires Go 1.12+
+Method 1: quick installation as module
 ```sh
 $ env GO111MODULE=on go get github.com/gopherdata/gophernotes
 $ mkdir -p ~/.local/share/jupyter/kernels/gophernotes
@@ -59,7 +59,7 @@ $ chmod +w ./kernel.json # in case copied kernel.json has no write permission
 $ sed "s|gophernotes|$(go env GOPATH)/bin/gophernotes|" < kernel.json.in > kernel.json
 ```
 
-Manual installation from GOPATH, also works with Go 1.11
+Method 2: manual installation from GOPATH
 ```sh
 $ env GO111MODULE=off go get -d -u github.com/gopherdata/gophernotes
 $ cd "$(go env GOPATH)"/src/github.com/gopherdata/gophernotes
@@ -90,7 +90,7 @@ $ jupyter --data-dir
 
 **Important Note** - gomacro relies on the `plugin` package when importing third party libraries. This package works reliably on Mac OS X with Go 1.10.2+ as long as you **never** execute the command `strip gophernotes`.
 
-Quick installation as module, requires Go 1.12+
+Method 1: quick installation as module
 ```sh
 $ env GO111MODULE=on go get github.com/gopherdata/gophernotes
 $ mkdir -p ~/Library/Jupyter/kernels/gophernotes
@@ -100,7 +100,7 @@ $ chmod +w ./kernel.json # in case copied kernel.json has no write permission
 $ sed "s|gophernotes|$(go env GOPATH)/bin/gophernotes|" < kernel.json.in > kernel.json
 ```
 
-Manual installation from GOPATH, also works with Go 1.11
+Method 2: manual installation from GOPATH
 ```sh
 $ env GO111MODULE=off go get -d -u github.com/gopherdata/gophernotes
 $ cd "$(go env GOPATH)"/src/github.com/gopherdata/gophernotes
@@ -244,7 +244,7 @@ Restart jupyter, and you should now be up and running.
 
 ### error "could not import C (no metadata for C)" when importing a package
 
-At a first analysis, it seems to be a limitation of the new import mechanism that supports Go 1.11 modules.
+At a first analysis, it seems to be a limitation of the new import mechanism that supports Go modules.
 You can switch the old (non module-aware) mechanism with the command `%go111module off`
 
 To re-enable modules support, execute `%go111module on`

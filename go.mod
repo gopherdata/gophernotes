@@ -1,6 +1,6 @@
 module github.com/gopherdata/gophernotes
 
-go 1.11
+go 1.13
 
 require (
 	github.com/cosmos72/gomacro v0.0.0-20200719111907-b07014b02196
