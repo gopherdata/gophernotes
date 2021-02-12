@@ -212,6 +212,8 @@ gophernotes uses [gomacro](https://github.com/cosmos72/gomacro) under the hood t
 - goto is only partially implemented.
 - out-of-order code in the same cell is supported, but not heavily tested. It has some known limitations for composite literals.
 
+Also, creation of new named types is emulated, and their methods are visible only to interpreted code.
+
 ## Troubleshooting
 
 ### gophernotes not found
