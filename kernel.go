@@ -400,7 +400,7 @@ func checkComplete(code string, ir *interp.Interp) (status, indent string) {
 
 	_, err := parser.Parse()
 	if err != nil {
-		status = "incomplete"
+		status = "invalid"
 	} else {
 		status = "complete"
 	}
