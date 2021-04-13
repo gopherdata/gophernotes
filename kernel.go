@@ -23,6 +23,7 @@ import (
 	"github.com/cosmos72/gomacro/base"
 	basereflect "github.com/cosmos72/gomacro/base/reflect"
 	interp "github.com/cosmos72/gomacro/fast"
+	mp "github.com/cosmos72/gomacro/go/parser"
 	"github.com/cosmos72/gomacro/xreflect"
 
 	// compile and link files generated in imports/
@@ -93,6 +94,12 @@ type kernelInfo struct {
 // shutdownReply encodes a boolean indication of shutdown/restart.
 type shutdownReply struct {
 	Restart bool `json:"restart"`
+}
+
+// isCompleteReply holds information about the statement is complete or not, for is_complete_reply messages.
+type isCompleteReply struct {
+	Status string `json:"status"`
+	Indent string `json:"indent"`
 }
 
 const (
@@ -326,6 +333,10 @@ func (kernel *Kernel) handleShellMsg(receipt msgReceipt) {
 		if err := sendKernelInfo(receipt); err != nil {
 			log.Fatal(err)
 		}
+	case "is_complete_request":
+		if err := kernel.handleIsCompleteRequest(receipt); err != nil {
+			log.Fatal(err)
+		}
 	case "complete_request":
 		if err := handleCompleteRequest(ir, receipt); err != nil {
 			log.Fatal(err)
@@ -358,6 +369,42 @@ func sendKernelInfo(receipt msgReceipt) error {
 				{Text: "Go", URL: "https://golang.org/"},
 				{Text: "gophernotes", URL: "https://github.com/gopherdata/gophernotes"},
 			},
+		},
+	)
+}
+
+// checkComplete checks whether the `code` is complete or not.
+func checkComplete(code string, ir *interp.Interp) (status, indent string) {
+	status, indent = "incomplete", ""
+
+	if len(code) == 0 {
+		return
+	}
+
+	var parser mp.Parser
+	g := ir.Comp
+	parser.Configure(g.ParserMode, g.MacroChar)
+	parser.Init(g.Fileset, g.Filepath, g.Line, []byte(code))
+
+	_, err := parser.Parse()
+	if err == nil {
+		status = "complete"
+	}
+	return
+}
+
+// handleIsCompleteRequest sends a is_complete_reply message.
+func (kernel *Kernel) handleIsCompleteRequest(receipt msgReceipt) error {
+
+	// Extract the data from the request.
+	reqcontent := receipt.Msg.Content.(map[string]interface{})
+	code := reqcontent["code"].(string)
+	status, indent := checkComplete(code, kernel.ir)
+
+	return receipt.Reply("is_complete_reply",
+		isCompleteReply{
+			Status: status,
+			Indent: indent,
 		},
 	)
 }
