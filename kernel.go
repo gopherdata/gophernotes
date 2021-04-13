@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"context"
 	"encoding/json"
 	"errors"
@@ -375,10 +376,21 @@ func sendKernelInfo(receipt msgReceipt) error {
 
 // checkComplete checks whether the `code` is complete or not.
 func checkComplete(code string, ir *interp.Interp) (status, indent string) {
-	status, indent = "incomplete", ""
+	status, indent = "unknown", ""
 
 	if len(code) == 0 {
-		return
+		return status, indent
+	}
+	readline := base.MakeBufReadline(bufio.NewReader(strings.NewReader(code)))
+	for {
+		_, _, err := base.ReadMultiline(readline, base.ReadOptions(0), "")
+		if err == io.EOF {
+			return "complete", indent
+		} else if err == io.ErrUnexpectedEOF {
+			return "incomplete", indent
+		} else if err != nil {
+			return "invalid", indent
+		}
 	}
 
 	var parser mp.Parser
@@ -387,10 +399,12 @@ func checkComplete(code string, ir *interp.Interp) (status, indent string) {
 	parser.Init(g.Fileset, g.Filepath, g.Line, []byte(code))
 
 	_, err := parser.Parse()
-	if err == nil {
+	if err != nil {
+		status = "incomplete"
+	} else {
 		status = "complete"
 	}
-	return
+	return status, indent
 }
 
 // handleIsCompleteRequest sends a is_complete_reply message.
