@@ -719,8 +719,9 @@ func evalSpecialCommands(ir *interp.Interp, outerr OutErr, code string) string {
 func evalSpecialCommand(ir *interp.Interp, outerr OutErr, line string) {
 	const help string = `
 available special commands (%):
-%help
+%cd [path]
 %go111module {on|off}
+%help
 
 execute shell commands ($): $command [args...]
 example:
@@ -734,7 +735,18 @@ $ls -l
 		arg = args[1]
 	}
 	switch cmd {
-
+	case "%cd":
+		if arg == "" {
+			home, err := os.UserHomeDir()
+			if err != nil {
+				panic(fmt.Errorf("error getting user home directory: %v", err))
+			}
+			arg = home
+		}
+		err := os.Chdir(arg)
+		if err != nil {
+			panic(fmt.Errorf("error setting current directory to %q: %v", arg, err))
+		}
 	case "%go111module":
 		if arg == "on" {
 			ir.Comp.CompGlobals.Options |= base.OptModuleImport

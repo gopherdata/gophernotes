@@ -200,11 +200,19 @@ $ docker run -it -p 8888:8888 -v /path/to/local/notebooks:/path/to/notebooks/in/
 
 - Have fun!
 
+## Special commands
+
+In addition to Go code, the following special commands are also supported - they must be on a line by their own:
+- %cd [path]
+- %go111module {on|off}
+- %help
+- $ shell_command [args...]
+
 ## Limitations
 
 gophernotes uses [gomacro](https://github.com/cosmos72/gomacro) under the hood to evaluate Go code interactively. You can evaluate most any Go code with gomacro, but there are some limitations, which are discussed in further detail [here](https://github.com/cosmos72/gomacro#current-status).  Most notably, gophernotes does NOT support:
 
-- third party packages when running natively on Windows - This is a current limitation of the Go `plugin` package.
+- importing third party packages when running natively on Windows - This is a current limitation of the Go `plugin` package.
 - some corner cases on interpreted interfaces, as interface -&gt; interface type switch and type assertion, are not implemented yet.
 - some corner cases on recursive types may not work correctly.
 - conversion from typed constant to interpreted interface is not implemented. Workaround: assign the constant to a variable, then convert the variable to the interpreted interface type.
