@@ -18,7 +18,6 @@ import (
 	"time"
 
 	"github.com/go-zeromq/zmq4"
-	"golang.org/x/xerrors"
 
 	"github.com/cosmos72/gomacro/ast2"
 	"github.com/cosmos72/gomacro/base"
@@ -285,27 +284,27 @@ func prepareSockets(connInfo ConnectionInfo) (SocketGroup, error) {
 	address := fmt.Sprintf("%v://%v:%%v", connInfo.Transport, connInfo.IP)
 	err = sg.ShellSocket.Socket.Listen(fmt.Sprintf(address, connInfo.ShellPort))
 	if err != nil {
-		return sg, xerrors.Errorf("could not listen on shell-socket: %w", err)
+		return sg, fmt.Errorf("could not listen on shell-socket: %w", err)
 	}
 
 	err = sg.ControlSocket.Socket.Listen(fmt.Sprintf(address, connInfo.ControlPort))
 	if err != nil {
-		return sg, xerrors.Errorf("could not listen on control-socket: %w", err)
+		return sg, fmt.Errorf("could not listen on control-socket: %w", err)
 	}
 
 	err = sg.StdinSocket.Socket.Listen(fmt.Sprintf(address, connInfo.StdinPort))
 	if err != nil {
-		return sg, xerrors.Errorf("could not listen on stdin-socket: %w", err)
+		return sg, fmt.Errorf("could not listen on stdin-socket: %w", err)
 	}
 
 	err = sg.IOPubSocket.Socket.Listen(fmt.Sprintf(address, connInfo.IOPubPort))
 	if err != nil {
-		return sg, xerrors.Errorf("could not listen on iopub-socket: %w", err)
+		return sg, fmt.Errorf("could not listen on iopub-socket: %w", err)
 	}
 
 	err = sg.HBSocket.Socket.Listen(fmt.Sprintf(address, connInfo.HBPort))
 	if err != nil {
-		return sg, xerrors.Errorf("could not listen on hbeat-socket: %w", err)
+		return sg, fmt.Errorf("could not listen on hbeat-socket: %w", err)
 	}
 
 	// Set the message signing key.
