@@ -755,7 +755,7 @@ $ls -l
 			panic(fmt.Errorf("special command %s: expecting a single argument 'on' or 'off', found: %q", cmd, arg))
 		}
 	case "%help":
-		fmt.Fprint(outerr.out, help)
+		outerr.out.Write([]byte(help))
 	default:
 		panic(fmt.Errorf("unknown special command: %q\n%s", line, help))
 	}
