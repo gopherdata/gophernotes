@@ -1,4 +1,4 @@
-FROM alpine:3.5
+FROM alpine:3.15
 MAINTAINER dwhitena
 
 # Add gophernotes
@@ -9,30 +9,32 @@ RUN set -x \
     # install python and dependencies
     && apk update \
     && apk --no-cache \
-        --repository http://dl-4.alpinelinux.org/alpine/v3.7/community \
-        --repository http://dl-4.alpinelinux.org/alpine/v3.7/main \
+        --repository http://dl-4.alpinelinux.org/alpine/v3.15/community \
+        --repository http://dl-4.alpinelinux.org/alpine/v3.15/main \
         --arch=x86_64 add \
         ca-certificates \
-        python3 \
-        su-exec \
+        g++ \
         gcc \
         git \
-        py3-zmq \
+        libffi-dev \
         pkgconfig \
-        zeromq-dev \
+        python3 python3-dev \
+        py3-pip \
+        py3-pyzmq \
+        mercurial \
+        mesa-dev \
         musl-dev \
-    && pip3 install --upgrade pip==9.0.3 \
-    && ln -s /usr/bin/python3.6 /usr/bin/python \
+        su-exec \
+        zeromq-dev \
+    && pip3 install --upgrade pip==21.3.1 \
+    && ln -s /usr/bin/python3.9 /usr/bin/python \
     ## install Go
-    && apk --update-cache --allow-untrusted \
-        --repository http://dl-4.alpinelinux.org/alpine/edge/community \
+    && apk --update-cache \
         --arch=x86_64 add \
         go \
     ## jupyter notebook
     && ln -s /usr/include/locale.h /usr/include/xlocale.h \
-    ### fix pyzmq to v16.0.2 as that is what is distributed with py3-zmq
-    ### pin down the tornado and ipykernel to compatible versions
-    && pip3 install jupyter notebook pyzmq==16.0.2 tornado==4.5.3 ipykernel==4.8.1 \
+    && pip3 install jupyter notebook pyzmq tornado ipykernel \
     ## install gophernotes
     && cd /go/src/github.com/gopherdata/gophernotes \
     && GOPATH=/go GO111MODULE=on go install . \
@@ -41,7 +43,7 @@ RUN set -x \
     && cp -r ./kernel/* ~/.local/share/jupyter/kernels/gophernotes \
     && cd - \
     ## clean
-    && find /usr/lib/python3.6 -name __pycache__ | xargs rm -r \
+    && find /usr/lib/python3.9 -name __pycache__ | xargs rm -r \
     && rm -rf \
         /root/.[acpw]* \
         ipaexg00301* \
