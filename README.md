@@ -75,7 +75,7 @@ To confirm that the `gophernotes` binary is installed in GOPATH, execute it dire
 ```sh
 $ "$(go env GOPATH)"/bin/gophernotes
 ```
-and you shoud see the following:
+and you should see the following:
 ```sh
 2017/09/20 10:33:12 Need a command line argument specifying the connection file.
 ```
@@ -116,7 +116,7 @@ To confirm that the `gophernotes` binary is installed in GOPATH, execute it dire
 ```sh
 $ "$(go env GOPATH)"/bin/gophernotes
 ```
-and you shoud see the following:
+and you should see the following:
 ```sh
 2017/09/20 10:33:12 Need a command line argument specifying the connection file.
 ```
