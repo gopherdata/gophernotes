@@ -135,10 +135,7 @@ func runKernel(connectionFile string) {
 
 	// Inject the "display" package to render HTML, JSON, PNG, JPEG, SVG... from interpreted code
 	// maybe a dot-import is easier to use?
-	display, err := ir.Comp.ImportPackageOrError("display", "display")
-	if err != nil {
-		log.Print(err)
-	}
+	display := importPackage(ir, "display", "display")
 
 	// Inject the stub "Display" function. declare a variable
 	// instead of a function, because we want to later change
@@ -243,6 +240,17 @@ func runKernel(connectionFile string) {
 			kernel.handleShellMsg(msgReceipt{msg, ids, sockets})
 		}
 	}
+}
+
+func importPackage(ir *interp.Interp, path string, alias string) *interp.Import {
+	packages, err := ir.ImportPackagesOrError(
+		map[string]interp.PackageName{
+			path: interp.PackageName(alias),
+		})
+	if err != nil {
+		log.Print(err)
+	}
+	return packages[path]
 }
 
 // prepareSockets sets up the ZMQ sockets through which the kernel
