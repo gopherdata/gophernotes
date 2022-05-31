@@ -54,7 +54,7 @@ Method 1: quick installation as module
 $ env GO111MODULE=on go get github.com/gopherdata/gophernotes
 $ mkdir -p ~/.local/share/jupyter/kernels/gophernotes
 $ cd ~/.local/share/jupyter/kernels/gophernotes
-$ cp "$(go env GOPATH)"/pkg/mod/github.com/gopherdata/gophernotes@v0.7.4/kernel/*  "."
+$ cp "$(go env GOPATH)"/pkg/mod/github.com/gopherdata/gophernotes@v0.7.5/kernel/*  "."
 $ chmod +w ./kernel.json # in case copied kernel.json has no write permission
 $ sed "s|gophernotes|$(go env GOPATH)/bin/gophernotes|" < kernel.json.in > kernel.json
 ```
@@ -95,7 +95,7 @@ Method 1: quick installation as module
 $ env GO111MODULE=on go get github.com/gopherdata/gophernotes
 $ mkdir -p ~/Library/Jupyter/kernels/gophernotes
 $ cd ~/Library/Jupyter/kernels/gophernotes
-$ cp "$(go env GOPATH)"/pkg/mod/github.com/gopherdata/gophernotes@v0.7.4/kernel/*  "."
+$ cp "$(go env GOPATH)"/pkg/mod/github.com/gopherdata/gophernotes@v0.7.5/kernel/*  "."
 $ chmod +w ./kernel.json # in case copied kernel.json has no write permission
 $ sed "s|gophernotes|$(go env GOPATH)/bin/gophernotes|" < kernel.json.in > kernel.json
 ```
