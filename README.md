@@ -51,29 +51,32 @@ The instructions below should work both on Linux and on FreeBSD.
 
 Method 1: quick installation as module
 ```sh
-$ env GO111MODULE=on go get github.com/gopherdata/gophernotes
-$ mkdir -p ~/.local/share/jupyter/kernels/gophernotes
-$ cd ~/.local/share/jupyter/kernels/gophernotes
-$ cp "$(go env GOPATH)"/pkg/mod/github.com/gopherdata/gophernotes@v0.7.5/kernel/*  "."
-$ chmod +w ./kernel.json # in case copied kernel.json has no write permission
-$ sed "s|gophernotes|$(go env GOPATH)/bin/gophernotes|" < kernel.json.in > kernel.json
+  env GO111MODULE=on go install github.com/gopherdata/gophernotes@v0.7.5
+  mkdir -p ~/.local/share/jupyter/kernels/gophernotes
+  cd ~/.local/share/jupyter/kernels/gophernotes
+  cp "$(go env GOPATH)"/pkg/mod/github.com/gopherdata/gophernotes@v0.7.5/kernel/*  "."
+  chmod +w ./kernel.json # in case copied kernel.json has no write permission
+  sed "s|gophernotes|$(go env GOPATH)/bin/gophernotes|" < kernel.json.in > kernel.json
 ```
 
 Method 2: manual installation from GOPATH
 ```sh
-$ env GO111MODULE=off go get -d -u github.com/gopherdata/gophernotes
-$ cd "$(go env GOPATH)"/src/github.com/gopherdata/gophernotes
-$ env GO111MODULE=on go install
-$ mkdir -p ~/.local/share/jupyter/kernels/gophernotes
-$ cp kernel/* ~/.local/share/jupyter/kernels/gophernotes
-$ cd ~/.local/share/jupyter/kernels/gophernotes
-$ chmod +w ./kernel.json # in case copied kernel.json has no write permission
-$ sed "s|gophernotes|$(go env GOPATH)/bin/gophernotes|" < kernel.json.in > kernel.json
+  mkdir -p "$(go env GOPATH)"/src/github.com/gopherdata
+  cd "$(go env GOPATH)"/src/github.com/gopherdata
+  git clone https://github.com/gopherdata/gophernotes
+  cd gophernotes
+  git checkout -f v0.7.5
+  env GO111MODULE=on go install
+  mkdir -p ~/.local/share/jupyter/kernels/gophernotes
+  cp kernel/* ~/.local/share/jupyter/kernels/gophernotes
+  cd ~/.local/share/jupyter/kernels/gophernotes
+  chmod +w ./kernel.json # in case copied kernel.json has no write permission
+  sed "s|gophernotes|$(go env GOPATH)/bin/gophernotes|" < kernel.json.in > kernel.json
 ```
 
 To confirm that the `gophernotes` binary is installed in GOPATH, execute it directly:
 ```sh
-$ "$(go env GOPATH)"/bin/gophernotes
+  "$(go env GOPATH)"/bin/gophernotes
 ```
 and you should see the following:
 ```sh
@@ -83,7 +86,7 @@ and you should see the following:
 **Note** - if you have the `JUPYTER_PATH` environmental variable set or if you are using an older version of Jupyter, you may need to copy this kernel config to another directory.  You can check which directories will be searched by executing:
 
 ```sh
-$ jupyter --data-dir
+  jupyter --data-dir
 ```
 
 ### Mac
@@ -92,29 +95,32 @@ $ jupyter --data-dir
 
 Method 1: quick installation as module
 ```sh
-$ env GO111MODULE=on go get github.com/gopherdata/gophernotes
-$ mkdir -p ~/Library/Jupyter/kernels/gophernotes
-$ cd ~/Library/Jupyter/kernels/gophernotes
-$ cp "$(go env GOPATH)"/pkg/mod/github.com/gopherdata/gophernotes@v0.7.5/kernel/*  "."
-$ chmod +w ./kernel.json # in case copied kernel.json has no write permission
-$ sed "s|gophernotes|$(go env GOPATH)/bin/gophernotes|" < kernel.json.in > kernel.json
+  env GO111MODULE=on go install github.com/gopherdata/gophernotes@v0.7.5
+  mkdir -p ~/Library/Jupyter/kernels/gophernotes
+  cd ~/Library/Jupyter/kernels/gophernotes
+  cp "$(go env GOPATH)"/pkg/mod/github.com/gopherdata/gophernotes@v0.7.5/kernel/*  "."
+  chmod +w ./kernel.json # in case copied kernel.json has no write permission
+  sed "s|gophernotes|$(go env GOPATH)/bin/gophernotes|" < kernel.json.in > kernel.json
 ```
 
 Method 2: manual installation from GOPATH
 ```sh
-$ env GO111MODULE=off go get -d -u github.com/gopherdata/gophernotes
-$ cd "$(go env GOPATH)"/src/github.com/gopherdata/gophernotes
-$ env GO111MODULE=on go install
-$ mkdir -p ~/Library/Jupyter/kernels/gophernotes
-$ cp kernel/* ~/Library/Jupyter/kernels/gophernotes
-$ cd ~/Library/Jupyter/kernels/gophernotes
-$ chmod +w ./kernel.json # in case copied kernel.json has no write permission
-$ sed "s|gophernotes|$(go env GOPATH)/bin/gophernotes|" < kernel.json.in > kernel.json
+  mkdir -p "$(go env GOPATH)"/src/github.com/gopherdata
+  cd "$(go env GOPATH)"/src/github.com/gopherdata
+  git clone https://github.com/gopherdata/gophernotes
+  cd gophernotes
+  git checkout -f v0.7.5
+  env GO111MODULE=on go install
+  mkdir -p ~/Library/Jupyter/kernels/gophernotes
+  cp kernel/* ~/Library/Jupyter/kernels/gophernotes
+  cd ~/Library/Jupyter/kernels/gophernotes
+  chmod +w ./kernel.json # in case copied kernel.json has no write permission
+  sed "s|gophernotes|$(go env GOPATH)/bin/gophernotes|" < kernel.json.in > kernel.json
 ```
 
 To confirm that the `gophernotes` binary is installed in GOPATH, execute it directly:
 ```sh
-$ "$(go env GOPATH)"/bin/gophernotes
+  "$(go env GOPATH)"/bin/gophernotes
 ```
 and you should see the following:
 ```sh
@@ -124,14 +130,28 @@ and you should see the following:
 **Note** - if you have the `JUPYTER_PATH` environmental variable set or if you are using an older version of Jupyter, you may need to copy this kernel config to another directory.  You can check which directories will be searched by executing:
 
 ```sh
-$ jupyter --data-dir
+  jupyter --data-dir
 ```
 
 ### Windows
 
 **Important Note** - gomacro relies on the `plugin` package when importing third party libraries.  This package is only supported on Linux and Mac OS X currently.  Thus, if you need to utilize third party packages in your Go notebooks and you are running on Windows, you should use the [Docker](#docker) install and run gophernotes/Jupyter in Docker.
 
-1. Copy the kernel config:
+1. Download gophernotes inside GOPATH, compile and install it
+
+    ```
+    go env GOPATH > temp.txt
+    set /p GOPATH=<temp.txt
+    mkdir %GOPATH%\src\github.com\gopherdata
+    cd /d %GOPATH%\src\github.com\gopherdata
+    git clone https://github.com/gopherdata/gophernotes
+    cd gophernotes
+    git checkout -f v0.7.5
+    set GO111MODULE=on
+    go install
+    ```
+
+2. Copy the kernel config:
 
     ```
     mkdir %APPDATA%\jupyter\kernels\gophernotes
@@ -144,7 +164,7 @@ $ jupyter --data-dir
     jupyter --data-dir
     ```
 
-2. Update `%APPDATA%\jupyter\kernels\gophernotes\kernel.json` with the FULL PATH to your gophernotes.exe (in %GOPATH%\bin), unless it's already on the PATH.  For example:
+3. Update `%APPDATA%\jupyter\kernels\gophernotes\kernel.json` with the FULL PATH to your gophernotes.exe (usually in %GOPATH%\bin).  For example:
 
     ```
     {
@@ -163,19 +183,19 @@ $ jupyter --data-dir
 You can try out or run Jupyter + gophernotes without installing anything using Docker. To run a Go notebook that only needs things from the standard library, run:
 
 ```
-$ docker run -it -p 8888:8888 gopherdata/gophernotes
+  docker run -it -p 8888:8888 gopherdata/gophernotes
 ```
 
 Or to run a Go notebook with access to common Go data science packages (gonum, gota, golearn, etc.), run:
 
 ```
-$ docker run -it -p 8888:8888 gopherdata/gophernotes:latest-ds
+  docker run -it -p 8888:8888 gopherdata/gophernotes:latest-ds
 ```
 
 In either case, running this command should output a link that you can follow to access Jupyter in a browser. Also, to save notebooks to and/or load notebooks from a location outside of the Docker image, you should utilize a volume mount.  For example:
 
 ```
-$ docker run -it -p 8888:8888 -v /path/to/local/notebooks:/path/to/notebooks/in/docker gopherdata/gophernotes
+  docker run -it -p 8888:8888 -v /path/to/local/notebooks:/path/to/notebooks/in/docker gopherdata/gophernotes
 ```
 
 ## Getting Started

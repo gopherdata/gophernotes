@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"go/ast"
 	"io"
 	"io/ioutil"
 	"log"
@@ -575,45 +574,19 @@ func doEval(ir *interp.Interp, outerr OutErr, code string) (val []interface{}, t
 		return nil, nil, nil
 	}
 
-	// Check if the last node is an expression. If the last node is not an expression then nothing
-	// is returned as a value. For example evaluating a function declaration shouldn't return a value but
-	// just have the side effect of declaring the function.
-	//
-	// This is actually needed only for gomacro classic interpreter
-	// (the fast interpreter already returns values only for expressions)
-	// but retained for compatibility.
-	var srcEndsWithExpr bool
-	if len(nodes) > 0 {
-		_, srcEndsWithExpr = nodes[len(nodes)-1].(ast.Expr)
-	}
-
 	// Compile the ast.
 	compiledSrc := ir.CompileAst(srcAst)
 
 	// Evaluate the code.
 	results, types := ir.RunExpr(compiledSrc)
 
-	// If the source ends with an expression, then the result of the execution is the value of the expression. In the
-	// event that all return values are nil, the result is also nil.
-	if srcEndsWithExpr {
-
-		// Count the number of non-nil values in the output. If they are all nil then the output is skipped.
-		nonNilCount := 0
-		values := make([]interface{}, len(results))
-		for i, result := range results {
-			val := basereflect.ValueInterface(result)
-			if val != nil {
-				nonNilCount++
-			}
-			values[i] = val
-		}
-
-		if nonNilCount > 0 {
-			return values, types, nil
-		}
+	// Convert results from xreflect.Value to interface{}
+	values := make([]interface{}, len(results))
+	for i, result := range results {
+		values[i] = basereflect.ValueInterface(result)
 	}
 
-	return nil, nil, nil
+	return values, types, nil
 }
 
 // handleShutdownRequest sends a "shutdown" message.
