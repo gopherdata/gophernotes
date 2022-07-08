@@ -130,7 +130,18 @@ func (kernel *Kernel) autoRenderResults(vals []interface{}, types []xreflect.Typ
 		// if all values are nil, return empty Data
 		return Data{}
 	}
-	return MakeData(MIMETypeText, fmt.Sprint(vals...))
+	return MakeData(MIMETypeText, anyToString(vals...))
+}
+
+func anyToString(vals ...interface{}) string {
+	var buf strings.Builder
+	for i, val := range vals {
+		if i != 0 {
+			buf.WriteByte(' ')
+		}
+		fmt.Fprint(&buf, val)
+	}
+	return buf.String()
 }
 
 // return true if data type should be auto-rendered graphically
