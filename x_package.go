@@ -80,6 +80,9 @@ func (P *proxy_HTMLer) HTML() string {
 	return P.HTML_(P.Object)
 }
 
+// compile-time check that *proxy_HTMLer implements HTMLer
+var _ HTMLer = (*proxy_HTMLer)(nil)
+
 // --------------- proxy for display.JPEGer ---------------
 type proxy_JPEGer struct {
 	Object interface{}
@@ -90,15 +93,21 @@ func (P *proxy_JPEGer) JPEG() []byte {
 	return P.JPEG_(P.Object)
 }
 
+// compile-time check that *proxy_JPEGer implements JPEGer
+var _ JPEGer = (*proxy_JPEGer)(nil)
+
 // --------------- proxy for display.JSONer ---------------
 type proxy_JSONer struct {
 	Object interface{}
-	JSON_  func(interface{}) string
+	JSON_  func(interface{}) map[string]interface{}
 }
 
-func (P *proxy_JSONer) JSON() string {
+func (P *proxy_JSONer) JSON() map[string]interface{} {
 	return P.JSON_(P.Object)
 }
+
+// compile-time check that *proxy_JSONer implements JSONer
+var _ JSONer = (*proxy_JSONer)(nil)
 
 // --------------- proxy for display.Latexer ---------------
 type proxy_Latexer struct {
@@ -110,6 +119,9 @@ func (P *proxy_Latexer) Latex() string {
 	return P.Latex_(P.Object)
 }
 
+// compile-time check that *proxy_Latexer implements Latexer
+var _ Latexer = (*proxy_Latexer)(nil)
+
 // --------------- proxy for display.Markdowner ---------------
 type proxy_Markdowner struct {
 	Object    interface{}
@@ -119,6 +131,9 @@ type proxy_Markdowner struct {
 func (P *proxy_Markdowner) Markdown() string {
 	return P.Markdown_(P.Object)
 }
+
+// compile-time check that *proxy_Markdowner implements Markdowner
+var _ Markdowner = (*proxy_Markdowner)(nil)
 
 // --------------- proxy for display.PNGer ---------------
 type proxy_PNGer struct {
@@ -130,6 +145,9 @@ func (P *proxy_PNGer) PNG() []byte {
 	return P.PNG_(P.Object)
 }
 
+// compile-time check that *proxy_PNGer implements PNGer
+var _ PNGer = (*proxy_PNGer)(nil)
+
 // --------------- proxy for display.PDFer ---------------
 type proxy_PDFer struct {
 	Object interface{}
@@ -139,6 +157,9 @@ type proxy_PDFer struct {
 func (P *proxy_PDFer) PDF() []byte {
 	return P.PDF_(P.Object)
 }
+
+// compile-time check that *proxy_PNGer implements PNGer
+var _ PNGer = (*proxy_PNGer)(nil)
 
 // --------------- proxy for display.Renderer ---------------
 type proxy_Renderer struct {
@@ -150,6 +171,9 @@ func (P *proxy_Renderer) Render() Data {
 	return P.Render_(P.Object)
 }
 
+// compile-time check that *proxy_Renderer implements Renderer
+var _ Renderer = (*proxy_Renderer)(nil)
+
 // --------------- proxy for display.SimpleRenderer ---------------
 type proxy_SimpleRenderer struct {
 	Object        interface{}
@@ -160,6 +184,9 @@ func (P *proxy_SimpleRenderer) SimpleRender() MIMEMap {
 	return P.SimpleRender_(P.Object)
 }
 
+// compile-time check that *proxy_SimpleRenderer implements SimpleRenderer
+var _ SimpleRenderer = (*proxy_SimpleRenderer)(nil)
+
 // --------------- proxy for display.SVGer ---------------
 type proxy_SVGer struct {
 	Object interface{}
@@ -169,6 +196,9 @@ type proxy_SVGer struct {
 func (P *proxy_SVGer) SVG() string {
 	return P.SVG_(P.Object)
 }
+
+// compile-time check that *proxy_SVGer implements SVGer
+var _ SVGer = (*proxy_SVGer)(nil)
 
 // --------------- proxy for image.Image ---------------
 type proxy_image_Image struct {
@@ -187,6 +217,9 @@ func (P *proxy_image_Image) Bounds() image.Rectangle {
 func (P *proxy_image_Image) ColorModel() color.Model {
 	return P.ColorModel_(P.Object)
 }
+
+// compile-time check that *proxy_image_Image implements image.Image
+var _ image.Image = (*proxy_image_Image)(nil)
 
 // --------------------------------------------------------
 // allow importing "display" and "github.com/gopherdata/gophernotes" packages
