@@ -51,7 +51,7 @@ The instructions below should work both on Linux and on FreeBSD.
 
 Method 1: quick installation as module
 ```sh
-  env GO111MODULE=on go install github.com/gopherdata/gophernotes@v0.7.5
+  go install github.com/gopherdata/gophernotes@v0.7.5
   mkdir -p ~/.local/share/jupyter/kernels/gophernotes
   cd ~/.local/share/jupyter/kernels/gophernotes
   cp "$(go env GOPATH)"/pkg/mod/github.com/gopherdata/gophernotes@v0.7.5/kernel/*  "."
@@ -66,7 +66,7 @@ Method 2: manual installation from GOPATH
   git clone https://github.com/gopherdata/gophernotes
   cd gophernotes
   git checkout -f v0.7.5
-  env GO111MODULE=on go install
+  go install
   mkdir -p ~/.local/share/jupyter/kernels/gophernotes
   cp kernel/* ~/.local/share/jupyter/kernels/gophernotes
   cd ~/.local/share/jupyter/kernels/gophernotes
@@ -95,7 +95,7 @@ and you should see the following:
 
 Method 1: quick installation as module
 ```sh
-  env GO111MODULE=on go install github.com/gopherdata/gophernotes@v0.7.5
+  go install github.com/gopherdata/gophernotes@v0.7.5
   mkdir -p ~/Library/Jupyter/kernels/gophernotes
   cd ~/Library/Jupyter/kernels/gophernotes
   cp "$(go env GOPATH)"/pkg/mod/github.com/gopherdata/gophernotes@v0.7.5/kernel/*  "."
@@ -110,7 +110,7 @@ Method 2: manual installation from GOPATH
   git clone https://github.com/gopherdata/gophernotes
   cd gophernotes
   git checkout -f v0.7.5
-  env GO111MODULE=on go install
+  go install
   mkdir -p ~/Library/Jupyter/kernels/gophernotes
   cp kernel/* ~/Library/Jupyter/kernels/gophernotes
   cd ~/Library/Jupyter/kernels/gophernotes
@@ -147,7 +147,6 @@ and you should see the following:
     git clone https://github.com/gopherdata/gophernotes
     cd gophernotes
     git checkout -f v0.7.5
-    set GO111MODULE=on
     go install
     ```
 
