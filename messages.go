@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/go-zeromq/zmq4"
-	"github.com/gofrs/uuid"
+	uuid "github.com/gofrs/uuid/v5"
 )
 
 // MsgHeader encodes header info for ZMQ messages.
